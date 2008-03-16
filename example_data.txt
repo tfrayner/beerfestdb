@@ -1,0 +1,144 @@
+"bar_description"	"brewer_name"	"beer_name"	"gyle_abv"	"beer_style"	"num_kils"	"cask_size"	"distributor_name"	"cask_comment"	"cask_price"	"festival_year"
+"Cambridge"	"Cambridge Moonshine"	"Blue Watch"	"?"	"?"	4	"9s"	"Cambridge Moonshine"			2005
+"Cambridge"	"Cambridge Moonshine"	"Mulberry Whale"	3.90%	"Bitter"	6	"9s"	"Cambridge Moonshine"			2005
+"Cambridge"	"Cambridge Moonshine"	"Red Watch"	"?"	"?"	4	"9s"	"Cambridge Moonshine"			2005
+"Cambridge"	"City of Cambridge"	"Boathouse Bitter"	3.80%	"Bitter"	3	"18s"	"City of Cambridge"		126.36	2005
+"Cambridge"	"City of Cambridge"	"Flamin' Ale"	4.10%	"Best Bitter"	4	"18s"	"City of Cambridge"			2005
+"Cambridge"	"City of Cambridge"	"Jet Black"	3.70%	"Mild"	4	"9s"	"City of Cambridge"		123.66	2005
+"Cambridge"	"City of Cambridge"	"Parkers Porter"	5.30%	"Porter"	3	"18s"	"City of Cambridge"		153.6	2005
+"Cambridge"	"Elgoods"	"Black Dog"	3.70%	"Mild"	4	"9s"	"Elgoods"		128.16	2005
+"Cambridge"	"Elgoods"	"Cambridge Bitter"	3.60%	"Bitter"	3	"18s"	"Elgoods"		131.04	2005
+"Cambridge"	"Elgoods"	"Station Officers Folly"	"?"	"?"	4	"18s"	"Elgoods"			2005
+"Cambridge"	"Elgoods"	"Winter warmer"	7.30%	"Strong"	3	"18s"	"Elgoods"			2005
+"Cambridge"	"Fenland"	"Babylon banks"	4.10%	"Best Bitter"	3	"9s"	"Fenland"		116	2005
+"Cambridge"	"Fenland"	"Skullion Porter"	4.60%	"Porter"	4	"9s"	"Fenland"			2005
+"Cambridge"	"Fenland"	"Sparkling Wit"	4.20%	"Wheat"	3	"9s"	"Fenland"		124	2005
+"Cambridge"	"Fenland"	"St Audreys"	3.80%	"Bitter"	3	"9s"	"Fenland"		112	2005
+"Cambridge"	"Hereward"	"Porta Porter"	4.20%	"Porter"	1.5	"9s"	"Hereward"			2005
+"Cambridge"	"Hereward"	"St Ethelreda's"	4.00%	"Bitter"	1.5	"9s"	"Hereward"			2005
+"Cambridge"	"Milton"	"Byblos"	6.00%	"Stout"	4	"18s"	"Milton"			2005
+"Cambridge"	"Milton"	"Cyclops"	5.30%	"Strong"	3	"18s"	"Milton"		142	2005
+"Cambridge"	"Milton"	"Minotour"	3.30%	"Mild"	4	"9s"	"Milton"		104	2005
+"Cambridge"	"Milton"	"Pegasus"	4.20%	"Best Bitter"	3	"18s"	"Milton"		120	2005
+"Cambridge"	"Oakham"	"Harlequin"	4.90%	"Premium"	3	"18s"	"Oakham"			2005
+"Cambridge"	"Oakham"	"Inferno"	4.00%	"Best Bitter"	4	"18s"	"Oakham"			2005
+"Cambridge"	"Oakham"	"JHB"	3.80%	"Bitter"	4	"18s"	"Oakham"		94	2005
+"Cambridge"	"Oakham"	"White Dwarf"	4.30%	"Wheat"	3	"18s"	"Oakham"		104	2005
+"Cambridge"	"Ufford Ales"	"A N Other"	"?"	"?"	3	"18s"	"Ufford Ales"			2005
+"Cambridge"	"Ufford Ales"	"New Found Glory"	3.90%	"Bitter"	3	"18s"	"Ufford Ales"			2005
+"East Anglia"	"Adnams"	"Explorer"	4.30%	"Best Bitter"	3	"18s"	"Adnams"			2005
+"East Anglia"	"Adnams"	"Flagship"	4.30%	"Premium"	3	"18s"	"Adnams"			2005
+"East Anglia"	"B & T"	"Black Dragon Mild"	4.30%	"Mild"	1.5	"9s"	"B & T"		145	2005
+"East Anglia"	"B & T"	"Dragonslayer"	4.50%	"Premium"	3	"18s"	"B & T"		147	2005
+"East Anglia"	"Banfield/Buntingford"	"Doubting Thomas"	5.50%	"Stout"	3	"18s"	"Banfield/Buntingford"			2005
+"East Anglia"	"Chalk Hill"	"Flintknappers Mild"	5.00%	"Mild"	3	"18s"	"Chalk Hill"			2005
+"East Anglia"	"Charles Wells"	"Bombadier"	4.20%	"Best Bitter"	3	"18s"	"Charles Wells"			2005
+"East Anglia"	"Collingwood"	"Rustet Pale"	4.70%	"Strong"	3	"18s"	"Collingwood"		100	2005
+"East Anglia"	"Cox & Holbrook"	"Stormwatch"	5.00%	"Strong"	3	"18s"	"Cox & Holbrook"		100	2005
+"East Anglia"	"Crouch Vale"	"Anchor Street Porter"	4.90%	"Porter"	3	"18s"	"Crouch Vale"		152.22	2005
+"East Anglia"	"Crouch Vale"	"Essex Boys"	3.50%	"Bitter"	3	"18s"	"Crouch Vale"		123.8	2005
+"East Anglia"	"Felstar"	"Forest Mild"	4.00%	"Mild"	1.5	"9s"	"Felstar"		82	2005
+"East Anglia"	"Fox"	"Red Knocker"	4.20%	"Best Bitter"	3	"18s"	"Fox"			2005
+"East Anglia"	"Green Jack"	"Canary"	3.80%	"Bitter"	3	"18s"	"Green Jack"			2005
+"East Anglia"	"Greene King"	"A N Other"	"?"	"?"	3	"18s"	"Greene King"			2005
+"East Anglia"	"Greene King"	"IPA"	3.60%	"Bitter"	3	"18s"	"Greene King"			2005
+"East Anglia"	"Iceni"	"Cranberry Wheat"	4.00%	"Wheat"	3	"18s"	"Iceni"		128	2005
+"East Anglia"	"Iceni"	"Norfolk lager"	5.00%	"Lager"	3	"18s"	"Iceni"			2005
+"East Anglia"	"Iceni"	"raspberry Wheat"	5.00%	"Wheat"	3	"18s"	"Iceni"		142	2005
+"East Anglia"	"Kings Head"	"J J Lemon Ale"	5.00%	"Speciality"	3	"18s"	"Kings Head"			2005
+"East Anglia"	"Mauldon"	"Micawbers Mild"	3.50%	"Fruit"	1.5	"9s"	"Mauldon"		124.22	2005
+"East Anglia"	"Old Cannon"	"Mild"	3.50%	"Mild"	1.5	"9s"	"Old Cannon"			2005
+"East Anglia"	"Old Stables"	"Blaize"	4.50%	"Best Bitter"	3	"18s"	"Old Stables"			2005
+"East Anglia"	"Oulton"	"Roaring Boy"	8.50%	"Barley Wine"	3	"18s"	"Oulton"			2005
+"East Anglia"	"Potton"	"Bunny Hops"	4.10%	"Best Bitter"	3	"18s"	"Potton"		126	2005
+"East Anglia"	"Potton"	"Shannon IPA"	3.60%	"Bitter"	3	"18s"	"Potton"		125.68	2005
+"East Anglia"	"Ridleys"	" Tolly Original"	4.00%	"Bitter"	3	"18s"	"Ridleys"			2005
+"East Anglia"	"Ridleys"	"Old Bob"	5.10%	"Strong"	3	"18s"	"Ridleys"			2005
+"East Anglia"	"Spectrum"	"Black Buffle Stout"	4.50%	"Stout"	3	"18s"	"Spectrum"			2005
+"East Anglia"	"St Peters"	"Old Styled Porter"	5.10%	"Porter"	3	"18s"	"St Peters"			2005
+"East Anglia"	"Tipples"	"Longshore"	3.60%	"Bitter"	3	"18s"	"Tipples"		106	2005
+"East Anglia"	"Winters"	"Golden"	4.20%	"Best Bitter"	3	"18s"	"Winters"		134	2005
+"East Anglia"	"Wissey Valley"	"Capt Grumpys Best"	3.80%	"Bitter"	3	"18s"	"Wissey Valley"		106	2005
+"East Anglia"	"Wissey Valley"	"Peachy Ale"	4.50%	"Fruit"	4	"18s"	"Wissey Valley"			2005
+"East Anglia"	"Wolf "	"Golden Jackel"	3.70%	"Bitter"	3	"18s"	"Wolf "			2005
+"East Anglia"	"Woodforde's"	"Nelsons Revenge"	4.50%	"Premium"	3	"18s"	"Woodforde's"			2005
+"East Anglia"	"Woodforde's"	"Wherry"	3.70%	"Bitter"	4	"18s"	"Woodforde's"		137.16	2005
+"North"	"Acorn"	"Old Moor Porter"	4.40%	"Porter"	3	"18s"	"Boggart"		109	2005
+"North"	"All Nations"	"Darbley Ale"	3.80%	"Bitter"	3	"18s"	"Boggart"			2005
+"North"	"Anglo Dutch"	"tabatha the Knackered"	6.00%	"Speciality"	3	"18s"	"High spirits"		166	2005
+"North"	"Batemans"	"Miss Saucy"	4.50%	"premium"	3	"18s"	"Direct"			2005
+"North"	"Beartown"	"Wheat Beer"	5.00%	"Wheat"	3	"18s"	"Small beer"		144	2005
+"North"	"Belhaven"	"Fruit Beer"	4.60%	"Fruit"	3	"18s"	"Small Beer"			2005
+"North"	"Boggart Hole Clough"	"Down the Pole"	4.30%	"Best Bitter"	3	"18s"	"Boggart"			2005
+"North"	"Breconshire"	"Golden Valley"	4.20%	"Best Bitter"	3	"18s"	"Breconshire"			2005
+"North"	"Brunswick"	"Watch Ale"	4.50%	"Premium"	3	"18s"	"Everards"		116	2005
+"North"	"Cairngorm"	"Tradewinds"	4.30%	"Speciality"	3	"18s"	"Small Beer"			2005
+"North"	"Enville"	"Chainmaker Mild"	3.60%	"Mild"	1.5	"9s"	"Breconshire"			2005
+"North"	"Enville"	"Saaz"	4.20%	"Lager"	3	"18s"	"Breconshire"			2005
+"North"	"Everards"	"Sunchaser"	4.00%	"Best Bitter"	3.2	"22s"	"Everards"			2005
+"North"	"Everards"	"Tiger"	4.20%	"Best Bitter"	3.2	"22s"	"Everards"			2005
+"North"	"Fowlers"	"IPA"	"?"	"Premium"	3	"18s"	"Boggart"			2005
+"North"	"Hambleton"	"Nightmare Porter"	5.00%	"Porter"	3	"18s"	"East West"			2005
+"North"	"Holdens"	"Mild"	3.70%	"Mild"	1.5	"18s"	"Breconshire"			2005
+"North"	"Holdens"	"Will 'O' Wisp"	4.70%	"Premium"	3	"18s"	"Breconshire"			2005
+"North"	"Hop Star"	"Uncle Joe's Black beer"	4.00%	"Porter"	1.5	"9s"	"Boggart"			2005
+"North"	"John Roberts"	"XXX"	4.30%	"Best Bitter"	3	"18s"	"Breconshire"			2005
+"North"	"Kelham Island"	"Pale Rider"	5.20%	"Premium"	3	"18s"	"Kelham Island"			2005
+"North"	"Leadmill"	"William 1V Strong Mild"	6.00%	"Strong Mild"	3	"18s"	"High Spirits"			2005
+"North"	"Old Swan"	"Entire"	4.20%	"Best Bitter"	3	"18s"	"Breconshire"			2005
+"North"	"Orkney"	"Dragon Head Stout"	4.00%	"Stout"	3	"18s"	"Small Beer"		149	2005
+"North"	"Orkney"	"Skullspitter"	8.50%	"Strong"	3	"18s"	"Small Beer"		175	2005
+"North"	"Pheonix"	"Arizona"	4.10%	"Best Bitter"	3	"18s"	"Boggart"		123.66	2005
+"North"	"Pheonix"	"Monkeytown Mild"	3.90%	"Mild"	1.5	"18s"	"Boggart"		119	2005
+"North"	"Plassey"	"Dragons Breath"	6.00%	"Strong"	3	"18s"	"Boggart"		150.6	2005
+"North"	"Poachers"	"Black Crow Stout"	4.50%	"Stout"	3	"18s"	"High spirits"			2005
+"North"	"Tigertops"	"Blanche de Newland"	4.20%	"Wheat"	3	"18s"	"High Spirits"			2005
+"North"	"Tryst"	"Buckled Wheel"	4.00%	"Best Bitter"	3	"18s"	"Boggart"		124	2005
+"North"	"Wensleydale"	"Poacher"	5.00%	"Premium"	3	"18s"	"Direct"		144	2005
+"North"	"Wensleydale"	"Rowleys Mild"	3.20%	"Mild"	1.5	"9s"	"Direct"		118.32	2005
+"North"	"Wentworth"	"Best"	4.20%	"Best Bitter"	3	"18s"	"Wentworth"			2005
+"North"	"Whalebone"	"Neck oil Bitter"	3.90%	"Bitter"	3	"18s"	"Boggart"		130	2005
+"North"	"Wharfdale"	"Van de Plas"	5.00%	"Speciality"	3	"18s"	"Boggart"			2005
+"North"	"Windsor Castle"	1900	4.00%	"Best Bitter"	3	"18s"	"Boggart"		128.8	2005
+"North"	"York"	"Terrier"	4.20%	"Best Bitter"	3	"18s"	"High Spirits"		126	2005
+"South"	"Arundel"	"Sussex Mild"	3.70%	"Mild"	1.5	"9s"	"East West"			2005
+"South"	"Barum"	"Barumberg Lager"	5.00%	"Lager"	3	"18s"	"Molecrew"			2005
+"South"	"Berrow"	"BBBB"	3.90%	"Best Bitter"	3	"18s"	"Moor"		127.12	2005
+"South"	"Blackawton"	"Headstrong"	5.20%	"Strong"	3	"18s"	"Moor"			2005
+"South"	"Blue Anchor"	"Spingo IPA"	4.50%	"Premium"	3	"18s"	"Moor"			2005
+"South"	"Burrington"	"Brown Wheat"	5.00%	"Wheat"	3	"18s"	"Moor"			2005
+"South"	"Cheriton"	"Village Elder"	3.80%	"Bitter"	3	"18s"	"East west"		112.5	2005
+"South"	"Dark Star"	"Expresso Stout"	4.20%	"Stout"	3	"18s"	"East West"		111.5	2005
+"South"	"Dog House"	"Loyal Corgi"	4.70%	"premium"	3	"18s"	"Moor"			2005
+"South"	"Downton"	"Chimina Wheat"	4.70%	"Wheat"	3	"18s"	"Small Beer"			2005
+"South"	"Exe Valley"	"Spring Beer"	4.30%	"Best Bitter"	3	"18s"	"Moor"		131.62	2005
+"South"	"Frog island"	"Fire Bellied Toad"	5.00%	"Strong"	3	"18s"	"Frog island"			2005
+"South"	"Gales"	"Festival Mild"	4.80%	"Strong Mild"	3	"18s"	"Small Beer"			2005
+"South"	"Glastonbury"	"Leyline dark"	4.20%	"Best Bitter"	3	"18s"	"Moor"		116	2005
+"South"	"Goddard"	"Fuggle De Dum"	5.20%	"Strong"	3	"18s"	"Molecrew"			2005
+"South"	"Grand Union"	"Kolsh"	4.80%	"Lager"	3	"18s"	"Molecrew"			2005
+"South"	"Harveys"	"Knotts of May Mild"	3.80%	"Mild"	1.5	"9s"	"East West"			2005
+"South"	"Harveys"	"Russian Imperial Stout"	9.50%	"Stout"	3	"9s"	"East West"			2005
+"South"	"Hidden"	"Pint"	3.80%	"Bitter"	3	"18s"	"Molecrew"		104	2005
+"South"	"Itchen Valley"	"Hampshire Rose"	4.20%	"Best Bitter"	3	"18s"	"Molecrew"			2005
+"South"	"Keltek"	"Myth"	4.20%	"Best Bitter"	3	"18s"	"molecrew"			2005
+"South"	"Loddon"	"bamboozle"	4.80%	"premium"	3	"18s"	"Molecrew"			2005
+"South"	"Moor"	"Peat Porter"	4.50%	"Porter"	3	"18s"	"Moor"		108	2005
+"South"	"Nelson"	"Trafalgar"	4.10%	"Best Bitter"	3	"18s"	"East West"			2005
+"South"	"Newmans"	"Wolvers Ale"	4.10%	"Best Bitter"	3	"18s"	"Moor"			2005
+"South"	"Organic"	"Wolf Rock"	5.00%	"premium"	3	"18s"	"Moor"		114	2005
+"South"	"Randells"	"Cynful"	3.50%	"mild"	1.5	"9s"	"East West"			2005
+"South"	"Randells"	"Island Gold"	4.00%	"Best Bitter"	3	"9s"	"East West"			2005
+"South"	"Rockingham"	"Fruits of the Forest"	4.00%	"Best Bitter"	1.5	"9s"	"Brewery"			2005
+"South"	"Rockingham"	"Terrific Pacific"	4.10%	"Best Bitter"	1.5	"9s"	"Brewery"			2005
+"South"	"Suffolk Hills"	"Shere Drop"	4.20%	"Best Bitter"	1.5	"9s"	"Suffolk Hills"			2005
+"South"	"Swan on the Green"	"Ginger"	3.60%	"Speciality"	3	"9s"	"east West"			2005
+"South"	"Triple FFF"	"Dazed and Confused"	5.00%	"Premium"	3	"18s"	"Molecrew"		136	2005
+"South"	"Triple FFF"	"Pressed rat & warthog"	3.80%	"Mild"	1.5	"9s"	"Molecrew"		110	2005
+"South"	"Welton"	"Pride & Joy"	3.80%	"Lunchon/Light Ale"	3	"18s"	"Molecrew"			2005
+"South"	"Westerham"	"British Bulldog"	4.30%	"Best Bitter"	3	"18s"	"High Spirits"		1245.66	2005
+"South"	"White Horse "	"Bitter"	3.80%	"Bitter"	3	"18s"	"Direct"		125.22	2005
+"South"	"Wickwar"	"IKA"	4.50%	"premium"	3	"18s"	"High Spirits"		136	2005
+"South"	"Yates (IOW)"	"Undercliffe Experience"	4.10%	"Best Bitter"	3	"18s"	"Molecrew"			2005
+"South"	"Youngs"	"Double Chocolate Stout"	5.20%	"Stout"	3	"18s"	"East West"	"Plus 1 x 9 for staff party"		2005
+"South"	"Pot Belly"	"Redwing"	4.80%	"Strong"	3	"9s"	"Direct"			2005
