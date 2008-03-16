@@ -47,7 +47,7 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `bar`;
 CREATE TABLE `bar` (
   `id` int(3) NOT NULL auto_increment,
-  `description` text,
+  `description` text NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -131,7 +131,7 @@ DROP TABLE IF EXISTS `cask_measurement`;
 CREATE TABLE `cask_measurement` (
   `id` int(6) NOT NULL auto_increment,
   `cask` int(6) NOT NULL,
-  `date` varchar(20) NOT NULL,
+  `date` datetime NOT NULL,
   `volume` varchar(10) NOT NULL,
   `comment` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
@@ -157,7 +157,7 @@ CREATE TABLE `company` (
   `id` int(6) NOT NULL auto_increment,
   `name` varchar(100) NOT NULL,
   `loc_desc` varchar(100) default NULL,
-  `year_founded` varchar(12) default NULL,
+  `year_founded` year default NULL,
   `comment` varchar(255) default NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -201,8 +201,8 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `festival`;
 CREATE TABLE `festival` (
   `id` int(4) NOT NULL auto_increment,
-  `year` int(4) NOT NULL,
-  `description` varchar(60) NOT NULL,
+  `year` year NOT NULL,
+  `description` varchar(60) default NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -226,7 +226,7 @@ CREATE TABLE `gyle` (
   `brewer` int(6) NOT NULL,
   `beer` int(6) NOT NULL,
   `abv` decimal(3,1) NOT NULL,
-  `pint_price` decimal(4,2) NOT NULL,
+  `pint_price` decimal(4,2) default NULL,
   `comment` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
   KEY `brewer` (`brewer`),
