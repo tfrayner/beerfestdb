@@ -77,254 +77,199 @@ sub get_csv_parser : PRIVATE {
     return $csv_parser;
 }
 
+sub check_not_null : PRIVATE {
+
+    my ( $self, $value ) = @_;
+
+    return ( defined $value && $value ne q{} );
+}
+
 sub load_data : PRIVATE {
 
     my ( $self, $datahash ) = @_;
 
     # Each of these calls defines the column to be used from the input
     # file.
-    my $festival = $self->load_festival(
-	{
-	    year        => $datahash->{$FESTIVAL_YEAR},
-	    description => $datahash->{$FESTIVAL_DESCRIPTION},
-	},
-    );
-    my $bar = $self->load_bar(
-	{
-	    description => $datahash->{$BAR_DESCRIPTION},
-	},
-    );
+    my $festival
+	= $self->check_not_null( $datahash->{$FESTIVAL_YEAR} )
+	? $self->load_column_value(
+	    {
+		year        => $datahash->{$FESTIVAL_YEAR},
+		description => $datahash->{$FESTIVAL_DESCRIPTION},
+	    },
+	    'Festival')
+	: undef;
+
+    my $bar
+	= $self->check_not_null( $datahash->{$BAR_DESCRIPTION} )
+	? $self->load_column_value(
+	    {
+		description => $datahash->{$BAR_DESCRIPTION},
+	    },
+	    'Bar')
+	: undef;
 
     # FIXME no addresses at this point.
-    my $brewer = $self->load_company(
-	{
-	    name         => $datahash->{$BREWER_NAME},
-	    loc_desc     => $datahash->{$BREWER_LOC_DESC},
-	    year_founded => $datahash->{$BREWER_YEAR_FOUNDED},
-	    comment      => $datahash->{$BREWER_COMMENT},
-	},
-    );
-    my $beer = $self->load_beer(
-	{
-	    name         => $datahash->{$BEER_NAME},
-	    style        => $datahash->{$BEER_STYLE},
-	    description  => $datahash->{$BEER_DESCRIPTION},
-	    comment      => $datahash->{$BEER_COMMENT},
-	},
-    );
-    my $gyle = $self->load_gyle(
-	{
-	    brewery_number => $datahash->{$GYLE_BREWERY_NUMBER},
-	    brewer         => $brewer,
-	    beer           => $beer,
-	    abv            => $datahash->{$GYLE_ABV},
-	    pint_price     => $datahash->{$GYLE_PINT_PRICE},
-	    comment        => $datahash->{$GYLE_COMMENT},
-	},
-    );
-    my $distributor = $self->load_company(
-	{
-	    name         => $datahash->{$DISTRIBUTOR_NAME},
-	    loc_desc     => $datahash->{$DISTRIBUTOR_LOC_DESC},
-	    year_founded => $datahash->{$DISTRIBUTOR_YEAR_FOUNDED},
-	    comment      => $datahash->{$DISTRIBUTOR_COMMENT},
-	},
-    );
-    my $cask = $self->load_cask(
-	{
-	    brewer      => $brewer,
-	    beer        => $beer,
-	    gyle        => $gyle,
-	    distributor => $distributor,
-	    festival    => $festival,
-	    size        => $datahash->{$CASK_SIZE},
-	    cask_price  => $datahash->{$CASK_PRICE},
-	    bar         => $bar,
-	    comment     => $datahash->{$CASK_COMMENT},
-	},
-    );
-    my $cask_measurement = $self->load_cask_measurement(
-	{
-	    cask    => $cask,
-	    date    => $datahash->{$CASK_MEASUREMENT_DATE},
-	    volume  => $datahash->{$CASK_MEASUREMENT_VOLUME},
-	    comment => $datahash->{$CASK_MEASUREMENT_COMMENT},
-	},
-    );
+    my $brewer
+	= $self->check_not_null( $datahash->{$BREWER_NAME} )
+	? $self->load_column_value(
+	    {
+		name         => $datahash->{$BREWER_NAME},
+		loc_desc     => $datahash->{$BREWER_LOC_DESC},
+		year_founded => $datahash->{$BREWER_YEAR_FOUNDED},
+		comment      => $datahash->{$BREWER_COMMENT},
+	    },
+	    'Company')
+	: undef;
+
+    my $beer
+	= $self->check_not_null( $datahash->{$BEER_NAME} )
+	? $self->load_column_value(
+	    {
+		name         => $datahash->{$BEER_NAME},
+		style        => $datahash->{$BEER_STYLE},
+		description  => $datahash->{$BEER_DESCRIPTION},
+		comment      => $datahash->{$BEER_COMMENT},
+	    },
+	    'Beer')
+	: undef;
+
+    my $gyle
+	= $beer
+	? $self->load_column_value(
+	    {
+		brewery_number => $datahash->{$GYLE_BREWERY_NUMBER},
+		brewer         => $brewer,
+		beer           => $beer,
+		abv            => $datahash->{$GYLE_ABV},
+		pint_price     => $datahash->{$GYLE_PINT_PRICE},
+		comment        => $datahash->{$GYLE_COMMENT},
+	    },
+	    'Gyle')
+	: undef;
+
+    my $distributor
+	= $self->check_not_null( $datahash->{$DISTRIBUTOR_NAME} )
+	? $self->load_column_value(
+	    {
+		name         => $datahash->{$DISTRIBUTOR_NAME},
+		loc_desc     => $datahash->{$DISTRIBUTOR_LOC_DESC},
+		year_founded => $datahash->{$DISTRIBUTOR_YEAR_FOUNDED},
+		comment      => $datahash->{$DISTRIBUTOR_COMMENT},
+	    },
+	    'Company')
+	: undef;
+
+    my $cask
+	= $beer
+	? $self->load_column_value(
+	    {
+		brewer      => $brewer,
+		beer        => $beer,
+		gyle        => $gyle,
+		distributor => $distributor,
+		festival    => $festival,
+		size        => $datahash->{$CASK_SIZE},
+		cask_price  => $datahash->{$CASK_PRICE},
+		bar         => $bar,
+		comment     => $datahash->{$CASK_COMMENT},
+	    },
+	    'Cask')
+	: undef;
+
+    my $cask_measurement
+	= $self->check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
+	? $self->load_cask_measurement(
+	    {
+		cask    => $cask,
+		date    => $datahash->{$CASK_MEASUREMENT_DATE},
+		volume  => $datahash->{$CASK_MEASUREMENT_VOLUME},
+		comment => $datahash->{$CASK_MEASUREMENT_COMMENT},
+	    },
+	    'CaskMeasurement')
+	: undef;
+
+    return;
 }
 
-sub load_festival : PRIVATE {
+sub find_required_cols : PRIVATE {
 
-    my ( $self, $args ) = @_;
+    my ( $self, $resultset ) = @_;
 
-    my $festival;
-    if ( defined $args->{'year'} ) {
+    my $source = $resultset->result_source();
 
-	$festival = $self->get_schema()->resultset('Festival')->find_or_create({
-	    year => $args->{'year'},
-	});
+    my @cols = $source->columns();
 
-	if ( defined $args->{'description'} ) {
-	    $festival->set_column('description' => $args->{'description'});
+    my ( @required, @optional );
+    foreach my $col (@cols) {
+
+	# FIXME we should introspect to identify primary
+	# key/autoincrement columns where possible.
+	next if $col eq 'id';
+	my $info = $source->column_info($col);
+	if ( $info->{'is_nullable'} ) {
+	    push ( @optional, $col );
 	}
-
-	$festival->update();
+	else {
+	    push ( @required, $col );
+	}
     }
 
-    return $festival;
+    return ( \@required, \@optional );
 }
 
-sub load_bar : PRIVATE {
+sub confirm_required_cols : PRIVATE {
 
-    my ( $self, $args ) = @_;
+    my ( $self, $args, $required ) = @_;
 
-    my $bar;
-    if ( defined $args->{'description'} ) {
-	$bar = $self->get_schema()->resultset('Bar')->find_or_create({
-	    description => $args->{'description'},
-	});
+    my $problem;
+    foreach my $col ( @{ $required } ) {
+	unless ( $self->check_not_null( $args->{$col} ) ) {
+	    warn(qq{Warning: Required column value "$col" not present.\n});
+	    $problem++;
+	}
     }
 
-    return $bar;
+    if ( $problem ) {
+	return;
+    }
+    else {
+	return 1;
+    }
 }
 
-sub load_company : PRIVATE {
+sub load_column_value : PRIVATE {
 
-    my ( $self, $args ) = @_;
+    my ( $self, $args, $class, $trigger ) = @_;
 
-    my $company;
-    if ( defined $args->{'name'} ) {
+    my $resultset = $self->get_schema()->resultset($class)
+	or confess(qq{Error: No result set returned from DB for class "$class".});
 
-	$company = $self->get_schema()->resultset('Company')->find_or_create({
-	    name => $args->{'name'},
-	});
-
-	if ( defined $args->{'loc_desc'} ) {
-	    $company->set_column('loc_desc' => $args->{'loc_desc'});
+    # Validate our arguments against the database.
+    my ( $required, $optional ) = $self->find_required_cols( $resultset );
+    my %recognised = map { $_ => 1 } @{ $required }, @{ $optional };
+    foreach my $key ( keys %{ $args } ) {
+	unless ( $recognised{ $key } ) {
+	    confess(qq{Error: Unrecognised column key "$key".}); 
 	}
-	if ( defined $args->{'year_founded'} ) {
-	    $company->set_column('year_founded' => $args->{'year_founded'});
-	}
-	if ( defined $args->{'comment'} ) {
-	    $company->set_column('comment' => $args->{'comment'});
-	}
+    }
+    $self->confirm_required_cols( $args, $required )
+	or croak(qq{Error: Incomplete data for "$class" object.});
 
-	$company->update();
+    # Create an object with all its required values.
+    my %values = map { $_ => $args->{$_} } @{ $required };
+    my $object = $resultset->find_or_create(\%values);
+
+    # Add in the optional values where available.
+    foreach my $col ( @{ $optional } ) {
+	if ( $self->check_not_null( $args->{$col} ) ) {
+	    $object->set_column( $col => $args->{$col} );
+	}
     }
 
-    return $company;
-}
+    $object->update();
 
-sub load_beer : PRIVATE {
-
-    my ( $self, $args ) = @_;
-
-    my $beer;
-    if ( defined $args->{'name'} ) {
-
-	$beer = $self->get_schema()->resultset('Beer')->find_or_create({
-	    name => $args->{'name'},
-	});
-
-	if ( defined $args->{'style'} ) {
-	    $beer->set_column('style' => $args->{'style'});
-	}
-	if ( defined $args->{'description'} ) {
-	    $beer->set_column('description' => $args->{'description'});
-	}
-	if ( defined $args->{'comment'} ) {
-	    $beer->set_column('comment' => $args->{'comment'});
-	}
-
-	$beer->update();
-    }
-
-    return $beer;
-}
-
-sub load_gyle : PRIVATE {
-
-    my ( $self, $args ) = @_;
-
-    my $gyle;
-    if ( defined $args->{'beer'} ) {
-
-	$gyle = $self->get_schema()->resultset('Gyle')->find_or_create({
-	    beer       => $args->{'beer'},
-	    brewer     => $args->{'brewer'},
-	    abv        => $args->{'abv'},
-	});
-
-	if ( defined $args->{'pint_price'} ) {
-	    $gyle->set_column('pint_price' => $args->{'pint_price'});
-	}
-	if ( defined $args->{'brewery_number'} ) {
-	    $gyle->set_column('brewery_number' => $args->{'brewery_number'});
-	}
-	if ( defined $args->{'comment'} ) {
-	    $gyle->set_column('comment' => $args->{'comment'});
-	}
-
-	$gyle->update();
-    }
-
-    return $gyle;
-}
-
-sub load_cask : PRIVATE {
-
-    my ( $self, $args ) = @_;
-
-    my $cask;
-    if ( defined $args->{'beer'} ) {
-
-	$cask = $self->get_schema()->resultset('Cask')->find_or_create({
-	    beer        => $args->{'beer'},
-	    brewer      => $args->{'brewer'},
-	    gyle        => $args->{'gyle'},
-	    beer        => $args->{'beer'},
-	    distributor => $args->{'distributor'},
-	    festival    => $args->{'festival'},
-	    bar         => $args->{'bar'},
-	});
-
-	if ( defined $args->{'size'} ) {
-	    $cask->set_column('size' => $args->{'size'});
-	}
-	if ( defined $args->{'cask_price'} ) {
-	    $cask->set_column('cask_price' => $args->{'cask_price'});
-	}
-	if ( defined $args->{'comment'} ) {
-	    $cask->set_column('comment' => $args->{'comment'});
-	}
-
-	$cask->update();
-    }
-
-    return $cask;
-}
-
-sub load_cask_measurement : PRIVATE {
-
-    my ( $self, $args ) = @_;
-
-    my $cask_measurement;
-    if ( defined $args->{'volume'} ) {
-
-	$cask_measurement = $self->get_schema()->resultset('CaskMeasurement')->find_or_create({
-	    cask        => $args->{'cask'},
-	    date        => $args->{'date'},
-	    volume      => $args->{'volume'},
-	});
-
-	if ( defined $args->{'comment'} ) {
-	    $cask_measurement->set_column('comment' => $args->{'comment'});
-	}
-
-	$cask_measurement->update();
-    }
-
-    return $cask_measurement;
+    return $object;
 }
 
 sub coerce_headings : PRIVATE {
@@ -372,7 +317,7 @@ sub coerce_headings : PRIVATE {
         elsif ( scalar @matches < 1 ) {
 
             # FIXME maybe fix this to prompt on whether this is okay?
-            carp(qq{Warning: Unrecognised column "$heading".\n});
+            warn(qq{Warning: Unrecognised column "$heading" will be ignored.\n});
             push @new_headings, $UNKNOWN_COLUMN;
         }
     }
