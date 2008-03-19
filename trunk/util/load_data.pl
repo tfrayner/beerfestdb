@@ -9,8 +9,7 @@ use Getopt::Long;
 use Readonly;
 
 use BeerFestDB::Loader;
-use BeerFestDB::ORM;
-use BeerFestDB::Config qw($CONFIG);
+use BeerFestDB::Common qw(connect_db);
 
 Readonly my $VERSION => '0.2';
 
@@ -42,24 +41,6 @@ USAGE
     }
 
     return $input;
-}
-
-sub connect_db {
-    
-    my $dsn = sprintf(
-	"DBI:mysql:%s:%s:%s",
-	$CONFIG->get_database(),
-	$CONFIG->get_host(),
-	$CONFIG->get_port(),
-    );
-    my $schema = BeerFestDB::ORM->connect(
-	$dsn,
-	$CONFIG->get_user(),
-	$CONFIG->get_pass(),
-	{ PrintError => 0, RaiseError => 1, AutoCommit => 1 },
-    );
-
-    return $schema;
 }
 
 ########
