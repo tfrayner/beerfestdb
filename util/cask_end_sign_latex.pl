@@ -3,15 +3,14 @@
 use strict;
 use warnings;
 
+use BeerFestDB::Common qw(connect_db);
 use Scalar::Util qw(looks_like_number);
 
-my $beerlist = shift;
+sub print_latex {
 
-unless ( -r $beerlist ) {
-    die("Error: Can't read beer list $beerlist: $!");
-}
+    my ( $casks, $fh ) = @_;
 
-print <<"HEADER";
+    print $fh <<"HEADER";
 \\documentclass[english,a4paper]{article}
 
 \\usepackage[a4paper, landscape]{geometry}
@@ -28,39 +27,37 @@ print <<"HEADER";
 
 HEADER
 
-open ( my $fh, '<', $beerlist )
-    or die("Error: Unable to open $beerlist: $!");
+    foreach my $cask ( @{ $casks } ) {
 
-while ( my $line = <$fh> ) {
+	my $brewery = $cask->brewer()->name();
+	my $beer    = $cask->beer()->name();
+	my $abv     = $cask->gyle()->abv();
+	my $price   = $cask->gyle()->pint_price() || 'N/A';
 
-    next if $line =~ /^\s*#/;
+	# Here we run a quick check to make sure we have a meaningful
+	# price.
+	my ( $pint_price, $half_price );
+	if ( looks_like_number( $price ) ) {
+	    $pint_price = sprintf("%.2f", $price);
+	    $half_price = sprintf("%.2f", $price / 2);
+	}
+	else {
+	    $pint_price = $price;
+	    $half_price = $price;
+	}
 
-    chomp $line;
+	$brewery =~ s/([\&\\])/\\$1/g;
+	$beer    =~ s/([\&\\])/\\$1/g;
+	$abv     =~ s/\%//g;
+	$half_price ||= 500;
+	$pint_price ||= 1000;
 
-    my ($brewery, $beer, $abv, $price ) = split /\t/, $line;
+	my $beer_font_size = 54;
+	if ( length( $beer ) > 25 ) {
+	    $beer_font_size = 44;
+	}
 
-    my ( $pint_price, $half_price );
-    if ( looks_like_number($price) ) {
-	$pint_price = sprintf("%.2f", $price);
-	$half_price = sprintf("%.2f", $price / 2);
-    }
-    else {
-	$pint_price = $price;
-	$half_price = $price;
-    }
-
-    $brewery =~ s/([\&\\])/\\$1/g;
-    $beer    =~ s/([\&\\])/\\$1/g;
-    $abv     =~ s/\%//g;
-    $half_price ||= 500;
-    $pint_price ||= 1000;
-
-    my $beer_font_size = 54;
-    if ( length( $beer ) > 25 ) {
-	$beer_font_size = 44;
-    }
-
-    print <<"SIGN";
+	print $fh <<"SIGN";
 
 \\setlength{\\TPHorizModule}{5mm}
 \\setlength{\\TPVertModule}{\\TPHorizModule}
@@ -108,9 +105,9 @@ $abv \\%
 \\end{textblock}
 SIGN
 
-    if (looks_like_number($price)) {
+	if (looks_like_number($price)) {
 
-	print <<"SIGN";
+	    print $fh <<"SIGN";
 
 \\begin{textblock}{25}(14,25)
 
@@ -126,10 +123,10 @@ SIGN
 
 SIGN
 
-    }
-    else {
+	}
+	else {
 
-	print <<"SIGN";
+	    print $fh <<"SIGN";
 	
 \\begin{textblock}{25}(14,25)
 
@@ -141,15 +138,22 @@ $price
 
 SIGN
 
+	}
     }
 
-}
-
-close( $fh ) or die($!);
-
-print <<"FOOTER";
+    print $fh <<"FOOTER";
 \\end{document}
-
 FOOTER
 
-    
+    return;
+}
+
+########
+# MAIN #
+########
+
+my $schema = connect_db();
+
+my @casks  = $schema->resultset('Cask')->all();
+
+print_latex( \@casks, \*STDOUT );
