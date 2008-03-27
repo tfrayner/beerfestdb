@@ -81,7 +81,7 @@ sub check_not_null : PRIVATE {
 
     my ( $self, $value ) = @_;
 
-    return ( defined $value && $value ne q{} );
+    return ( defined $value && $value ne q{} && $value !~ m/\A \?+ \z/xms );
 }
 
 sub load_data : PRIVATE {
@@ -263,7 +263,9 @@ sub load_column_value : PRIVATE {
     # Add in the optional values where available.
     foreach my $col ( @{ $optional } ) {
 	if ( $self->check_not_null( $args->{$col} ) ) {
-	    $object->set_column( $col => $args->{$col} );
+	    my $value = $args->{$col};
+	    $value = $value->id() if (ref $value && $value->can('id'));
+	    $object->set_column( $col => $value );
 	}
     }
 

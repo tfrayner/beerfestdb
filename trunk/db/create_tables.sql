@@ -93,7 +93,7 @@ CREATE TABLE `cask` (
   `brewer` int(6) NOT NULL,
   `beer` int(6) NOT NULL,
   `gyle` int(6) NOT NULL,
-  `distributor` int(6) NOT NULL,
+  `distributor` int(6) default NULL,
   `festival` int(6) NOT NULL,
   `size` int(2) default NULL,
   `cask_price` decimal(5,2) default NULL,
@@ -202,7 +202,7 @@ DROP TABLE IF EXISTS `festival`;
 CREATE TABLE `festival` (
   `id` int(4) NOT NULL auto_increment,
   `year` year NOT NULL,
-  `description` varchar(60) default NULL,
+  `description` varchar(60) NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -225,7 +225,7 @@ CREATE TABLE `gyle` (
   `brewery_number` varchar(10) default NULL,
   `brewer` int(6) NOT NULL,
   `beer` int(6) NOT NULL,
-  `abv` decimal(3,1) NOT NULL,
+  `abv` decimal(3,1) default NULL,
   `pint_price` decimal(4,2) default NULL,
   `comment` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
