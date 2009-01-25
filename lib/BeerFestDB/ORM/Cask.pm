@@ -10,10 +10,6 @@ __PACKAGE__->table("cask");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 6 },
-  "brewer",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 6 },
-  "beer",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 6 },
   "gyle",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 6 },
   "distributor",
@@ -35,8 +31,6 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("id");
-__PACKAGE__->belongs_to("brewer", "BeerFestDB::ORM::Company", { id => "brewer" });
-__PACKAGE__->belongs_to("beer", "BeerFestDB::ORM::Beer", { id => "beer" });
 __PACKAGE__->belongs_to("gyle", "BeerFestDB::ORM::Gyle", { id => "gyle" });
 __PACKAGE__->belongs_to(
   "distributor",
@@ -52,8 +46,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-25 16:03:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5qz8KZ5GlKyrVeTh1SO7Vg
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-25 17:23:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5jXXfQr588DTe4MlWBJiUg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
