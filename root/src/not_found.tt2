@@ -1,0 +1,3 @@
+[% META title = '404 Not Found' %] 
+<p>That page doesn't exist (yet).
+Maybe you'd like to <a href="[% c.uri_for('/') %]">return to the beginning</a> instead?</p>

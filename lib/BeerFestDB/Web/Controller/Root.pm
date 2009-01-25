@@ -22,23 +22,21 @@ BeerFestDB::Web::Controller::Root - Root Controller for BeerFestDB::Web
 
 =cut
 
+=head2 default
+
+=cut
+
+sub default : Private { 
+    my ( $self, $c ) = @_; 
+    $c->response->status('404'); 
+    $c->stash->{template} = 'not_found.tt2'; 
+} 
+
 =head2 index
 
 =cut
 
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    # Hello World
-    $c->response->body( $c->welcome_message );
-}
-
-sub default :Path {
-    my ( $self, $c ) = @_;
-    $c->response->body( 'Page not found' );
-    $c->response->status(404);
-    
-}
+sub index : Private {};
 
 =head2 end
 
