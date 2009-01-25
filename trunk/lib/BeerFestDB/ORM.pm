@@ -1,17 +1,16 @@
-# $Id$
+package BeerFestDB::ORM;
 
 use strict;
 use warnings;
 
-package BeerFestDB::ORM;
+use base 'DBIx::Class::Schema';
 
-# We use this to load our classes for now.
-use base qw(DBIx::Class::Schema::Loader);
+__PACKAGE__->load_classes;
 
-use BeerFestDB::Config qw( $CONFIG );
 
-__PACKAGE__->loader_options(
-    debug => $CONFIG->get_debug(),
-);
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-25 16:03:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LjRNe3uqsDIvki/35E4fKA
 
+
+# You can replace this text with custom content, and it will be preserved on regeneration
 1;
