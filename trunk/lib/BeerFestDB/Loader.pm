@@ -164,8 +164,6 @@ sub load_data : PRIVATE {
 	= $beer
 	? $self->load_column_value(
 	    {
-		brewer      => $brewer,
-		beer        => $beer,
 		gyle        => $gyle,
 		distributor => $distributor,
 		festival    => $festival,

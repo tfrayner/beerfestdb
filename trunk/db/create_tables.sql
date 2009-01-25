@@ -90,8 +90,6 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `cask`;
 CREATE TABLE `cask` (
   `id` int(6) NOT NULL auto_increment,
-  `brewer` int(6) NOT NULL,
-  `beer` int(6) NOT NULL,
   `gyle` int(6) NOT NULL,
   `distributor` int(6) default NULL,
   `festival` int(6) NOT NULL,
@@ -100,18 +98,14 @@ CREATE TABLE `cask` (
   `bar` int(6) NOT NULL,
   `comment` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
-  KEY `brewer` (`brewer`),
-  KEY `beer` (`beer`),
   KEY `gyle` (`gyle`),
   KEY `distributor` (`distributor`),
   KEY `festival` (`festival`),
   KEY `bar` (`bar`),
-  CONSTRAINT `cask_ibfk_1` FOREIGN KEY (`brewer`) REFERENCES `company` (`id`),
-  CONSTRAINT `cask_ibfk_2` FOREIGN KEY (`beer`) REFERENCES `beer` (`id`),
-  CONSTRAINT `cask_ibfk_3` FOREIGN KEY (`gyle`) REFERENCES `gyle` (`id`),
-  CONSTRAINT `cask_ibfk_4` FOREIGN KEY (`distributor`) REFERENCES `company` (`id`),
-  CONSTRAINT `cask_ibfk_5` FOREIGN KEY (`festival`) REFERENCES `festival` (`id`),
-  CONSTRAINT `cask_ibfk_6` FOREIGN KEY (`bar`) REFERENCES `bar` (`id`)
+  CONSTRAINT `cask_ibfk_1` FOREIGN KEY (`gyle`) REFERENCES `gyle` (`id`),
+  CONSTRAINT `cask_ibfk_2` FOREIGN KEY (`distributor`) REFERENCES `company` (`id`),
+  CONSTRAINT `cask_ibfk_3` FOREIGN KEY (`festival`) REFERENCES `festival` (`id`),
+  CONSTRAINT `cask_ibfk_4` FOREIGN KEY (`bar`) REFERENCES `bar` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
