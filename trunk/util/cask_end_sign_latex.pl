@@ -29,8 +29,8 @@ HEADER
 
     foreach my $cask ( @{ $casks } ) {
 
-	my $brewery = $cask->brewer()->name();
-	my $beer    = $cask->beer()->name();
+	my $brewery = $cask->gyle()->brewer()->name();
+	my $beer    = $cask->gyle()->beer()->name();
 	my $abv     = $cask->gyle()->abv();
 	my $price   = $cask->gyle()->pint_price() || 'N/A';
 
