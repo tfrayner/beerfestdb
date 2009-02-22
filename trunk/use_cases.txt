@@ -18,3 +18,27 @@ This document lists some use cases which have not yet been addressed.
      - condemned
      - blown
      - ullage
+
+5. Dip measurements:
+
+   Some pseudocode which hopefully explains how one might handle each
+   new set of dip figures:
+
+   if ( measurement ) {
+       if ( measurement <= old_value ) {
+           accept;
+       }
+       if ( measurement > old_value ) {
+           flag as exception;
+           error = "blah blah";
+       }
+   else {     # no measurement
+       if ( old_value > 0 ) {
+           accept;
+       }
+       if ( old_value <= 0 ) {
+          flag as exception any attempt to enter new measurement in future;
+       }
+   }
+
+   
