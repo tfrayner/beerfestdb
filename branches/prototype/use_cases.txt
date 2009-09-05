@@ -1,0 +1,44 @@
+This document lists some use cases which have not yet been addressed.
+
+1. What was ordered at festival x? price?
+     - what actually came?
+     - when did it go up? go on sale (if poss)? and sell out/come down?
+
+2. What was marked as staff beer?
+     - acquired as staff beer in the first place
+     - declared staff beer after dip
+
+3. How to handle ullage?
+     - Beer declared for staff but not drunk (subtype of ullage?)
+
+4. beer fate generally - track volumes
+     - put on & sold
+     - put on but not sold
+     - staff beer (partial overlap with above)
+     - condemned
+     - blown
+     - ullage
+
+5. Dip measurements:
+
+   Some pseudocode which hopefully explains how one might handle each
+   new set of dip figures:
+
+   if ( measurement ) {
+       if ( measurement <= old_value ) {
+           accept;
+       }
+       if ( measurement > old_value ) {
+           flag as exception;
+           error = "blah blah";
+       }
+   else {     # no measurement
+       if ( old_value > 0 ) {
+           accept;
+       }
+       if ( old_value <= 0 ) {
+          flag as exception any attempt to enter new measurement in future;
+       }
+   }
+
+   
