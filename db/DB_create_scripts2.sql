@@ -49,7 +49,7 @@ TYPE=InnoDB;
 CREATE TABLE container_measure (
   container_measure_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
   litre_multiplier FLOAT NULL,
-  Description VARCHAR(50) NULL,
+  description VARCHAR(50) NULL,
   PRIMARY KEY(container_measure_id)
 )
 TYPE=InnoDB;
@@ -213,15 +213,31 @@ TYPE=InnoDB;
 CREATE TABLE bar (
   bar_id INTEGER(3) NOT NULL AUTO_INCREMENT,
   description TEXT NULL,
-  valid BIT(1) NOT NULL,
   PRIMARY KEY(bar_id)
 )
 TYPE=InnoDB;
 
-INSERT INTO bar (description, valid) VALUES ('Main tent',1);
-INSERT INTO bar (description, valid) VALUES ('Woodfords',0);
-INSERT INTO bar (description, valid) VALUES ('Staff bar',0);
+INSERT INTO bar (description) VALUES ('Main tent');
+INSERT INTO bar (description) VALUES ('Woodfords');
+INSERT INTO bar (description) VALUES ('Staff bar');
 
+-- ------------------------------------------------------------
+-- Table maintaining a record of which bars are used for each festival.
+-- ------------------------------------------------------------
+
+CREATE TABLE festival_bar (
+  bar_id INTEGER(3) NOT NULL,
+  festival_id INTEGER(3) NOT NULL,
+  FOREIGN KEY FK_FB_barid_BAR_barid(bar_id)
+    REFERENCES bar(bar_id)
+      ON DELETE CASCADE
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_FB_fstid_FST_fstid(festival_id)
+    REFERENCES festival(festival_id)
+      ON DELETE CASCADE
+      ON UPDATE NO ACTION
+)
+TYPE=InnoDB;
 
 -- ------------------------------------------------------------
 -- Contains a list of characteristics about a particular product category
@@ -234,7 +250,7 @@ CREATE TABLE product_characteristic_type (
   PRIMARY KEY(product_characteristic_type_id, product_category_id),
   FOREIGN KEY FK_PC_pcid_PCT_pcid(product_category_id)
     REFERENCES product_category(product_category_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -255,7 +271,7 @@ CREATE TABLE festival_opening (
   PRIMARY KEY(festival_opening_id),
   FOREIGN KEY FK_FO_fo_FE_fo(festival_id)
     REFERENCES festival(festival_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -277,7 +293,7 @@ CREATE TABLE telephone (
   INDEX IDX_TEL_ttid(telephone_type_id),
   FOREIGN KEY FK_TEL_ttid_TT_ttid(telephone_type_id)
     REFERENCES telephone_type(telephone_type_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -296,13 +312,14 @@ CREATE TABLE container_size (
   PRIMARY KEY(container_size_id),
   FOREIGN KEY FK_CS_cmid_CM_cmid(container_measure_id)
     REFERENCES container_measure(container_measure_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
 
 INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (9,2,'Firkin'); 
 INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (18,2,'Kilderkin'); 
+INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (22,2,'22 Gallon'); 
 INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (36,2,'Barrel'); 
 
 
@@ -321,7 +338,7 @@ CREATE TABLE product_style (
   INDEX IDX_PS_pcid(product_category_id),
   FOREIGN KEY FK_PS_pcid_PC_pcid(product_category_id)
     REFERENCES product_category(product_category_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -329,15 +346,15 @@ TYPE=InnoDB;
 
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Mild');
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Bitter');
-INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Golden Ales');
+INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Golden Ale');
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Pale Ale');
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'IPA');
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Porter');
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Stout');
-INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Barley wine');
+INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Barley Wine');
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Old Ale');
-INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Scottish beers');
-INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Light Bitters');
+INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Scottish Beer');
+INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Light Bitter');
 
 
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'cider'), 'very dry');
@@ -367,7 +384,7 @@ CREATE TABLE sale_volume (
   PRIMARY KEY(sale_volume_id),
   FOREIGN KEY FK_SV_cmid_CM_cmid(container_measure_id)
     REFERENCES container_measure(container_measure_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -394,11 +411,11 @@ CREATE TABLE contact (
   INDEX IDX_CNT_cnttyid(contact_type_id),
   FOREIGN KEY FK_CON_ctid_CTPY_ctid(contact_type_id)
     REFERENCES contact_type(contact_type_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CON_ccode_CNTRY_ccode(country_code_iso2)
     REFERENCES country(country_code_iso2)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -416,11 +433,11 @@ CREATE TABLE contact_telephone (
   INDEX IDX_CT_cntid(contact_id),
   FOREIGN KEY FK_CNT_cntid_CT_cntid(contact_id)
     REFERENCES contact(contact_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CTEL_telid_TEL_telid(telephone_id)
     REFERENCES telephone(telephone_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -441,15 +458,15 @@ CREATE TABLE festival_entry (
   PRIMARY KEY(festival_opening_id, festival_entry_type_id),
   FOREIGN KEY FK_FE_fo_FO_fo(festival_opening_id)
     REFERENCES festival_opening(festival_opening_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_FE_fet_FET_fet(festival_entry_type_id)
     REFERENCES festival_entry_type(festival_entry_type_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_FE_cc_CUR_cc(currency_code)
     REFERENCES currency(currency_code)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -471,7 +488,7 @@ CREATE TABLE product (
   INDEX IDX_pdc_psid(product_style_id),
   FOREIGN KEY FK_PDCT_ps_PS_ps(product_style_id)
     REFERENCES product_style(product_style_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -480,7 +497,7 @@ TYPE=InnoDB;
 -- For each product, there ccan be multiple characteristics
 -- ------------------------------------------------------------
 
-CREATE TABLE product_caracteristic (
+CREATE TABLE product_characteristic (
   product_id INTEGER(6) NOT NULL,
   product_characteristic_type_id_2 INTEGER UNSIGNED NOT NULL,
   product_category_id INTEGER(4) NOT NULL,
@@ -488,11 +505,11 @@ CREATE TABLE product_caracteristic (
   PRIMARY KEY(product_id),
   FOREIGN KEY Rel_29(product_characteristic_type_id_2, product_category_id)
     REFERENCES product_characteristic_type(product_characteristic_type_id, product_category_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_PDCT_pdid_PC_pid(product_id)
     REFERENCES product(product_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -509,11 +526,11 @@ CREATE TABLE company_contact (
   PRIMARY KEY(company_id, contact_id),
   FOREIGN KEY FK_CMPCNT_coid_DMPcoid(company_id)
     REFERENCES company(company_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CMPCNT_cntid_CNT_cntid(contact_id)
     REFERENCES contact(contact_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -543,11 +560,11 @@ CREATE TABLE gyle (
   INDEX IDX_BB_iref(internal_reference),
   FOREIGN KEY FK_BB_coid_COMP_coid(company_id)
     REFERENCES company(company_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_PDCT_prdid_BB_prdid(product_id)
     REFERENCES product(product_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -591,19 +608,27 @@ CREATE TABLE cask (
   INDEX IDX_CSK_iref(internal_reference),
   FOREIGN KEY FK_CSK_bid_BR_bid(bar_id)
     REFERENCES bar(bar_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_csid_CS_csid(container_size_id)
     REFERENCES container_size(container_size_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_fstId_FST_fstid(festival_id)
     REFERENCES festival(festival_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_curcd_CUR_curcd(currency_code)
     REFERENCES currency(currency_code)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSK_gyleid_GYLE_gyleid(gyle_id)
+    REFERENCES gyle(gyle_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSK_locid_STILLOC_locid(stillage_location_id)
+    REFERENCES stillage_location(stillage_location_id)
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -632,7 +657,7 @@ CREATE TABLE cask_measurement (
   INDEX IDX_CM_cid(cask_id),
   FOREIGN KEY FK_CSKM_cskid_CSK_cskid(cask_id)
     REFERENCES cask(cask_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
@@ -656,15 +681,15 @@ CREATE TABLE cask_sale_price (
   INDEX IDX_CSP_cskid(cask_id),
   FOREIGN KEY FK_CSKSP_cskid_CSK_cskid(cask_id)
     REFERENCES cask(cask_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSP_svid_SV_svid(sale_volume_id)
     REFERENCES sale_volume(sale_volume_id)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSP_ccode_CUR_ccode(currency_code)
     REFERENCES currency(currency_code)
-      ON DELETE NO ACTION
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
