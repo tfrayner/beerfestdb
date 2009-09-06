@@ -228,6 +228,7 @@ INSERT INTO bar (description) VALUES ('Staff bar');
 CREATE TABLE festival_bar (
   bar_id INTEGER(3) NOT NULL,
   festival_id INTEGER(3) NOT NULL,
+  PRIMARY KEY(bar_id, festival_id),
   FOREIGN KEY FK_FB_barid_BAR_barid(bar_id)
     REFERENCES bar(bar_id)
       ON DELETE CASCADE
