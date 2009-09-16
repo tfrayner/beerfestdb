@@ -31,14 +31,14 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key("currency_code");
 __PACKAGE__->has_many(
-  "casks",
+  "cask_currency_codes",
   "BeerFestDB::ORM::Cask",
   { "foreign.currency_code" => "self.currency_code" },
 );
 __PACKAGE__->has_many(
-  "cask_sale_prices",
-  "BeerFestDB::ORM::CaskSalePrice",
-  { "foreign.currency_code" => "self.currency_code" },
+  "cask_sale_currency_codes",
+  "BeerFestDB::ORM::Cask",
+  { "foreign.sale_currency_code" => "self.currency_code" },
 );
 __PACKAGE__->has_many(
   "festival_entries",
@@ -47,8 +47,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-06 12:24:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AVvjSunL4NzgZJB8PLny5g
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-16 21:32:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZpB3nlHnqPBSQKV3Xo8TfQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -214,6 +214,36 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
         </tr>
         <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">sale_volume_id</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(3)</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">The volume type e.g. 'pint' or 'half pint' that the sale price is for</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+        </tr>
+        <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">sale_currency_code</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">CHAR(3)</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">The currency that the sale price is in</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+        </tr>
+        <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">sale_price</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(11)</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">The price in minor units that we charge for</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+        </tr>
+        <tr>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">stillage_location_id</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
@@ -324,6 +354,16 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">FK_CSK_cc3_CUR_cc3</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">Index</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">currency_code<br></td>
+        </tr>
+        <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">IDX_CSK_svid</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">Index</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">sale_volume_id<br></td>
+        </tr>
+        <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">FK_CSK_slccode_CUR_ccode</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">Index</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">sale_currency_code<br></td>
         </tr>
         <tr>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">IDX_CSK_exref</td>
@@ -450,119 +490,6 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
         </tr>
         <tr>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">IDX_CM_cid</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">Index</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">cask_id<br></td>
-        </tr>
-
-      </table>
-    </td>
-  </tr>
-
-</table>
-<br>
-<br>
-<table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#e4efff">
-  <tr>
-    <td class="fontX">cask_sale_price
-     <font class="fontS"><br>Table structure for table `cask_sale_price`<br>Complex table taking a cask id, volume id, currency, price and revision<br>so that each cask of a gyle can be changed in price if required, the valid<br>bit allows sets which price revision is the one currently in use. </font></td>
-  </tr>
-  <tr>
-    <td>
-      <table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#d0dfff">
-        <tr>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">ColumnName</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">DataType</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="1%">PrimaryKey&nbsp;&nbsp;</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="1%">NotNull&nbsp;&nbsp;</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="1%">Flags</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">Default Value</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="20%">Comment</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="1%">AutoInc</td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">cask_sale_price_id</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(3)</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">PK</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">A revision number that allows the price to be changed during the festival</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">AI</td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">cask_id</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(6)</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">The cask Id that the sale price is linked to</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">sale_volume_id</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(3)</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">The volume type e.g. 'pint' or 'half pint' that the sale price is for</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">currency_code</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">CHAR(3)</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">The currency that the price is in</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">sale_price</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(11)</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">The price in minor units that we charge for</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">valid</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">BIT(1)</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">Flag to identify which revision for a price is valid</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-        </tr>
-
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td class="fontB">
-      <table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#d8e6ff">
-        <tr>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">IndexName</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">IndexType</td>
-          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">Columns</td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">PRIMARY</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">PRIMARY</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">cask_sale_price_id<br></td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">IDX_CSP_svid</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">Index</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">sale_volume_id<br></td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">IDX_CSP_cskid</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">Index</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">cask_id<br></td>
         </tr>
@@ -1597,6 +1524,69 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
 <br>
 <table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#e4efff">
   <tr>
+    <td class="fontX">festival_bar
+     <font class="fontS"><br>Table structure for table `festival_bar`<br>Table maintaining a record of which bars are used for each festival.</td>
+  </tr>
+  <tr>
+    <td>
+      <table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#d0dfff">
+        <tr>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">ColumnName</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">DataType</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="1%">PrimaryKey&nbsp;&nbsp;</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="1%">NotNull&nbsp;&nbsp;</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="1%">Flags</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">Default Value</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="20%">Comment</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="1%">AutoInc</td>
+        </tr>
+        <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">festival_id</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(3)</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">PK</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">Foreign key linking to the festival table</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+        </tr>
+        <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">bar_id</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(3)</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">PK</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">Foreign key linking to the bar table</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="fontB">
+      <table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#d8e6ff">
+        <tr>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">IndexName</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">IndexType</td>
+          <td class="fontSB" style="border-bottom: 1px solid #606060" width="15%">Columns</td>
+        </tr>
+        <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">PRIMARY</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0" valign="top">PRIMARY</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">festival_id<br/>bar_id</td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+
+</table>
+<br>
+<br>
+<table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#e4efff">
+  <tr>
     <td class="fontX">festival_opening
      <font class="fontS"><br>Table structure for table `festival_opening`<br>Simple table for storing all the festival opening sessions, with a <br>festival_opening_id auto generated with the start_date, end_date.<br>References fetival by vestival_id<br>add last orders as date? <br></font></td>
   </tr>
@@ -1911,7 +1901,7 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
 <br>
 <table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#e4efff">
   <tr>
-    <td class="fontX">product_caracteristic
+    <td class="fontX">product_characteristic
      <font class="fontS"><br>For each product, there ccan be multiple characteristics<br></font></td>
   </tr>
   <tr>

@@ -24,6 +24,12 @@ __PACKAGE__->add_columns(
   { data_type => "CHAR", default_value => undef, is_nullable => 0, size => 3 },
   "price",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  "sale_volume_id",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 3 },
+  "sale_currency_code",
+  { data_type => "CHAR", default_value => undef, is_nullable => 0, size => 3 },
+  "sale_price",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 11 },
   "stillage_location_id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "stillage_x_location",
@@ -55,6 +61,11 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("cask_id");
+__PACKAGE__->belongs_to(
+  "sale_volume_id",
+  "BeerFestDB::ORM::SaleVolume",
+  { sale_volume_id => "sale_volume_id" },
+);
 __PACKAGE__->belongs_to("bar_id", "BeerFestDB::ORM::Bar", { bar_id => "bar_id" });
 __PACKAGE__->belongs_to(
   "container_size_id",
@@ -71,6 +82,11 @@ __PACKAGE__->belongs_to(
   "BeerFestDB::ORM::Currency",
   { currency_code => "currency_code" },
 );
+__PACKAGE__->belongs_to(
+  "sale_currency_code",
+  "BeerFestDB::ORM::Currency",
+  { currency_code => "sale_currency_code" },
+);
 __PACKAGE__->belongs_to("gyle_id", "BeerFestDB::ORM::Gyle", { gyle_id => "gyle_id" });
 __PACKAGE__->belongs_to(
   "stillage_location_id",
@@ -82,15 +98,10 @@ __PACKAGE__->has_many(
   "BeerFestDB::ORM::CaskMeasurement",
   { "foreign.cask_id" => "self.cask_id" },
 );
-__PACKAGE__->has_many(
-  "cask_sale_prices",
-  "BeerFestDB::ORM::CaskSalePrice",
-  { "foreign.cask_id" => "self.cask_id" },
-);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-06 12:24:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p0qsAR7S+0sFvxFF/KNIwA
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-16 21:32:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ClqjGV5TR+yRQJEeqEcIuQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
