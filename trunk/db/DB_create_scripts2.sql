@@ -592,6 +592,9 @@ CREATE TABLE cask (
   bar_id INTEGER(3) NULL,
   currency_code CHAR(3) NOT NULL,
   price INTEGER UNSIGNED NULL,
+  sale_volume_id INTEGER(3) NOT NULL,
+  sale_currency_code CHAR(3) NOT NULL,
+  sale_price INTEGER(11) NULL,
   stillage_location_id INTEGER UNSIGNED NOT NULL,
   stillage_x_location INTEGER UNSIGNED NULL,
   stillage_y_location INTEGER UNSIGNED NULL,
@@ -607,6 +610,11 @@ CREATE TABLE cask (
   INDEX FK_CSK_cc3_CUR_cc3(currency_code),
   INDEX IDX_CSK_exref(external_reference),
   INDEX IDX_CSK_iref(internal_reference),
+  INDEX IDX_CSP_svid(sale_volume_id),
+  FOREIGN KEY FK_CSK_svid_SV_svid(sale_volume_id)
+    REFERENCES sale_volume(sale_volume_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_bid_BR_bid(bar_id)
     REFERENCES bar(bar_id)
       ON DELETE RESTRICT
@@ -620,6 +628,10 @@ CREATE TABLE cask (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_curcd_CUR_curcd(currency_code)
+    REFERENCES currency(currency_code)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSK_slccode_CUR_ccode(sale_currency_code)
     REFERENCES currency(currency_code)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
@@ -662,37 +674,4 @@ CREATE TABLE cask_measurement (
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB;
-
--- ------------------------------------------------------------
--- Table structure for table `cask_sale_price`
--- Complex table taking a cask id, volume id, currency, price and revision
--- so that each cask of a gyle can be changed in price if required, the valid
--- bit allows sets which price revision is the one currently in use. 
--- ------------------------------------------------------------
-
-CREATE TABLE cask_sale_price (
-  cask_sale_price_id INTEGER(3) NOT NULL AUTO_INCREMENT,
-  cask_id INTEGER(6) NOT NULL,
-  sale_volume_id INTEGER(3) NOT NULL,
-  currency_code CHAR(3) NOT NULL,
-  sale_price INTEGER(11) NULL,
-  valid BIT(1) NULL,
-  PRIMARY KEY(cask_sale_price_id),
-  INDEX IDX_CSP_svid(sale_volume_id),
-  INDEX IDX_CSP_cskid(cask_id),
-  FOREIGN KEY FK_CSKSP_cskid_CSK_cskid(cask_id)
-    REFERENCES cask(cask_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CSP_svid_SV_svid(sale_volume_id)
-    REFERENCES sale_volume(sale_volume_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CSP_ccode_CUR_ccode(currency_code)
-    REFERENCES currency(currency_code)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION
-)
-TYPE=InnoDB;
-
 
