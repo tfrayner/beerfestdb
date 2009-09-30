@@ -11,9 +11,9 @@ __PACKAGE__->add_columns(
   "gyle_id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 6 },
   "company_id",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 6 },
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 6 },
   "product_id",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 6 },
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 6 },
   "abv",
   { data_type => "DECIMAL", default_value => undef, is_nullable => 1, size => 3 },
   "comment",
@@ -56,8 +56,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-06 12:24:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gch2JiupXle+AgZuuDc8qw
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-01 00:22:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+Jo2mmKKWaF15KAjmdUQ+w
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

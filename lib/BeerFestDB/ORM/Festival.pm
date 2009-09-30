@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
   {
     data_type => "VARCHAR",
     default_value => undef,
-    is_nullable => 1,
+    is_nullable => 0,
     size => 60,
   },
   "description",
@@ -59,8 +59,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-06 12:24:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sEettgnX6zzpqkQqhteV/A
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-01 00:22:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9NayPtT6q3ZCE9dxT/Y40A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
