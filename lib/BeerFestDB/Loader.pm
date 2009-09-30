@@ -94,8 +94,8 @@ sub load_data : PRIVATE {
 	= $self->check_not_null( $datahash->{$FESTIVAL_YEAR} )
 	? $self->load_column_value(
 	    {
-		year        => $datahash->{$FESTIVAL_YEAR},
-		description => $datahash->{$FESTIVAL_DESCRIPTION},
+		year => $datahash->{$FESTIVAL_YEAR},
+		name => $datahash->{$FESTIVAL_DESCRIPTION},
 	    },
 	    'Festival')
 	: undef;
@@ -126,24 +126,22 @@ sub load_data : PRIVATE {
 	= $self->check_not_null( $datahash->{$BEER_NAME} )
 	? $self->load_column_value(
 	    {
-		name         => $datahash->{$BEER_NAME},
-		style        => $datahash->{$BEER_STYLE},
-		description  => $datahash->{$BEER_DESCRIPTION},
-		comment      => $datahash->{$BEER_COMMENT},
+		name             => $datahash->{$BEER_NAME},
+		description      => $datahash->{$BEER_DESCRIPTION},
+		comment          => $datahash->{$BEER_COMMENT},
 	    },
-	    'Beer')
+	    'Product')
 	: undef;
 
     my $gyle
 	= $beer
 	? $self->load_column_value(
 	    {
-		brewery_number => $datahash->{$GYLE_BREWERY_NUMBER},
-		brewer         => $brewer,
-		beer           => $beer,
-		abv            => $datahash->{$GYLE_ABV},
-		pint_price     => $datahash->{$GYLE_PINT_PRICE},
-		comment        => $datahash->{$GYLE_COMMENT},
+		external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
+		company_id         => $brewer,
+		product_id         => $beer,
+		abv                => $datahash->{$GYLE_ABV},
+		comment            => $datahash->{$GYLE_COMMENT},
 	    },
 	    'Gyle')
 	: undef;
@@ -160,29 +158,93 @@ sub load_data : PRIVATE {
 	    'Company')
 	: undef;
 
+    # This is going to be pretty much constant for UK beers. Will need
+    # modification for European casks though FIXME.
+    my $cask_measure = $self->load_column_value(
+        {
+            litre_multiplier => 4.54609188,
+            description      => 'gallon',
+        },
+        'ContainerMeasure');
+
+    my $cask_size
+        = $self->check_not_null( $datahash->{$CASK_SIZE} )
+        ? $self->load_column_value(
+            {
+                container_volume     => $datahash->{$CASK_SIZE},
+                container_measure_id => $cask_measure,
+            },
+            'ContainerSize')
+        : undef;
+
+    # FIXME obviously this needs to be much more sophisticated.
+    my $stillage = $self->load_column_value(
+        {
+            description => 'main stillage',
+        },
+        'StillageLocation');
+
+    # Likely to be the default for UK beer festivals.
+    my $pint_size = $self->load_column_value(
+        {
+            litre_multiplier => 0.5682,
+            description      => 'pint',
+        },
+        'ContainerMeasure');
+
+    # FIXME why are we reiterating the description here?
+    my $sale_volume = $self->load_column_value(
+        {
+            container_measure_id    => $pint_size,
+            sale_volume_description => 'pint',
+        },
+        'SaleVolume');
+
+    # FIXME this also needs to be much more flexible (see http://en.wikipedia.org/wiki/ISO_4217).
+    my $currency = $self->load_column_value(
+        {
+            currency_code   => 'GBP',
+            currency_number => 826,
+            currency_format => '#,###,###,###,##0.00',
+            exponent        => 2,
+            currency_symbol => '£',
+        },
+        'Currency');
+
+    my $cask_price = $datahash->{$CASK_PRICE}      ? $datahash->{$CASK_PRICE}      * 100 : undef;
+    my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
+
     my $cask
 	= $beer
 	? $self->load_column_value(
 	    {
-		gyle        => $gyle,
-		distributor => $distributor,
-		festival    => $festival,
-		size        => $datahash->{$CASK_SIZE},
-		cask_price  => $datahash->{$CASK_PRICE},
-		bar         => $bar,
-		comment     => $datahash->{$CASK_COMMENT},
+		gyle_id                => $gyle,
+		distributor_company_id => $distributor,
+		festival_id            => $festival,
+		container_size_id      => $cask_size,
+                currency_code          => $currency,
+		price                  => $cask_price,
+                sale_volume_id         => $sale_volume,
+                sale_currency_code     => $currency,
+                sale_price             => $sale_price,
+                stillage_location_id   => $stillage,
+		bar_id                 => $bar,
+		comment                => $datahash->{$CASK_COMMENT},
 	    },
 	    'Cask')
 	: undef;
 
+    # FIXME at the moment we're assuming that dip measurements use the
+    # same volume units as the cask sizes.
     my $cask_measurement
 	= $self->check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
 	? $self->load_cask_measurement(
 	    {
-		cask    => $cask,
-		date    => $datahash->{$CASK_MEASUREMENT_DATE},
-		volume  => $datahash->{$CASK_MEASUREMENT_VOLUME},
-		comment => $datahash->{$CASK_MEASUREMENT_COMMENT},
+		cask_id              => $cask,
+		date                 => $datahash->{$CASK_MEASUREMENT_DATE},
+		volume               => $datahash->{$CASK_MEASUREMENT_VOLUME},
+                container_measure_id => $cask_measure,
+		comment              => $datahash->{$CASK_MEASUREMENT_COMMENT},
 	    },
 	    'CaskMeasurement')
 	: undef;
@@ -196,6 +258,8 @@ sub find_required_cols : PRIVATE {
 
     my $source = $resultset->result_source();
 
+    my %is_pk = map { $_ => 1 } $source->primary_columns();
+
     my @cols = $source->columns();
 
     my ( @required, @optional );
@@ -203,7 +267,7 @@ sub find_required_cols : PRIVATE {
 
 	# FIXME we should introspect to identify primary
 	# key/autoincrement columns where possible.
-	next if $col eq 'id';
+	next if $is_pk{ $col };
 	my $info = $source->column_info($col);
 	if ( $info->{'is_nullable'} ) {
 	    push ( @optional, $col );
@@ -245,7 +309,8 @@ sub load_column_value : PRIVATE {
 
     # Validate our arguments against the database.
     my ( $required, $optional ) = $self->find_required_cols( $resultset );
-    my %recognised = map { $_ => 1 } @{ $required }, @{ $optional };
+    my @pk = $resultset->result_source()->primary_columns();
+    my %recognised = map { $_ => 1 } @{ $required }, @{ $optional }, @pk;
     foreach my $key ( keys %{ $args } ) {
 	unless ( $recognised{ $key } ) {
 	    confess(qq{Error: Unrecognised column key "$key".}); 
@@ -256,13 +321,26 @@ sub load_column_value : PRIVATE {
 
     # Create an object with all its required values.
     my %values = map { $_ => $args->{$_} } @{ $required };
+    foreach my $k ( @pk ) {
+        $values{$k} = $args->{$k} if defined $args->{$k};
+    }
     my $object = $resultset->find_or_create(\%values);
 
     # Add in the optional values where available.
     foreach my $col ( @{ $optional } ) {
 	if ( $self->check_not_null( $args->{$col} ) ) {
 	    my $value = $args->{$col};
-	    $value = $value->id() if (ref $value && $value->can('id'));
+            if ( ref $value ) {
+                my @vpk = $value->result_source()->primary_columns();
+                if ( scalar @vpk == 1 ) {
+                    my $pcol = $vpk[0];
+                    $value = $value->$pcol if ($value->can($pcol));
+                }
+                else {
+                    die("Error: Cannot automatically link objects in tables"
+                            . " with multi-column primary keys");
+                }
+            }
 	    $object->set_column( $col => $value );
 	}
     }

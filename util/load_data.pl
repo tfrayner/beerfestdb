@@ -11,7 +11,7 @@ use Readonly;
 use BeerFestDB::Loader;
 use BeerFestDB::Common qw(connect_db);
 
-Readonly my $VERSION => '0.2';
+Readonly my $VERSION => '0.3';
 
 ########
 # SUBS #
