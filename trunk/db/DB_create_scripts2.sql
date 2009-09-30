@@ -19,7 +19,7 @@ CREATE TABLE currency (
   PRIMARY KEY(currency_code),
   INDEX CUR_currencynumber(currency_number)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `festival`
@@ -33,13 +33,13 @@ TYPE=InnoDB;
 CREATE TABLE festival (
   festival_id INTEGER(3) NOT NULL AUTO_INCREMENT,
   year YEAR(4) NOT NULL,
-  name VARCHAR(60) NULL,
+  name VARCHAR(60) NOT NULL,
   description TEXT NULL,
   fst_start_date DATETIME NULL,
   fst_end_date DATETIME NULL,
   PRIMARY KEY(festival_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `container_measure`
@@ -48,15 +48,15 @@ TYPE=InnoDB;
 
 CREATE TABLE container_measure (
   container_measure_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-  litre_multiplier FLOAT NULL,
+  litre_multiplier FLOAT NOT NULL,
   description VARCHAR(50) NULL,
   PRIMARY KEY(container_measure_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO container_measure (litre_multiplier, description) VALUES(1, 'litre');
-INSERT INTO container_measure (litre_multiplier, description) VALUES(4.54609188,'Gallons');
+INSERT INTO container_measure (litre_multiplier, description) VALUES(4.54609188,'gallon');
 INSERT INTO container_measure (litre_multiplier, description) VALUES(0.5682,'pint');
 INSERT INTO container_measure (litre_multiplier, description) VALUES(0.2841,'half pint');
 
@@ -77,7 +77,7 @@ CREATE TABLE country (
   INDEX IDX_CNTRY_countrycode3(country_code_iso3),
   INDEX IDX_CNTRY_countrynum3(country_code_num3)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO country (country_code_iso2, country_code_iso3, country_code_num3, country_name) VALUES ('GB','GBR', '826', 'Great Britain');
@@ -97,10 +97,10 @@ INSERT INTO country (country_code_iso2, country_code_iso3, country_code_num3, co
 
 CREATE TABLE stillage_location (
   stillage_location_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-  description VARCHAR(255) NULL,
+  description VARCHAR(255) NOT NULL,
   PRIMARY KEY(stillage_location_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO stillage_location (description) VALUES ('igloo');
@@ -118,10 +118,10 @@ INSERT INTO stillage_location (description) VALUES ('main tent right');
 
 CREATE TABLE telephone_type (
   telephone_type_id INTEGER(4) NOT NULL AUTO_INCREMENT,
-  description VARCHAR(30) NULL,
+  description VARCHAR(30) NOT NULL,
   PRIMARY KEY(telephone_type_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO telephone_type (description) VALUES('telephone');
 INSERT INTO telephone_type (description) VALUES('fax');
@@ -140,7 +140,7 @@ CREATE TABLE festival_entry_type (
   description VARCHAR(30) NOT NULL,
   PRIMARY KEY(festival_entry_type_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `product_category`
@@ -153,7 +153,7 @@ CREATE TABLE product_category (
   description VARCHAR(100) NOT NULL,
   PRIMARY KEY(product_category_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO product_category (description) VALUES ('beer');
@@ -176,7 +176,7 @@ CREATE TABLE contact_type (
   contact_type_description VARCHAR(30) NOT NULL,
   PRIMARY KEY(contact_type_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO contact_type (contact_type_description) VALUES ('Main');
@@ -192,13 +192,13 @@ INSERT INTO contact_type (contact_type_description) VALUES ('Customer Service');
 
 CREATE TABLE company (
   company_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  name VARCHAR(100) NULL,
+  name VARCHAR(100) NOT NULL,
   loc_desc VARCHAR(100) NULL,
   year_founded YEAR(4) NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(company_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `bar`
@@ -212,10 +212,10 @@ TYPE=InnoDB;
 
 CREATE TABLE bar (
   bar_id INTEGER(3) NOT NULL AUTO_INCREMENT,
-  description TEXT NULL,
+  description TEXT NOT NULL,
   PRIMARY KEY(bar_id)
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO bar (description) VALUES ('Main tent');
 INSERT INTO bar (description) VALUES ('Woodfords');
@@ -238,7 +238,7 @@ CREATE TABLE festival_bar (
       ON DELETE CASCADE
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Contains a list of characteristics about a particular product category
@@ -247,14 +247,14 @@ TYPE=InnoDB;
 CREATE TABLE product_characteristic_type (
   product_characteristic_type_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
   product_category_id INTEGER(4) NOT NULL,
-  description VARCHAR(50) NULL,
+  description VARCHAR(50) NOT NULL,
   PRIMARY KEY(product_characteristic_type_id, product_category_id),
   FOREIGN KEY FK_PC_pcid_PCT_pcid(product_category_id)
     REFERENCES product_category(product_category_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `festival_opening`
@@ -275,7 +275,7 @@ CREATE TABLE festival_opening (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `telephone`
@@ -285,10 +285,10 @@ TYPE=InnoDB;
 
 CREATE TABLE telephone (
   telephone_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  telephone_type_id INTEGER(4) NOT NULL,
+  telephone_type_id INTEGER(4) NULL,
   interational_code VARCHAR(10) NULL,
   area_code VARCHAR(10) NULL,
-  telephone VARCHAR(50) NULL,
+  telephone VARCHAR(50) NOT NULL,
   extension VARCHAR(10) NULL,
   PRIMARY KEY(telephone_id),
   INDEX IDX_TEL_ttid(telephone_type_id),
@@ -297,7 +297,7 @@ CREATE TABLE telephone (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `container_size`
@@ -316,7 +316,7 @@ CREATE TABLE container_size (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (9,2,'Firkin'); 
 INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (18,2,'Kilderkin'); 
@@ -342,7 +342,7 @@ CREATE TABLE product_style (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Mild');
@@ -388,7 +388,7 @@ CREATE TABLE sale_volume (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `contact`
@@ -419,7 +419,7 @@ CREATE TABLE contact (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `contact_telephone`
@@ -441,7 +441,7 @@ CREATE TABLE contact_telephone (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `festival_entry`
@@ -470,7 +470,7 @@ CREATE TABLE festival_entry (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `product`
@@ -481,7 +481,7 @@ TYPE=InnoDB;
 
 CREATE TABLE product (
   product_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  name VARCHAR(100) NULL,
+  name VARCHAR(100) NOT NULL,
   product_style_id INTEGER(6) NULL,
   description TEXT NULL,
   comment VARCHAR(255) NULL,
@@ -492,7 +492,7 @@ CREATE TABLE product (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- For each product, there ccan be multiple characteristics
@@ -513,7 +513,7 @@ CREATE TABLE product_characteristic (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `company_contact`
@@ -534,7 +534,7 @@ CREATE TABLE company_contact (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `brew_batch`
@@ -548,8 +548,8 @@ TYPE=InnoDB;
 
 CREATE TABLE gyle (
   gyle_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  company_id INTEGER(6) NULL,
-  product_id INTEGER(6) NULL,
+  company_id INTEGER(6) NOT NULL,
+  product_id INTEGER(6) NOT NULL,
   abv DECIMAL(3,1) NULL,
   comment VARCHAR(255) NULL,
   external_reference VARCHAR(255) NULL,
@@ -568,7 +568,7 @@ CREATE TABLE gyle (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `cask`
@@ -595,7 +595,7 @@ CREATE TABLE cask (
   sale_volume_id INTEGER(3) NOT NULL,
   sale_currency_code CHAR(3) NOT NULL,
   sale_price INTEGER(11) NULL,
-  stillage_location_id INTEGER UNSIGNED NOT NULL,
+  stillage_location_id INTEGER UNSIGNED NULL,
   stillage_x_location INTEGER UNSIGNED NULL,
   stillage_y_location INTEGER UNSIGNED NULL,
   stillage_z_location INTEGER UNSIGNED NULL,
@@ -644,7 +644,7 @@ CREATE TABLE cask (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `cask_measure`
@@ -664,14 +664,19 @@ CREATE TABLE cask_measurement (
   date DATETIME NULL,
   start_date DATETIME NULL,
   end_date DATETIME NULL,
-  volume INTEGER(6) NULL,
+  volume decimal(5,2) NOT NULL,
+  container_measure_id INTEGER UNSIGNED NOT NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(cask_measurement_id),
   INDEX IDX_CM_cid(cask_id),
   FOREIGN KEY FK_CSKM_cskid_CSK_cskid(cask_id)
     REFERENCES cask(cask_id)
       ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSKM_cskid_CM_cmid(container_measure_id)
+    REFERENCES container_measure(container_measure_id)
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB;
+TYPE=InnoDB DEFAULT CHARSET=utf8;
 

@@ -31,7 +31,7 @@ __PACKAGE__->add_columns(
   "sale_price",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 11 },
   "stillage_location_id",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "stillage_x_location",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "stillage_y_location",
@@ -100,8 +100,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-16 21:32:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ClqjGV5TR+yRQJEeqEcIuQ
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-01 00:22:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y53E0Y9UGHRRzm7274+4HA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

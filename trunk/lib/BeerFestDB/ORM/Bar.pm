@@ -14,7 +14,7 @@ __PACKAGE__->add_columns(
   {
     data_type => "TEXT",
     default_value => undef,
-    is_nullable => 1,
+    is_nullable => 0,
     size => 65535,
   },
 );
@@ -31,8 +31,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-06 12:24:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I+tuD1ge42VgHPlwHok6Kw
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-01 00:22:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3xltdGSoSyyBOQ44yPF1rg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
