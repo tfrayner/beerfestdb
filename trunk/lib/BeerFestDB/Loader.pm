@@ -84,6 +84,21 @@ sub check_not_null : PRIVATE {
     return ( defined $value && $value ne q{} && $value !~ m/\A \?+ \z/xms );
 }
 
+sub link_bar_and_festival : PRIVATE {
+
+    my ( $self, $bar, $festival ) = @_;
+
+    my $resultset = $self->get_schema()->resultset('FestivalBar')
+	or confess(qq{Error: No result set returned from DB for class "FestivalBar".});
+
+    $resultset->find_or_create({
+        festival_id => $festival->id,
+        bar_id      => $bar->id,
+    });
+
+    return;
+}
+
 sub load_data : PRIVATE {
 
     my ( $self, $datahash ) = @_;
@@ -108,6 +123,10 @@ sub load_data : PRIVATE {
 	    },
 	    'Bar')
 	: undef;
+
+    if ( $bar && $festival ) {
+        $self->link_bar_and_festival( $bar, $festival );
+    }
 
     # FIXME no addresses at this point.
     my $brewer
