@@ -27,7 +27,7 @@
 
 \setlength{\TPHorizModule}{\paperwidth}
 \setlength{\TPVertModule}{\paperheight}
-\textblockorigin{10mm}{10mm} % start everything near the top-left corner
+\textblockorigin{0mm}{10mm} % start everything near the top-left corner
 \setlength{\parindent}{0pt}
 
 \pagestyle{empty}
@@ -36,13 +36,16 @@
 \selectfont
 
 % logos
-\begin{textblock}{0.01}(0.05,0.05)
+\begin{textblock}{0.01}(0.78,0.05)
 \includegraphics[width=60mm]{[% logo %]}
 \end{textblock}
   
 % beer info to be plugged in
 
-\begin{textblock}{0.7}[0.5,0](0.5,0.05)
+\fontsize{48}{60}
+\selectfont
+
+\begin{textblock}{0.6}[0.5,0](0.5,0.05)
 \begin{center}
 \textbf{[% cask.brewery | replace( '&', '\\&' ) %]}
 \end{center}
@@ -71,11 +74,13 @@
 \begin{textblock}{0.4}(0.5,0.65)
 \textbf{[% cask.price %]}
 [% ELSE %]
-\begin{textblock}{0.4}(0.55,0.65)
+\begin{textblock}{0.4}(0.50,0.65)
 
-\textbf{\pounds [% cask.price      | format('%.2f') %]/pint}
+\textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
+        [%- cask.price      | format('%.2f') -%]/[% cask.sale_volume %]}
 
-\textbf{\pounds [% cask.half_price | format('%.2f') %]/half}
+\textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
+        [%- cask.half_price | format('%.2f') -%]/half [% cask.sale_volume %]}
 
 [% END %]
 \end{textblock}
