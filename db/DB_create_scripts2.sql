@@ -44,13 +44,15 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 -- Table structure for table `container_measure`
 -- Simple table to store a multiplier so all container types can be converted into the same volume e.g. from litres into gallons
+-- Note that we have to make description unique not null since retrieving a row based on a float value seems to be questionable in MySQL.
 -- ------------------------------------------------------------
 
 CREATE TABLE container_measure (
   container_measure_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
   litre_multiplier FLOAT NOT NULL,
-  description VARCHAR(50) NULL,
-  PRIMARY KEY(container_measure_id)
+  description VARCHAR(50) NOT NULL,
+  PRIMARY KEY(container_measure_id),
+  UNIQUE KEY(description)
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -318,10 +320,10 @@ CREATE TABLE container_size (
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (9,2,'Firkin'); 
-INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (18,2,'Kilderkin'); 
-INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (22,2,'22 Gallon'); 
-INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (36,2,'Barrel'); 
+INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (9,2,'firkin'); 
+INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (18,2,'kilderkin'); 
+INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (22,2,'22 gallon'); 
+INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (36,2,'barrel'); 
 
 
 -- ------------------------------------------------------------
