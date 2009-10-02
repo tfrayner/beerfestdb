@@ -32,11 +32,11 @@
 
 \pagestyle{empty}
 
-\fontsize{60}{75}
-\selectfont
+%\fontsize{60}{75}
+%\selectfont
 
 % logos
-\begin{textblock}{0.01}(0.78,0.05)
+\begin{textblock}{0.01}(0.06,0.04)
 \includegraphics[width=60mm]{[% logo %]}
 \end{textblock}
   
@@ -71,10 +71,10 @@
 \end{textblock}
 
 [% IF cask.price == cask.half_price %]
-\begin{textblock}{0.4}(0.5,0.65)
+\begin{textblock}{0.4}(0.55,0.65)
 \textbf{[% cask.price %]}
 [% ELSE %]
-\begin{textblock}{0.4}(0.50,0.65)
+\begin{textblock}{0.4}(0.55,0.65)
 
 \textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
         [%- cask.price      | format('%.2f') -%]/[% cask.sale_volume %]}
