@@ -1,4 +1,13 @@
-[% META title = "Welcome to BeerFestDB" %] 
+[% META title = "Welcome to BeerFestDB" %]
+
+<script type="text/javascript">
+   var gridurl = '[% c.uri_for( "/product/list" ) %]';
+   var posturl = '[% c.uri_for( "/product/submit" ) %]';
+</script>
+[% js_link( src = '/static/beerfestdb.js' ) %]
+
+<div id="datagrid"></div>
+
 <p>This web site is currently under development.</p> 
 <p>From here, you can: 
 <ul> 

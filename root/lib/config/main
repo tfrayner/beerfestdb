@@ -21,3 +21,24 @@
          + config/url;
 
 -%]
+
+[% BLOCK stylesheet_link %][% FILTER collapse %]
+    [% DEFAULT rel="stylesheet" type="text/css" media="all" %]
+      <link
+          rel="[% rel %]"
+          type="[% type %]" 
+          media="[% media %]" 
+          href="[% href %]"
+      />
+[% END %][% END %]
+
+[% BLOCK javascript_link %][% FILTER collapse %]
+      [% DEFAULT type="text/javascript" %]
+      <script
+          src="[% src %]"
+          type="[% type %]"
+      ></script>
+[% END %][% END %]
+
+[% MACRO css_link INCLUDE stylesheet_link %]
+[% MACRO js_link INCLUDE javascript_link %]

@@ -2,11 +2,16 @@
 <html>
  <head>
   <title>[% template.title or site.title %]</title>
+[%
+  css_link( href = "/static/ext/resources/css/ext-all.css" );
+  js_link( src = "/static/ext/adapter/ext/ext-base.js" );
+  js_link( src = "/static/ext/ext-all.js" );
+%]
   <style type="text/css">
 [% PROCESS ttsite.css %]
   </style>
  </head>
- <body>
+ <body class="xtheme-gray">
 [% content %]
  </body>
 </html>
