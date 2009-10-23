@@ -3,6 +3,8 @@
 
 name: BeerFestDB::Web
 
+default_view: HTML
+
 # Main database configuration.
 Model::DB:
 
