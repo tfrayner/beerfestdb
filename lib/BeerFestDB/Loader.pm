@@ -141,6 +141,13 @@ sub load_data : PRIVATE {
 	    'Company')
 	: undef;
 
+    my $category
+        = $self->load_column_value(
+            {
+                description => 'beer',
+            },
+            'ProductCategory');
+
     my $beer
 	= $self->check_not_null( $datahash->{$BEER_NAME} )
 	? $self->load_column_value(
@@ -148,6 +155,7 @@ sub load_data : PRIVATE {
 		name             => $datahash->{$BEER_NAME},
 		description      => $datahash->{$BEER_DESCRIPTION},
 		comment          => $datahash->{$BEER_COMMENT},
+                product_category_id => $category,
 	    },
 	    'Product')
 	: undef;
