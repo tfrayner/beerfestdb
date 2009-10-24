@@ -25,8 +25,7 @@ __PACKAGE__->has_many(
   "product_characteristics",
   "BeerFestDB::ORM::ProductCharacteristic",
   {
-    "foreign.product_category_id"              => "self.product_category_id",
-    "foreign.product_characteristic_type_id_2" => "self.product_characteristic_type_id",
+    "foreign.product_characteristic_type_id" => "self.product_characteristic_type_id",
   },
 );
 __PACKAGE__->belongs_to(
@@ -36,8 +35,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-01 00:22:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qAIIG7WPv8JU2rgpWtSx+g
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-24 18:45:05
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UpIKPpxZ6rYv3n60IEel6A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

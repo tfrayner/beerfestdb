@@ -254,7 +254,7 @@ CREATE TABLE product_characteristic_type (
   FOREIGN KEY FK_PC_pcid_PCT_pcid(product_category_id)
     REFERENCES product_category(product_category_id)
       ON DELETE RESTRICT
-      ON UPDATE NO ACTION
+      ON UPDATE RESTRICT
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -336,13 +336,13 @@ INSERT INTO container_size (container_volume, container_measure_id, container_de
 CREATE TABLE product_style (
   product_style_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   product_category_id INTEGER(4) NOT NULL,
-  description VARCHAR(100) NULL,
+  description VARCHAR(100) NOT NULL,
   PRIMARY KEY(product_style_id),
   INDEX IDX_PS_pcid(product_category_id),
   FOREIGN KEY FK_PS_pcid_PC_pcid(product_category_id)
     REFERENCES product_category(product_category_id)
       ON DELETE RESTRICT
-      ON UPDATE NO ACTION
+      ON UPDATE RESTRICT
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -484,11 +484,17 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 CREATE TABLE product (
   product_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   name VARCHAR(100) NOT NULL,
+  product_category_id INTEGER(6) NOT NULL,
   product_style_id INTEGER(6) NULL,
   description TEXT NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(product_id),
+  INDEX IDX_pdc_pcid(product_category_id),
   INDEX IDX_pdc_psid(product_style_id),
+  FOREIGN KEY FK_PDCT_pc_PC_pc(product_category_id)
+    REFERENCES product_category(product_category_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
   FOREIGN KEY FK_PDCT_ps_PS_ps(product_style_id)
     REFERENCES product_style(product_style_id)
       ON DELETE RESTRICT
@@ -497,17 +503,16 @@ CREATE TABLE product (
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
--- For each product, there ccan be multiple characteristics
+-- For each product, there can be multiple characteristics
 -- ------------------------------------------------------------
 
 CREATE TABLE product_characteristic (
   product_id INTEGER(6) NOT NULL,
-  product_characteristic_type_id_2 INTEGER UNSIGNED NOT NULL,
-  product_category_id INTEGER(4) NOT NULL,
+  product_characteristic_type_id INTEGER UNSIGNED NOT NULL,
   value INTEGER UNSIGNED NULL,
   PRIMARY KEY(product_id),
-  FOREIGN KEY Rel_29(product_characteristic_type_id_2, product_category_id)
-    REFERENCES product_characteristic_type(product_characteristic_type_id, product_category_id)
+  FOREIGN KEY Rel_29(product_characteristic_type_id)
+    REFERENCES product_characteristic_type(product_characteristic_type_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_PDCT_pdid_PC_pid(product_id)
@@ -682,3 +687,126 @@ CREATE TABLE cask_measurement (
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Create some basic triggers to make sure that product_style and
+-- product_characteristic usage is properly constrained to their
+-- respective product_categories. These triggers are perhaps a little
+-- lame, but are apparently the best that MySQL version 5.0 can
+-- muster. Fix the 'set' statements to proper error raising when MySQL
+-- 6.1 is finally available.
+
+delimiter //
+
+-- Product
+drop trigger if exists `product_insert_trigger`//
+create trigger `product_insert_trigger`
+    before insert on product
+for each row
+begin
+    -- check that the style is valid
+    if ( new.product_style_id is not null
+       and (select count(product_style_id)
+            from product_style
+            where product_category_id=new.product_category_id
+            and product_style_id=new.product_style_id) = 0 ) then
+        call ERROR_PRODUCT_INSERT_TRIGGER();
+    end if;
+end;
+//
+
+drop trigger if exists `product_update_trigger`//
+create trigger `product_update_trigger`
+    before update on product
+for each row
+begin
+    -- check that the style is valid
+    if ( new.product_style_id is not null
+        and (select count(product_style_id)
+             from product_style
+             where product_category_id=new.product_category_id
+             and product_style_id=new.product_style_id) = 0 ) then
+        call ERROR_PRODUCT_UPDATE_TRIGGER();
+    end if;
+    -- check for inequality between number of types present and number of valid types present.
+    if ( (select count(t.product_characteristic_type_id)
+          from product_characteristic t
+          where t.product_id=new.product_id)
+          !=
+         (select count(t.product_characteristic_type_id)
+          from product_characteristic_type t, product_characteristic c
+          where c.product_id=new.product_id
+          and t.product_characteristic_type_id=c.product_characteristic_type_id
+          and t.product_category_id=new.product_category_id) ) then
+        call ERROR_PRODUCT_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- Product style
+drop trigger if exists `product_style_update_trigger`//
+create trigger `product_style_update_trigger`
+    before update on product_style
+for each row
+begin
+    -- if we're changing category association, ensure we haven't already used this style.
+    if ( old.product_category_id != new.product_category_id
+         and (select count(p.product_style_id)
+              from product p
+              where p.product_style_id=old.product_style_id) > 0 ) then
+        call ERROR_PRODUCT_STYLE_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- FIXME add a similar check that product_characteristic_type <->
+-- category association is not disruptive.
+-- Product characteristic type
+drop trigger if exists `product_characteristic_type_update_trigger`//
+create trigger `product_characteristic_type_update_trigger`
+    before update on product_characteristic_type
+for each row
+begin
+    -- if we're changing category association, ensure we haven't already used this type.
+    if ( old.product_category_id != new.product_category_id
+         and (select count(c.product_characteristic_type_id)
+              from product_characteristic c
+              where c.product_characteristic_type_id=old.product_characteristic_type_id) > 0 ) then
+        call ERROR_PRODUCT_CHARACTERISTIC_TYPE_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- Product characteristic
+drop trigger if exists `product_characteristic_insert_trigger`//
+create trigger `product_characteristic_insert_trigger`
+    before insert on product_characteristic
+for each row
+begin
+    -- check that the characteristic type is valid
+    if ( (select count(t.product_characteristic_type_id)
+          from product_characteristic_type t, product p
+          where t.product_characteristic_type_id=new.product_characteristic_type_id
+          and p.product_id=new.product_id
+          and t.product_category_id=p.product_category_id) = 0 ) then
+        call ERROR_PRODUCT_CHARACTERISTIC_INSERT_TRIGGER();
+    end if;
+end;
+//
+
+drop trigger if exists `product_characteristic_update_trigger`//
+create trigger `product_characteristic_update_trigger`
+    before update on product_characteristic
+for each row
+begin
+    -- check that the characteristic type is valid
+    if ( (select count(t.product_characteristic_type_id)
+          from product_characteristic_type t, product p
+          where t.product_characteristic_type_id=new.product_characteristic_type_id
+          and p.product_id=new.product_id
+          and t.product_category_id=p.product_category_id) = 0 ) then
+        call ERROR_PRODUCT_CHARACTERISTIC_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- End of triggers
+delimiter ;

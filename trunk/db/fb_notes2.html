@@ -1840,6 +1840,16 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
         </tr>
         <tr>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">product_category_id</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(6)</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">The product category for this product</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+        </tr>
+        <tr>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">product_style_id</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(6)</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
@@ -1902,7 +1912,7 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
 <table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#e4efff">
   <tr>
     <td class="fontX">product_characteristic
-     <font class="fontS"><br>For each product, there ccan be multiple characteristics<br></font></td>
+     <font class="fontS"><br>For each product, there can be multiple characteristics. Note that database triggers have been installed to ensure that the characteristics assigned to a product are valid for its given category.<br></font></td>
   </tr>
   <tr>
     <td>
@@ -1928,21 +1938,11 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
         </tr>
         <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">product_characteristic_type_id_2</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">product_characteristic_type_id</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">UNSIGNED </td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-        </tr>
-        <tr>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">product_category_id</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">INTEGER(4)</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
@@ -2121,7 +2121,7 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
 <table cellpadding="2" cellspacing="0" border="0" width="100%" bgcolor="#e4efff">
   <tr>
     <td class="fontX">product_style
-     <font class="fontS"><br>Table structure for table `product_style`<br>Complex table to allow us to store many different types of product style<br>agant a product category. Examples are for a product_category of 'beer'<br>to have product_styles of 'IPA','Porter','Mild' etc</font></td>
+     <font class="fontS"><br>Table structure for table `product_style`<br>Complex table to allow us to store many different types of product style<br>agant a product category. Examples are for a product_category of 'beer'<br>to have product_styles of 'IPA','Porter','Mild' etc. Note that database triggers have been installed to ensure that the style assigned to a product is valid for its given category.</font></td>
   </tr>
   <tr>
     <td>
@@ -2160,7 +2160,7 @@ div, p, td {font-family: Tahoma, Verdana, Arial, MS Sans Serif; color: black; fo
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">description</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">VARCHAR(100)</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
-          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
+          <td class="fontS" style="border-bottom: 1px solid #C0C0C0">NN</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">&nbsp;</td>
           <td class="fontS" style="border-bottom: 1px solid #C0C0C0">Any extra description we want to give this product style</td>

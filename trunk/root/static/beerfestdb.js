@@ -14,12 +14,6 @@ Ext.onReady(function(){
 
         var col_model = new Ext.grid.ColumnModel([
         {
-            id:         'product_id',
-            header:     'ID',
-            dataIndex:  'product_id',
-            width:      25
-        },
-        {
             id:         'name',
             header:     'Name',
             dataIndex:  'name',
@@ -32,13 +26,19 @@ Ext.onReady(function(){
             id:         'description',
             header:     'Description',
             dataIndex:  'description',
-            width:      100
+            width:      100,
+            editor:     new Ext.form.TextField({
+                    allowBlank:     true,
+                })
         },
         {
             id:         'comment',
             header:     'Comment',
             dataIndex:  'comment',
-            width:      100
+            width:      100,
+            editor:     new Ext.form.TextField({
+                    allowBlank:     true,
+                })
         }
                                                   ]); 
         
