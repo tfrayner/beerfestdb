@@ -3,6 +3,7 @@
 <script type="text/javascript">
    var gridurl = '[% c.uri_for( "/product/list" ) %]';
    var posturl = '[% c.uri_for( "/product/submit" ) %]';
+   var deleteurl = '[% c.uri_for( "/product/delete" ) %]';
 </script>
 [% js_link( src = '/static/beerfestdb.js' ) %]
 

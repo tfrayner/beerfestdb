@@ -74,6 +74,29 @@ sub submit : Local {
     return;
 }
 
+=head2 delete
+
+=cut
+
+sub delete : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( 'DB::Product' );
+
+    my $j = JSON::Any->new;
+    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
+
+    for my $id ( @{ $data } ) {
+        my $rec = $rs->find($id);
+        $rec->delete() if $rec;
+    }
+
+    $c->detach( $c->view( 'JSON' ) );
+
+    return;
+}
+
 
 
 =head1 AUTHOR
