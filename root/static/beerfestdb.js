@@ -115,9 +115,9 @@ Ext.onReady(function(){
                     var id = dirty[i].get( 'product_id' );
                     var fields = dirty[i].getChanges();
                     fields.product_id = dirty[i].get( 'product_id' );
+                    // FIXME do something about this...  fields.product_category_id = 1;
                     changes.push( fields );
                 }
-                //                console.log( changes );
                 submitChanges( changes );
                 store.commitChanges();
             },
@@ -146,7 +146,7 @@ Ext.onReady(function(){
             },
         }
                  ]
-                
+
             });
 
         store.load();

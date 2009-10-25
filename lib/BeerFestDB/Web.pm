@@ -16,7 +16,12 @@ use Catalyst::Runtime '5.70';
 use parent qw/Catalyst/;
 use Catalyst qw/-Debug
                 ConfigLoader
-                Static::Simple/;
+                Static::Simple
+
+                Session
+                Session::State::Cookie
+                Session::Store::FastMmap
+               /;
 our $VERSION = '0.01';
 
 # Configure the application. 
@@ -28,7 +33,11 @@ our $VERSION = '0.01';
 # with a external configuration file acting as an override for
 # local deployment.
 
-__PACKAGE__->config( name => 'BeerFestDB::Web' );
+__PACKAGE__->config(
+    name    => 'BeerFestDB::Web',
+    session => { flash_to_stash => 1,
+                 expires        => 3600, },
+ );
 
 # Start the application
 __PACKAGE__->setup();
