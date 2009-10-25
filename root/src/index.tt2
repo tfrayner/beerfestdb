@@ -1,18 +1,8 @@
 [% META title = "Welcome to BeerFestDB" %]
 
-<script type="text/javascript">
-   var gridurl = '[% c.uri_for( "/product/list" ) %]';
-   var posturl = '[% c.uri_for( "/product/submit" ) %]';
-   var deleteurl = '[% c.uri_for( "/product/delete" ) %]';
-</script>
-[% js_link( src = '/static/beerfestdb.js' ) %]
-
-<div id="datagrid"></div>
-
-<p>This web site is currently under development.</p> 
-<p>From here, you can: 
+<p><font color='red'>This web site is currently under development.</font></p> 
+<p>Please enter the site below: 
 <ul> 
-<li><a href="[% c.uri_for('/festival/list') %]">Look at all festivals</a></li> 
-<li><a href="[% c.uri_for('/festival/add') %]">Add a new festival</a></li> 
+<li><a href="[% c.uri_for('/festival/list') %]">List all festivals</a></li> 
 </ul> 
 </p>
