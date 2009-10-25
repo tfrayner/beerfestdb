@@ -76,7 +76,7 @@ Ext.onReady(function(){
 
         var store = new Ext.data.JsonStore({
                 url:        gridurl,
-                root:       'products',
+                root:       'objects',
                 fields:     Product
             });
 

@@ -1,5 +1,12 @@
 <div id="header">[% PROCESS site/header %]</div>
 
+    [% IF error %] 
+      <p><span class="error">[% error | html %]</span></p> 
+    [% END %] 
+    [% IF message %] 
+      <p><span class="message">[% message | html %]</span></p> 
+    [% END %] 
+
 <div id="content">
 [% content %]
 </div>

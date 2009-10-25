@@ -37,6 +37,26 @@ sub list : Local {
     $c->stash->{objects} = \@objects;
 }
 
+=head2 view
+
+=cut
+
+sub view : Local { 
+    my ($self, $c, $id) = @_;
+
+    my $object = $c->model('DB::Festival')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: Festival not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+    my @categories = $c->model('DB::ProductCategory')->all(); 
+
+    $c->stash->{object} = $object;
+    $c->stash->{categories} = \@categories;
+}
+
 =head1 AUTHOR
 
 Tim Rayner

@@ -1,7 +1,7 @@
 [% META title = 'Festival List' %]
 [% IF objects && objects.size > 0 %]
   <div>
-    <table id='festivalList'>
+    <table id='festivalList' class='static_list'>
     <thead>
       <tr>
         <td>Year</td>
