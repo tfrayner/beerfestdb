@@ -89,7 +89,12 @@ sub delete : Local {
 
     for my $id ( @{ $data } ) {
         my $rec = $rs->find($id);
-        $rec->delete() if $rec;
+        eval {
+            $rec->delete() if $rec;
+        };
+        if ($@) {
+            $c->flash->{error} = "Problem deleting selected object(s).";
+        }
     }
 
     $c->detach( $c->view( 'JSON' ) );
