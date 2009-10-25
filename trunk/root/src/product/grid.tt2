@@ -5,11 +5,18 @@
 <div class='subtitle'><h2>[% category.description | html %]</h2></div>
 
 <script type="text/javascript">
-   var gridurl   = '[% c.uri_for( "/product/list/$category.id" ) %]';
-   var posturl   = '[% c.uri_for( "/product/submit" ) %]';
-   var deleteurl = '[% c.uri_for( "/product/delete" ) %]';
+   var gridurl     = '[% c.uri_for( "/product/list/$category.id" ) %]';
+   var posturl     = '[% c.uri_for( "/product/submit" ) %]';
+   var deleteurl   = '[% c.uri_for( "/product/delete" ) %]';
+   var category_id = '[% category.id %]';
 </script>
 [% js_link( src = '/static/product.js' ) %]
+
+<select id='stylepopup' style='display: none'>
+[% FOREACH style = styles.sort('description') -%]
+<option value="[% style.product_style_id | html %]">[% style.description | html %]</option>
+[% END %]
+</select>
 
 <div id="datagrid"></div>
 

@@ -38,12 +38,16 @@ sub list : Local {
     my $rs = $c->model( 'DB::Product' )->search({ product_category_id => $category_id });
     my @products;
     while ( my $prod = $rs->next ) {
-        my $name = sprintf(qq{<a href="%s">%s</a>}, $c->uri_for('view', $prod->product_id), $prod->name);
+        my $style_id;
+        if ( my $style = $prod->product_style_id ) {
+            $style_id = $style->product_style_id;
+        }
         push( @products, {
             product_id  => $prod->product_id,
             name        => $prod->name,
             description => $prod->description,
             comment     => $prod->comment,
+            product_style_id => $style_id,
         } );
     }
 

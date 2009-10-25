@@ -37,12 +37,20 @@ Ext.onReady(function(){
                 }
             });
 
+        var style_combo = new Ext.form.ComboBox({
+                  typeAhead:      true,
+                  triggerAction:  'all',
+                  transform:      'stylepopup',
+                  lazyRender:     true,
+                  listClass:      'x-combo-list-small'
+            });
+
         var col_model = new Ext.grid.ColumnModel({
                 defaults: {
                     sortable: true
                 },
                 columns: [
-                 sm,
+                          sm,
         { id:         'name',
           header:     'Name',
           dataIndex:  'name',
@@ -63,15 +71,26 @@ Ext.onReady(function(){
           width:      100,
           editor:     new Ext.form.TextField({
                   allowBlank:     true,
-              })}
-                 ]
+              })},
+        { id:         'product_style_id',
+          header:     'Style',
+          dataIndex:  'product_style_id',
+          width:      70,
+          renderer:   function(value) {  // render the option text, not the value.
+                var r = style_combo.store.getById(value); 
+                return r ? r.get('text') : '<unknown>';
+            },
+          editor:     style_combo },
+                          ],
+
             }); 
         
         var Product = Ext.data.Record.create([
-        { name: 'product_id',  type: 'int' },
-        { name: 'name',        type: 'string' },
-        { name: 'description', type: 'string' },
-        { name: 'comment',     type: 'string' }
+        { name: 'product_id',       type: 'int' },
+        { name: 'name',             type: 'string' },
+        { name: 'description',      type: 'string' },
+        { name: 'comment',          type: 'string' },
+        { name: 'product_style_id', type: 'int' }
                                              ]);
 
         var store = new Ext.data.JsonStore({
@@ -115,7 +134,7 @@ Ext.onReady(function(){
                     var id = dirty[i].get( 'product_id' );
                     var fields = dirty[i].getChanges();
                     fields.product_id = dirty[i].get( 'product_id' );
-                    // FIXME do something about this...  fields.product_category_id = 1;
+                    fields.product_category_id = category_id;
                     changes.push( fields );
                 }
                 submitChanges( changes );
