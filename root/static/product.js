@@ -37,6 +37,23 @@ Ext.onReady(function(){
                 }
             });
 
+        action = new Ext.ux.grid.RowActions({
+                header:'',
+                keepSelection:true,
+                actions:[{
+                        iconCls:'icon-open',
+                        tooltip:'Open',
+                    }],
+            });
+
+        action.on({
+                action:function(grid, record, action, row, col) {
+                    var t = new Ext.XTemplate('/product/view/{product_id}');
+                    t.compile();
+                    window.location=t.apply({product_id: record.get('product_id')});
+                },
+            });
+
         var style_combo = new Ext.form.ComboBox({
                   typeAhead:      true,
                   triggerAction:  'all',
@@ -81,6 +98,7 @@ Ext.onReady(function(){
                 return r ? r.get('text') : '<unknown>';
             },
           editor:     style_combo },
+                          action,
                           ],
 
             }); 
@@ -99,15 +117,17 @@ Ext.onReady(function(){
                 fields:     Product
             });
 
+        // FIXME make the width/height a proportion of the available view area.
         var grid = new Ext.grid.EditorGridPanel({
                 store:              store,
                 cm:                 col_model,
                 sm:                 sm,
                 title:              'Edit Products',
-                width:              800,
-                height:             400,
+                width:              1000,
+                height:             500,
                 frame:              true,
                 autoExpandColumn:   'name',
+                plugins:            action,
                 renderTo:           'datagrid',
                 columnLines:        true,
                 tbar:
@@ -123,6 +143,7 @@ Ext.onReady(function(){
                 store.insert( 0, p );
                 grid.startEditing( 0, 1 );
             },
+            iconCls: 'icon-plus',
         },
         {
             text:           'Save Changes',
@@ -140,6 +161,7 @@ Ext.onReady(function(){
                 submitChanges( changes );
                 store.commitChanges();
             },
+            iconCls: 'icon-save-table',
         },
         {
             text:           'Discard Changes',
@@ -147,6 +169,7 @@ Ext.onReady(function(){
                 grid.stopEditing();
                 store.rejectChanges();
             },
+            iconCls: 'icon-cancel',
         },
         {
             text:           'Remove Products',
@@ -155,14 +178,20 @@ Ext.onReady(function(){
             disabled:       true,
             handler:        function() {
                 grid.stopEditing();
-                var changes = new Array();
-                var dirty = sm.getSelections();
-                for ( var i = 0 ; i < dirty.length ; i++ ) {
-                    var id = dirty[i].get( 'product_id' );
-                    changes.push( id );
-                }
-                deleteProducts( changes );
+                Ext.Msg.confirm('Name', 'Really delete the selected rows?',
+                                function(btn, text){
+                                    if (btn == 'yes'){
+                                        var changes = new Array();
+                                        var dirty = sm.getSelections();
+                                        for ( var i = 0 ; i < dirty.length ; i++ ) {
+                                            var id = dirty[i].get( 'product_id' );
+                                            changes.push( id );
+                                        }
+                                        deleteProducts( changes );
+                                    }
+                                });
             },
+            iconCls: 'icon-minus',
         }
                  ]
 

@@ -43,3 +43,5 @@ h1.title {
 .error {
     color: [% site.col.error %];
 }
+
+

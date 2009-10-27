@@ -4,8 +4,12 @@
   <title>[% template.title or site.title %]</title>
 [%
   css_link( href = "/static/ext/resources/css/ext-all.css" );
+  css_link( href = "/static/css/Ext.ux.grid.RowActions.css" );
+  css_link( href = "/static/css/icons.css" );
   js_link( src = "/static/ext/adapter/ext/ext-base.js" );
   js_link( src = "/static/ext/ext-all.js" );
+  js_link( src = "/static/js/Ext.ux.grid.RowActions.js" );
+  js_link( src = "/static/js/Ext.ux.Toast.js" );
 %]
   <style type="text/css">
 [% PROCESS ttsite.css %]
