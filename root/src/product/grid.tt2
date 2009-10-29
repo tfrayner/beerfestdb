@@ -1,14 +1,13 @@
 [% META title = 'Product listing' %]
 
-<div class='title'><h2>[% festival.year | html %]  [% festival.description | html %]</h2></div>
-
-<div class='subtitle'><h2>[% category.description | html %]</h2></div>
-
 <script type="text/javascript">
    var gridurl     = '[% c.uri_for( "/product/list/$category.id" ) %]';
    var posturl     = '[% c.uri_for( "/product/submit" ) %]';
    var deleteurl   = '[% c.uri_for( "/product/delete" ) %]';
-   var category_id = '[% category.id %]';
+   var category_id     = '[% category.id %]';
+   var categoryname    = '[% category.description %]';
+   var festivalurl     = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
+   var festivalname    = '[% festival.year | html %]  [% festival.description | html %]';
 </script>
 [% js_link( src = '/static/product.js' ) %]
 
@@ -19,5 +18,3 @@
 </select>
 
 <div id="datagrid"></div>
-
-<p><a href="[% c.uri_for("/") | html %]">Return to start page...</a></p> 

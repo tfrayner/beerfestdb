@@ -98,13 +98,14 @@ sub delete : Local {
             $rec->delete() if $rec;
         };
         if ($@) {
-            $c->flash->{error} = "Problem deleting selected object(s).";
+            $c->response->status('403');  # Forbidden
+
+            # N.B. flash_to_stash doesn't seem to work for JSON views.
+            $c->stash->{error} = 'Unable to delete one or more products';
         }
     }
 
     $c->detach( $c->view( 'JSON' ) );
-
-    return;
 }
 
 =head2 grid
