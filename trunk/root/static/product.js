@@ -11,14 +11,25 @@ Ext.onReady(function(){
             Ext.Ajax.request({
                     url:        posturl,
                     success:    function() { store.reload() },
+                    failure:    function(res, opts) {
+                        var stash = Ext.util.JSON.decode(res.responseText);
+                        Ext.Msg.alert('Error', stash.error);
+                    },
                     params:     { changes: Ext.util.JSON.encode( data ) }
                 });
         }
 
+        // FIXME figure out how to detect when this (or other DB
+        // operations) fails, and add some kind of status message
+        // informing the user.
         function deleteProducts( data ) {
-            Ext.Ajax.request({
+            var error = Ext.Ajax.request({
                     url:        deleteurl,
                     success:    function() { store.reload() },
+                    failure:    function(res, opts) {
+                        var stash = Ext.util.JSON.decode(res.responseText);
+                        Ext.Msg.alert('Error', stash.error);
+                    },
                     params:     { changes: Ext.util.JSON.encode( data ) }
                 });
         }
@@ -42,7 +53,7 @@ Ext.onReady(function(){
                 keepSelection:true,
                 actions:[{
                         iconCls:'icon-open',
-                        tooltip:'Open',
+                        tooltip:'View product details',
                     }],
             });
 
@@ -78,21 +89,21 @@ Ext.onReady(function(){
         { id:         'description',
           header:     'Description',
           dataIndex:  'description',
-          width:      100,
+          width:      150,
           editor:     new Ext.form.TextField({
                   allowBlank:     true,
               })},
         { id:         'comment',
           header:     'Comment',
           dataIndex:  'comment',
-          width:      100,
+          width:      150,
           editor:     new Ext.form.TextField({
                   allowBlank:     true,
               })},
         { id:         'product_style_id',
           header:     'Style',
           dataIndex:  'product_style_id',
-          width:      70,
+          width:      100,
           renderer:   function(value) {  // render the option text, not the value.
                 var r = style_combo.store.getById(value); 
                 return r ? r.get('text') : '<unknown>';
@@ -122,10 +133,10 @@ Ext.onReady(function(){
                 store:              store,
                 cm:                 col_model,
                 sm:                 sm,
-                title:              'Edit Products',
-                width:              1000,
-                height:             500,
-                frame:              true,
+                //                title:              'Edit Products',
+                // width:              1000,
+                // height:             500,
+                //                frame:              true,
                 autoExpandColumn:   'name',
                 plugins:            action,
                 renderTo:           'datagrid',
@@ -134,10 +145,10 @@ Ext.onReady(function(){
                 [
         {               
             text:           'New Product',
+            tooltip:        'Add a new row to the table',
             handler:        function() {
                 var p = new Product({
-                        name:           'Unnamed New Product',
-                        description:    'Unknown',
+                        name:           'New Product',
                     }); 
                 grid.stopEditing();
                 store.insert( 0, p );
@@ -147,6 +158,7 @@ Ext.onReady(function(){
         },
         {
             text:           'Save Changes',
+            tooltip:        'Write changes to the database',
             handler:        function() {
                 grid.stopEditing();
                 var changes = new Array();
@@ -165,6 +177,7 @@ Ext.onReady(function(){
         },
         {
             text:           'Discard Changes',
+            tooltip:        'Restore the previously saved version',
             handler:        function() {
                 grid.stopEditing();
                 store.rejectChanges();
@@ -188,6 +201,7 @@ Ext.onReady(function(){
                                             changes.push( id );
                                         }
                                         deleteProducts( changes );
+                                        store.reload();
                                     }
                                 });
             },
@@ -197,7 +211,28 @@ Ext.onReady(function(){
 
             });
 
+        var panel = new Ext.Panel({
+                title: festivalname + ' product listing: ' + categoryname,
+                layout: 'fit',
+                //                id: 'content',
+                //                anchor: '97% 90%',
+                items: grid,
+                tbar:
+                [
+        { text: 'Home', handler: function() { window.location = '/'; } },
+        { text: 'Festival', handler: function() { window.location = festivalurl; } },
+                 ],
+            });
+
+        var view = new Ext.Viewport({
+                layout: 'fit',
+                items:  panel,
+            });
+
         store.load();
+
+        //  FIXME we also need to warn the user if they're trying to
+        //  navigate away from a dirty grid.
 
     });
 

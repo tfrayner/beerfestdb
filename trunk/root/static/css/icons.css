@@ -15,6 +15,12 @@
 .icon-open {
 	background-image:url(/static/images/silk/icons/application_go.png) ! important;
 }
+.icon-ok {
+	background-image:url(/static/images/silk/icons/tick.png) ! important;
+}
+.icon-error {
+	background-image:url(/static/images/silk/icons/cross.png) ! important;
+}
 
 
 .icon-ob {
@@ -28,9 +34,6 @@
 }
 .icon-prefs {
 	background-image:url(/static/images/silk/icons/application_form.png) ! important;
-}
-.icon-ok {
-	background-image:url(../images/icons/ok16.png) ! important;
 }
 .icon-view-tile {
 	background-image:url(/static/images/silk/icons/application_view_tile.png) ! important;
