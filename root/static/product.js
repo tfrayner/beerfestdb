@@ -9,6 +9,8 @@ Ext.onReady(function(){
     
     var Product = Ext.data.Record.create([
         { name: 'product_id',       type: 'int' },
+        { name: 'company_id',       type: 'int' },
+        { name: 'gyle',             type: 'string' },
         { name: 'name',             type: 'string',   allowBlank: false },
         { name: 'description',      type: 'string' },
         { name: 'comment',          type: 'string' },
@@ -29,11 +31,34 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small'
     });
     
+    var brewer_combo = new Ext.form.ComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        transform:      'brewerpopup',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small'
+    });
+    
     var content_cols = [
+        { id:         'company_id',
+          header:     'Brewer',
+          dataIndex:  'company_id',
+          width:      150,
+          renderer:   function(value) {  // render the option text, not the value.
+              var r = brewer_combo.store.getById(value); 
+              return r ? r.get('text') : '<unknown>';
+          },
+          editor:     brewer_combo, },
+        { id:         'gyle',
+          header:     'Gyle',
+          dataIndex:  'gyle',
+          width:      50,
+          editable:   false,
+          hidden:     true },
         { id:         'name',
           header:     'Name',
           dataIndex:  'name',
-          width:      25,
+          width:      300,
           editor:     new Ext.form.TextField({
               allowBlank:     false,
           })},
@@ -70,6 +95,7 @@ Ext.onReady(function(){
     function recordChanges (record) {
         var fields = record.getChanges();
         fields.product_id = record.get( 'product_id' );
+        fields.gyle       = record.get( 'gyle' );
         fields.product_category_id = category_id;
         return(fields);
     }
@@ -100,7 +126,7 @@ Ext.onReady(function(){
         layout: 'fit',
         items:  panel,
     });
-    
+
     //  FIXME we also need to warn the user if they're trying to
     //  navigate away from a dirty grid.
     

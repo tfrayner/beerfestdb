@@ -42,13 +42,21 @@ sub list : Local {
         if ( my $style = $prod->product_style_id ) {
             $style_id = $style->product_style_id;
         }
-        push( @products, {
-            product_id  => $prod->product_id,
-            name        => $prod->name,
-            description => $prod->description,
-            comment     => $prod->comment,
-            product_style_id => $style_id,
-        } );
+
+        # This is many-to-many; generate one row per gyle. Add in gyle
+        # numbers; we will set this as non-editable, just a visual
+        # guide for reassigning gyles between brewers.
+        foreach my $gyle ( $prod->search_related('gyles') ) {
+            push( @products, {
+                product_id  => $prod->product_id,
+                gyle        => $gyle->external_reference,
+                company_id  => $gyle->company_id->company_id,
+                name        => $prod->name,
+                description => $prod->description,
+                comment     => $prod->comment,
+                product_style_id => $style_id,
+            } );
+        }
     }
 
     $c->stash->{ 'objects' } = \@products;
@@ -71,7 +79,31 @@ sub submit : Local {
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
     for my $rec ( @{ $data } ) {
-        $rs->update_or_create( $rec );
+
+        my ( $brewer_id, $gyle_id );
+        if ( exists $rec->{'company_id'} ) {
+            $brewer_id = $rec->{'company_id'};
+            delete($rec->{'company_id'});
+            $gyle_id = $rec->{'gyle'};
+        }
+        delete($rec->{'gyle'});
+
+        eval {
+            my $prod = $rs->update_or_create( $rec );
+
+            if ( defined $gyle_id && defined $brewer_id ) {
+                foreach my $gyle ( $prod->gyles({ external_reference => $gyle_id }) ) {
+                    $gyle->set_column( 'company_id', $brewer_id );
+                    $gyle->update();
+                }
+            }
+        };
+        if ($@) {
+            $c->response->status('403');  # Forbidden
+
+            # N.B. flash_to_stash doesn't seem to work for JSON views.
+            $c->stash->{error} = 'Unable to save one or more products to database';
+        }
     }
 
     $c->detach( $c->view( 'JSON' ) );
@@ -134,6 +166,9 @@ sub grid : Local {
 
     my @styles = $category->product_styles();
     $c->stash->{styles} = \@styles;
+
+    my @brewers = $c->model('DB::Company')->all();
+    $c->stash->{brewers} = \@brewers;
 }
 
 =head1 AUTHOR

@@ -161,9 +161,19 @@ RemoveButton = Ext.extend(Ext.Button, {
 
 MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
 
-    renderTo:           'datagrid',
     columnLines:        true,
+    stripeRows:         true,
+    trackMouseOver:     true,
+    loadMask:           true,
+    viewConfig: new Ext.grid.GridView({
+        autoFill: true,
+        forceFit: true,
+        getRowClass: function (record, index) {
+            if (index === 0) { return 'half-grey' }
+        },
+    }),
 
+    frame:true,
     initComponent: function() {
 
         var sm = new Ext.grid.CheckboxSelectionModel({
