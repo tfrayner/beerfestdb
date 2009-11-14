@@ -17,4 +17,10 @@
 [% END %]
 </select>
 
+<select id='brewerpopup' style='display: none'>
+[% FOREACH brewer = brewers.sort('name') -%]
+<option value="[% brewer.company_id | html %]">[% brewer.name | html %]</option>
+[% END %]
+</select>
+
 <div id="datagrid"></div>
