@@ -1,6 +1,6 @@
 [% META title = 'Festival view' %]
 
-<div class='title'><h2>[% object.year | html %]  [% object.description | html %]</h2></div>
+<div class='title'><h2>[% object.year | html %]  [% object.name | html %]</h2></div>
 
 <div class='subtitle'><h3>Product categories:</h3></div>
 

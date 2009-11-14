@@ -28,7 +28,7 @@ Ext.onReady(function(){
         triggerAction:  'all',
         transform:      'stylepopup',
         lazyRender:     true,
-        listClass:      'x-combo-list-small'
+        listClass:      'x-combo-list-small',
     });
     
     var brewer_combo = new Ext.form.ComboBox({
@@ -44,10 +44,7 @@ Ext.onReady(function(){
           header:     'Brewer',
           dataIndex:  'company_id',
           width:      150,
-          renderer:   function(value) {  // render the option text, not the value.
-              var r = brewer_combo.store.getById(value); 
-              return r ? r.get('text') : '<unknown>';
-          },
+          renderer:   MyComboRenderer(brewer_combo),
           editor:     brewer_combo, },
         { id:         'gyle',
           header:     'Gyle',
@@ -80,10 +77,7 @@ Ext.onReady(function(){
           header:     'Style',
           dataIndex:  'product_style_id',
           width:      100,
-          renderer:   function(value) {  // render the option text, not the value.
-              var r = style_combo.store.getById(value); 
-              return r ? r.get('text') : '<unknown>';
-          },
+          renderer:   MyComboRenderer(style_combo),
           editor:     style_combo },
     ];
 

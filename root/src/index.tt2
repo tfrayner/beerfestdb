@@ -3,6 +3,6 @@
 <p><font color='red'>This web site is currently under development.</font></p> 
 <p>Please enter the site below: 
 <ul> 
-<li><a href="[% c.uri_for('/festival/list') %]">List all festivals</a></li> 
+<li><a href="[% c.uri_for('/festival/grid') %]">List all festivals</a></li> 
 </ul> 
 </p>

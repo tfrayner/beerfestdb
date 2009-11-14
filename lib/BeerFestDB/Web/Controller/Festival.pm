@@ -31,10 +31,96 @@ sub index :Path :Args(0) {
 
 =cut
 
-sub list : Local { 
-    my ($self, $c) = @_; 
-    my @objects = $c->model('DB::Festival')->all(); 
-    $c->stash->{objects} = \@objects;
+sub list : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( 'DB::Festival' );
+    my @festivals;
+    while ( my $fest = $rs->next ) {
+        push( @festivals, {
+            festival_id => $fest->festival_id,
+            year        => $fest->year,
+            name        => $fest->name,
+            description => $fest->description,
+            fst_start_date  => $fest->fst_start_date,
+            fst_end_date    => $fest->fst_end_date,
+        } );
+    }
+
+    $c->stash->{ 'objects' } = \@festivals;
+    $c->detach( $c->view( 'JSON' ) );
+
+    return;
+}
+
+=head2 submit
+
+=cut
+
+sub submit : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( 'DB::Festival' );
+
+    my $j = JSON::Any->new;
+    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
+
+    foreach my $rec ( @{ $data } ) {
+#        eval {
+            $rs->update_or_create( $rec );
+#        };
+        if ($@) {
+            $c->response->status('403');  # Forbidden
+
+            # N.B. flash_to_stash doesn't seem to work for JSON views.
+            $c->stash->{error} = 'Unable to save one or more festivals to database';
+        }
+    }
+
+    $c->detach( $c->view( 'JSON' ) );
+
+    return;
+}
+
+=head2 delete
+
+=cut
+
+sub delete : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( 'DB::Festival' );
+
+    my $j = JSON::Any->new;
+    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
+
+    foreach my $id ( @{ $data } ) {
+        my $rec = $rs->find($id);
+        eval {
+            $rec->delete() if $rec;
+        };
+        if ($@) {
+            $c->response->status('403');  # Forbidden
+
+            # N.B. flash_to_stash doesn't seem to work for JSON views.
+            $c->stash->{error} = 'Unable to delete one or more festivals';
+        }
+    }
+
+    $c->detach( $c->view( 'JSON' ) );
+}
+
+=head2 grid
+
+=cut
+
+sub grid : Local {
+
+    my ( $self, $c ) = @_;
+
 }
 
 =head2 view
