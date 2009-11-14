@@ -33,9 +33,17 @@ sub index :Path :Args(0) {
 
 sub list : Local {
 
-    my ( $self, $c, $category_id ) = @_;
+    my ( $self, $c, $category_id, $festival_id ) = @_;
 
-    my $rs = $c->model( 'DB::Product' )->search({ product_category_id => $category_id });
+    my $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
+    unless ( $festival ) {
+        $c->response->status('403');  # Forbidden
+        $c->stash->{error} = 'Festival not found.';
+    }
+    my $rs = $festival->casks()->search_related('gyle_id')
+                               ->search_related('product_id',
+                                                { product_category_id => $category_id });
+
     my @products;
     while ( my $prod = $rs->next ) {
         my $style_id;
@@ -78,7 +86,7 @@ sub submit : Local {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    for my $rec ( @{ $data } ) {
+    foreach my $rec ( @{ $data } ) {
 
         my ( $brewer_id, $gyle_id );
         if ( exists $rec->{'company_id'} ) {
@@ -124,7 +132,7 @@ sub delete : Local {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    for my $id ( @{ $data } ) {
+    foreach my $id ( @{ $data } ) {
         my $rec = $rs->find($id);
         eval {
             $rec->delete() if $rec;

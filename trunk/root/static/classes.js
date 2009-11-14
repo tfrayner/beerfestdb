@@ -242,3 +242,10 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     }
 });
 
+MyComboRenderer = function(combo){
+    return function(value){
+        var record = combo.findRecord(combo.valueField, value);
+        return record ? record.get(combo.displayField) : combo.valueNotFoundText;
+    }
+}
+
