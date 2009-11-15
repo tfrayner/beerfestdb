@@ -40,21 +40,24 @@ sub list : Local {
         $c->response->status('403');  # Forbidden
         $c->stash->{error} = 'Festival not found.';
     }
-    my $rs = $festival->casks()->search_related('gyle_id')
-                               ->search_related('product_id',
-                                                { product_category_id => $category_id });
-
+    my $gyle_rs = $festival->casks()->search_related('gyle_id');
+    
     my @products;
-    while ( my $prod = $rs->next ) {
-        my $style_id;
-        if ( my $style = $prod->product_style_id ) {
-            $style_id = $style->product_style_id;
-        }
+    while ( my $gyle = $gyle_rs->next ) {
 
-        # This is many-to-many; generate one row per gyle. Add in gyle
-        # numbers; we will set this as non-editable, just a visual
-        # guide for reassigning gyles between brewers.
-        foreach my $gyle ( $prod->search_related('gyles') ) {
+        my $prod_rs = $gyle->search_related('product_id',
+                                            { product_category_id => $category_id });
+
+        while ( my $prod = $prod_rs->next ) {
+            my $style_id;
+            if ( my $style = $prod->product_style_id ) {
+                $style_id = $style->product_style_id;
+            }
+
+            # This is many-to-many; generate one row per gyle. Add in
+            # gyle numbers; we will set this as non-editable, just a
+            # visual guide for reassigning gyles between brewers.
+
             push( @products, {
                 product_id  => $prod->product_id,
                 gyle        => $gyle->external_reference,
@@ -96,6 +99,11 @@ sub submit : Local {
         }
         delete($rec->{'gyle'});
 
+        # FIXME we need to link new products up with their respective
+        # festival. Best way to do this might be to ask for no. of
+        # casks upon creation of new record (or, more specifically,
+        # new attachment of record to festival). This figure would
+        # then be changeable on the view pages for each product.
         eval {
             my $prod = $rs->update_or_create( $rec );
 
