@@ -37,7 +37,7 @@
 
 % logos
 \begin{textblock}{0.01}(0.06,0.04)
-\includegraphics[width=60mm]{[% logo %]}
+\includegraphics[width=60mm]{[% logos.0 %]}
 \end{textblock}
   
 % beer info to be plugged in

@@ -6,23 +6,20 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Pod::Usage;
 use Config::YAML;
+use Pod::Usage;
 
-use BeerFestDB::Loader;
-
-########
-# SUBS #
-########
+use BeerFestDB::ORM;
+use BeerFestDB::Dumper::OODoc;
 
 sub parse_args {
 
-    my ( $input, $conffile, $want_version, $want_help );
+    my ( $conffile, $outfile, $want_help );
 
     GetOptions(
-	"i|input=s"  => \$input,
-        "c|config=s" => \$conffile,
-        "h|help"     => \$want_help,
+        "c|config=s"   => \$conffile,
+        "f|filename=s" => \$outfile,
+        "h|help"       => \$want_help,
     );
 
     if ($want_help) {
@@ -33,7 +30,7 @@ sub parse_args {
         );
     }
 
-    unless ( $input && $conffile ) {
+    unless ( $conffile && $outfile ) {
         pod2usage(
             -message => qq{Please see "$0 -h" for further help notes.},
             -exitval => 255,
@@ -44,43 +41,47 @@ sub parse_args {
 
     my $config = Config::YAML->new( config => $conffile );
 
-    return( $input, $config );
+    return( $outfile, $config );
 }
-
-my ( $input, $config ) = parse_args();
 
 ########
 # MAIN #
 ########
 
+my ( $outfile, $config ) = parse_args();
+
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
-my $loader = BeerFestDB::Loader->new( database => $schema );
+my $dumper = BeerFestDB::Dumper::OODoc->new(
+    database => $schema,
+    filename => $outfile,
+);
 
-$loader->load( $input );
+$dumper->dump();
 
 __END__
 
 =head1 NAME
 
-load_data.pl
+oodoc_dump.pl
 
 =head1 SYNOPSIS
 
- load_data.pl -i <input tab-delimited text file> -c <config file>
+ oodoc_dump.pl -c <config file> -f <output file>
 
 =head1 DESCRIPTION
 
-This script can be used to load data from a tab-delimited text file
-into the database. See L<BeerFestDB::Loader> for more information.
+This script can be used to dump out a defined set of information for
+the beers for a given festival into OpenOffice ODF format.
 
 =head2 OPTIONS
 
 =over 2
 
-=item -i
+=item -f
 
-The tab-delimited file to import.
+The output file to create. If the file already exists then new
+information will be appended to it.
 
 =item -c
 
@@ -88,13 +89,17 @@ The main BeerFestDB web config file.
 
 =back
 
+=head1 SEE ALSO
+
+L<BeerFestDB::Dumper::OODoc>
+
 =head1 AUTHOR
 
 Tim F. Rayner, E<lt>tfrayner@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by Tim F. Rayner
+Copyright (C) 2010 by Tim F. Rayner
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,

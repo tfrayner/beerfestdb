@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+<!-- $Id$ -->
+<!-- Example HTML template for use with cask_end_signs_latex.pl -->
+    <title>Beer List</title>
+  </head>
+  <body>
+FIXME we need to specify UTF-8 encoding here, methinks (to encode the currency symbols correctly).
+  [% FOREACH cask = casks %]
+
+    <div class="logo">
+      <img src="[% logos.0 %]"/>
+    </div>
+
+    <div class="beerinfo">
+      <span class="brewery">[% cask.brewery | replace( '&', '&amp;' ) %]</span>
+      <span class="beer">[% cask.beer | replace( '&', '&amp;' ) %]</span>
+    </div>
+
+    <div class="saleinfo">
+      <span class="abv">ABV: [% cask.abv %]</span>
+    [% IF cask.price == cask.half_price %]
+      <span class="price">[% cask.price %]</span>
+    [% ELSE %]
+      <span class="price">
+        [% cask.currency | replace( '£', '&pound;' ) -%][%# FIXME can we remove the need for this? %]
+        [%- cask.price | format('%.2f') %]/[% cask.sale_volume %]<br/>
+        [% cask.currency | replace( '£', '&pound;' ) -%]
+        [%- cask.half_price | format('%.2f') %]/half [% cask.sale_volume %]
+      </span>
+    [% END %]
+    </div>
+
+  [% END %]
+
+  </body>
+</html>

@@ -113,6 +113,15 @@ sub submit : Local {
                     $gyle->update();
                 }
             }
+
+            # FIXME at the moment we just assume at least a single cask, for simplicity's sake.
+            my $cask = $c->model( 'DB::Cask' )->find_or_create({
+                festival_id        => ,
+                gyle_id            => ,
+                currency_code      => ,
+                sale_currency_code => ,
+                sale_volume_id     => ,
+            });
         };
         if ($@) {
             $c->response->status('403');  # Forbidden
