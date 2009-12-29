@@ -1,4 +1,4 @@
-"bar_description"	"brewer_name"	"beer_name"	"gyle_abv"	"beer_style"	"num_kils"	"cask_size"	"distributor_name"	"cask_comment"	"cask_price"	"festival_year"	"festival_description"
+"bar_description"	"brewer_name"	"beer_name"	"gyle_abv"	"beer_style"	"num_kils"	"cask_size"	"distributor_name"	"cask_comment"	"cask_price"	"festival_year"	"festival_name"
 "Cambridge"	"Cambridge Moonshine"	"Blue Watch"	"?"	"?"	4	"9"	"Cambridge Moonshine"			"2005"	"Summer Festival"
 "Cambridge"	"Cambridge Moonshine"	"Mulberry Whale"	3.90%	"Bitter"	6	"9"	"Cambridge Moonshine"			"2005"	"Summer Festival"
 "Cambridge"	"Cambridge Moonshine"	"Red Watch"	"?"	"?"	4	"9"	"Cambridge Moonshine"			"2005"	"Summer Festival"

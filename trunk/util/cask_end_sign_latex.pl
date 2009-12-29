@@ -6,99 +6,119 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use BeerFestDB::Common qw(connect_db);
-use Scalar::Util qw(looks_like_number);
-use Template;
-use POSIX qw(ceil);
+use Config::YAML;
+use Pod::Usage;
 
-sub format_price {
+use BeerFestDB::ORM;
+use BeerFestDB::Dumper::Template;
 
-    my ( $price, $format ) = @_;
+sub parse_args {
 
-    return 'STAFF' unless $price;
+    my ( $conffile, $templatefile, $logofile , $want_help );
 
-    my @digits = split //, $price;
+    GetOptions(
+        "c|config=s"   => \$conffile,
+        "t|template=s" => \$templatefile,
+        "l|logo=s"     => \$logofile,
+        "h|help"       => \$want_help,
+    );
 
-    my $formatted = q{};
-
-    POS:
-    foreach my $pos ( 1..length($format) ) {
-        my $f = substr($format, -$pos, 1);
-        if ( $f !~ /[#0]/ ) {
-            $formatted = $f . $formatted;
-            next POS;
-        }
-        my $num = pop @digits;
-        last POS if ( $f eq '#' && ! defined $num );
-        if ( $f eq '0' ) {
-            $num ||= 0;
-            $formatted = $num . $formatted;
-        }
-        else {
-            die(qq{Error: Unrecognised formatting symbol: "$f".\n});
-        }
+    if ($want_help) {
+        pod2usage(
+            -exitval => 255,
+            -output  => \*STDERR,
+            -verbose => 1,
+        );
     }
 
-    return $formatted;
-}
-
-sub print_latex {
-
-    my ( $casks, $fh, $templatefile, $logofile ) = @_;
-
-    my @casks;
-    foreach my $cask ( @{ $casks } ) {
-        my %caskdata;
-	$caskdata{brewery} = $cask->gyle_id()->company_id()->name();
-	$caskdata{beer}    = $cask->gyle_id()->product_id()->name();
-	$caskdata{abv}     = $cask->gyle_id()->abv();
-
-        $caskdata{sale_volume} = $cask->sale_volume_id()->sale_volume_description();
-
-        my $currency = $cask->currency_code();
-        my $format   = $currency->currency_format();
-        $caskdata{currency} = $currency->currency_symbol();
-
-	$caskdata{price}   = format_price( $cask->sale_price(), $format );
-        if ( looks_like_number( $caskdata{price} ) ) {
-            $caskdata{half_price} = format_price( ceil($cask->sale_price() / 2), $format );
-        }
-        else {
-            $caskdata{half_price} = $caskdata{price};
-        }
-
-        push @casks, \%caskdata;
+    unless ( $conffile && $templatefile ) {
+        pod2usage(
+            -message => qq{Please see "$0 -h" for further help notes.},
+            -exitval => 255,
+            -output  => \*STDERR,
+            -verbose => 0,
+        );
     }
 
-    my $vars = {
-        logo  => $logofile,
-        casks => \@casks,
-    };
+    my $config = Config::YAML->new( config => $conffile );
 
-    my $template = Template->new()
-        or die( "Cannot create Template object: " . Template->error() );
-
-    $template->process($templatefile, $vars, $fh)
-        or die( "Template processing error: " . $template->error() );
-
-    return;
+    return( $templatefile, $logofile, $config );
 }
 
 ########
 # MAIN #
 ########
 
-my ( $templatefile, $logofile );
-GetOptions(
-    "t|template=s" => \$templatefile,
-    "l|logo=s"     => \$logofile,
+my ( $templatefile, $logofile, $config ) = parse_args();
+
+my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
+
+my $dumper = BeerFestDB::Dumper::Template->new(
+    database => $schema,
+    template => $templatefile,
+    logos    => [ $logofile ],
 );
 
-$templatefile ||= 'cask_end_template.tt2';
+$dumper->dump();
 
-my $schema = connect_db();
+__END__
 
-# FIXME just retrieve the casks for the festival in question.
-my @casks  = $schema->resultset('Cask')->all();
+=head1 NAME
 
-print_latex( \@casks, \*STDOUT, $templatefile, $logofile );
+format_beers.pl
+
+=head1 SYNOPSIS
+
+ format_beers.pl -c <config file> -t <template file> -l <logo file>
+
+=head1 DESCRIPTION
+
+FIXME rename this script when we have access to a suitable SVN repo.
+
+This is a general-purpose script used to dump information on beers
+held in the BeerFestDB database into a variety of file formats. It
+works by taking a Template Toolkit-style template file, and applying
+it to the information held in the database. See
+L<BeerFestDB::Dumper::Template> for details on how variables are
+passed into the template.
+
+=head2 OPTIONS
+
+=over 2
+
+=item -c
+
+The main BeerFestDB web config file.
+
+=item -t
+
+The Template Toolkit file to apply to the data.
+
+=item -l
+
+An optional logo file, the name of which will be passed into the
+template file as the first element of the "logos" array.
+
+=back
+
+=head1 SEE ALSO
+
+L<BeerFestDB::Dumper::Template>
+
+=head1 AUTHOR
+
+Tim F. Rayner, E<lt>tfrayner@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2010 by Tim F. Rayner
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+=head1 BUGS
+
+Probably.
+
+=cut

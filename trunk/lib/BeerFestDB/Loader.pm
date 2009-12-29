@@ -7,26 +7,17 @@ use warnings;
 
 package BeerFestDB::Loader;
 
+use Moose;
+
 use Text::CSV_XS;
 use Readonly;
 use Carp;
-use Class::Std;
 
 use BeerFestDB::ORM;
-use BeerFestDB::Config qw($CONFIG);
 
-my %schema : ATTR( :name<schema>, :default<undef> );
-
-sub START {
-
-    my ( $self, $id, $args ) = @_;
-
-    unless ( $self->get_schema() ) {
-	croak("Error: schema not set.");
-    }
-
-    return;
-}
+has 'database' => ( is       => 'ro',
+                    isa      => 'DBIx::Class::Schema',
+                    required => 1 );
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -50,12 +41,14 @@ Readonly my $DISTRIBUTOR_NAME          => 16;
 Readonly my $DISTRIBUTOR_LOC_DESC      => 17;
 Readonly my $DISTRIBUTOR_YEAR_FOUNDED  => 18;
 Readonly my $DISTRIBUTOR_COMMENT       => 19;
-Readonly my $CASK_SIZE                 => 20;
-Readonly my $CASK_PRICE                => 21;
-Readonly my $CASK_COMMENT              => 22;
-Readonly my $CASK_MEASUREMENT_DATE     => 23;
-Readonly my $CASK_MEASUREMENT_VOLUME   => 24;
-Readonly my $CASK_MEASUREMENT_COMMENT  => 25;
+Readonly my $CASK_COUNT                => 20;
+Readonly my $CASK_SIZE                 => 21;
+Readonly my $CASK_PRICE                => 22;
+Readonly my $CASK_COMMENT              => 23;
+Readonly my $CASK_MEASUREMENT_DATE     => 24;
+Readonly my $CASK_MEASUREMENT_VOLUME   => 25;
+Readonly my $CASK_MEASUREMENT_COMMENT  => 26;
+Readonly my $FESTIVAL_NAME             => 27;
 
 ########
 # SUBS #
@@ -88,7 +81,7 @@ sub link_bar_and_festival : PRIVATE {
 
     my ( $self, $bar, $festival ) = @_;
 
-    my $resultset = $self->get_schema()->resultset('FestivalBar')
+    my $resultset = $self->database()->resultset('FestivalBar')
 	or confess(qq{Error: No result set returned from DB for class "FestivalBar".});
 
     $resultset->find_or_create({
@@ -109,8 +102,9 @@ sub load_data : PRIVATE {
 	= $self->check_not_null( $datahash->{$FESTIVAL_YEAR} )
 	? $self->load_column_value(
 	    {
-		year => $datahash->{$FESTIVAL_YEAR},
-		name => $datahash->{$FESTIVAL_DESCRIPTION},
+		year        => $datahash->{$FESTIVAL_YEAR},
+		name        => $datahash->{$FESTIVAL_NAME},
+                description => $datahash->{$FESTIVAL_DESCRIPTION},
 	    },
 	    'Festival')
 	: undef;
@@ -241,40 +235,46 @@ sub load_data : PRIVATE {
     my $cask_price = $datahash->{$CASK_PRICE}      ? $datahash->{$CASK_PRICE}      * 100 : undef;
     my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
 
-    my $cask
-	= $beer
-	? $self->load_column_value(
-	    {
-		gyle_id                => $gyle,
-		distributor_company_id => $distributor,
-		festival_id            => $festival,
-		container_size_id      => $cask_size,
-                currency_code          => $currency,
-		price                  => $cask_price,
-                sale_volume_id         => $sale_volume,
-                sale_currency_code     => $currency,
-                sale_price             => $sale_price,
-                stillage_location_id   => $stillage,
-		bar_id                 => $bar,
-		comment                => $datahash->{$CASK_COMMENT},
-	    },
-	    'Cask')
-	: undef;
+    my $count = defined $datahash->{$CASK_COUNT} ? $datahash->{$CASK_COUNT} : 1;
 
-    # FIXME at the moment we're assuming that dip measurements use the
-    # same volume units as the cask sizes.
-    my $cask_measurement
-	= $self->check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
-	? $self->load_cask_measurement(
-	    {
-		cask_id              => $cask,
-		date                 => $datahash->{$CASK_MEASUREMENT_DATE},
-		volume               => $datahash->{$CASK_MEASUREMENT_VOLUME},
-                container_measure_id => $cask_measure,
-		comment              => $datahash->{$CASK_MEASUREMENT_COMMENT},
+    foreach my $n ( 1..$count ) {
+
+        my $cask
+            = $beer
+                ? $self->load_column_value(
+                    {
+                        gyle_id                => $gyle,
+                        distributor_company_id => $distributor,
+                        festival_id            => $festival,
+                        container_size_id      => $cask_size,
+                        currency_code          => $currency,
+                        price                  => $cask_price,
+                        sale_volume_id         => $sale_volume,
+                        sale_currency_code     => $currency,
+                        sale_price             => $sale_price,
+                        stillage_location_id   => $stillage,
+                        bar_id                 => $bar,
+                        comment                => $datahash->{$CASK_COMMENT},
+                        internal_reference     => $n,
+                    },
+                    'Cask')
+                    : undef;
+
+        # FIXME at the moment we're assuming that dip measurements use the
+        # same volume units as the cask sizes.
+        my $cask_measurement
+            = $self->check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
+                ? $self->load_cask_measurement(
+                    {
+                        cask_id              => $cask,
+                        date                 => $datahash->{$CASK_MEASUREMENT_DATE},
+                        volume               => $datahash->{$CASK_MEASUREMENT_VOLUME},
+                        container_measure_id => $cask_measure,
+                        comment              => $datahash->{$CASK_MEASUREMENT_COMMENT},
 	    },
-	    'CaskMeasurement')
-	: undef;
+                    'CaskMeasurement')
+                    : undef;
+    }
 
     return;
 }
@@ -331,7 +331,7 @@ sub load_column_value : PRIVATE {
 
     my ( $self, $args, $class, $trigger ) = @_;
 
-    my $resultset = $self->get_schema()->resultset($class)
+    my $resultset = $self->database()->resultset($class)
 	or confess(qq{Error: No result set returned from DB for class "$class".});
 
     # Validate our arguments against the database.
@@ -383,6 +383,7 @@ sub coerce_headings : PRIVATE {
 
     my %map = (
         qr/festival [_ -]* year/ixms                   => $FESTIVAL_YEAR,
+        qr/festival [_ -]* name/ixms                   => $FESTIVAL_NAME,
         qr/festival [_ -]* description/ixms            => $FESTIVAL_DESCRIPTION,
         qr/bar [_ -]* description/ixms                 => $BAR_DESCRIPTION,
         qr/brewery? [_ -]* name/ixms                   => $BREWER_NAME,
@@ -401,6 +402,7 @@ sub coerce_headings : PRIVATE {
         qr/distributor [_ -]* loc [_ -]* desc/ixms     => $DISTRIBUTOR_LOC_DESC,
         qr/distributor [_ -]* year [_ -]* founded/ixms => $DISTRIBUTOR_YEAR_FOUNDED,
         qr/distributor [_ -]* comment/ixms             => $DISTRIBUTOR_COMMENT,
+        qr/cask [_ -]* (?:count|number)/ixms           => $CASK_COUNT,
         qr/cask [_ -]* size/ixms                       => $CASK_SIZE,
         qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
         qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,

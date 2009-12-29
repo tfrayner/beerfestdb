@@ -7,55 +7,36 @@ use warnings;
 
 package BeerFestDB::ORM;
 
-# We use this to load our classes for now.
+# We use this to load our classes.
 use base qw(DBIx::Class::Schema::Loader);
 
-use BeerFestDB::Config qw( $CONFIG );
-
 __PACKAGE__->loader_options(
-    debug => $CONFIG->get_debug(),
+#    debug => 1,
 );
 
 package main;
 
-use BeerFestDB::Config qw( $CONFIG );
-
 use Getopt::Long;
+use Config::YAML;
 
-sub connect_db {
-    
-    my $dsn = sprintf(
-	"DBI:mysql:%s:%s:%s",
-	$CONFIG->get_database(),
-	$CONFIG->get_host(),
-	$CONFIG->get_port(),
-    );
-    my $schema = BeerFestDB::ORM->connect(
-	$dsn,
-	$CONFIG->get_user(),
-	$CONFIG->get_pass(),
-	{ PrintError => 0, RaiseError => 1, AutoCommit => 1 },
-    );
-
-    return $schema;
-}
-
-my ( $dir );
+my ( $dir, $conffile );
 
 GetOptions(
     "d|directory=s" => \$dir,
+    "c|config=s"    => \$conffile,
 );
 
-unless ( $dir && -d $dir ) {
+unless ( $dir && $conffile ) {
 
     print <<"USAGE";
 
-Usage: $0 -d /orm/dump/directory
+Usage: $0 -d /orm/dump/directory -c beerfestdb_web.yml
 
 USAGE
 
     exit 255;
 }
 
+my $config = Config::YAML->new( config => $conffile );
 BeerFestDB::ORM->dump_to_dir($dir);
-my $schema = connect_db();
+my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
