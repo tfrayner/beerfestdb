@@ -51,8 +51,8 @@ sub dump {
         my $beer   = $cask->gyle_id->product_id;
         $caskinfo{$brewer->name}{$beer->name} = {
             abv         => $cask->gyle_id->abv,
-            style       => $beer->product_style_id ? $beer->product_style_id->description : q{},
-            description => $beer->description || q{},
+            style       => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
+            description => $beer->description || q{Unknown at time of press.},
         };
     }
 
