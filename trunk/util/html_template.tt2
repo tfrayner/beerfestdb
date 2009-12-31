@@ -25,7 +25,7 @@
       <span class="price">[% cask.price %]</span>
     [% ELSE %]
       <span class="price">
-        [% cask.currency -%][%# FIXME can we remove the need for this? %]
+        [% cask.currency -%]
         [%- cask.price | format('%.2f') %]/[% cask.sale_volume %]<br/>
         [% cask.currency -%]
         [%- cask.half_price | format('%.2f') %]/half [% cask.sale_volume %]
