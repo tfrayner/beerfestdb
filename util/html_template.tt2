@@ -4,9 +4,10 @@
 <!-- $Id$ -->
 <!-- Example HTML template for use with cask_end_signs_latex.pl -->
     <title>Beer List</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
-FIXME we need to specify UTF-8 encoding here, methinks (to encode the currency symbols correctly).
+
   [% FOREACH cask = casks %]
 
     <div class="logo">
@@ -24,9 +25,9 @@ FIXME we need to specify UTF-8 encoding here, methinks (to encode the currency s
       <span class="price">[% cask.price %]</span>
     [% ELSE %]
       <span class="price">
-        [% cask.currency | replace( '£', '&pound;' ) -%][%# FIXME can we remove the need for this? %]
+        [% cask.currency -%][%# FIXME can we remove the need for this? %]
         [%- cask.price | format('%.2f') %]/[% cask.sale_volume %]<br/>
-        [% cask.currency | replace( '£', '&pound;' ) -%]
+        [% cask.currency -%]
         [%- cask.half_price | format('%.2f') %]/half [% cask.sale_volume %]
       </span>
     [% END %]
