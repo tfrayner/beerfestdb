@@ -54,7 +54,7 @@ Readonly my $FESTIVAL_NAME             => 27;
 # SUBS #
 ########
 
-sub get_csv_parser : PRIVATE {
+sub _get_csv_parser {
 
     my ( $self ) = @_;
 
@@ -70,14 +70,14 @@ sub get_csv_parser : PRIVATE {
     return $csv_parser;
 }
 
-sub check_not_null : PRIVATE {
+sub _check_not_null {
 
     my ( $self, $value ) = @_;
 
     return ( defined $value && $value ne q{} && $value !~ m/\A \?+ \z/xms );
 }
 
-sub link_bar_and_festival : PRIVATE {
+sub _link_bar_and_festival {
 
     my ( $self, $bar, $festival ) = @_;
 
@@ -92,15 +92,15 @@ sub link_bar_and_festival : PRIVATE {
     return;
 }
 
-sub load_data : PRIVATE {
+sub _load_data {
 
     my ( $self, $datahash ) = @_;
 
     # Each of these calls defines the column to be used from the input
     # file.
     my $festival
-	= $self->check_not_null( $datahash->{$FESTIVAL_YEAR} )
-	? $self->load_column_value(
+	= $self->_check_not_null( $datahash->{$FESTIVAL_YEAR} )
+	? $self->_load_column_value(
 	    {
 		year        => $datahash->{$FESTIVAL_YEAR},
 		name        => $datahash->{$FESTIVAL_NAME},
@@ -110,8 +110,8 @@ sub load_data : PRIVATE {
 	: undef;
 
     my $bar
-	= $self->check_not_null( $datahash->{$BAR_DESCRIPTION} )
-	? $self->load_column_value(
+	= $self->_check_not_null( $datahash->{$BAR_DESCRIPTION} )
+	? $self->_load_column_value(
 	    {
 		description => $datahash->{$BAR_DESCRIPTION},
 	    },
@@ -119,13 +119,13 @@ sub load_data : PRIVATE {
 	: undef;
 
     if ( $bar && $festival ) {
-        $self->link_bar_and_festival( $bar, $festival );
+        $self->_link_bar_and_festival( $bar, $festival );
     }
 
     # FIXME no addresses at this point.
     my $brewer
-	= $self->check_not_null( $datahash->{$BREWER_NAME} )
-	? $self->load_column_value(
+	= $self->_check_not_null( $datahash->{$BREWER_NAME} )
+	? $self->_load_column_value(
 	    {
 		name         => $datahash->{$BREWER_NAME},
 		loc_desc     => $datahash->{$BREWER_LOC_DESC},
@@ -136,27 +136,39 @@ sub load_data : PRIVATE {
 	: undef;
 
     my $category
-        = $self->load_column_value(
+        = $self->_load_column_value(
             {
                 description => 'beer',
             },
             'ProductCategory');
 
+    # FIXME this is a controlled vocab so should die on invalid values.
+    my $style
+	= $self->_check_not_null( $datahash->{$BEER_STYLE} )
+	? $self->_load_column_value(
+	    {
+                product_category_id => $category,
+		description         => $datahash->{$BEER_STYLE},
+	    },
+	    'ProductStyle')
+	: undef;
+
     my $beer
-	= $self->check_not_null( $datahash->{$BEER_NAME} )
-	? $self->load_column_value(
+	= $self->_check_not_null( $datahash->{$BEER_NAME} )
+	? $self->_load_column_value(
 	    {
 		name             => $datahash->{$BEER_NAME},
 		description      => $datahash->{$BEER_DESCRIPTION},
 		comment          => $datahash->{$BEER_COMMENT},
                 product_category_id => $category,
+                product_style_id    => $style,
 	    },
 	    'Product')
 	: undef;
 
     my $gyle
 	= $beer
-	? $self->load_column_value(
+	? $self->_load_column_value(
 	    {
 		external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
 		company_id         => $brewer,
@@ -168,8 +180,8 @@ sub load_data : PRIVATE {
 	: undef;
 
     my $distributor
-	= $self->check_not_null( $datahash->{$DISTRIBUTOR_NAME} )
-	? $self->load_column_value(
+	= $self->_check_not_null( $datahash->{$DISTRIBUTOR_NAME} )
+	? $self->_load_column_value(
 	    {
 		name         => $datahash->{$DISTRIBUTOR_NAME},
 		loc_desc     => $datahash->{$DISTRIBUTOR_LOC_DESC},
@@ -181,7 +193,7 @@ sub load_data : PRIVATE {
 
     # This is going to be pretty much constant for UK beers. Will need
     # modification for European casks though FIXME.
-    my $cask_measure = $self->load_column_value(
+    my $cask_measure = $self->_load_column_value(
         {
             litre_multiplier => 4.54609188,
             description      => 'gallon',
@@ -189,8 +201,8 @@ sub load_data : PRIVATE {
         'ContainerMeasure');
 
     my $cask_size
-        = $self->check_not_null( $datahash->{$CASK_SIZE} )
-        ? $self->load_column_value(
+        = $self->_check_not_null( $datahash->{$CASK_SIZE} )
+        ? $self->_load_column_value(
             {
                 container_volume     => $datahash->{$CASK_SIZE},
                 container_measure_id => $cask_measure,
@@ -199,14 +211,14 @@ sub load_data : PRIVATE {
         : undef;
 
     # FIXME obviously this needs to be much more sophisticated.
-    my $stillage = $self->load_column_value(
+    my $stillage = $self->_load_column_value(
         {
             description => 'main stillage',
         },
         'StillageLocation');
 
     # Likely to be the default for UK beer festivals.
-    my $pint_size = $self->load_column_value(
+    my $pint_size = $self->_load_column_value(
         {
             litre_multiplier => 0.5682,
             description      => 'pint',
@@ -214,7 +226,7 @@ sub load_data : PRIVATE {
         'ContainerMeasure');
 
     # FIXME why are we reiterating the description here?
-    my $sale_volume = $self->load_column_value(
+    my $sale_volume = $self->_load_column_value(
         {
             container_measure_id    => $pint_size,
             sale_volume_description => 'pint',
@@ -222,7 +234,7 @@ sub load_data : PRIVATE {
         'SaleVolume');
 
     # FIXME this also needs to be much more flexible (see http://en.wikipedia.org/wiki/ISO_4217).
-    my $currency = $self->load_column_value(
+    my $currency = $self->_load_column_value(
         {
             currency_code   => 'GBP',
             currency_number => 826,
@@ -241,7 +253,7 @@ sub load_data : PRIVATE {
 
         my $cask
             = $beer
-                ? $self->load_column_value(
+                ? $self->_load_column_value(
                     {
                         gyle_id                => $gyle,
                         distributor_company_id => $distributor,
@@ -263,7 +275,7 @@ sub load_data : PRIVATE {
         # FIXME at the moment we're assuming that dip measurements use the
         # same volume units as the cask sizes.
         my $cask_measurement
-            = $self->check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
+            = $self->_check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
                 ? $self->load_cask_measurement(
                     {
                         cask_id              => $cask,
@@ -279,7 +291,7 @@ sub load_data : PRIVATE {
     return;
 }
 
-sub find_required_cols : PRIVATE {
+sub _find_required_cols {
 
     my ( $self, $resultset ) = @_;
 
@@ -307,13 +319,13 @@ sub find_required_cols : PRIVATE {
     return ( \@required, \@optional );
 }
 
-sub confirm_required_cols : PRIVATE {
+sub _confirm_required_cols {
 
     my ( $self, $args, $required ) = @_;
 
     my $problem;
     foreach my $col ( @{ $required } ) {
-	unless ( $self->check_not_null( $args->{$col} ) ) {
+	unless ( $self->_check_not_null( $args->{$col} ) ) {
 	    warn(qq{Warning: Required column value "$col" not present.\n});
 	    $problem++;
 	}
@@ -327,7 +339,7 @@ sub confirm_required_cols : PRIVATE {
     }
 }
 
-sub load_column_value : PRIVATE {
+sub _load_column_value {
 
     my ( $self, $args, $class, $trigger ) = @_;
 
@@ -335,7 +347,7 @@ sub load_column_value : PRIVATE {
 	or confess(qq{Error: No result set returned from DB for class "$class".});
 
     # Validate our arguments against the database.
-    my ( $required, $optional ) = $self->find_required_cols( $resultset );
+    my ( $required, $optional ) = $self->_find_required_cols( $resultset );
     my @pk = $resultset->result_source()->primary_columns();
     my %recognised = map { $_ => 1 } @{ $required }, @{ $optional }, @pk;
     foreach my $key ( keys %{ $args } ) {
@@ -343,7 +355,7 @@ sub load_column_value : PRIVATE {
 	    confess(qq{Error: Unrecognised column key "$key".}); 
 	}
     }
-    $self->confirm_required_cols( $args, $required )
+    $self->_confirm_required_cols( $args, $required )
 	or croak(qq{Error: Incomplete data for "$class" object.});
 
     # Create an object with all its required values.
@@ -351,11 +363,11 @@ sub load_column_value : PRIVATE {
     foreach my $k ( @pk ) {
         $values{$k} = $args->{$k} if defined $args->{$k};
     }
-    my $object = $resultset->find_or_create(\%values);
+    my $object = $resultset->update_or_create(\%values);
 
     # Add in the optional values where available.
     foreach my $col ( @{ $optional } ) {
-	if ( $self->check_not_null( $args->{$col} ) ) {
+	if ( $self->_check_not_null( $args->{$col} ) ) {
 	    my $value = $args->{$col};
             if ( ref $value ) {
                 my @vpk = $value->result_source()->primary_columns();
@@ -377,7 +389,7 @@ sub load_column_value : PRIVATE {
     return $object;
 }
 
-sub coerce_headings : PRIVATE {
+sub _coerce_headings {
 
     my ( $self, $headings ) = @_;
 
@@ -436,18 +448,18 @@ sub load {
 
     my ( $self, $input ) = @_;
 
-    my $csv_parser = $self->get_csv_parser();
+    my $csv_parser = $self->_get_csv_parser();
 
     open( my $input_fh, '<', $input )
 	or die(qq{Error opening input file "$input": $!});
 
     # Assume first line is the header, for now:
-    my $headings = $self->coerce_headings( $csv_parser->getline($input_fh) );
+    my $headings = $self->_coerce_headings( $csv_parser->getline($input_fh) );
 
     while ( my $rowlist = $csv_parser->getline($input_fh) ) {
 	my %datahash;
 	@datahash{ @$headings } = @$rowlist;
-	$self->load_data( \%datahash );
+	$self->_load_data( \%datahash );
     }
 }
 
