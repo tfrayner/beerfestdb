@@ -12,14 +12,92 @@ use Moose;
 use Carp;
 use OpenOffice::OODoc;
 
-our $VERSION = '0.01';
+use Data::Dumper;
+
+our $VERSION = '0.02';
 
 extends 'BeerFestDB::Dumper';
 
-# Pre-existing file.
+# Output filename
 has 'filename' => ( is       => 'ro',
                     isa      => 'Str',
                     required => 1 );
+
+# Pre-existing template document
+has 'template' => ( is       => 'ro',
+                    isa      => 'Str',
+                    required => 1 );
+
+# The OODoc section of the main beerfestdb_web.yml config file.
+has 'config'   => ( is       => 'ro',
+                    isa      => 'HashRef',
+                    required => 1 );
+
+# These are used internally to track the document container, content and styles.
+has '_container' => ( is       => 'rw',
+                     isa      => 'OpenOffice::OODoc::File',
+                     required => 0 );
+
+has '_content'   => ( is       => 'rw',
+                     isa      => 'OpenOffice::OODoc::Document',
+                     required => 0 );
+
+has '_styles'    => ( is       => 'rw',
+                     isa      => 'OpenOffice::OODoc::Document',
+                     required => 0 );
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    my $container;
+
+    if ( -f $self->filename ) {
+
+        # Append
+        $container = odfContainer( $self->filename );
+    }
+    else {
+
+        # Create
+        $container = odfContainer( $self->filename,
+                                   create => 'text' );
+    }
+    die("Unable to create ODF document") unless $container;
+
+    $self->_container( $container );
+    $self->_content( odfDocument( container => $container ) );
+    $self->_styles( odfDocument( container => $container, part => 'styles' ) );
+
+    my $style = $self->_parse_template_styles();
+
+    return;
+}
+
+sub _parse_template_styles {
+
+    my ( $self ) = @_;
+
+    my $styles = odfDocument( file => $self->template, part => 'styles' );
+
+    # Note that we only copy over our desired styles as specified in
+    # the config file. This will hopefully avoid the build-up of
+    # crufty style-ridden documents.
+    my @wanted = values %{ $self->config->{'styles'} };
+
+    foreach my $name ( @wanted ) {
+        my $style = $styles->getStyleElement($name)
+            or croak(qq{Error: Template document must define a "$name" style.\n});
+        unless ( $self->_styles->getStyleElement( $name ) ) {
+            $self->_styles->createStyle( $name,
+                                         family    => 'paragraph',
+                                         parent    => 'Standard',
+                                         prototype => $style);
+        }
+    }
+
+    return;
+}
 
 sub dump {
 
@@ -30,22 +108,7 @@ sub dump {
         $casks = $self->unique_casks( $casks );
     }
 
-    my $document;
-
-    if ( -f $self->filename ) {
-
-        # Append
-        $document = odfDocument( file   => $self->filename );
-    }
-    else {
-
-        # Create
-        $document = odfDocument( file   => $self->filename,
-                                 create => 'text' );
-    }
-    die("Unable to create ODF document") unless $document;
-
-    my %caskinfo;
+    my ( %caskinfo, %brewerinfo );
     foreach my $cask ( @$casks ) {
         my $brewer = $cask->gyle_id->company_id;
         my $beer   = $cask->gyle_id->product_id;
@@ -54,32 +117,39 @@ sub dump {
             style       => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
             description => $beer->description || q{Unknown at time of press.},
         };
+        $brewerinfo{$brewer->name}{'location'} = $brewer->loc_desc || q{Unknown location};
     }
 
     foreach my $brewer ( sort keys %caskinfo ) {
-        $document->appendParagraph(
+        $self->_content->appendParagraph(
             text    => $brewer,
-            style   => 'Heading 4'
+            style   => $self->config->{'styles'}{'brewery_name'},
+        );
+        $self->_content->appendParagraph(
+            text    => $brewerinfo{$brewer}{'location'},
+            style   => $self->config->{'styles'}{'brewery_location'},
         );
         foreach my $beer ( sort keys %{ $caskinfo{$brewer} } ) {
             my $beerinfo = $caskinfo{$brewer}{$beer};
-            $document->appendParagraph(
+            $self->_content->appendParagraph(
                 text    => sprintf(
-                    "%s     %d%%  (%s)",
+                    "%s\t%d%%",
                     $beer,
                     $beerinfo->{abv},
-                    $beerinfo->{style},
                 ),
-                style   => 'Heading 6'
-            );
-            $document->appendParagraph(
-                text    => $beerinfo->{description},
-                style   => 'Text body indent'
+                style   => $self->config->{'styles'}{'beer_name'},
             );
         }
     }
 
-    $document->save;
+    return;
+}
+
+sub DEMOLISH {
+
+    my ( $self ) = @_;
+
+    $self->_container->save;
 
     return;
 }
