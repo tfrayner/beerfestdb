@@ -26,6 +26,13 @@ __PACKAGE__->add_columns(
   },
   "year_founded",
   { data_type => "YEAR", default_value => undef, is_nullable => 1, size => 4 },
+  "url",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
   "comment",
   {
     data_type => "VARCHAR",
@@ -47,8 +54,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-01 00:22:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DMffoe3EVkgM+aGLpTaYwQ
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-10 20:52:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vvuy1ywZlEfH9/N0daiReg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
