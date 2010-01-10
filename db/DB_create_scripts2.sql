@@ -197,6 +197,7 @@ CREATE TABLE company (
   name VARCHAR(100) NOT NULL,
   loc_desc VARCHAR(100) NULL,
   year_founded YEAR(4) NULL,
+  url VARCHAR(255) NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(company_id)
 )
@@ -609,6 +610,9 @@ CREATE TABLE cask (
   comment TEXT NULL,
   external_reference VARCHAR(255) NULL,
   internal_reference VARCHAR(255) NULL,
+  is_vented TINYINT(1) NULL,
+  is_tapped TINYINT(1) NULL,
+  is_ready TINYINT(1) NULL,
   PRIMARY KEY(cask_id),
   INDEX IDX_CSK_bbid(gyle_id),
   INDEX IDX_CSK_dcid(distributor_company_id),
