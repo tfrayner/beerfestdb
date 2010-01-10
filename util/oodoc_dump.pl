@@ -14,11 +14,12 @@ use BeerFestDB::Dumper::OODoc;
 
 sub parse_args {
 
-    my ( $conffile, $outfile, $want_help );
+    my ( $conffile, $outfile, $template, $want_help );
 
     GetOptions(
         "c|config=s"   => \$conffile,
         "f|filename=s" => \$outfile,
+        "t|template=s" => \$template,
         "h|help"       => \$want_help,
     );
 
@@ -30,7 +31,7 @@ sub parse_args {
         );
     }
 
-    unless ( $conffile && $outfile ) {
+    unless ( $conffile && $outfile && $template ) {
         pod2usage(
             -message => qq{Please see "$0 -h" for further help notes.},
             -exitval => 255,
@@ -41,20 +42,22 @@ sub parse_args {
 
     my $config = Config::YAML->new( config => $conffile );
 
-    return( $outfile, $config );
+    return( $outfile, $config, $template );
 }
 
 ########
 # MAIN #
 ########
 
-my ( $outfile, $config ) = parse_args();
+my ( $outfile, $config, $template ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
 my $dumper = BeerFestDB::Dumper::OODoc->new(
     database => $schema,
     filename => $outfile,
+    template => $template,
+    config   => $config->get_OODoc(),
 );
 
 $dumper->dump();
@@ -67,7 +70,7 @@ oodoc_dump.pl
 
 =head1 SYNOPSIS
 
- oodoc_dump.pl -c <config file> -f <output file>
+ oodoc_dump.pl -c <config file> -f <output file> -t <template file>
 
 =head1 DESCRIPTION
 
@@ -82,6 +85,10 @@ the beers for a given festival into OpenOffice ODF format.
 
 The output file to create. If the file already exists then new
 information will be appended to it.
+
+=item -t
+
+A template ODT file containing the requisite style information.
 
 =item -c
 
