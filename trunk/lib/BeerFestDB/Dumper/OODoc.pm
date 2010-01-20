@@ -141,12 +141,12 @@ sub dump {
             );
             foreach my $beer ( sort keys %{ $caskinfo->{$brewer} } ) {
                 my $beerinfo = $caskinfo->{$brewer}{$beer};
+                my $line = $beerinfo->{abv} ? sprintf("%s\t%.1f%%",
+                                                      $beer,
+                                                      $beerinfo->{abv} )
+                    : sprintf("%s\t%s %%", $beer, 'Unknown');
                 $self->_content->appendParagraph(
-                    text    => sprintf(
-                        "%s\t%d%%",
-                        $beer,
-                        $beerinfo->{abv},
-                    ),
+                    text    => $line,
                     style   => $self->config->{'styles'}{'beer_name'},
                 );
             }
