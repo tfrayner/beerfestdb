@@ -1,0 +1,77 @@
+%
+% $Id: cask_end_template.tt2 54 2010-01-20 18:30:33Z tfrayner $
+%
+% Example LaTeX template for use with cask_end_signs_latex.pl
+
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, landscape, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
+\usepackage[absolute]{textpos}
+\usepackage{babel}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{fix-cm}
+\begin{document}
+
+%\hyphenpenalty=10000
+%\exhyphenpenalty=10000
+
+[% FOREACH bar IN bars.pairs %]
+
+  \setlength{\TPHorizModule}{\paperwidth}
+  \setlength{\TPVertModule}{\paperheight}
+  \textblockorigin{0mm}{10mm} % start everything near the top-left corner
+  \setlength{\parindent}{0pt}
+
+  \pagestyle{empty}
+
+  \fontsize{24}{30}
+
+  [% bar.key %]
+
+  \vspace{ 5 mm }
+
+  \fontsize{10}{12}
+  \selectfont
+
+  \begin{tabular}{ | l | l | l | r | r | r | }
+    \hline
+  Brewer & Beer & Cask no. & Thursday & Friday & Saturday \\ \hline
+
+  [% SET casks = bar.value.sort('brewery', 'product', 'number') %]
+
+  [% SET counter = 0 %]
+
+  [% FOREACH cask = casks %]
+
+    [% cask.brewery | replace( '&', '\\&' ) %] &
+    [% cask.product | replace( '&', '\\&' ) %] &
+    [% cask.number %] &  &  & \\ \hline
+
+    [% counter = counter + 1 %]
+
+    [% IF counter > 35 %]
+      [% counter = 0 %]
+      \end{tabular}
+
+      \null\newpage
+
+      [% bar.key %] (continued)
+
+      \vspace{ 5 mm }
+
+      \begin{tabular}{ | l | l | l | r | r | r | }
+        \hline
+      Brewer & Beer & Cask no. & Thursday & Friday & Saturday \\ \hline
+    [% END %]
+
+  [% END %]
+
+  \end{tabular}
+
+  \null\newpage
+
+[% END %]
+
+\end{document}
