@@ -29,10 +29,10 @@ Readonly my $BREWER_NAME               => 4;
 Readonly my $BREWER_LOC_DESC           => 5;
 Readonly my $BREWER_YEAR_FOUNDED       => 6;
 Readonly my $BREWER_COMMENT            => 7;
-Readonly my $BEER_NAME                 => 8;
-Readonly my $BEER_STYLE                => 9;
-Readonly my $BEER_DESCRIPTION          => 10;
-Readonly my $BEER_COMMENT              => 11;
+Readonly my $PRODUCT_NAME              => 8;
+Readonly my $PRODUCT_STYLE             => 9;
+Readonly my $PRODUCT_DESCRIPTION       => 10;
+Readonly my $PRODUCT_COMMENT           => 11;
 Readonly my $GYLE_BREWERY_NUMBER       => 12;
 Readonly my $GYLE_ABV                  => 13;
 Readonly my $GYLE_PINT_PRICE           => 14;
@@ -49,6 +49,7 @@ Readonly my $CASK_MEASUREMENT_DATE     => 24;
 Readonly my $CASK_MEASUREMENT_VOLUME   => 25;
 Readonly my $CASK_MEASUREMENT_COMMENT  => 26;
 Readonly my $FESTIVAL_NAME             => 27;
+Readonly my $PRODUCT_CATEGORY          => 28;
 
 ########
 # SUBS #
@@ -138,28 +139,28 @@ sub _load_data {
     my $category
         = $self->_load_column_value(
             {
-                description => 'beer',
+                description => $datahash->{$PRODUCT_CATEGORY} || 'beer',
             },
             'ProductCategory');
 
     # FIXME this is a controlled vocab so should die on invalid values.
     my $style
-	= $self->_check_not_null( $datahash->{$BEER_STYLE} )
+	= $self->_check_not_null( $datahash->{$PRODUCT_STYLE} )
 	? $self->_load_column_value(
 	    {
                 product_category_id => $category,
-		description         => $datahash->{$BEER_STYLE},
+		description         => $datahash->{$PRODUCT_STYLE},
 	    },
 	    'ProductStyle')
 	: undef;
 
-    my $beer
-	= $self->_check_not_null( $datahash->{$BEER_NAME} )
+    my $product
+	= $self->_check_not_null( $datahash->{$PRODUCT_NAME} )
 	? $self->_load_column_value(
 	    {
-		name             => $datahash->{$BEER_NAME},
-		description      => $datahash->{$BEER_DESCRIPTION},
-		comment          => $datahash->{$BEER_COMMENT},
+		name             => $datahash->{$PRODUCT_NAME},
+		description      => $datahash->{$PRODUCT_DESCRIPTION},
+		comment          => $datahash->{$PRODUCT_COMMENT},
                 product_category_id => $category,
                 product_style_id    => $style,
 	    },
@@ -167,12 +168,12 @@ sub _load_data {
 	: undef;
 
     my $gyle
-	= $beer
+	= $product
 	? $self->_load_column_value(
 	    {
 		external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
 		company_id         => $brewer,
-		product_id         => $beer,
+		product_id         => $product,
 		abv                => $datahash->{$GYLE_ABV},
 		comment            => $datahash->{$GYLE_COMMENT},
 	    },
@@ -247,12 +248,15 @@ sub _load_data {
     my $cask_price = $datahash->{$CASK_PRICE}      ? $datahash->{$CASK_PRICE}      * 100 : undef;
     my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
 
-    my $count = defined $datahash->{$CASK_COUNT} ? $datahash->{$CASK_COUNT} : 1;
+    my $count = $datahash->{$CASK_COUNT};
+    unless ( defined $count && $count ne q{} ) {
+        $count = 1;
+    }
 
     foreach my $n ( 1..$count ) {
 
         my $cask
-            = $beer
+            = $product
                 ? $self->_load_column_value(
                     {
                         gyle_id                => $gyle,
@@ -402,10 +406,10 @@ sub _coerce_headings {
         qr/brewery? [_ -]* loc [_ -]* desc/ixms        => $BREWER_LOC_DESC,
         qr/brewery? [_ -]* year [_ -]* founded/ixms    => $BREWER_YEAR_FOUNDED,
         qr/brewery? [_ -]* comment/ixms                => $BREWER_COMMENT,
-        qr/beer [_ -]* name/ixms                       => $BEER_NAME,
-        qr/beer [_ -]* style/ixms                      => $BEER_STYLE,
-        qr/beer [_ -]* description/ixms                => $BEER_DESCRIPTION,
-        qr/beer [_ -]* comment/ixms                    => $BEER_COMMENT,
+        qr/product [_ -]* name/ixms                    => $PRODUCT_NAME,
+        qr/product [_ -]* style/ixms                   => $PRODUCT_STYLE,
+        qr/product [_ -]* description/ixms             => $PRODUCT_DESCRIPTION,
+        qr/product [_ -]* comment/ixms                 => $PRODUCT_COMMENT,
         qr/gyle [_ -]* brewery? [_ -]* number/ixms     => $GYLE_BREWERY_NUMBER,
         qr/gyle [_ -]* abv/ixms                        => $GYLE_ABV,
         qr/gyle [_ -]* pint [_ -]* price/ixms          => $GYLE_PINT_PRICE,
@@ -421,6 +425,7 @@ sub _coerce_headings {
         qr/cask [_ -]* measurement [_ -]* date/ixms    => $CASK_MEASUREMENT_DATE,
         qr/cask [_ -]* measurement [_ -]* volume/ixms  => $CASK_MEASUREMENT_VOLUME,
         qr/cask [_ -]* measurement [_ -]* comment/ixms => $CASK_MEASUREMENT_COMMENT,
+        qr/product [_ -]* category [_ -]* /ixms        => $PRODUCT_CATEGORY,
     );
 
     my @new_headings;

@@ -42,12 +42,13 @@ sub dump {
     }
 
     # N.B. Changes here need to be documented in the POD.
-    my @caskinfo;
+    my ( @caskinfo, %bar );
     foreach my $cask ( @$casks ) {
         my %caskdata;
 	$caskdata{brewery} = $cask->gyle_id()->company_id()->name();
-	$caskdata{beer}    = $cask->gyle_id()->product_id()->name();
+	$caskdata{product} = $cask->gyle_id()->product_id()->name();
 	$caskdata{abv}     = $cask->gyle_id()->abv();
+        $caskdata{category} = $cask->gyle_id()->product_id()->product_category_id()->description();
 
         $caskdata{sale_volume} = $cask->sale_volume_id()->sale_volume_description();
 
@@ -64,11 +65,15 @@ sub dump {
         }
 
         push @caskinfo, \%caskdata;
+
+        my $barname = $cask->bar_id() ? $cask->bar_id()->description() : '';
+        push @{ $bar{ $barname } }, \%caskdata;
     }
 
     my $vars = {
         logos => $self->logos(),
         casks => \@caskinfo,
+        bars  => \%bar,
     };
 
     my $template = Template->new()
@@ -118,7 +123,9 @@ A list of cask hashrefs, each of which has the following keys:
 
 =item brewery
 
-=item beer
+=item product
+
+=item category
 
 =item abv
 
@@ -131,6 +138,11 @@ A list of cask hashrefs, each of which has the following keys:
 =item sale_volume
 
 =back
+
+=item bars
+
+A hashref keyed by bar names linked to arrayrefs of cask hashrefs as
+documented above.
 
 =item logos
 
