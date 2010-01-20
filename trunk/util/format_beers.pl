@@ -14,12 +14,13 @@ use BeerFestDB::Dumper::Template;
 
 sub parse_args {
 
-    my ( $conffile, $templatefile, $logofile , $want_help );
+    my ( $conffile, $templatefile, $logofile, $all_casks, $want_help );
 
     GetOptions(
         "c|config=s"   => \$conffile,
         "t|template=s" => \$templatefile,
         "l|logo=s"     => \$logofile,
+        "a|all"        => \$all_casks,
         "h|help"       => \$want_help,
     );
 
@@ -42,14 +43,14 @@ sub parse_args {
 
     my $config = Config::YAML->new( config => $conffile );
 
-    return( $templatefile, $logofile, $config );
+    return( $templatefile, $logofile, $config, $all_casks );
 }
 
 ########
 # MAIN #
 ########
 
-my ( $templatefile, $logofile, $config ) = parse_args();
+my ( $templatefile, $logofile, $config, $all_casks ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
@@ -57,6 +58,7 @@ my $dumper = BeerFestDB::Dumper::Template->new(
     database => $schema,
     template => $templatefile,
     logos    => [ $logofile ],
+    all_casks => $all_casks,
 );
 
 $dumper->dump();
@@ -98,6 +100,11 @@ The Template Toolkit file to apply to the data.
 
 An optional logo file, the name of which will be passed into the
 template file as the first element of the "logos" array.
+
+=item -a
+
+Indicate that one record per cask should be formatted. The default is
+to write one record per product.
 
 =back
 
