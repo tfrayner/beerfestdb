@@ -108,11 +108,12 @@ sub dump {
         $casks = $self->unique_casks( $casks );
     }
 
-    my ( %caskinfo, %brewerinfo );
+    my ( %barinfo, %brewerinfo );
     foreach my $cask ( @$casks ) {
+        my $bar    = $cask->bar_id() ? $cask->bar_id()->description() : q{};
         my $brewer = $cask->gyle_id->company_id;
         my $beer   = $cask->gyle_id->product_id;
-        $caskinfo{$brewer->name}{$beer->name} = {
+        $barinfo{$bar}{$brewer->name}{$beer->name} = {
             abv         => $cask->gyle_id->abv,
             style       => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
             description => $beer->description || q{Unknown at time of press.},
@@ -120,25 +121,35 @@ sub dump {
         $brewerinfo{$brewer->name}{'location'} = $brewer->loc_desc || q{Unknown location};
     }
 
-    foreach my $brewer ( sort keys %caskinfo ) {
-        $self->_content->appendParagraph(
-            text    => $brewer,
-            style   => $self->config->{'styles'}{'brewery_name'},
-        );
-        $self->_content->appendParagraph(
-            text    => $brewerinfo{$brewer}{'location'},
-            style   => $self->config->{'styles'}{'brewery_location'},
-        );
-        foreach my $beer ( sort keys %{ $caskinfo{$brewer} } ) {
-            my $beerinfo = $caskinfo{$brewer}{$beer};
+    while ( my ( $bar, $caskinfo ) = each %barinfo ) {
+        warn("Printing bar info: $bar\n");
+        if ( $bar ) {
             $self->_content->appendParagraph(
-                text    => sprintf(
-                    "%s\t%d%%",
-                    $beer,
-                    $beerinfo->{abv},
-                ),
-                style   => $self->config->{'styles'}{'beer_name'},
+                text    => $bar,
+                style   => $self->config->{'styles'}{'bar_name'},
+            );            
+        }
+        foreach my $brewer ( sort keys %$caskinfo ) {
+            warn("  Printing details for $brewer...\n");
+            $self->_content->appendParagraph(
+                text    => $brewer,
+                style   => $self->config->{'styles'}{'brewery_name'},
             );
+            $self->_content->appendParagraph(
+                text    => $brewerinfo{$brewer}{'location'},
+                style   => $self->config->{'styles'}{'brewery_location'},
+            );
+            foreach my $beer ( sort keys %{ $caskinfo->{$brewer} } ) {
+                my $beerinfo = $caskinfo->{$brewer}{$beer};
+                $self->_content->appendParagraph(
+                    text    => sprintf(
+                        "%s\t%d%%",
+                        $beer,
+                        $beerinfo->{abv},
+                    ),
+                    style   => $self->config->{'styles'}{'beer_name'},
+                );
+            }
         }
     }
 
