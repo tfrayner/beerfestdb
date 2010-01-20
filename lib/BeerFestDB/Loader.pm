@@ -362,33 +362,8 @@ sub _load_column_value {
     $self->_confirm_required_cols( $args, $required )
 	or croak(qq{Error: Incomplete data for "$class" object.});
 
-    # Create an object with all its required values.
-    my %values = map { $_ => $args->{$_} } @{ $required };
-    foreach my $k ( @pk ) {
-        $values{$k} = $args->{$k} if defined $args->{$k};
-    }
-    my $object = $resultset->update_or_create(\%values);
-
-    # Add in the optional values where available.
-    foreach my $col ( @{ $optional } ) {
-	if ( $self->_check_not_null( $args->{$col} ) ) {
-	    my $value = $args->{$col};
-            if ( ref $value ) {
-                my @vpk = $value->result_source()->primary_columns();
-                if ( scalar @vpk == 1 ) {
-                    my $pcol = $vpk[0];
-                    $value = $value->$pcol if ($value->can($pcol));
-                }
-                else {
-                    die("Error: Cannot automatically link objects in tables"
-                            . " with multi-column primary keys");
-                }
-            }
-	    $object->set_column( $col => $value );
-	}
-    }
-
-    $object->update();
+    # Create an object in the database.
+    my $object = $resultset->update_or_create($args);
 
     return $object;
 }
