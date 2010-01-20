@@ -32,13 +32,18 @@ has 'logos'      => ( is       => 'ro',
                       required => 1,
                       default  => sub { [] } );
 
+has 'all_casks'  => ( is       => 'ro',
+                      isa      => 'Bool',
+                      required => 1,
+                      default  => 0 );
+
 sub dump {
 
     my ( $self, $casks ) = @_;
 
     unless ( $casks ) {
         $casks = $self->select_festival_casks();
-        $casks = $self->unique_casks( $casks );
+        $casks = $self->unique_casks( $casks ) unless $self->all_casks;
     }
 
     # N.B. Changes here need to be documented in the POD.
@@ -48,6 +53,7 @@ sub dump {
 	$caskdata{brewery} = $cask->gyle_id()->company_id()->name();
 	$caskdata{product} = $cask->gyle_id()->product_id()->name();
 	$caskdata{abv}     = $cask->gyle_id()->abv();
+	$caskdata{number}  = $cask->internal_reference();
         $caskdata{category} = $cask->gyle_id()->product_id()->product_category_id()->description();
 
         $caskdata{sale_volume} = $cask->sale_volume_id()->sale_volume_description();
@@ -123,19 +129,39 @@ A list of cask hashrefs, each of which has the following keys:
 
 =item brewery
 
+The original brewer of the product.
+
 =item product
+
+The name of the beer, cider, or whatever.
+
+=item number
+
+The internal reference number for this cask.
 
 =item category
 
+The product category ("beer", "cider" etc.).
+
 =item abv
+
+The ABV, obviously.
 
 =item currency
 
+The currency used for sales.
+
 =item price
+
+The price per sale unit (typically price per pint).
 
 =item half_price
 
+The price per half sale unit.
+
 =item sale_volume
+
+The sale unit itself.
 
 =back
 
@@ -157,9 +183,20 @@ referenced in the template to place logos etc.
 
 =item template
 
+The template file to use.
+
 =item filehandle
 
+The output filehandle (default STDOUT).
+
 =item logos
+
+An arrayref containing logo file names to pass through to the templates.
+
+=item all_casks
+
+A boolean flag (default FALSE) indicating whether the output should
+contain one record per product (FALSE), or one record per cask (TRUE).
 
 =back
 
