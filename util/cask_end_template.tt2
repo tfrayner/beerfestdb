@@ -19,12 +19,6 @@
 
 [% FOREACH cask = casks %]
 
-  [% IF cask.beer.length > 55 %]
-    [% beer_font_size = 44 %]
-  [% ELSE %]
-    [% beer_font_size = 86 %]
-  [% END %]
-
 \setlength{\TPHorizModule}{\paperwidth}
 \setlength{\TPVertModule}{\paperheight}
 \textblockorigin{0mm}{10mm} % start everything near the top-left corner
@@ -35,40 +29,95 @@
 %\fontsize{60}{75}
 %\selectfont
 
-% logos
+% festival logo
 \begin{textblock}{0.01}(0.06,0.04)
-\includegraphics[width=60mm]{[% logos.0 %]}
+\includegraphics[width=30mm]{[% logos.0 %]}
 \end{textblock}
+
+% CAMRA logo (hardcoded)
+\begin{textblock}{0.01}(0.86,0.04)
+\includegraphics[width=30mm]{camra_logo.png}
+\end{textblock}
+
+% product info to be plugged in
+
+  \fontsize{48}{60}
+  \selectfont
+
+[% IF cask.category == 'beer' %]
+
+  [% IF cask.product.length > 55 %]
+    [% product_font_size = 44 %]
+  [% ELSE %]
+    [% product_font_size = 86 %]
+  [% END %]
+
+  \begin{textblock}{0.6}[0.5,0](0.5,0.05)
+  \begin{center}
+  \textbf{[% cask.brewery | replace( '&', '\\&' ) %]}
+  \end{center}
+  \end{textblock}
+
+  %\vspace{5mm}
+  \begin{textblock}{0.8}[0.5, 0.5](0.5,0.4)
+  \begin{center}
+  \fontsize{[% product_font_size %]}{94}
+  \selectfont
+  \textbf{[% cask.product | replace( '&', '\\&' ) %]}
+  \end{center}
+
+  % \hspace{5mm} 0.0\%
+
+  %\vspace{8mm}
+  \end{textblock}
+
+[% ELSIF cask.category == 'cider' %]
+
+
+  [% IF cask.brewery.length > 55 %]
+    [% product_font_size = 44 %]
+  [% ELSE %]
+    [% product_font_size = 80 %]
+  [% END %]
+
+  \fontsize{[% product_font_size %]}{94}
+  \selectfont
+
+  \begin{textblock}{0.6}[0.5,0](0.5,0.05)
+  \begin{center}
+  \textbf{[% cask.brewery | replace( '&', '\\&' ) %]}
+  \end{center}
+  \end{textblock}
+
+  %\vspace{5mm}
+
+  \fontsize{60}{94}
+  \selectfont
+
+  \begin{textblock}{0.8}[0.5, 0.5](0.5,0.45)
+  \begin{center}
+  \textbf{[% cask.product | replace( '&', '\\&' ) %]}
+  \end{center}
+
+  % \hspace{5mm} 0.0\%
+
+  %\vspace{8mm}
+  \end{textblock}
+
+[% ELSE %]
+
+  [% THROW category "Unrecognised product category (should be beer or cider)" %]
   
-% beer info to be plugged in
-
-\fontsize{48}{60}
-\selectfont
-
-\begin{textblock}{0.6}[0.5,0](0.5,0.05)
-\begin{center}
-\textbf{[% cask.brewery | replace( '&', '\\&' ) %]}
-\end{center}
-\end{textblock}
-
-%\vspace{5mm}
-\begin{textblock}{0.8}[0.5, 0.5](0.5,0.4)
-\begin{center}
-\fontsize{[% beer_font_size %]}{94}
-\selectfont
-\textbf{[% cask.beer | replace( '&', '\\&' ) %]}
-\end{center}
-
-% \hspace{5mm} 0.0\%
-
-%\vspace{8mm}
-\end{textblock}
+[% END %]
 
 \begin{textblock}{0.4}(0.05,0.65)
 \fontsize{60}{75}
 \selectfont
 \textbf{ABV: [% cask.abv | replace( '%', '\%' ) %] \%}
 \end{textblock}
+
+  \fontsize{48}{60}
+  \selectfont
 
 [% IF cask.price == cask.half_price %]
 \begin{textblock}{0.4}(0.55,0.65)
