@@ -113,7 +113,15 @@
 \begin{textblock}{0.4}(0.05,0.65)
 \fontsize{60}{75}
 \selectfont
+
 \textbf{ABV: [% cask.abv | replace( '%', '\%' ) %] \%}
+
+[% IF cask.category == 'cider' %]
+\fontsize{50}{75}
+\selectfont
+\textbf{[% cask.style | titlecase %]}
+[% END %]
+
 \end{textblock}
 
   \fontsize{48}{60}

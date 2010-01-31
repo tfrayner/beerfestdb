@@ -50,11 +50,13 @@ sub dump {
     my ( @caskinfo, %bar );
     foreach my $cask ( @$casks ) {
         my %caskdata;
-	$caskdata{brewery} = $cask->gyle_id()->company_id()->name();
-	$caskdata{product} = $cask->gyle_id()->product_id()->name();
-	$caskdata{abv}     = $cask->gyle_id()->abv();
-	$caskdata{number}  = $cask->internal_reference();
-        $caskdata{category} = $cask->gyle_id()->product_id()->product_category_id()->description();
+	my $product = $cask->gyle_id()->product_id();
+	$caskdata{brewery}  = $cask->gyle_id()->company_id()->name();
+	$caskdata{product}  = $product->name();
+	$caskdata{abv}      = $cask->gyle_id()->abv();
+	$caskdata{number}   = $cask->internal_reference();
+	$caskdata{style}    = $product->product_style_id() ? $product->product_style_id()->description() : q{};
+        $caskdata{category} = $product->product_category_id()->description();
 
         $caskdata{sale_volume} = $cask->sale_volume_id()->sale_volume_description();
 
@@ -82,8 +84,10 @@ sub dump {
         bars  => \%bar,
     };
 
-    my $template = Template->new()
-        or die( "Cannot create Template object: " . Template->error() );
+    # We define a custom title case filter for convenience.
+    my $template = Template->new(
+	FILTERS => {titlecase => sub { join(' ', map { ucfirst $_ } split / +/, $_[0]) }}
+    )   or die( "Cannot create Template object: " . Template->error() );
 
     $template->process($self->template(), $vars, $self->filehandle() )
         or die( "Template processing error: " . $template->error() );
@@ -142,6 +146,10 @@ The internal reference number for this cask.
 =item category
 
 The product category ("beer", "cider" etc.).
+
+=item style
+
+The product style ("Stout", "Best Bitter", "Medium Sweet" etc.).
 
 =item abv
 
