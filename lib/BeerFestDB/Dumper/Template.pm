@@ -86,7 +86,7 @@ sub dump {
 
     # We define a custom title case filter for convenience.
     my $template = Template->new(
-	FILTERS => {titlecase => sub { join(' ', map { ucfirst $_ } split / +/, $_[0]) }}
+	FILTERS => {titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) }}
     )   or die( "Cannot create Template object: " . Template->error() );
 
     $template->process($self->template(), $vars, $self->filehandle() )
