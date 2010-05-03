@@ -19,6 +19,7 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("contact_type_id");
+__PACKAGE__->add_unique_constraint("contact_type_description", ["contact_type_description"]);
 __PACKAGE__->has_many(
   "contacts",
   "BeerFestDB::ORM::Contact",
@@ -26,8 +27,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-06 12:24:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fyYv64cIN+CMWz7XxeUQEA
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k89QkvxejDXVYhP1eCfWFA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

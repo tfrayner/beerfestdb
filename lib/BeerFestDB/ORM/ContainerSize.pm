@@ -23,6 +23,7 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("container_size_id");
+__PACKAGE__->add_unique_constraint("container_description", ["container_description"]);
 __PACKAGE__->has_many(
   "casks",
   "BeerFestDB::ORM::Cask",
@@ -35,8 +36,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-06 12:24:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EqRR4TGSN1m/ux11xw5NzA
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:omnNG60ZnKWwdW8tWHzF+A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

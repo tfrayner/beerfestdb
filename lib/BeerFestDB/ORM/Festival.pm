@@ -43,13 +43,13 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key("festival_id");
 __PACKAGE__->has_many(
-  "casks",
-  "BeerFestDB::ORM::Cask",
+  "bars",
+  "BeerFestDB::ORM::Bar",
   { "foreign.festival_id" => "self.festival_id" },
 );
 __PACKAGE__->has_many(
-  "festival_bars",
-  "BeerFestDB::ORM::FestivalBar",
+  "casks",
+  "BeerFestDB::ORM::Cask",
   { "foreign.festival_id" => "self.festival_id" },
 );
 __PACKAGE__->has_many(
@@ -57,11 +57,25 @@ __PACKAGE__->has_many(
   "BeerFestDB::ORM::FestivalOpening",
   { "foreign.festival_id" => "self.festival_id" },
 );
+__PACKAGE__->has_many(
+  "festival_products",
+  "BeerFestDB::ORM::FestivalProduct",
+  { "foreign.festival_id" => "self.festival_id" },
+);
+__PACKAGE__->has_many(
+  "stillage_locations",
+  "BeerFestDB::ORM::StillageLocation",
+  { "foreign.festival_id" => "self.festival_id" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-01 00:22:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9NayPtT6q3ZCE9dxT/Y40A
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mvGfI/LVYSaXafXulqLfiA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->many_to_many(
+    "products" => "festival_products", "product_id"
+);
+
 1;

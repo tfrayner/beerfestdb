@@ -32,6 +32,8 @@ __PACKAGE__->add_columns(
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 11 },
   "stillage_location_id",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  "stillage_bay",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "stillage_x_location",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "stillage_y_location",
@@ -106,8 +108,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-10 20:52:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mLQC+iO8TgLRQub8xLx8fQ
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r/TuBEJaYSQ42YIT5vl/0A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
