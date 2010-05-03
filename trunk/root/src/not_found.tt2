@@ -1,3 +1,5 @@
 [% META title = '404 Not Found' %] 
-<p>That page doesn't exist (yet).
-Maybe you'd like to <a href="[% c.uri_for('/') %]">return to the beginning</a> instead?</p>
+
+<div><h2>Quoth the server: 404</h2> <p>It looks like you're trying to navigate somewhere you shouldn't.
+
+Maybe you'd like to <a href="[% c.uri_for('/') %]">return to the main page</a> instead?</p></div>

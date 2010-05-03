@@ -4,5 +4,7 @@
 <p>Please enter the site below: 
 <ul> 
 <li><a href="[% c.uri_for('/festival/grid') %]">List all festivals</a></li> 
+<li><a href="[% c.uri_for('/product') %]">List all products</a></li> 
+<li><a href="[% c.uri_for('/order/grid') %]">List all orders</a></li> 
 </ul> 
 </p>
