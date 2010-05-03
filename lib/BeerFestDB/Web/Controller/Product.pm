@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 
+use Storable qw(dclone);
+
 =head1 NAME
 
 BeerFestDB::Web::Controller::Product - Catalyst Controller
@@ -22,9 +24,13 @@ Catalyst Controller.
 =cut
 
 sub index :Path :Args(0) {
+
+    # Listing of product types linking to grid views for each.
     my ( $self, $c ) = @_;
 
-    $c->response->body('Matched BeerFestDB::Web::Controller::Product in Product.');
+    my @categories = $c->model('DB::ProductCategory')->all(); 
+
+    $c->stash->{categories} = \@categories;
 }
 
 =head2 list
@@ -35,38 +41,79 @@ sub list : Local {
 
     my ( $self, $c, $category_id, $festival_id ) = @_;
 
-    my $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
-    unless ( $festival ) {
-        $c->response->status('403');  # Forbidden
-        $c->stash->{error} = 'Festival not found.';
+    # This is just a product listing at this stage; one row per
+    # product (per supplier). If festival_id is supplied then the list
+    # is filtered based on which products are at a given
+    # festival. Note that this listing is therefore swinging between
+    # the virtual (no $festival_id) and the concrete ($festival_id,
+    # linking via cask and gyle).
+
+    my ( $product_rs, $festival );
+    if ( defined $festival_id ) {
+        $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
+        unless ( $festival ) {
+            $c->stash->{error} = 'Festival not found.';
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();
+        }
+        $product_rs = $festival->search_related('festival_products')
+                               ->search_related('product_id',
+                                                { product_category_id => $category_id });
     }
-    my $gyle_rs = $festival->casks()->search_related('gyle_id');
+    else {
+        $product_rs = $c->model( 'DB::Product' )->search_rs({product_category_id => $category_id});
+    }
     
     my @products;
-    while ( my $gyle = $gyle_rs->next ) {
+    while ( my $prod = $product_rs->next ) {
+        my $style_id;
+        if ( my $style = $prod->product_style_id ) {
+            $style_id = $style->product_style_id;
+        }
 
-        my $prod_rs = $gyle->search_related('product_id',
-                                            { product_category_id => $category_id });
+        my %prod_info = (
+            product_id  => $prod->product_id,
+            name        => $prod->name,
+            description => $prod->description,
+            comment     => $prod->comment,
+            product_style_id => $style_id,
+        );
 
-        while ( my $prod = $prod_rs->next ) {
-            my $style_id;
-            if ( my $style = $prod->product_style_id ) {
-                $style_id = $style->product_style_id;
-            }
+        # Retrieve supplier info. Note that the prefetch is critical here.
+        my @suppliers;
+        if ( $festival ) {
 
-            # This is many-to-many; generate one row per gyle. Add in
-            # gyle numbers; we will set this as non-editable, just a
-            # visual guide for reassigning gyles between brewers.
+            # For a given festival the suppliers list is linked via
+            # cask, i.e. is a concrete representation of what has been
+            # delivered.
+            @suppliers =
+                $prod->search_related('company_products',
+                                      { 'casks.festival_id' => $festival->id },
+                                      {
+                                          prefetch => {
+                                              company_id => {
+                                                  gyles => { casks => 'festival_id' }
+                                              }
+                                          },
+                                          join => {
+                                              company_id => {
+                                                  gyles => { casks => 'festival_id' },
+                                              }
+                                          },
+                                      }
+                                  );
+        }
+        else {
 
-            push( @products, {
-                product_id  => $prod->product_id,
-                gyle        => $gyle->external_reference,
-                company_id  => $gyle->company_id->company_id,
-                name        => $prod->name,
-                description => $prod->description,
-                comment     => $prod->comment,
-                product_style_id => $style_id,
-            } );
+            # For the more general case we just take all possible
+            # suppliers and list them.
+            @suppliers = $prod->producers()
+        }
+
+        foreach my $supp ( @suppliers ) {
+            my $i = dclone( \%prod_info );
+            $i->{company_id} = $supp->id();
+            push( @products, $i );
         }
     }
 
@@ -80,7 +127,7 @@ sub list : Local {
 
 =cut
 
-sub submit : Local {
+sub submit : Local {  # FIXME FIXME FIXME this method has been largely superceded in the new UI design.
 
     my ( $self, $c ) = @_;
 
@@ -140,7 +187,9 @@ sub submit : Local {
 
 =cut
 
-sub delete : Local {
+sub delete : Local { # FIXME FIXME FIXME doesn't this need reviewing?
+                     # how often do we actually want to delete
+                     # products anyway? Casks, yes; Products, no.
 
     my ( $self, $c ) = @_;
 
@@ -171,15 +220,17 @@ sub delete : Local {
 
 sub grid : Local {
 
-    my ( $self, $c, $festival_id, $category_id ) = @_;
+    my ( $self, $c, $category_id, $festival_id ) = @_;
 
-    my $festival = $c->model('DB::Festival')->find($festival_id);
-    unless ( $festival ) {
-        $c->flash->{error} = "Error: Festival not found.";
-        $c->res->redirect( $c->uri_for('/default') );
-        $c->detach();        
+    if ( defined $festival_id ) {
+        my $festival = $c->model('DB::Festival')->find($festival_id);
+        unless ( $festival ) {
+            $c->flash->{error} = "Error: Festival not found.";
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();        
+        }
+        $c->stash->{festival} = $festival;
     }
-    $c->stash->{festival} = $festival;
 
     my $category = $c->model('DB::ProductCategory')->find($category_id);
     unless ( $category ) {
