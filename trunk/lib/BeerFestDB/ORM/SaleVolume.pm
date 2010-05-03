@@ -23,6 +23,7 @@ __PACKAGE__->add_columns(
   { data_type => "DECIMAL", default_value => undef, is_nullable => 1, size => 4 },
 );
 __PACKAGE__->set_primary_key("sale_volume_id");
+__PACKAGE__->add_unique_constraint("sale_volume_description", ["sale_volume_description"]);
 __PACKAGE__->has_many(
   "casks",
   "BeerFestDB::ORM::Cask",
@@ -35,8 +36,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-16 21:32:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bjpZ8ad0XuBDqtL2+yBuBw
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ea9y8aTAfpe08YoPKMlocQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

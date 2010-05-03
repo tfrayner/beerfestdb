@@ -42,9 +42,15 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("company_id");
+__PACKAGE__->add_unique_constraint("name", ["name"]);
 __PACKAGE__->has_many(
   "company_contacts",
   "BeerFestDB::ORM::CompanyContact",
+  { "foreign.company_id" => "self.company_id" },
+);
+__PACKAGE__->has_many(
+  "company_products",
+  "BeerFestDB::ORM::CompanyProduct",
   { "foreign.company_id" => "self.company_id" },
 );
 __PACKAGE__->has_many(
@@ -54,9 +60,13 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-10 20:52:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vvuy1ywZlEfH9/N0daiReg
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HVUP54oJLBy0XoHO/Zd8eA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->many_to_many(
+    "products" => "company_products", "product_id"
+);
+
 1;

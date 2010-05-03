@@ -19,6 +19,7 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("telephone_type_id");
+__PACKAGE__->add_unique_constraint("description", ["description"]);
 __PACKAGE__->has_many(
   "telephones",
   "BeerFestDB::ORM::Telephone",
@@ -26,8 +27,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-10-01 00:22:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:twaTX2GIIoK8cgpiLI1qpg
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n50uqUrOnPhjJWK28hCD3g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

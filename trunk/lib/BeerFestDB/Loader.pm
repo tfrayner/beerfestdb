@@ -50,6 +50,7 @@ Readonly my $CASK_MEASUREMENT_VOLUME   => 25;
 Readonly my $CASK_MEASUREMENT_COMMENT  => 26;
 Readonly my $FESTIVAL_NAME             => 27;
 Readonly my $PRODUCT_CATEGORY          => 28;
+Readonly my $STILLAGE_LOCATION         => 29;
 
 ########
 # SUBS #
@@ -78,21 +79,6 @@ sub _check_not_null {
     return ( defined $value && $value ne q{} && $value !~ m/\A \?+ \z/xms );
 }
 
-sub _link_bar_and_festival {
-
-    my ( $self, $bar, $festival ) = @_;
-
-    my $resultset = $self->database()->resultset('FestivalBar')
-	or confess(qq{Error: No result set returned from DB for class "FestivalBar".});
-
-    $resultset->find_or_create({
-        festival_id => $festival->id,
-        bar_id      => $bar->id,
-    });
-
-    return;
-}
-
 sub _load_data {
 
     my ( $self, $datahash ) = @_;
@@ -108,6 +94,16 @@ sub _load_data {
                 description => $datahash->{$FESTIVAL_DESCRIPTION},
 	    },
 	    'Festival')
+	: die("Error: Must have full festival info information (i.e. year)");
+
+    my $stillage
+	= $self->_check_not_null( $datahash->{$STILLAGE_LOCATION} )
+	? $self->_load_column_value(
+	    {
+		description => $datahash->{$STILLAGE_LOCATION},
+                festival_id => $festival->id,
+	    },
+	    'StillageLocation')
 	: undef;
 
     my $bar
@@ -115,13 +111,10 @@ sub _load_data {
 	? $self->_load_column_value(
 	    {
 		description => $datahash->{$BAR_DESCRIPTION},
+                festival_id => $festival->id,
 	    },
 	    'Bar')
 	: undef;
-
-    if ( $bar && $festival ) {
-        $self->_link_bar_and_festival( $bar, $festival );
-    }
 
     # FIXME no addresses at this point.
     my $brewer
@@ -167,6 +160,23 @@ sub _load_data {
 	    'Product')
 	: undef;
 
+    if ( $product && $brewer ) {
+        $self->_load_column_value(
+            {
+                company_id  => $brewer->company_id,
+                product_id  => $product->product_id,
+            },
+            'CompanyProduct');
+    }
+    if ( $product && $festival ) {
+        $self->_load_column_value(
+            {
+                festival_id => $festival->festival_id,
+                product_id  => $product->product_id,
+            },
+            'FestivalProduct');
+    }
+
     my $gyle
 	= $product
 	? $self->_load_column_value(
@@ -210,13 +220,6 @@ sub _load_data {
             },
             'ContainerSize')
         : undef;
-
-    # FIXME obviously this needs to be much more sophisticated.
-    my $stillage = $self->_load_column_value(
-        {
-            description => 'main stillage',
-        },
-        'StillageLocation');
 
     # Likely to be the default for UK beer festivals.
     my $pint_size = $self->_load_column_value(
@@ -377,6 +380,7 @@ sub _coerce_headings {
         qr/festival [_ -]* name/ixms                   => $FESTIVAL_NAME,
         qr/festival [_ -]* description/ixms            => $FESTIVAL_DESCRIPTION,
         qr/bar [_ -]* description/ixms                 => $BAR_DESCRIPTION,
+        qr/stillage [_ -]* loc (?:ation)?/ixms         => $STILLAGE_LOCATION,
         qr/brewery? [_ -]* name/ixms                   => $BREWER_NAME,
         qr/brewery? [_ -]* loc [_ -]* desc/ixms        => $BREWER_LOC_DESC,
         qr/brewery? [_ -]* year [_ -]* founded/ixms    => $BREWER_YEAR_FOUNDED,
