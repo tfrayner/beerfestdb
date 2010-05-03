@@ -9,7 +9,7 @@
    var festivalurl     = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var festivalname    = '[% festival.year | html %]  [% festival.name | html %]';
 </script>
-[% js_link( src = '/static/product.js' ) %]
+[% js_link( src = '/static/js/grids/product.js' ) %]
 
 <select id='stylepopup' style='display: none'>
 [% FOREACH style = styles.sort('description') -%]

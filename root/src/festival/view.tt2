@@ -8,13 +8,43 @@
   <div class='list'>
     <ul>
       [% FOREACH cat = categories.sort('description') %] 
-      <li><a href="[% c.uri_for("/product/grid/$object.id/$cat.id") | html %]">
+      <li><a href="[% c.uri_for("/product/grid/$cat.id/$object.id") | html %]">
                    [% cat.description | html %]</a></li>
       [% END %]
     </ul>
   </div>
 [% ELSE %] 
   <p>No product categories found.</p> 
-[% END %] 
+[% END %]
+
+<div class='subtitle'><h3>Stillage:</h3></div>
+
+[% IF stillages && stillages.size > 0 %]
+  <div class='list'>
+    <ul>
+      [% FOREACH st = stillages.sort('description') %] 
+      <li><a href="[% c.uri_for("/stillagelocation/grid/$st.id") | html %]">
+                   [% st.description | html %]</a></li>
+      [% END %]
+    </ul>
+  </div>
+[% ELSE %] 
+  <p>No stillage locations found. (FIXME how to add them?)</p> 
+[% END %]
+
+<div class='subtitle'><h3>Bars:</h3></div>
+
+[% IF bars && bars.size > 0 %]
+  <div class='list'>
+    <ul>
+      [% FOREACH bar = bars.sort('description') %] 
+      <li><a href="[% c.uri_for("/bar/view/$bar.id") | html %]">
+                   [% bar.description | html %]</a></li>
+      [% END %]
+    </ul>
+  </div>
+[% ELSE %] 
+  <p>No bars found. (FIXME how to add them?)</p> 
+[% END %]
 
 <p><a href="[% c.uri_for("/") | html %]">Return to start page...</a></p> 
