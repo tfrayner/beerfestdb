@@ -10,7 +10,7 @@ Model::DB:
 
   # Database connection parameters.
   connect_info:
-    - DBI:mysql:beerfestdb:localhost:3306
+    - DBI:mysql:test:localhost:3306
     - 
     -
     - RaiseError: 1
