@@ -804,8 +804,6 @@ begin
 end;
 //
 
--- FIXME add a similar check that product_characteristic_type <->
--- category association is not disruptive.
 -- Product characteristic type
 drop trigger if exists `product_characteristic_type_update_trigger`//
 create trigger `product_characteristic_type_update_trigger`

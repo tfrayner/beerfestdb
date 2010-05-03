@@ -75,8 +75,6 @@ format_beers.pl
 
 =head1 DESCRIPTION
 
-FIXME rename this script when we have access to a suitable SVN repo.
-
 This is a general-purpose script used to dump information on beers
 held in the BeerFestDB database into a variety of file formats. It
 works by taking a Template Toolkit-style template file, and applying
