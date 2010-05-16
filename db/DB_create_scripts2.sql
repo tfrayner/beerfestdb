@@ -509,12 +509,13 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE festival_product (
+  festival_product_id INTEGER(3) NOT NULL AUTO_INCREMENT,
   festival_id INTEGER(3) NOT NULL,
   sale_volume_id INTEGER(3) NOT NULL,
   sale_currency_code CHAR(3) NOT NULL,
   sale_price INTEGER(11) NULL,
   product_id INTEGER(3) NOT NULL,
-  PRIMARY KEY (festival_id, product_id),
+  PRIMARY KEY (festival_product_id),
   FOREIGN KEY FK_FP_festid_FEST_festid(festival_id)
     REFERENCES festival(festival_id)
       ON DELETE CASCADE
@@ -541,9 +542,10 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE company_product (
+  company_product_id INTEGER(3) NOT NULL AUTO_INCREMENT,
   company_id INTEGER(3) NOT NULL,
   product_id INTEGER(3) NOT NULL,
-  PRIMARY KEY (company_id, product_id),
+  PRIMARY KEY (company_product_id),
   FOREIGN KEY FK_CP_compid_FEST_compid(company_id)
     REFERENCES company(company_id)
       ON DELETE CASCADE
