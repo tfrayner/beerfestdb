@@ -1,0 +1,10 @@
+[% META title = 'Company listing' %]
+
+<script type="text/javascript">
+   var gridurl     = '[% c.uri_for( "/company/list" ) %]';
+   var posturl     = '[% c.uri_for( "/company/submit" ) %]';
+   var deleteurl   = '[% c.uri_for( "/company/delete" ) %]';
+</script>
+[% js_link( src = '/static/js/grids/company.js' ) %]
+
+<div id="datagrid"></div>
