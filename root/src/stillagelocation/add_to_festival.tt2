@@ -1,0 +1,9 @@
+[% META title = 'Festival listing' %]
+
+<script type="text/javascript">
+   var posturl     = '[% c.uri_for( "/stillagelocation/submit" ) %]';
+   var festival    = '[% festival_id %]';
+</script>
+[% js_link( src = '/static/js/forms/add_stillage_to_festival.js' ) %]
+
+
