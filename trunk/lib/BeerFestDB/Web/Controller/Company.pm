@@ -77,7 +77,7 @@ sub submit : Local {
             $c->response->status('403');  # Forbidden
 
             # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = 'Unable to save one or more products to database';
+            $c->stash->{error} = "Unable to save one or more products to database: $@";
         }
     }
 
@@ -108,7 +108,7 @@ sub delete : Local {
             $c->response->status('403');  # Forbidden
 
             # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = 'Unable to delete one or more products';
+            $c->stash->{error} = "Unable to delete one or more products: $@";
         }
     }
 

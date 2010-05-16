@@ -49,7 +49,7 @@ sub submit : Local {
         $c->response->status('403');  # Forbidden
 
         # N.B. flash_to_stash doesn't seem to work for JSON views.
-        $c->stash->{error} = 'Unable to save one or more objects to database';
+        $c->stash->{error} = "Unable to save one or more objects to database: $@";
     }
 
     return;

@@ -46,7 +46,8 @@ sub list : Local {
     # is filtered based on which products are at a given
     # festival. Note that this listing is therefore swinging between
     # the virtual (no $festival_id) and the concrete ($festival_id,
-    # linking via cask and gyle).
+    # linking via cask and gyle). At some point it may be wiser to
+    # split this method.
 
     my ( $product_rs, $festival );
     if ( defined $festival_id ) {
@@ -107,12 +108,13 @@ sub list : Local {
 
             # For the more general case we just take all possible
             # suppliers and list them.
-            @suppliers = $prod->producers()
+            @suppliers = $prod->company_products()
         }
 
         foreach my $supp ( @suppliers ) {
             my $i = dclone( \%prod_info );
-            $i->{company_id} = $supp->id();
+            $i->{company_id} = $supp->company_id->company_id();
+            $i->{company_product_id} = $supp->company_product_id();
             push( @products, $i );
         }
     }
@@ -127,7 +129,7 @@ sub list : Local {
 
 =cut
 
-sub submit : Local {  # FIXME FIXME FIXME this method has been largely superceded in the new UI design.
+sub submit : Local {
 
     my ( $self, $c ) = @_;
 
@@ -138,40 +140,38 @@ sub submit : Local {  # FIXME FIXME FIXME this method has been largely supercede
 
     foreach my $rec ( @{ $data } ) {
 
-        my ( $brewer_id, $gyle_id );
+        my $brewer_id;
         if ( exists $rec->{'company_id'} ) {
             $brewer_id = $rec->{'company_id'};
             delete($rec->{'company_id'});
-            $gyle_id = $rec->{'gyle'};
         }
-        delete($rec->{'gyle'});
 
-        # FIXME we need to link new products up with their respective
-        # festival. Best way to do this might be to ask for no. of
-        # casks upon creation of new record (or, more specifically,
-        # new attachment of record to festival). This figure would
-        # then be changeable on the view pages for each product.
+        my $cp_id;
+        if ( exists $rec->{'company_product_id'} ) {
+            $cp_id = $rec->{'company_product_id'};
+            delete($rec->{'company_product_id'});
+        }
+
         eval {
             my $prod = $rs->update_or_create( $rec );
 
-            if ( defined $gyle_id && defined $brewer_id ) {
-                foreach my $gyle ( $prod->gyles({ external_reference => $gyle_id }) ) {
-                    $gyle->set_column( 'company_id', $brewer_id );
-                    $gyle->update();
-                }
+            # FIXME we need to find the edited link where present and
+            # change it (this is fine for new products, not good for
+            # editing).
+            if ( defined $brewer_id ) {
+                $c->model('DB::CompanyProduct')->update_or_create({
+                    company_product_id => $cp_id,
+                    company_id => $brewer_id,
+                    product_id => $prod->id,
+                });
             }
 
-            # FIXME at the moment we just assume at least a single cask, for simplicity's sake.
-            my $cask = $c->model( 'DB::Cask' )->find_or_create({
-                festival_id        => ,
-                gyle_id            => ,
-            });
         };
         if ($@) {
             $c->response->status('403');  # Forbidden
 
             # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = 'Unable to save one or more products to database';
+            $c->stash->{error} = "Unable to save one or more products to database: $@";
         }
     }
 
@@ -184,9 +184,7 @@ sub submit : Local {  # FIXME FIXME FIXME this method has been largely supercede
 
 =cut
 
-sub delete : Local { # FIXME FIXME FIXME doesn't this need reviewing?
-                     # how often do we actually want to delete
-                     # products anyway? Casks, yes; Products, no.
+sub delete : Local {
 
     my ( $self, $c ) = @_;
 
@@ -204,7 +202,7 @@ sub delete : Local { # FIXME FIXME FIXME doesn't this need reviewing?
             $c->response->status('403');  # Forbidden
 
             # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = 'Unable to delete one or more products';
+            $c->stash->{error} = "Unable to delete one or more products: $@";
         }
     }
 

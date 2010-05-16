@@ -4,6 +4,7 @@
    var gridurl     = '[% c.uri_for( "/product/list/$category.id/$festival.id" ) %]';
    var posturl     = '[% c.uri_for( "/product/submit" ) %]';
    var deleteurl   = '[% c.uri_for( "/product/delete" ) %]';
+   var suppliergridurl     = '[% c.uri_for( "/company/list" ) %]';
    var category_id     = '[% category.id %]';
    var categoryname    = '[% category.description %]';
    var festivalurl     = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
@@ -14,12 +15,6 @@
 <select id='stylepopup' style='display: none'>
 [% FOREACH style = styles.sort('description') -%]
 <option value="[% style.product_style_id | html %]">[% style.description | html %]</option>
-[% END %]
-</select>
-
-<select id='brewerpopup' style='display: none'>
-[% FOREACH brewer = brewers.sort('name') -%]
-<option value="[% brewer.company_id | html %]">[% brewer.name | html %]</option>
 [% END %]
 </select>
 
