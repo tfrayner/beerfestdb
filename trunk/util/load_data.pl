@@ -33,6 +33,8 @@ sub parse_args {
         );
     }
 
+    $conffile ||= 'beerfestdb_web.yml';
+
     unless ( $input && $conffile ) {
         pod2usage(
             -message => qq{Please see "$0 -h" for further help notes.},
