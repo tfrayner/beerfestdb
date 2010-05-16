@@ -23,12 +23,6 @@ __PACKAGE__->add_columns(
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 6 },
   "nominal_abv",
   { data_type => "DECIMAL", default_value => undef, is_nullable => 1, size => 3 },
-  "sale_volume_id",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 3 },
-  "sale_currency_code",
-  { data_type => "CHAR", default_value => undef, is_nullable => 0, size => 3 },
-  "sale_price",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 11 },
   "description",
   {
     data_type => "TEXT",
@@ -70,16 +64,6 @@ __PACKAGE__->belongs_to(
   "BeerFestDB::ORM::ProductStyle",
   { product_style_id => "product_style_id" },
 );
-__PACKAGE__->belongs_to(
-  "sale_volume_id",
-  "BeerFestDB::ORM::SaleVolume",
-  { sale_volume_id => "sale_volume_id" },
-);
-__PACKAGE__->belongs_to(
-  "sale_currency_code",
-  "BeerFestDB::ORM::Currency",
-  { currency_code => "sale_currency_code" },
-);
 __PACKAGE__->has_many(
   "product_characteristics",
   "BeerFestDB::ORM::ProductCharacteristic",
@@ -87,8 +71,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-16 17:45:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aA09Ph7tOdcn0SsNczPulA
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-16 20:35:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S874yuAvyBOhlKBobTQA5w
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
