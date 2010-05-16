@@ -487,9 +487,6 @@ CREATE TABLE product (
   product_category_id INTEGER(6) NOT NULL,
   product_style_id INTEGER(6) NULL,
   nominal_abv DECIMAL(3,1) NULL,
-  sale_volume_id INTEGER(3) NOT NULL,
-  sale_currency_code CHAR(3) NOT NULL,
-  sale_price INTEGER(11) NULL,
   description TEXT NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(product_id),
@@ -502,15 +499,6 @@ CREATE TABLE product (
   FOREIGN KEY FK_PDCT_ps_PS_ps(product_style_id)
     REFERENCES product_style(product_style_id)
       ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
-  INDEX IDX_PDCT_svid(sale_volume_id),
-  FOREIGN KEY FK_PDCT_svid_SV_svid(sale_volume_id)
-    REFERENCES sale_volume(sale_volume_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
-  FOREIGN KEY FK_PDCT_slccode_CUR_ccode(sale_currency_code)
-    REFERENCES currency(currency_code)
-      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
@@ -522,6 +510,9 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE festival_product (
   festival_id INTEGER(3) NOT NULL,
+  sale_volume_id INTEGER(3) NOT NULL,
+  sale_currency_code CHAR(3) NOT NULL,
+  sale_price INTEGER(11) NULL,
   product_id INTEGER(3) NOT NULL,
   PRIMARY KEY (festival_id, product_id),
   FOREIGN KEY FK_FP_festid_FEST_festid(festival_id)
@@ -531,6 +522,15 @@ CREATE TABLE festival_product (
   FOREIGN KEY FK_FP_prodid_PROD_prodid(product_id)
     REFERENCES product(product_id)
       ON DELETE CASCADE
+      ON UPDATE NO ACTION,
+  INDEX IDX_PDCT_svid(sale_volume_id),
+  FOREIGN KEY FK_PDCT_svid_SV_svid(sale_volume_id)
+    REFERENCES sale_volume(sale_volume_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_PDCT_slccode_CUR_ccode(sale_currency_code)
+    REFERENCES currency(currency_code)
+      ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;  

@@ -59,6 +59,9 @@ sub product_hash {
 
     my @prod_data;
 
+    my $fest = $self->festival();
+    my $fp = $product->search_related('festival_products', { festival_id => $fest->id })->find({});
+
     # N.B. Changes here need to be documented in the POD.
     foreach my $source ( $product->producers ) {
         my %prodhash = (
@@ -68,20 +71,20 @@ sub product_hash {
                         ? $product->product_style_id()->description() : q{},
             category => $product->product_category_id()->description(),
             abv      => $product->nominal_abv(),
-            sale_volume => $product->sale_volume_id()->sale_volume_description(),
+            sale_volume => $fp->sale_volume_id()->sale_volume_description(),
         );
 
-        my $currency = $product->currency_code();
+        my $currency = $fp->sale_currency_code();
         my $format   = $currency->currency_format();
-        $prodhash->{currency} = $currency->currency_symbol();
+        $prodhash{currency} = $currency->currency_symbol();
 
-        $prodhash->{price}   = $self->format_price( $product->sale_price(), $format );
-        if ( looks_like_number( $prodhash->{price} ) ) {
-            $prodhash->{half_price}
-                = $self->format_price( ceil($product->sale_price() / 2), $format );
+        $prodhash{price}   = $self->format_price( $fp->sale_price(), $format );
+        if ( looks_like_number( $prodhash{price} ) ) {
+            $prodhash{half_price}
+                = $self->format_price( ceil($fp->sale_price() / 2), $format );
         }
         else {
-            $prodhash->{half_price} = $prodhash->{price};
+            $prodhash{half_price} = $prodhash{price};
         }
 
         push @prod_data, \%prodhash;

@@ -185,9 +185,6 @@ sub _load_data {
 		comment          => $datahash->{$PRODUCT_COMMENT},
                 product_category_id => $category,
                 product_style_id    => $style,
-                sale_volume_id      => $sale_volume,
-                sale_currency_code  => $currency,
-                sale_price          => $sale_price,
 	    },
 	    'Product')
 	: undef;
@@ -205,6 +202,9 @@ sub _load_data {
             {
                 festival_id => $festival->festival_id,
                 product_id  => $product->product_id,
+                sale_volume_id      => $sale_volume,
+                sale_currency_code  => $currency,
+                sale_price          => $sale_price,
             },
             'FestivalProduct');
     }

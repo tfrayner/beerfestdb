@@ -41,14 +41,14 @@ __PACKAGE__->has_many(
   { "foreign.currency_code" => "self.currency_code" },
 );
 __PACKAGE__->has_many(
-  "products",
-  "BeerFestDB::ORM::Product",
+  "festival_products",
+  "BeerFestDB::ORM::FestivalProduct",
   { "foreign.sale_currency_code" => "self.currency_code" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-16 17:45:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Qzitb+sueCstQNW3Uw5TRQ
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-16 20:35:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vi9cqWYjQC1A81J0w6DHKQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
