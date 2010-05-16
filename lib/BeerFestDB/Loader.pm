@@ -147,6 +147,35 @@ sub _load_data {
 	    'ProductStyle')
 	: undef;
 
+    # Likely to be the default for UK beer festivals.
+    my $pint_size = $self->_load_column_value(
+        {
+            litre_multiplier => 0.5682,
+            description      => 'pint',
+        },
+        'ContainerMeasure');
+
+    # FIXME why are we reiterating the description here?
+    my $sale_volume = $self->_load_column_value(
+        {
+            container_measure_id    => $pint_size,
+            sale_volume_description => 'pint',
+        },
+        'SaleVolume');
+
+    # FIXME this also needs to be much more flexible (see http://en.wikipedia.org/wiki/ISO_4217).
+    my $currency = $self->_load_column_value(
+        {
+            currency_code   => 'GBP',
+            currency_number => 826,
+            currency_format => '#,###,###,###,##0.00',
+            exponent        => 2,
+            currency_symbol => '£',
+        },
+        'Currency');
+
+    my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
+
     my $product
 	= $self->_check_not_null( $datahash->{$PRODUCT_NAME} )
 	? $self->_load_column_value(
@@ -156,6 +185,9 @@ sub _load_data {
 		comment          => $datahash->{$PRODUCT_COMMENT},
                 product_category_id => $category,
                 product_style_id    => $style,
+                sale_volume_id      => $sale_volume,
+                sale_currency_code  => $currency,
+                sale_price          => $sale_price,
 	    },
 	    'Product')
 	: undef;
@@ -221,35 +253,7 @@ sub _load_data {
             'ContainerSize')
         : undef;
 
-    # Likely to be the default for UK beer festivals.
-    my $pint_size = $self->_load_column_value(
-        {
-            litre_multiplier => 0.5682,
-            description      => 'pint',
-        },
-        'ContainerMeasure');
-
-    # FIXME why are we reiterating the description here?
-    my $sale_volume = $self->_load_column_value(
-        {
-            container_measure_id    => $pint_size,
-            sale_volume_description => 'pint',
-        },
-        'SaleVolume');
-
-    # FIXME this also needs to be much more flexible (see http://en.wikipedia.org/wiki/ISO_4217).
-    my $currency = $self->_load_column_value(
-        {
-            currency_code   => 'GBP',
-            currency_number => 826,
-            currency_format => '#,###,###,###,##0.00',
-            exponent        => 2,
-            currency_symbol => '£',
-        },
-        'Currency');
-
     my $cask_price = $datahash->{$CASK_PRICE}      ? $datahash->{$CASK_PRICE}      * 100 : undef;
-    my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
 
     my $count = $datahash->{$CASK_COUNT};
     unless ( defined $count && $count ne q{} ) {
@@ -268,9 +272,6 @@ sub _load_data {
                         container_size_id      => $cask_size,
                         currency_code          => $currency,
                         price                  => $cask_price,
-                        sale_volume_id         => $sale_volume,
-                        sale_currency_code     => $currency,
-                        sale_price             => $sale_price,
                         stillage_location_id   => $stillage,
                         bar_id                 => $bar,
                         comment                => $datahash->{$CASK_COMMENT},

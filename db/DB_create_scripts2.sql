@@ -477,7 +477,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 -- Table structure for table `product`
 -- Contains a product id that is auto generated, a name, decription and
--- a product style id, from this the product type can be decuced. There is
+-- a product style id, from this the product type can be deduced. There is
 -- a comment to allow a fuller description of the product.
 -- ------------------------------------------------------------
 
@@ -486,6 +486,10 @@ CREATE TABLE product (
   name VARCHAR(100) NOT NULL,
   product_category_id INTEGER(6) NOT NULL,
   product_style_id INTEGER(6) NULL,
+  nominal_abv DECIMAL(3,1) NULL,
+  sale_volume_id INTEGER(3) NOT NULL,
+  sale_currency_code CHAR(3) NOT NULL,
+  sale_price INTEGER(11) NULL,
   description TEXT NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(product_id),
@@ -497,6 +501,15 @@ CREATE TABLE product (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_PDCT_ps_PS_ps(product_style_id)
     REFERENCES product_style(product_style_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  INDEX IDX_PDCT_svid(sale_volume_id),
+  FOREIGN KEY FK_PDCT_svid_SV_svid(sale_volume_id)
+    REFERENCES sale_volume(sale_volume_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_PDCT_slccode_CUR_ccode(sale_currency_code)
+    REFERENCES currency(currency_code)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
@@ -642,9 +655,6 @@ CREATE TABLE cask (
   bar_id INTEGER(3) NULL,
   currency_code CHAR(3) NOT NULL,
   price INTEGER UNSIGNED NULL,
-  sale_volume_id INTEGER(3) NOT NULL,
-  sale_currency_code CHAR(3) NOT NULL,
-  sale_price INTEGER(11) NULL,
   stillage_location_id INTEGER UNSIGNED NULL,
   stillage_bay INTEGER UNSIGNED NULL,
   stillage_x_location INTEGER UNSIGNED NULL,
@@ -664,11 +674,6 @@ CREATE TABLE cask (
   INDEX FK_CSK_cc3_CUR_cc3(currency_code),
   INDEX IDX_CSK_exref(external_reference),
   INDEX IDX_CSK_iref(internal_reference),
-  INDEX IDX_CSP_svid(sale_volume_id),
-  FOREIGN KEY FK_CSK_svid_SV_svid(sale_volume_id)
-    REFERENCES sale_volume(sale_volume_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_bid_BR_bid(bar_id)
     REFERENCES bar(bar_id)
       ON DELETE RESTRICT
@@ -682,10 +687,6 @@ CREATE TABLE cask (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_curcd_CUR_curcd(currency_code)
-    REFERENCES currency(currency_code)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CSK_slccode_CUR_ccode(sale_currency_code)
     REFERENCES currency(currency_code)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
