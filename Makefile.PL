@@ -10,6 +10,8 @@ all_from 'lib/BeerFestDB/Web.pm';
 requires 'Catalyst::Runtime' => '5.7015';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::Static::Simple';
+requires 'Catalyst::Plugin::Session::Store::FastMmap';
+requires 'Catalyst::Engine::HTTP::Restarter';
 requires 'Catalyst::Action::RenderView';
 requires 'parent';
 requires 'Config::YAML';
