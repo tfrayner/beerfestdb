@@ -17,7 +17,7 @@
 %\hyphenpenalty=10000
 %\exhyphenpenalty=10000
 
-[% FOREACH bar IN bars.pairs %]
+[% FOREACH stillage IN stillages.pairs %]
 
   \setlength{\TPHorizModule}{\paperwidth}
   \setlength{\TPVertModule}{\paperheight}
@@ -28,7 +28,7 @@
 
   \fontsize{24}{30}
 
-  [% bar.key %]
+  [% stillage.key %]
 
   \vspace{ 5 mm }
 
@@ -39,7 +39,7 @@
     \hline
   Brewer & Beer & Cask no. & Thursday & Friday & Saturday \\ \hline
 
-  [% SET casks = bar.value.sort('brewery', 'product', 'number') %]
+  [% SET casks = stillage.value.sort('brewery', 'product', 'number') %]
 
   [% SET counter = 0 %]
 
@@ -57,7 +57,7 @@
 
       \null\newpage
 
-      [% bar.key %] (continued)
+      [% stillage.key %] (continued)
 
       \vspace{ 5 mm }
 

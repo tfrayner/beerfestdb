@@ -24,12 +24,6 @@ __PACKAGE__->add_columns(
   { data_type => "CHAR", default_value => undef, is_nullable => 0, size => 3 },
   "price",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
-  "sale_volume_id",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 3 },
-  "sale_currency_code",
-  { data_type => "CHAR", default_value => undef, is_nullable => 0, size => 3 },
-  "sale_price",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 11 },
   "stillage_location_id",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "stillage_bay",
@@ -69,11 +63,6 @@ __PACKAGE__->add_columns(
   { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 1 },
 );
 __PACKAGE__->set_primary_key("cask_id");
-__PACKAGE__->belongs_to(
-  "sale_volume_id",
-  "BeerFestDB::ORM::SaleVolume",
-  { sale_volume_id => "sale_volume_id" },
-);
 __PACKAGE__->belongs_to("bar_id", "BeerFestDB::ORM::Bar", { bar_id => "bar_id" });
 __PACKAGE__->belongs_to(
   "container_size_id",
@@ -90,11 +79,6 @@ __PACKAGE__->belongs_to(
   "BeerFestDB::ORM::Currency",
   { currency_code => "currency_code" },
 );
-__PACKAGE__->belongs_to(
-  "sale_currency_code",
-  "BeerFestDB::ORM::Currency",
-  { currency_code => "sale_currency_code" },
-);
 __PACKAGE__->belongs_to("gyle_id", "BeerFestDB::ORM::Gyle", { gyle_id => "gyle_id" });
 __PACKAGE__->belongs_to(
   "stillage_location_id",
@@ -108,8 +92,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r/TuBEJaYSQ42YIT5vl/0A
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-16 17:45:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kLe98PAZn8MPJ99L4/oiFQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

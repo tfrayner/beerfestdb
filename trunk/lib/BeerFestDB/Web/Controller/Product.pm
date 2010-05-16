@@ -165,9 +165,6 @@ sub submit : Local {  # FIXME FIXME FIXME this method has been largely supercede
             my $cask = $c->model( 'DB::Cask' )->find_or_create({
                 festival_id        => ,
                 gyle_id            => ,
-                currency_code      => ,
-                sale_currency_code => ,
-                sale_volume_id     => ,
             });
         };
         if ($@) {

@@ -58,7 +58,7 @@ my $dumper = BeerFestDB::Dumper::Template->new(
     database => $schema,
     template => $templatefile,
     logos    => [ $logofile ],
-    all_casks => $all_casks,
+    dump_class => $all_casks ? 'cask' : 'gyle',
 );
 
 $dumper->dump();

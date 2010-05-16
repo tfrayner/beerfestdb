@@ -11,6 +11,8 @@ use Moose;
 
 use Carp;
 use Scalar::Util qw(looks_like_number);
+use List::Util qw(first);
+use Storable qw(dclone);
 use Template;
 use POSIX qw(ceil);
 
@@ -32,56 +34,132 @@ has 'logos'      => ( is       => 'ro',
                       required => 1,
                       default  => sub { [] } );
 
-has 'all_casks'  => ( is       => 'ro',
-                      isa      => 'Bool',
-                      required => 1,
-                      default  => 0 );
+has 'dump_class'  => ( is       => 'ro',
+                       isa      => 'Str',
+                       required => 1,
+                       default  => 'product' );
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    my $class = $params->{'dump_class'};
+    if ( defined $class ) {
+        unless ( first { $class eq $_ } qw(cask gyle product) ) {
+            confess(qq{Error: Unsupported dump class "$class"});
+        }
+    }
+
+    return;
+}
+
+sub product_hash {
+
+    my ( $self, $product ) = @_;
+
+    my @prod_data;
+
+    # N.B. Changes here need to be documented in the POD.
+    foreach my $source ( $product->producers ) {
+        my %prodhash = (
+            brewery  => $source->name(),
+            product  => $product->name(),
+            style    => $product->product_style_id()
+                        ? $product->product_style_id()->description() : q{},
+            category => $product->product_category_id()->description(),
+            abv      => $product->nominal_abv(),
+            sale_volume => $product->sale_volume_id()->sale_volume_description(),
+        );
+
+        my $currency = $product->currency_code();
+        my $format   = $currency->currency_format();
+        $prodhash->{currency} = $currency->currency_symbol();
+
+        $prodhash->{price}   = $self->format_price( $product->sale_price(), $format );
+        if ( looks_like_number( $prodhash->{price} ) ) {
+            $prodhash->{half_price}
+                = $self->format_price( ceil($product->sale_price() / 2), $format );
+        }
+        else {
+            $prodhash->{half_price} = $prodhash->{price};
+        }
+
+        push @prod_data, \%prodhash;
+    }
+    
+    return \@prod_data;
+}
+
+sub update_gyle_hash {
+
+    my ( $self, $gylehash, $gyle ) = @_;
+
+    # N.B. Changes here need to be documented in the POD.
+    $gylehash ||= {};
+
+    # This potentially overwrites the "nominal" ABV from the product
+    # table with the *actual* gyle ABV.
+    $gylehash->{abv} = $gyle->abv();
+
+    return $gylehash;
+}
+
+sub update_cask_hash {
+
+    my ( $self, $caskhash, $cask ) = @_;
+
+    # N.B. Changes here need to be documented in the POD.
+    $caskhash ||= {};
+    $caskhash->{number} = $cask->internal_reference();
+
+    return $caskhash;
+}
 
 sub dump {
 
-    my ( $self, $casks ) = @_;
+    my ( $self ) = @_;
 
-    unless ( $casks ) {
-        $casks = $self->select_festival_casks();
-        $casks = $self->unique_casks( $casks ) unless $self->all_casks;
+    my ( @template_data, %stillage );
+    if ( $self->dump_class eq 'cask' ) {
+        foreach my $cask ( @{ $self->festival_casks() } ) {
+            my $cask_data = $self->product_hash( $cask->gyle_id()->product_id() );
+            foreach my $caskhash ( @$cask_data ) {
+                $self->update_gyle_hash( $caskhash, $cask->gyle_id() );
+                $self->update_cask_hash( $caskhash, $cask );
+                
+            }
+            push @template_data, @$cask_data;
+
+            my $stillage_name = $cask->stillage_location_id()
+                                ? $cask->stillage_location_id()->description() : '';
+            push @{ $stillage{ $stillage_name } }, @$cask_data;
+        }
     }
-
-    # N.B. Changes here need to be documented in the POD.
-    my ( @caskinfo, %bar );
-    foreach my $cask ( @$casks ) {
-        my %caskdata;
-	my $product = $cask->gyle_id()->product_id();
-	$caskdata{brewery}  = $cask->gyle_id()->company_id()->name();
-	$caskdata{product}  = $product->name();
-	$caskdata{abv}      = $cask->gyle_id()->abv();
-	$caskdata{number}   = $cask->internal_reference();
-	$caskdata{style}    = $product->product_style_id() ? $product->product_style_id()->description() : q{};
-        $caskdata{category} = $product->product_category_id()->description();
-
-        $caskdata{sale_volume} = $cask->sale_volume_id()->sale_volume_description();
-
-        my $currency = $cask->currency_code();
-        my $format   = $currency->currency_format();
-        $caskdata{currency} = $currency->currency_symbol();
-
-	$caskdata{price}   = $self->format_price( $cask->sale_price(), $format );
-        if ( looks_like_number( $caskdata{price} ) ) {
-            $caskdata{half_price} = $self->format_price( ceil($cask->sale_price() / 2), $format );
+    elsif ( $self->dump_class eq 'gyle' ) {
+        foreach my $product ( @{ $self->festival_products } ) {
+            foreach my $gyle ( $product->search_related('gyles', undef, {distinct => 1}) ) {
+                my $gyle_data = $self->product_hash( $gyle->product_id() );
+                foreach my $gylehash ( @$gyle_data ) {
+                    $self->update_gyle_hash( $gylehash, $gyle );
+                }
+                push @template_data, @$gyle_data;
+            }
         }
-        else {
-            $caskdata{half_price} = $caskdata{price};
+    }
+    elsif ( $self->dump_class eq 'product' ) {
+        foreach my $product ( @{ $self->festival_products() } ) {
+            my $prod_data = $self->product_hash( $product );
+            push @template_data, @$prod_data;
         }
-
-        push @caskinfo, \%caskdata;
-
-        my $barname = $cask->bar_id() ? $cask->bar_id()->description() : '';
-        push @{ $bar{ $barname } }, \%caskdata;
+    }
+    else {
+        confess(sprintf(qq{Attempt to dump data from unsupported class "%s"}, $self->dump_class));
     }
 
     my $vars = {
-        logos => $self->logos(),
-        casks => \@caskinfo,
-        bars  => \%bar,
+        logos      => $self->logos(),
+        casks      => \@template_data,
+        stillages  => \%stillage,
     };
 
     # We define a custom title case filter for convenience.
@@ -173,9 +251,9 @@ The sale unit itself.
 
 =back
 
-=item bars
+=item stillages
 
-A hashref keyed by bar names linked to arrayrefs of cask hashrefs as
+A hashref keyed by stillage names linked to arrayrefs of cask hashrefs as
 documented above.
 
 =item logos
@@ -201,10 +279,10 @@ The output filehandle (default STDOUT).
 
 An arrayref containing logo file names to pass through to the templates.
 
-=item all_casks
+=item dump_class
 
-A boolean flag (default FALSE) indicating whether the output should
-contain one record per product (FALSE), or one record per cask (TRUE).
+A string indicating the level at which to dump out data. Can be one of
+"cask", "gyle" or "product".
 
 =back
 

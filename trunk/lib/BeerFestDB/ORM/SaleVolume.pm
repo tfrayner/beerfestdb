@@ -25,8 +25,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("sale_volume_id");
 __PACKAGE__->add_unique_constraint("sale_volume_description", ["sale_volume_description"]);
 __PACKAGE__->has_many(
-  "casks",
-  "BeerFestDB::ORM::Cask",
+  "products",
+  "BeerFestDB::ORM::Product",
   { "foreign.sale_volume_id" => "self.sale_volume_id" },
 );
 __PACKAGE__->belongs_to(
@@ -36,8 +36,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ea9y8aTAfpe08YoPKMlocQ
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-16 17:45:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KfFBppi8ZUjb29GvN9PQfQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

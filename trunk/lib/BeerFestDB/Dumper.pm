@@ -18,7 +18,30 @@ has 'database'  => ( is       => 'ro',
                      isa      => 'DBIx::Class::Schema',
                      required => 1 );
 
-sub select_festival_casks {
+has '_festival' => ( is       => 'rw',
+                     isa      => 'BeerFestDB::ORM::Festival' );
+
+sub festival {
+
+    my ( $self, $fest ) = @_;
+
+    if ( $fest ) {
+        $self->_festival( $fest );
+        return( $fest );
+    }
+
+    if ( $fest = $self->_festival() ) {
+        return $fest;
+    }
+
+    $fest = $self->select_festival();
+
+    $self->_festival($fest);
+
+    return $fest;
+}
+
+sub select_festival {
 
     my ( $self ) = @_;
 
@@ -40,27 +63,51 @@ sub select_festival_casks {
         redo SELECT unless ( looks_like_number( $select )
                                  && ($wanted = $festivals[ $select-1 ]) );
     }
-    
-    my @casks = $wanted->search_related('casks')->all();
+
+    return $wanted;
+#    my @casks = $wanted->search_related('casks')->all();
+
+#    return \@casks;
+}
+
+sub festival_casks {
+
+    my ( $self, $category ) = @_;
+
+    my $fest = $self->festival();
+
+    my @casks = $fest->search_related('casks')->all();
 
     return \@casks;
 }
 
-sub unique_casks {
+sub festival_products {
 
-    my ( $self, $casks ) = @_;
+    my ( $self, $category ) = @_;
 
-    my ( @unique, %cask_seen );
-    foreach my $cask ( @$casks ) {
-        my $beer   = $cask->gyle_id()->product_id()->name();
-        my $brewer = $cask->gyle_id()->company_id()->name();
-        push @unique, $cask unless (
-            $cask_seen{ $brewer }{ $beer }++
-        );
-    }
+    my $fest = $self->festival();
 
-    return \@unique;
+    my @products = $fest->search_related('festival_products')
+                        ->search_related('product_id')->all();
+
+    return \@products;
 }
+
+#sub unique_casks {
+
+#    my ( $self, $casks ) = @_;
+
+#    my ( @unique, %cask_seen );
+#    foreach my $cask ( @$casks ) {
+#        my $beer   = $cask->gyle_id()->product_id()->name();
+#        my $brewer = $cask->gyle_id()->company_id()->name();
+#        push @unique, $cask unless (
+#            $cask_seen{ $brewer }{ $beer }++
+#        );
+#    }
+
+#    return \@unique;
+#}
 
 sub format_price {
 
