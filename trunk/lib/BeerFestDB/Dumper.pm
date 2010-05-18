@@ -65,9 +65,6 @@ sub select_festival {
     }
 
     return $wanted;
-#    my @casks = $wanted->search_related('casks')->all();
-
-#    return \@casks;
 }
 
 sub festival_casks {
@@ -92,22 +89,6 @@ sub festival_products {
 
     return \@products;
 }
-
-#sub unique_casks {
-
-#    my ( $self, $casks ) = @_;
-
-#    my ( @unique, %cask_seen );
-#    foreach my $cask ( @$casks ) {
-#        my $beer   = $cask->gyle_id()->product_id()->name();
-#        my $brewer = $cask->gyle_id()->company_id()->name();
-#        push @unique, $cask unless (
-#            $cask_seen{ $brewer }{ $beer }++
-#        );
-#    }
-
-#    return \@unique;
-#}
 
 sub format_price {
 
