@@ -9,7 +9,6 @@ Ext.onReady(function(){
     
     var Product = Ext.data.Record.create([
         { name: 'product_id',       type: 'int' },
-        { name: 'company_product_id', type: 'int' },
         { name: 'company_id',       type: 'int' },
         { name: 'name',             type: 'string',   allowBlank: false },
         { name: 'description',      type: 'string' },
@@ -106,7 +105,6 @@ Ext.onReady(function(){
     function recordChanges (record) {
         var fields = record.getChanges();
         fields.product_id = record.get( 'product_id' );
-        fields.company_product_id = record.get( 'company_product_id' );
         fields.product_category_id = category_id;
         return(fields);
     }
