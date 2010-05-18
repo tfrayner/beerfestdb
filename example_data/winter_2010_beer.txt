@@ -1,4 +1,4 @@
-"brewery name"	"cask price"	"gyle pint price"	"brewery loc desc"	"product name"	"product description"	"product style"	"product comment"	"cask count"	"cask size"	"gyle abv"	"previous cask price"	"cask comment"	"festival year"	"festival name"	"stillage location"
+"brewery name"	"cask price"	"product sale price"	"brewery loc desc"	"product name"	"product description"	"product style"	"product comment"	"cask count"	"cask size"	"gyle abv"	"previous cask price"	"cask comment"	"festival year"	"festival name"	"stillage location"
 "Bartrams"	90	3.2	"Rougham, Suffolk"	"Xmas Holly Daze"	"To welcome the old boy in the red suit we have this light powerful ale."		"Description from brewer's web site"	2	9	5	90		2010	"14th Cambridge Winter Ale Festival"	"Upstairs Bar"
 "Bartrams"	90	3.2	"Rougham, Suffolk"	"New Year Daze"	"What better way to see the old year out than with a pint of this deep reddish bitter."		"Description from brewer's web site"	2	9	5.2	90		2010	"14th Cambridge Winter Ale Festival"	"Upstairs Bar"
 "Bartrams"	75	2.8	"Rougham, Suffolk"	"Suffolk Trinity"				2	9	3.8	75		2010	"14th Cambridge Winter Ale Festival"	"Upstairs Bar"

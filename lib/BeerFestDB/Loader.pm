@@ -51,6 +51,7 @@ Readonly my $CASK_MEASUREMENT_COMMENT  => 26;
 Readonly my $FESTIVAL_NAME             => 27;
 Readonly my $PRODUCT_CATEGORY          => 28;
 Readonly my $STILLAGE_LOCATION         => 29;
+Readonly my $PRODUCT_ABV               => 30;
 
 ########
 # SUBS #
@@ -185,6 +186,7 @@ sub _load_data {
 		comment          => $datahash->{$PRODUCT_COMMENT},
                 product_category_id => $category,
                 product_style_id    => $style,
+		nominal_abv         => $datahash->{$PRODUCT_ABV},
 	    },
 	    'Product')
 	: undef;
@@ -390,9 +392,10 @@ sub _coerce_headings {
         qr/product [_ -]* style/ixms                   => $PRODUCT_STYLE,
         qr/product [_ -]* description/ixms             => $PRODUCT_DESCRIPTION,
         qr/product [_ -]* comment/ixms                 => $PRODUCT_COMMENT,
+        qr/product [_ -]* abv/ixms                     => $PRODUCT_ABV,
         qr/gyle [_ -]* brewery? [_ -]* number/ixms     => $GYLE_BREWERY_NUMBER,
         qr/gyle [_ -]* abv/ixms                        => $GYLE_ABV,
-        qr/gyle [_ -]* pint [_ -]* price/ixms          => $GYLE_PINT_PRICE,
+        qr/product [_ -]* sale [_ -]* price/ixms       => $GYLE_PINT_PRICE,
         qr/gyle [_ -]* comment/ixms                    => $GYLE_COMMENT,
         qr/distributor [_ -]* name/ixms                => $DISTRIBUTOR_NAME,
         qr/distributor [_ -]* loc [_ -]* desc/ixms     => $DISTRIBUTOR_LOC_DESC,
@@ -405,7 +408,7 @@ sub _coerce_headings {
         qr/cask [_ -]* measurement [_ -]* date/ixms    => $CASK_MEASUREMENT_DATE,
         qr/cask [_ -]* measurement [_ -]* volume/ixms  => $CASK_MEASUREMENT_VOLUME,
         qr/cask [_ -]* measurement [_ -]* comment/ixms => $CASK_MEASUREMENT_COMMENT,
-        qr/product [_ -]* category [_ -]* /ixms        => $PRODUCT_CATEGORY,
+        qr/product [_ -]* category/ixms                => $PRODUCT_CATEGORY,
     );
 
     my @new_headings;

@@ -1,4 +1,4 @@
-"brewery name"	"cask price"	"gyle pint price"	"brewery loc desc"	"product category"	"product name"	"product description"	"product style"	"product comment"	"cask count"	"cask size"	"gyle abv"	"previous cask price"	"cask comment"	"festival year"	"festival name"	"stillage location"
+"brewery name"	"cask price"	"product sale price"	"brewery loc desc"	"product category"	"product name"	"product description"	"product style"	"product comment"	"cask count"	"cask size"	"gyle abv"	"previous cask price"	"cask comment"	"festival year"	"festival name"	"stillage location"
 "Delvin End Cidery"	66	3.2	"Sible Hedingham, Essex"	"cider"	"Winter Festival"	"Lightly spiced medium cider"	"medium"		1		6.5			2010	"14th Cambridge Winter Ale Festival"	"Cider - Downstairs Back Bar"
 "Delvin End Cidery"	66	3.2	"Sible Hedingham, Essex"	"cider"	"Orchard Express"	"Medium"	"medium"		1		6.5			2010	"14th Cambridge Winter Ale Festival"	"Cider - Downstairs Back Bar"
 "Cromwell Cider"	53	2.8	"Huntingdonshire"	"cider"	"Oliver's Nouveau"	"Medium dry"	"medium dry"		2		5.8			2010	"14th Cambridge Winter Ale Festival"	"Cider - Downstairs Back Bar"
