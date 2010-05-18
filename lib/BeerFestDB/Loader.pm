@@ -177,28 +177,23 @@ sub _load_data {
 
     my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
 
+    my $nominal_abv = $datahash->{$PRODUCT_ABV};
+    $nominal_abv = undef if ( defined $nominal_abv && $nominal_abv eq q{} );
     my $product
 	= $self->_check_not_null( $datahash->{$PRODUCT_NAME} )
 	? $self->_load_column_value(
 	    {
 		name             => $datahash->{$PRODUCT_NAME},
+                company_id       => $brewer->company_id,
 		description      => $datahash->{$PRODUCT_DESCRIPTION},
 		comment          => $datahash->{$PRODUCT_COMMENT},
                 product_category_id => $category,
                 product_style_id    => $style,
-		nominal_abv         => $datahash->{$PRODUCT_ABV},
+		nominal_abv         => $nominal_abv,
 	    },
 	    'Product')
 	: undef;
 
-    if ( $product && $brewer ) {
-        $self->_load_column_value(
-            {
-                company_id  => $brewer->company_id,
-                product_id  => $product->product_id,
-            },
-            'CompanyProduct');
-    }
     if ( $product && $festival ) {
         $self->_load_column_value(
             {

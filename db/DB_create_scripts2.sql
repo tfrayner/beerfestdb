@@ -483,6 +483,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE product (
   product_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  company_id INTEGER(3) NOT NULL,
   name VARCHAR(100) NOT NULL,
   product_category_id INTEGER(6) NOT NULL,
   product_style_id INTEGER(6) NULL,
@@ -490,8 +491,13 @@ CREATE TABLE product (
   description TEXT NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(product_id),
+  UNIQUE KEY (company_id, name),
   INDEX IDX_pdc_pcid(product_category_id),
   INDEX IDX_pdc_psid(product_style_id),
+  FOREIGN KEY FK_PDCT_compid_COMP_compid(company_id)
+    REFERENCES company(company_id)
+      ON DELETE CASCADE
+      ON UPDATE NO ACTION,
   FOREIGN KEY FK_PDCT_pc_PC_pc(product_category_id)
     REFERENCES product_category(product_category_id)
       ON DELETE RESTRICT
@@ -532,27 +538,6 @@ CREATE TABLE festival_product (
   FOREIGN KEY FK_PDCT_slccode_CUR_ccode(sale_currency_code)
     REFERENCES currency(currency_code)
       ON DELETE RESTRICT
-      ON UPDATE NO ACTION
-)
-TYPE=InnoDB DEFAULT CHARSET=utf8;  
-
--- ------------------------------------------------------------
--- Table structure for table `company_product`
--- Linking table used to track the products available from a company, in the absence of information about gyles and casks. Note that a trigger is used to maintain relational consistency.
--- ------------------------------------------------------------
-
-CREATE TABLE company_product (
-  company_product_id INTEGER(3) NOT NULL AUTO_INCREMENT,
-  company_id INTEGER(3) NOT NULL,
-  product_id INTEGER(3) NOT NULL,
-  PRIMARY KEY (company_product_id),
-  FOREIGN KEY FK_CP_compid_FEST_compid(company_id)
-    REFERENCES company(company_id)
-      ON DELETE CASCADE
-      ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CP_prodid_PROD_prodid(product_id)
-    REFERENCES product(product_id)
-      ON DELETE CASCADE
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;  
@@ -914,7 +899,7 @@ create trigger `gyle_insert_trigger`
 for each row
 begin
     if ( (select count(product_id)
-            from company_product
+            from product
             where company_id=new.company_id
             and product_id=new.product_id) = 0 ) then
         call ERROR_GYLE_INSERT_TRIGGER();
@@ -928,7 +913,7 @@ create trigger `gyle_update_trigger`
 for each row
 begin
     if ( (select count(product_id)
-            from company_product
+            from product
             where company_id=new.company_id
             and product_id=new.product_id) = 0 ) then
         call ERROR_GYLE_UPDATE_TRIGGER();

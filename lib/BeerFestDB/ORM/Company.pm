@@ -49,24 +49,21 @@ __PACKAGE__->has_many(
   { "foreign.company_id" => "self.company_id" },
 );
 __PACKAGE__->has_many(
-  "company_products",
-  "BeerFestDB::ORM::CompanyProduct",
-  { "foreign.company_id" => "self.company_id" },
-);
-__PACKAGE__->has_many(
   "gyles",
   "BeerFestDB::ORM::Gyle",
   { "foreign.company_id" => "self.company_id" },
 );
+__PACKAGE__->has_many(
+  "products",
+  "BeerFestDB::ORM::Product",
+  { "foreign.company_id" => "self.company_id" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HVUP54oJLBy0XoHO/Zd8eA
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-18 12:04:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6kpSx5gigJTtf16yltwX0Q
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
-__PACKAGE__->many_to_many(
-    "products" => "company_products", "product_id"
-);
 
 1;

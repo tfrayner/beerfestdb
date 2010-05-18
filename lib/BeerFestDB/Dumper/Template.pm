@@ -57,40 +57,35 @@ sub product_hash {
 
     my ( $self, $product ) = @_;
 
-    my @prod_data;
-
     my $fest = $self->festival();
     my $fp = $product->search_related('festival_products', { festival_id => $fest->id })->find({});
 
     # N.B. Changes here need to be documented in the POD.
-    foreach my $source ( $product->producers ) {
-        my %prodhash = (
-            brewery  => $source->name(),
-            product  => $product->name(),
-            style    => $product->product_style_id()
-                        ? $product->product_style_id()->description() : q{},
-            category => $product->product_category_id()->description(),
-            abv      => $product->nominal_abv(),
-            sale_volume => $fp->sale_volume_id()->sale_volume_description(),
-        );
+    my %prodhash = (
+        brewery  => $product->company_id->name(),
+        product  => $product->name(),
+        style    => $product->product_style_id()
+                    ? $product->product_style_id()->description() : q{},
+        category => $product->product_category_id()->description(),
+        abv      => $product->nominal_abv(),
+        sale_volume => $fp->sale_volume_id()->sale_volume_description(),
+        notes    => $product->description(),
+    );
 
-        my $currency = $fp->sale_currency_code();
-        my $format   = $currency->currency_format();
-        $prodhash{currency} = $currency->currency_symbol();
+    my $currency = $fp->sale_currency_code();
+    my $format   = $currency->currency_format();
+    $prodhash{currency} = $currency->currency_symbol();
 
-        $prodhash{price}   = $self->format_price( $fp->sale_price(), $format );
-        if ( looks_like_number( $prodhash{price} ) ) {
-            $prodhash{half_price}
-                = $self->format_price( ceil($fp->sale_price() / 2), $format );
-        }
-        else {
-            $prodhash{half_price} = $prodhash{price};
-        }
-
-        push @prod_data, \%prodhash;
+    $prodhash{price}   = $self->format_price( $fp->sale_price(), $format );
+    if ( looks_like_number( $prodhash{price} ) ) {
+        $prodhash{half_price}
+            = $self->format_price( ceil($fp->sale_price() / 2), $format );
     }
-    
-    return \@prod_data;
+    else {
+        $prodhash{half_price} = $prodhash{price};
+    }
+
+    return \%prodhash;
 }
 
 sub update_gyle_hash {
@@ -102,7 +97,9 @@ sub update_gyle_hash {
 
     # This potentially overwrites the "nominal" ABV from the product
     # table with the *actual* gyle ABV.
-    $gylehash->{abv} = $gyle->abv();
+    if ( defined $gyle->abv() ) {
+        $gylehash->{abv} = $gyle->abv();
+    }
 
     return $gylehash;
 }
@@ -125,34 +122,31 @@ sub dump {
     my ( @template_data, %stillage );
     if ( $self->dump_class eq 'cask' ) {
         foreach my $cask ( @{ $self->festival_casks() } ) {
-            my $cask_data = $self->product_hash( $cask->gyle_id()->product_id() );
-            foreach my $caskhash ( @$cask_data ) {
-                $self->update_gyle_hash( $caskhash, $cask->gyle_id() );
-                $self->update_cask_hash( $caskhash, $cask );
-                
-            }
-            push @template_data, @$cask_data;
+            my $caskhash = $self->product_hash( $cask->gyle_id()->product_id() );
+            $self->update_gyle_hash( $caskhash, $cask->gyle_id() );
+            $self->update_cask_hash( $caskhash, $cask );
+
+            push @template_data, $caskhash;
 
             my $stillage_name = $cask->stillage_location_id()
                                 ? $cask->stillage_location_id()->description() : '';
-            push @{ $stillage{ $stillage_name } }, @$cask_data;
+            push @{ $stillage{ $stillage_name } }, $caskhash;
         }
     }
     elsif ( $self->dump_class eq 'gyle' ) {
         foreach my $product ( @{ $self->festival_products } ) {
             foreach my $gyle ( $product->search_related('gyles', undef, {distinct => 1}) ) {
-                my $gyle_data = $self->product_hash( $gyle->product_id() );
-                foreach my $gylehash ( @$gyle_data ) {
-                    $self->update_gyle_hash( $gylehash, $gyle );
-                }
-                push @template_data, @$gyle_data;
+                my $gylehash = $self->product_hash( $gyle->product_id() );
+                $self->update_gyle_hash( $gylehash, $gyle );
+
+                push @template_data, $gylehash;
             }
         }
     }
     elsif ( $self->dump_class eq 'product' ) {
         foreach my $product ( @{ $self->festival_products() } ) {
-            my $prod_data = $self->product_hash( $product );
-            push @template_data, @$prod_data;
+            my $prodhash = $self->product_hash( $product );
+            push @template_data, $prodhash;
         }
     }
     else {
@@ -231,6 +225,10 @@ The product category ("beer", "cider" etc.).
 =item style
 
 The product style ("Stout", "Best Bitter", "Medium Sweet" etc.).
+
+=item notes
+
+A description of the product (e.g., beer tasting notes).
 
 =item abv
 

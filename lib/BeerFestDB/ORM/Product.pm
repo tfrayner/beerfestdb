@@ -10,6 +10,8 @@ __PACKAGE__->table("product");
 __PACKAGE__->add_columns(
   "product_id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 6 },
+  "company_id",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 3 },
   "name",
   {
     data_type => "VARCHAR",
@@ -39,11 +41,7 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("product_id");
-__PACKAGE__->has_many(
-  "company_products",
-  "BeerFestDB::ORM::CompanyProduct",
-  { "foreign.product_id" => "self.product_id" },
-);
+__PACKAGE__->add_unique_constraint("company_id", ["company_id", "name"]);
 __PACKAGE__->has_many(
   "festival_products",
   "BeerFestDB::ORM::FestivalProduct",
@@ -53,6 +51,11 @@ __PACKAGE__->has_many(
   "gyles",
   "BeerFestDB::ORM::Gyle",
   { "foreign.product_id" => "self.product_id" },
+);
+__PACKAGE__->belongs_to(
+  "company_id",
+  "BeerFestDB::ORM::Company",
+  { company_id => "company_id" },
 );
 __PACKAGE__->belongs_to(
   "product_category_id",
@@ -71,14 +74,11 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-16 20:35:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S874yuAvyBOhlKBobTQA5w
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-18 12:04:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bN5yQnsJ9rEQ2WRCbBgtvQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
-__PACKAGE__->many_to_many(
-    "producers" => "company_products", "company_id"
-);
 __PACKAGE__->many_to_many(
     "festivals" => "festival_products", "festival_id"
 );

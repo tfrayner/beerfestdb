@@ -47,7 +47,7 @@ sub list : Local {
     # festival. Note that this listing is therefore swinging between
     # the virtual (no $festival_id) and the concrete ($festival_id,
     # linking via cask and gyle). At some point it may be wiser to
-    # split this method.
+    # split this method, e.g. building on the FestivalProduct class instead.
 
     my ( $product_rs, $festival );
     if ( defined $festival_id ) {
@@ -74,49 +74,14 @@ sub list : Local {
 
         my %prod_info = (
             product_id  => $prod->product_id,
+            company_id  => $prod->company_id->company_id,
             name        => $prod->name,
             description => $prod->description,
             comment     => $prod->comment,
             product_style_id => $style_id,
         );
 
-        # Retrieve supplier info. Note that the prefetch is critical here.
-        my @suppliers;
-        if ( $festival ) {
-
-            # For a given festival the suppliers list is linked via
-            # cask, i.e. is a concrete representation of what has been
-            # delivered.
-            @suppliers =
-                $prod->search_related('company_products',
-                                      { 'casks.festival_id' => $festival->id },
-                                      {
-                                          prefetch => {
-                                              company_id => {
-                                                  gyles => { casks => 'festival_id' }
-                                              }
-                                          },
-                                          join => {
-                                              company_id => {
-                                                  gyles => { casks => 'festival_id' },
-                                              }
-                                          },
-                                      }
-                                  );
-        }
-        else {
-
-            # For the more general case we just take all possible
-            # suppliers and list them.
-            @suppliers = $prod->company_products()
-        }
-
-        foreach my $supp ( @suppliers ) {
-            my $i = dclone( \%prod_info );
-            $i->{company_id} = $supp->company_id->company_id();
-            $i->{company_product_id} = $supp->company_product_id();
-            push( @products, $i );
-        }
+        push @products, \%prod_info;
     }
 
     $c->stash->{ 'objects' } = \@products;
@@ -139,33 +104,9 @@ sub submit : Local {
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
     foreach my $rec ( @{ $data } ) {
-
-        my $brewer_id;
-        if ( exists $rec->{'company_id'} ) {
-            $brewer_id = $rec->{'company_id'};
-            delete($rec->{'company_id'});
-        }
-
-        my $cp_id;
-        if ( exists $rec->{'company_product_id'} ) {
-            $cp_id = $rec->{'company_product_id'};
-            delete($rec->{'company_product_id'});
-        }
-
+        
         eval {
             my $prod = $rs->update_or_create( $rec );
-
-            # FIXME we need to find the edited link where present and
-            # change it (this is fine for new products, not good for
-            # editing).
-            if ( defined $brewer_id ) {
-                $c->model('DB::CompanyProduct')->update_or_create({
-                    company_product_id => $cp_id,
-                    company_id => $brewer_id,
-                    product_id => $prod->id,
-                });
-            }
-
         };
         if ($@) {
             $c->response->status('403');  # Forbidden
@@ -174,7 +115,7 @@ sub submit : Local {
             $c->stash->{error} = "Unable to save one or more products to database: $@";
         }
     }
-
+    
     $c->detach( $c->view( 'JSON' ) );
 
     return;
