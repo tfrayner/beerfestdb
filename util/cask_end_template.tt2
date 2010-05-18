@@ -31,7 +31,7 @@
 
 % festival logo
 \begin{textblock}{0.01}(0.06,0.04)
-\includegraphics[width=30mm]{[% logos.0 %]}
+\includegraphics[width=40mm]{[% logos.0 %]}
 \end{textblock}
 
 % CAMRA logo (hardcoded)
@@ -47,9 +47,13 @@
 [% IF cask.category == 'beer' %]
 
   [% IF cask.product.length > 55 %]
-    [% product_font_size = 44 %]
+    [% product_font_size = 48 %]
   [% ELSE %]
-    [% product_font_size = 86 %]
+    [% IF cask.product.length > 32 %]
+      [% product_font_size = 64 %]
+    [% ELSE %]
+      [% product_font_size = 86 %]
+    [% END %]
   [% END %]
 
   \begin{textblock}{0.6}[0.5,0](0.5,0.05)
@@ -71,7 +75,7 @@
   %\vspace{8mm}
   \end{textblock}
 
-[% ELSIF cask.category == 'cider' %]
+[% ELSIF cask.category == 'cider' || cask.category == 'perry' || cask.category == 'apple juice' %]
 
 
   [% IF cask.brewery.length > 55 %]
@@ -94,7 +98,7 @@
   \fontsize{60}{94}
   \selectfont
 
-  \begin{textblock}{0.8}[0.5, 0.5](0.5,0.45)
+  \begin{textblock}{0.8}[0.5, 0.5](0.5,0.50)
   \begin{center}
   \textbf{[% cask.product | replace( '&', '\\&' ) %]}
   \end{center}
@@ -106,17 +110,19 @@
 
 [% ELSE %]
 
-  [% THROW category "Unrecognised product category (should be beer or cider)" %]
+  [% THROW category "Unrecognised product category (should be beer, cider, perry or apple juice)" %]
   
 [% END %]
 
-\begin{textblock}{0.4}(0.05,0.65)
+\begin{textblock}{0.4}(0.05,0.70)
 \fontsize{60}{75}
 \selectfont
 
+[% IF cask.category != 'apple juice' %]
 \textbf{ABV: [% cask.abv | replace( '%', '\%' ) %] \%}
+[% END %]
 
-[% IF cask.category == 'cider' %]
+[% IF cask.category == 'cider' || cask.category == 'perry' %]
 \fontsize{50}{75}
 \selectfont
 \textbf{[% cask.style | titlecase %]}
@@ -127,11 +133,10 @@
   \fontsize{48}{60}
   \selectfont
 
+\begin{textblock}{0.4}(0.55,0.70)
 [% IF cask.price == cask.half_price %]
-\begin{textblock}{0.4}(0.55,0.65)
 \textbf{[% cask.price %]}
 [% ELSE %]
-\begin{textblock}{0.4}(0.55,0.65)
 
 \textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
         [%- cask.price      | format('%.2f') -%]/[% cask.sale_volume %]}
