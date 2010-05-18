@@ -58,11 +58,13 @@ sub product_hash {
     my ( $self, $product ) = @_;
 
     my $fest = $self->festival();
-    my $fp = $product->search_related('festival_products', { festival_id => $fest->id })->find({});
+    my $fp   = $product->search_related('festival_products',
+					{ festival_id => $fest->festival_id })->first();
 
     # N.B. Changes here need to be documented in the POD.
     my %prodhash = (
         brewery  => $product->company_id->name(),
+	location => $product->company_id->loc_desc(),
         product  => $product->name(),
         style    => $product->product_style_id()
                     ? $product->product_style_id()->description() : q{},
@@ -135,7 +137,14 @@ sub dump {
     }
     elsif ( $self->dump_class eq 'gyle' ) {
         foreach my $product ( @{ $self->festival_products } ) {
-            foreach my $gyle ( $product->search_related('gyles', undef, {distinct => 1}) ) {
+	    my @gyles =
+		$product->search_related('gyles', 
+					 { 'casks.festival_id' => $self->festival->id() },
+					 {
+					     prefetch => { casks => 'festival_id' },
+					     join     => { casks => 'festival_id' },
+					 });
+            foreach my $gyle ( @gyles ) {
                 my $gylehash = $self->product_hash( $gyle->product_id() );
                 $self->update_gyle_hash( $gylehash, $gyle );
 
@@ -209,6 +218,10 @@ A list of cask hashrefs, each of which has the following keys:
 =item brewery
 
 The original brewer of the product.
+
+=item location
+
+The location of the brewery.
 
 =item product
 
