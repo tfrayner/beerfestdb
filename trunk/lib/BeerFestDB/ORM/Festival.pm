@@ -1,76 +1,154 @@
 package BeerFestDB::ORM::Festival;
 
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+
+=head1 NAME
+
+BeerFestDB::ORM::Festival
+
+=cut
+
 __PACKAGE__->table("festival");
+
+=head1 ACCESSORS
+
+=head2 festival_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+
+=head2 year
+
+  data_type: 'year'
+  is_nullable: 0
+
+=head2 name
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 60
+
+=head2 description
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 fst_start_date
+
+  data_type: 'datetime'
+  is_nullable: 1
+
+=head2 fst_end_date
+
+  data_type: 'datetime'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
   "festival_id",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 3 },
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "year",
-  { data_type => "YEAR", default_value => undef, is_nullable => 0, size => 4 },
+  { data_type => "year", is_nullable => 0 },
   "name",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 60,
-  },
+  { data_type => "varchar", is_nullable => 0, size => 60 },
   "description",
-  {
-    data_type => "TEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 65535,
-  },
+  { data_type => "text", is_nullable => 1 },
   "fst_start_date",
-  {
-    data_type => "DATETIME",
-    default_value => undef,
-    is_nullable => 1,
-    size => 19,
-  },
+  { data_type => "datetime", is_nullable => 1 },
   "fst_end_date",
-  {
-    data_type => "DATETIME",
-    default_value => undef,
-    is_nullable => 1,
-    size => 19,
-  },
+  { data_type => "datetime", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("festival_id");
+
+=head1 RELATIONS
+
+=head2 bars
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::Bar>
+
+=cut
+
 __PACKAGE__->has_many(
   "bars",
   "BeerFestDB::ORM::Bar",
   { "foreign.festival_id" => "self.festival_id" },
+  {},
 );
+
+=head2 casks
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::Cask>
+
+=cut
+
 __PACKAGE__->has_many(
   "casks",
   "BeerFestDB::ORM::Cask",
   { "foreign.festival_id" => "self.festival_id" },
+  {},
 );
+
+=head2 festival_openings
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::FestivalOpening>
+
+=cut
+
 __PACKAGE__->has_many(
   "festival_openings",
   "BeerFestDB::ORM::FestivalOpening",
   { "foreign.festival_id" => "self.festival_id" },
+  {},
 );
+
+=head2 festival_products
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::FestivalProduct>
+
+=cut
+
 __PACKAGE__->has_many(
   "festival_products",
   "BeerFestDB::ORM::FestivalProduct",
   { "foreign.festival_id" => "self.festival_id" },
+  {},
 );
+
+=head2 stillage_locations
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::StillageLocation>
+
+=cut
+
 __PACKAGE__->has_many(
   "stillage_locations",
   "BeerFestDB::ORM::StillageLocation",
   { "foreign.festival_id" => "self.festival_id" },
+  {},
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-05-02 20:33:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mvGfI/LVYSaXafXulqLfiA
+# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7Ca7XRVVSKpMuKSTeM9ErQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
