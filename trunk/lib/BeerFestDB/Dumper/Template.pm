@@ -113,6 +113,7 @@ sub update_cask_hash {
     # N.B. Changes here need to be documented in the POD.
     $caskhash ||= {};
     $caskhash->{number} = $cask->internal_reference();
+    $caskhash->{size}   = $cask->container_size_id->container_volume();
 
     return $caskhash;
 }
@@ -229,7 +230,11 @@ The name of the beer, cider, or whatever.
 
 =item number
 
-The internal reference number for this cask.
+(Cask-level export only). The internal reference number for the cask.
+
+=item size
+
+(Cask-level export only). The size of the cask (units not currently reported).
 
 =item category
 

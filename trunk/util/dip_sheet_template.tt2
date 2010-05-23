@@ -17,6 +17,21 @@
 %\hyphenpenalty=10000
 %\exhyphenpenalty=10000
 
+[% BLOCK stillage_name %]
+  [% sname | replace('&', '\\&') %]
+[% END %]
+
+[% BLOCK table_header %]
+  \begin{tabular}{ | l | l | c | c | c | c | p{1cm} | p{1cm} | p{1cm} | p{1cm} | p{1cm} | p{1cm} | p{1cm} | p{5cm} | }
+    \hline
+  Brewer & Beer & No. & V & T & R & Start & Mon & Tues & Weds & Thurs & Fri & Sat & Notes \\ \hline
+[% END %]
+
+[% BLOCK table_end %]
+  \end{tabular}
+[% END %]
+
+
 [% FOREACH stillage IN stillages.pairs %]
 
   \setlength{\TPHorizModule}{\paperwidth}
@@ -28,16 +43,14 @@
 
   \fontsize{24}{30}
 
-  [% stillage.key %]
+  [% PROCESS stillage_name sname=stillage.key %]
 
   \vspace{ 5 mm }
 
   \fontsize{10}{12}
   \selectfont
 
-  \begin{tabular}{ | l | l | l | r | r | r | }
-    \hline
-  Brewer & Beer & Cask no. & Thursday & Friday & Saturday \\ \hline
+  [% PROCESS table_header %]
 
   [% SET casks = stillage.value.sort('brewery', 'product', 'number') %]
 
@@ -47,28 +60,29 @@
 
     [% cask.brewery | replace( '&', '\\&' ) %] &
     [% cask.product | replace( '&', '\\&' ) %] &
-    [% cask.number %] &  &  & \\ \hline
+    [% cask.number %] &
+    &  &  &
+    [% cask.size | format('%d') %] &
+    &  &  &  &  &  & \\ \hline
 
     [% counter = counter + 1 %]
 
     [% IF counter > 35 %]
       [% counter = 0 %]
-      \end{tabular}
+      [% PROCESS table_end %]
 
       \null\newpage
 
-      [% stillage.key %] (continued)
+      [% PROCESS stillage_name stillage=stillage.key %] (continued)
 
       \vspace{ 5 mm }
 
-      \begin{tabular}{ | l | l | l | r | r | r | }
-        \hline
-      Brewer & Beer & Cask no. & Thursday & Friday & Saturday \\ \hline
+      [% PROCESS table_header %]
     [% END %]
 
   [% END %]
 
-  \end{tabular}
+  [% PROCESS table_end %]
 
   \null\newpage
 
