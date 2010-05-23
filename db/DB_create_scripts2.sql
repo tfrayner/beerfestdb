@@ -655,6 +655,7 @@ CREATE TABLE cask (
   is_tapped TINYINT(1) NULL,
   is_ready TINYINT(1) NULL,
   PRIMARY KEY(cask_id),
+  UNIQUE KEY(festival_id, gyle_id, internal_reference),
   INDEX IDX_CSK_bbid(gyle_id),
   INDEX IDX_CSK_dcid(distributor_company_id),
   INDEX IDX_CSK_bid(bar_id),
