@@ -113,7 +113,7 @@ sub update_cask_hash {
     # N.B. Changes here need to be documented in the POD.
     $caskhash ||= {};
     $caskhash->{number} = $cask->internal_reference();
-    $caskhash->{size}   = $cask->container_size_id->container_volume();
+    $caskhash->{size}   = $cask->container_size_id ? $cask->container_size_id->container_volume() : q{};
 
     return $caskhash;
 }
