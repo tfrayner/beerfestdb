@@ -30,22 +30,7 @@
 %\selectfont
 
 % festival logo
-[% IF cask.style == '' %]
-  [% SET logo = '' %]
-[% ELSE %]
-  [% IF cask.style == '' %]
-    [% SET logo = '' %]
-  [% ELSE %]
-    [% IF cask.style == '' %]
-      [% SET logo = '' %]
-    [% ELSE %]
-      [% IF cask.style == '' %]
-        [% SET logo = '' %]
-      [% ELSE %]
-      [% END %]
-    [% END %]
-  [% END %]
-[% END %]
+[% SET logo = logos.0 %]
 
 \begin{textblock}{0.01}(0.06,0.04)
 \includegraphics[width=40mm]{[% logo %]}
@@ -61,7 +46,7 @@
   \fontsize{48}{60}
   \selectfont
 
-[% IF cask.category == 'beer' %]
+[% IF cask.category == 'beer' || cask.category == 'foreign beer' %]
 
   [% IF cask.product.length > 55 %]
     [% product_font_size = 48 %]
@@ -127,7 +112,7 @@
 
 [% ELSE %]
 
-  [% THROW category "Unrecognised product category (should be beer, cider, perry or apple juice)" %]
+  [% THROW category "Unrecognised product category (should be beer, cider, perry or apple juice):" %]
   
 [% END %]
 
@@ -139,9 +124,19 @@
 \textbf{ABV: [% cask.abv | replace( '%', '\%' ) %] \%}
 [% END %]
 
-\fontsize{50}{75}
+[% IF cask.location.defined %]
+  [% IF cask.location.length > 22 %]
+    \fontsize{25}{45}
+  [% ELSE %]
+    [% IF cask.location.length > 14 %]
+      \fontsize{30}{55}
+    [% ELSE %]
+      \fontsize{40}{60}
+    [% END %]
+  [% END %]
+[% END %]
 \selectfont
-\textbf{[% cask.location %]}
+\textbf{\emph{[% cask.location %]}}
 
 \end{textblock}
 
@@ -149,16 +144,24 @@
   \selectfont
 
 \begin{textblock}{0.4}(0.55,0.70)
-[% IF cask.price == cask.half_price %]
-\textbf{[% cask.price %]}
+[% IF cask.category == 'foreign beer' %]
+
+  \textbf{\pounds4.00/pint}
+
+  \textbf{\pounds2.00/half pint}
+
 [% ELSE %]
+  [% IF cask.price == cask.half_price %]
+    \textbf{[% cask.price %]}
+  [% ELSE %]
 
-\textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
-        [%- cask.price      | format('%.2f') -%]/[% cask.sale_volume %]}
+  \textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
+          [%- cask.price      | format('%.2f') -%]/[% cask.sale_volume %]}
 
-\textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
-        [%- cask.half_price | format('%.2f') -%]/half [% cask.sale_volume %]}
+  \textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
+          [%- cask.half_price | format('%.2f') -%]/half [% cask.sale_volume %]}
 
+  [% END %]
 [% END %]
 \end{textblock}
 \null\newpage
