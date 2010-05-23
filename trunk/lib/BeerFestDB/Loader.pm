@@ -257,7 +257,17 @@ sub _load_data {
         $count = 1;
     }
 
-    foreach my $n ( 1..$count ) {
+    # We need to support adding casks in multiple loads; cask count
+    # becomes an issue so we check against the database here.
+    my $preexist = 0;
+    if ( $gyle ) { 
+	$preexist = $gyle->search_related(
+	    'casks',
+	    { 'festival_id' => $festival->id })->count();
+	$count += $preexist;
+    }
+
+    foreach my $n ( ($preexist+1)..$count ) {
 
         my $cask
             = $product
