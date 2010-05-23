@@ -178,9 +178,6 @@ sub grid : Local {
 
     my @styles = $category->product_styles();
     $c->stash->{styles} = \@styles;
-
-    my @brewers = $c->model('DB::Company')->all();
-    $c->stash->{brewers} = \@brewers;
 }
 
 =head1 AUTHOR

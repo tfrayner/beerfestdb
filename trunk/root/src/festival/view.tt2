@@ -8,7 +8,7 @@
   <div class='list'>
     <ul>
       [% FOREACH cat = categories.sort('description') %] 
-      <li><a href="[% c.uri_for("/product/grid/$cat.id/$object.id") | html %]">
+      <li><a href="[% c.uri_for("/festivalproduct/grid/$cat.id/$object.id") | html %]">
                    [% cat.description | html %]</a></li>
       [% END %]
     </ul>
