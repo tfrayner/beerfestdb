@@ -1,0 +1,28 @@
+[% META title = 'Product listing' %]
+
+<script type="text/javascript">
+   var gridurl     = '[% c.uri_for( "/festivalproduct/list/$category.id/$festival.id" ) %]';
+   var posturl     = '[% c.uri_for( "/festivalproduct/submit" ) %]';
+   var deleteurl   = '[% c.uri_for( "/festivalproduct/delete" ) %]';
+   var suppliergridurl     = '[% c.uri_for( "/company/list" ) %]';
+   var productgridurl      = '[% c.uri_for( "/product/list/$category.id" ) %]';
+   var category_id     = '[% category.id %]';
+   var categoryname    = '[% category.description %]';
+   var festivalurl     = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
+   var festivalname    = '[% festival.year | html %]  [% festival.name | html %]';
+</script>
+[% js_link( src = '/static/js/grids/festivalproduct.js' ) %]
+
+<select id='volumepopup' style='display: none'>
+[% FOREACH volume = volumes.sort('description') -%]
+<option value="[% volume.sale_volume_id | html %]">[% volume.sale_volume_description | html %]</option>
+[% END %]
+</select>
+
+<select id='currencypopup' style='display: none'>
+[% FOREACH currency = currencies.sort('description') -%]
+<option value="[% currency.currency_code | html %]">[% currency.currency_code | html %]</option>
+[% END %]
+</select>
+
+<div id="datagrid"></div>

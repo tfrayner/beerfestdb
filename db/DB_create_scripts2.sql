@@ -521,7 +521,8 @@ CREATE TABLE festival_product (
   sale_currency_code CHAR(3) NOT NULL,
   sale_price INTEGER(11) NULL,
   product_id INTEGER(3) NOT NULL,
-  PRIMARY KEY (festival_product_id),
+  PRIMARY KEY `fp_key` (festival_product_id, product_id, festival_id),
+  UNIQUE KEY (festival_product_id),
   FOREIGN KEY FK_FP_festid_FEST_festid(festival_id)
     REFERENCES festival(festival_id)
       ON DELETE CASCADE
