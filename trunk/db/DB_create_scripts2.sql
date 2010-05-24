@@ -938,9 +938,10 @@ create trigger `festival_product_delete_trigger`
 for each row
 begin
     if ( (select count(festival_id)
-          from gyle
-          where product_id=old.product_id
-          and festival_id=old.festival_id) != 0 ) then
+          from gyle g, cask c
+          where g.product_id=old.product_id
+          and g.gyle_id=c.gyle_id
+          and c.festival_id=old.festival_id) != 0 ) then
         call ERROR_GYLE_DELETE_TRIGGER();
     end if;
 end;
