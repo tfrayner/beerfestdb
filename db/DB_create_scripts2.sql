@@ -655,7 +655,7 @@ CREATE TABLE cask (
   is_tapped TINYINT(1) NULL,
   is_ready TINYINT(1) NULL,
   PRIMARY KEY(cask_id),
-  UNIQUE KEY(festival_id, gyle_id, internal_reference),
+  UNIQUE KEY `festival_gyle_cask` (festival_id, gyle_id, internal_reference),
   INDEX IDX_CSK_bbid(gyle_id),
   INDEX IDX_CSK_dcid(distributor_company_id),
   INDEX IDX_CSK_bid(bar_id),
@@ -922,7 +922,7 @@ begin
     end if;
     -- carried over from the festival_product link above.
     if ( (select count(fp.festival_id)
-            from festival_product fp, cask c
+            from festival_product fp, cask c, gyle g
             where new.gyle_id=c.gyle_id
             and g.product_id=fp.product_id
             and fp.festival_id=c.festival_id) = 0 ) then
