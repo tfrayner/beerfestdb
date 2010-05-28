@@ -450,6 +450,7 @@ sub load {
     my $headings = $self->_coerce_headings( $csv_parser->getline($input_fh) );
 
     while ( my $rowlist = $csv_parser->getline($input_fh) ) {
+	next if $rowlist->[0] =~ /^\s*#/;
 	my %datahash;
 	@datahash{ @$headings } = @$rowlist;
 	$self->_load_data( \%datahash );
