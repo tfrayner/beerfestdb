@@ -11,6 +11,7 @@ Ext.onReady(function(){
         { name: 'company_id',       type: 'int' },
         { name: 'name',             type: 'string',        allowBlank: false },
         { name: 'loc_desc',         type: 'string' },
+        { name: 'company_region_id', type: 'int'},
         { name: 'year_founded',     type: 'int' },
         { name: 'url',              type: 'string' },
         { name: 'comment',          type: 'string' },
@@ -20,6 +21,14 @@ Ext.onReady(function(){
         url:        gridurl,
         root:       'objects',
         fields:     Company
+    });
+
+    var region_combo = new Ext.form.ComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        transform:      'regionpopup',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
     });
 
     var content_cols = [
@@ -37,26 +46,32 @@ Ext.onReady(function(){
           editor:     new Ext.form.TextField({
 //              allowBlank:     false,
           })},
+        { id:         'company_region_id',
+          header:     'Region',
+          dataIndex:  'company_region_id',
+          width:      70,
+          renderer:   MyComboRenderer(region_combo),
+          editor:     region_combo },
         { id:         'year_founded',
           header:     'Year founded',
           dataIndex:  'year_founded',
-          width:      5,
+          width:      20,
           editor:     new Ext.form.TextField({
 //              allowBlank:     false,
           })},
         { id:         'url',
           header:     'Web site',
           dataIndex:  'url',
-          width:      150,
+          width:      70,
           editor:     new Ext.form.TextField({
 //              allowBlank:     false,
           })},
         { id:         'comment',
           header:     'Comment',
           dataIndex:  'comment',
-          width:      300,
+          width:      70,
           editor:     new Ext.form.TextField({
-              allowBlank:     false,
+//              allowBlank:     false,
           })},
     ];
 

@@ -54,6 +54,12 @@ __PACKAGE__->table("company");
   is_nullable: 1
   size: 255
 
+=head2 company_region_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -69,11 +75,27 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "comment",
   { data_type => "varchar", is_nullable => 1, size => 255 },
+  "company_region_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("company_id");
 __PACKAGE__->add_unique_constraint("name", ["name"]);
 
 =head1 RELATIONS
+
+=head2 company_region_id
+
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::CompanyRegion>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "company_region_id",
+  "BeerFestDB::ORM::CompanyRegion",
+  { company_region_id => "company_region_id" },
+);
 
 =head2 company_contacts
 
@@ -121,8 +143,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nZmDs79X8p/IyiDlbxw0Pg
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-06-05 23:21:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EAzYw1eiOFwQwRbaLYXR8A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

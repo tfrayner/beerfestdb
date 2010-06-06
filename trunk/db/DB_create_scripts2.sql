@@ -190,6 +190,28 @@ INSERT INTO contact_type (contact_type_description) VALUES ('Customer Service');
 
 
 -- ------------------------------------------------------------
+-- Table structure for table `company_region`
+-- Simple table to store the approximate region in which the company is located. 
+-- ------------------------------------------------------------
+
+CREATE TABLE company_region (
+  company_region_id INTEGER(4) NOT NULL AUTO_INCREMENT,
+  description VARCHAR(30) NOT NULL,
+  PRIMARY KEY(company_region_id),
+  UNIQUE KEY(description)
+)
+TYPE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO company_region (description) VALUES ('Wales');
+INSERT INTO company_region (description) VALUES ('Scotland');
+INSERT INTO company_region (description) VALUES ('Northern Ireland');
+INSERT INTO company_region (description) VALUES ('East Anglia');
+INSERT INTO company_region (description) VALUES ('Cambridgeshire');
+INSERT INTO company_region (description) VALUES ('North England');
+INSERT INTO company_region (description) VALUES ('South England');
+INSERT INTO company_region (description) VALUES ('Midlands');
+
+-- ------------------------------------------------------------
 -- Table structure for table `company`
 -- Simple table to store the basic details of a company be that a brewery of
 -- some other suplier such as a cider maker. A company can have more than one
@@ -200,11 +222,16 @@ CREATE TABLE company (
   company_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   name VARCHAR(100) NOT NULL,
   loc_desc VARCHAR(100) NULL,
+  company_region_id INTEGER(4),
   year_founded YEAR(4) NULL,
   url VARCHAR(255) NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(company_id),
-  UNIQUE KEY(name)
+  UNIQUE KEY(name),
+  FOREIGN KEY FK_CO_rgnid_RGN_rgnid(company_region_id)
+    REFERENCES company_region(company_region_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
