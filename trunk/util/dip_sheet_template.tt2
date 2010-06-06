@@ -22,9 +22,9 @@
 [% END %]
 
 [% BLOCK table_header %]
-  \begin{tabular}{ | l | l | l | c | c | c | c | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{5cm} | }
+  \begin{tabular}{ | l | l | l | c | c | c | c | c | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{5cm} | }
     \hline
-  Location & Brewer & Beer & No. & V & T & R & Start & Mon & Tue & Wed & Thu & Fri & Sat & Notes \\ \hline
+  Location & Brewer & Beer & No.& Stillaged & V & T & R & Start & Mon & Tue & Wed & Thu & Fri & Sat & Notes \\ \hline
 [% END %]
 
 [% BLOCK table_end %]
@@ -63,7 +63,7 @@
     [% cask.brewery | replace( '&', '\\&' ) %] &
     [% cask.product | truncate(40) | replace( '&', '\\&' ) %] &
     [% cask.number %] &
-    &  &  &
+    &  &  &  &
     [% cask.size | format('%d') %] &
     &  &  &  &  &  & \\ \hline
 
