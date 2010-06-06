@@ -39,7 +39,15 @@ sub list : Local {
 
     my @companies;
     foreach my $obj ( @db_objs ) {
-        my %comp = map { $_ => $obj->$_ } qw( company_id name loc_desc year_founded url comment );
+        my %comp = map { $_ => $obj->$_ } qw( company_id
+                                              name
+                                              loc_desc
+                                              year_founded
+                                              url
+                                              comment );
+        if ( my $region = $obj->company_region_id ) {
+            $comp{company_region_id} = $region->company_region_id();
+        }
         push @companies, \%comp;
     }
 
@@ -53,7 +61,15 @@ sub list : Local {
 
 =cut
 
-sub grid : Local {}
+sub grid : Local {
+
+    my ( $self, $c ) = @_;
+
+    my @regions = $c->model('DB::CompanyRegion')->all();
+    $c->stash->{regions} = \@regions;
+
+    return;
+}
 
 =head2 submit
 
