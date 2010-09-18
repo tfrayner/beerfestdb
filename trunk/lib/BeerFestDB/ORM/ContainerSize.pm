@@ -34,7 +34,6 @@ __PACKAGE__->table("container_size");
 =head2 container_measure_id
 
   data_type: 'integer'
-  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
@@ -52,12 +51,7 @@ __PACKAGE__->add_columns(
   "container_volume",
   { data_type => "decimal", is_nullable => 0, size => [4, 2] },
   "container_measure_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "container_description",
   { data_type => "varchar", is_nullable => 1, size => 100 },
 );
@@ -95,9 +89,24 @@ __PACKAGE__->belongs_to(
   { container_measure_id => "container_measure_id" },
 );
 
+=head2 product_orders
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z6wW/6/Xvhk0/w98Rp9xqQ
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::ProductOrder>
+
+=cut
+
+__PACKAGE__->has_many(
+  "product_orders",
+  "BeerFestDB::ORM::ProductOrder",
+  { "foreign.container_size_id" => "self.container_size_id" },
+  {},
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eMajObZAbt52oJ+YEtNO3A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

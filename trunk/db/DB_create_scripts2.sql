@@ -31,7 +31,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE festival (
-  festival_id INTEGER(3) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   year YEAR(4) NOT NULL,
   name VARCHAR(60) NOT NULL,
   description TEXT NULL,
@@ -48,7 +48,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE container_measure (
-  container_measure_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+  container_measure_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   litre_multiplier FLOAT NOT NULL,
   description VARCHAR(50) NOT NULL,
   PRIMARY KEY(container_measure_id),
@@ -100,8 +100,8 @@ INSERT INTO country (country_code_iso2, country_code_iso3, country_code_num3, co
 -- ------------------------------------------------------------
 
 CREATE TABLE stillage_location (
-  stillage_location_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-  festival_id INTEGER(3) NOT NULL,
+  stillage_location_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NOT NULL,
   description VARCHAR(50) NOT NULL,
   PRIMARY KEY(stillage_location_id),
   UNIQUE KEY(description),
@@ -119,7 +119,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE telephone_type (
-  telephone_type_id INTEGER(4) NOT NULL AUTO_INCREMENT,
+  telephone_type_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   description VARCHAR(30) NOT NULL,
   PRIMARY KEY(telephone_type_id),
   UNIQUE KEY(description)
@@ -139,7 +139,7 @@ INSERT INTO telephone_type (description) VALUES('mobile');
 -- ------------------------------------------------------------
 
 CREATE TABLE festival_entry_type (
-  festival_entry_type_id INTEGER(4) NOT NULL AUTO_INCREMENT,
+  festival_entry_type_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   description VARCHAR(30) NOT NULL,
   PRIMARY KEY(festival_entry_type_id),
   UNIQUE KEY(description)
@@ -153,7 +153,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE product_category (
-  product_category_id INTEGER(4) NOT NULL AUTO_INCREMENT,
+  product_category_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   description VARCHAR(100) NOT NULL,
   PRIMARY KEY(product_category_id),
   UNIQUE KEY(description)
@@ -177,7 +177,7 @@ INSERT INTO product_category (description) VALUES ('mead');
 -- ------------------------------------------------------------
 
 CREATE TABLE contact_type (
-  contact_type_id INTEGER(4) NOT NULL AUTO_INCREMENT,
+  contact_type_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   contact_type_description VARCHAR(30) NOT NULL,
   PRIMARY KEY(contact_type_id),
   UNIQUE KEY(contact_type_description)
@@ -195,7 +195,7 @@ INSERT INTO contact_type (contact_type_description) VALUES ('Customer Service');
 -- ------------------------------------------------------------
 
 CREATE TABLE company_region (
-  company_region_id INTEGER(4) NOT NULL AUTO_INCREMENT,
+  company_region_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   description VARCHAR(30) NOT NULL,
   PRIMARY KEY(company_region_id),
   UNIQUE KEY(description)
@@ -222,7 +222,7 @@ CREATE TABLE company (
   company_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   name VARCHAR(100) NOT NULL,
   loc_desc VARCHAR(100) NULL,
-  company_region_id INTEGER(4),
+  company_region_id INTEGER(6),
   year_founded YEAR(4) NULL,
   url VARCHAR(255) NULL,
   comment VARCHAR(255) NULL,
@@ -252,8 +252,8 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE bar (
-  bar_id INTEGER(3) NOT NULL AUTO_INCREMENT,
-  festival_id INTEGER(3) NOT NULL,
+  bar_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NOT NULL,
   description VARCHAR(255) NOT NULL,
   is_private TINYINT(1) NULL,
   PRIMARY KEY(bar_id),
@@ -270,8 +270,8 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE product_characteristic_type (
-  product_characteristic_type_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-  product_category_id INTEGER(4) NOT NULL,
+  product_characteristic_type_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  product_category_id INTEGER(6) NOT NULL,
   description VARCHAR(50) NOT NULL,
   PRIMARY KEY(product_characteristic_type_id, product_category_id),
   UNIQUE KEY(product_category_id, description),
@@ -291,8 +291,8 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE festival_opening (
-  festival_opening_id INTEGER(4) NOT NULL AUTO_INCREMENT,
-  festival_id INTEGER(3) NOT NULL,
+  festival_opening_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NOT NULL,
   op_start_date DATETIME NOT NULL,
   op_end_date DATETIME NOT NULL,
   PRIMARY KEY(festival_opening_id),
@@ -311,7 +311,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE telephone (
   telephone_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  telephone_type_id INTEGER(4) NULL,
+  telephone_type_id INTEGER(6) NULL,
   interational_code VARCHAR(10) NULL,
   area_code VARCHAR(10) NULL,
   telephone VARCHAR(50) NOT NULL,
@@ -332,9 +332,9 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE container_size (
-  container_size_id INTEGER(4) NOT NULL AUTO_INCREMENT,
+  container_size_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   container_volume DECIMAL(4,2) NOT NULL,
-  container_measure_id INTEGER UNSIGNED NOT NULL,
+  container_measure_id INTEGER(6) NOT NULL,
   container_description VARCHAR(100) NULL,
   PRIMARY KEY(container_size_id),
   UNIQUE KEY(container_description),
@@ -360,7 +360,7 @@ INSERT INTO container_size (container_volume, container_measure_id, container_de
 
 CREATE TABLE product_style (
   product_style_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  product_category_id INTEGER(4) NOT NULL,
+  product_category_id INTEGER(6) NOT NULL,
   description VARCHAR(100) NOT NULL,
   PRIMARY KEY(product_style_id),
   UNIQUE KEY(product_category_id, description),
@@ -406,8 +406,8 @@ INSERT INTO product_style (product_category_id,description) VALUES ((SELECT prod
 -- ------------------------------------------------------------
 
 CREATE TABLE sale_volume (
-  sale_volume_id INTEGER(3) NOT NULL AUTO_INCREMENT,
-  container_measure_id INTEGER UNSIGNED NOT NULL,
+  sale_volume_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  container_measure_id INTEGER(6) NOT NULL,
   sale_volume_description VARCHAR(30) NOT NULL,
   volume DECIMAL(4,2) NULL,
   PRIMARY KEY(sale_volume_id),
@@ -429,7 +429,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE contact (
   contact_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  contact_type_id INTEGER(4) NOT NULL,
+  contact_type_id INTEGER(6) NOT NULL,
   last_name VARCHAR(100) NULL,
   first_name VARCHAR(100) NULL,
   street_address VARCHAR(255) NULL,
@@ -481,10 +481,10 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE festival_entry (
-  festival_opening_id INTEGER(4) NOT NULL AUTO_INCREMENT,
-  festival_entry_type_id INTEGER(4) NOT NULL,
+  festival_opening_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_entry_type_id INTEGER(6) NOT NULL,
   currency_code CHAR(3) NOT NULL,
-  price INTEGER(11) NOT NULL,
+  price INTEGER(11) UNSIGNED NOT NULL,
   PRIMARY KEY(festival_opening_id, festival_entry_type_id),
   FOREIGN KEY FK_FE_fo_FO_fo(festival_opening_id)
     REFERENCES festival_opening(festival_opening_id)
@@ -510,13 +510,13 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE product (
   product_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  company_id INTEGER(3) NOT NULL,
+  company_id INTEGER(6) NOT NULL,
   name VARCHAR(100) NOT NULL,
   product_category_id INTEGER(6) NOT NULL,
   product_style_id INTEGER(6) NULL,
   nominal_abv DECIMAL(3,1) NULL,
   description TEXT NULL,
-  comment VARCHAR(255) NULL,
+  comment TEXT NULL,
   PRIMARY KEY(product_id),
   UNIQUE KEY (company_id, name),
   INDEX IDX_pdc_pcid(product_category_id),
@@ -542,12 +542,12 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- ------------------------------------------------------------
 
 CREATE TABLE festival_product (
-  festival_product_id INTEGER(3) NOT NULL AUTO_INCREMENT,
-  festival_id INTEGER(3) NOT NULL,
-  sale_volume_id INTEGER(3) NOT NULL,
+  festival_product_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NOT NULL,
+  sale_volume_id INTEGER(6) NOT NULL,
   sale_currency_code CHAR(3) NOT NULL,
-  sale_price INTEGER(11) NULL,
-  product_id INTEGER(3) NOT NULL,
+  sale_price INTEGER(11) UNSIGNED NULL,
+  product_id INTEGER(6) NOT NULL,
   PRIMARY KEY `fp_key` (festival_product_id, product_id, festival_id),
   UNIQUE KEY (festival_product_id),
   FOREIGN KEY FK_FP_festid_FEST_festid(festival_id)
@@ -576,8 +576,8 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE product_characteristic (
   product_id INTEGER(6) NOT NULL,
-  product_characteristic_type_id INTEGER UNSIGNED NOT NULL,
-  value INTEGER UNSIGNED NULL,
+  product_characteristic_type_id INTEGER(6) NOT NULL,
+  value INTEGER(11) UNSIGNED NULL,
   PRIMARY KEY(product_id),
   FOREIGN KEY Rel_29(product_characteristic_type_id)
     REFERENCES product_characteristic_type(product_characteristic_type_id)
@@ -663,18 +663,18 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE cask (
   cask_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  festival_id INTEGER(3) NOT NULL,
+  festival_id INTEGER(6) NOT NULL,
   gyle_id INTEGER(6) NOT NULL,
   distributor_company_id INTEGER(6) NULL,
-  container_size_id INTEGER(4) NULL,
-  bar_id INTEGER(3) NULL,
+  container_size_id INTEGER(6) NULL,
+  bar_id INTEGER(6) NULL,
   currency_code CHAR(3) NOT NULL,
-  price INTEGER UNSIGNED NULL,
-  stillage_location_id INTEGER UNSIGNED NULL,
-  stillage_bay INTEGER UNSIGNED NULL,
-  stillage_x_location INTEGER UNSIGNED NULL,
-  stillage_y_location INTEGER UNSIGNED NULL,
-  stillage_z_location INTEGER UNSIGNED NULL,
+  price INTEGER(11) UNSIGNED NULL,
+  stillage_location_id INTEGER(6) NULL,
+  stillage_bay INTEGER(4) UNSIGNED NULL,
+  stillage_x_location INTEGER(6) UNSIGNED NULL,
+  stillage_y_location INTEGER(6) UNSIGNED NULL,
+  stillage_z_location INTEGER(6) UNSIGNED NULL,
   comment TEXT NULL,
   external_reference VARCHAR(255) NULL,
   internal_reference VARCHAR(255) NULL,
@@ -683,9 +683,10 @@ CREATE TABLE cask (
   is_ready TINYINT(1) NULL,
   PRIMARY KEY(cask_id),
   UNIQUE KEY `festival_gyle_cask` (festival_id, gyle_id, internal_reference),
-  INDEX IDX_CSK_bbid(gyle_id),
-  INDEX IDX_CSK_dcid(distributor_company_id),
-  INDEX IDX_CSK_bid(bar_id),
+  INDEX FK_CSK_bbid(gyle_id),
+  INDEX FK_CSK_dcid(distributor_company_id),
+  INDEX FK_CSK_bid(bar_id),
+  INDEX FK_CSK_stid(stillage_location_id),
   INDEX FK_CSK_csid_CS_csid(container_size_id),
   INDEX FK_CSK_cc3_CUR_cc3(currency_code),
   INDEX IDX_CSK_exref(external_reference),
@@ -700,6 +701,10 @@ CREATE TABLE cask (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_fstId_FST_fstid(festival_id)
     REFERENCES festival(festival_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSK_dcId_COMP_coid(distributor_company_id)
+    REFERENCES company(company_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_curcd_CUR_curcd(currency_code)
@@ -736,7 +741,7 @@ CREATE TABLE cask_measurement (
   start_date DATETIME NULL,
   end_date DATETIME NULL,
   volume decimal(5,2) NOT NULL,
-  container_measure_id INTEGER UNSIGNED NOT NULL,
+  container_measure_id INTEGER(6) NOT NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(cask_measurement_id),
   INDEX IDX_CM_cid(cask_id),
@@ -746,6 +751,54 @@ CREATE TABLE cask_measurement (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSKM_cskid_CM_cmid(container_measure_id)
     REFERENCES container_measure(container_measure_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION
+)
+TYPE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ------------------------------------------------------------
+-- Table structure for table `product_order`
+-- Stores the information used to create an outgoing set of orders prior to the festival.
+-- This is designed to be a work-in-progress style table, with a flag indicating finalised details.
+-- ------------------------------------------------------------
+
+CREATE TABLE product_order (
+  product_order_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NULL,
+  product_id INTEGER(6) NULL,
+  distributor_company_id INTEGER(6) NULL,
+  container_size_id INTEGER(6) NULL,
+  cask_count INTEGER UNSIGNED NULL,
+  currency_code CHAR(3) NOT NULL,
+  advertised_price INTEGER UNSIGNED NULL,
+  is_final TINYINT(1) NULL,
+  comment TEXT NULL,
+  PRIMARY KEY(product_order_id),
+  UNIQUE KEY `festival_product_order` (festival_id, product_id, distributor_company_id,
+                                       container_size_id, cask_count),
+  INDEX FK_ORDER_fid(festival_id),
+  INDEX FK_ORDER_pid(product_id),
+  INDEX FK_ORDER_dcid(distributor_company_id),
+  INDEX FK_ORDER_cc3_CUR_cc3(currency_code),
+  INDEX FK_ORDER_csid_CS_csid(container_size_id),
+  FOREIGN KEY FK_ORDER_fid_FEST_fid(festival_id)
+    REFERENCES festival(festival_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_ORDER_pid_PROD_pid(product_id)
+    REFERENCES product(product_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_ORDER_did_COMP_cid(distributor_company_id)
+    REFERENCES company(company_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_ORDER_curcd_CUR_curcd(currency_code)
+    REFERENCES currency(currency_code)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_ORDER_csid_CS_csid(container_size_id)
+    REFERENCES container_size(container_size_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )

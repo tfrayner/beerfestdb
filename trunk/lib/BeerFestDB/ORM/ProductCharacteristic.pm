@@ -28,7 +28,6 @@ __PACKAGE__->table("product_characteristic");
 =head2 product_characteristic_type_id
 
   data_type: 'integer'
-  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
@@ -44,12 +43,7 @@ __PACKAGE__->add_columns(
   "product_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "product_characteristic_type_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "value",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
 );
@@ -88,8 +82,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MW8nJuJzoyEE5Mz3JEteSw
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7wt9NQd6TbcWIdNZBMGlIQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

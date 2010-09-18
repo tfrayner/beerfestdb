@@ -62,9 +62,8 @@ __PACKAGE__->table("product");
 
 =head2 comment
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 255
 
 =cut
 
@@ -84,7 +83,7 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "text", is_nullable => 1 },
   "comment",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "text", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("product_id");
 __PACKAGE__->add_unique_constraint("company_id", ["company_id", "name"]);
@@ -178,9 +177,24 @@ __PACKAGE__->has_many(
   {},
 );
 
+=head2 product_orders
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JkP49zjHLQBx/Sw9elZg2g
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::ProductOrder>
+
+=cut
+
+__PACKAGE__->has_many(
+  "product_orders",
+  "BeerFestDB::ORM::ProductOrder",
+  { "foreign.product_id" => "self.product_id" },
+  {},
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2cMkbHKyDXCCQpl3q1NeAA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

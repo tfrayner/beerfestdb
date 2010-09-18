@@ -28,7 +28,6 @@ __PACKAGE__->table("sale_volume");
 =head2 container_measure_id
 
   data_type: 'integer'
-  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
@@ -50,12 +49,7 @@ __PACKAGE__->add_columns(
   "sale_volume_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "container_measure_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "sale_volume_description",
   { data_type => "varchar", is_nullable => 0, size => 30 },
   "volume",
@@ -96,8 +90,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BgPk1hV4vTLxN6fRpMK5Zw
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:X/ciWodqHDz7BzhIKf3Ggg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
