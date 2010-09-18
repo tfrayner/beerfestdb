@@ -13,7 +13,7 @@ Ext.onReady(function(){
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        gridurl,
+        url:        url_object_list,
         root:       'objects',
         fields:     Cask
     });
@@ -50,14 +50,14 @@ Ext.onReady(function(){
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          deleteurl,
+                deleteUrl:          url_object_delete,
                 recordChanges:      recordChanges,
             }
         ),
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
-            { text: 'Festival', handler: function() { window.location = festivalurl; } },
+            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
         ],
     });
     

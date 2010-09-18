@@ -16,13 +16,13 @@ Ext.onReady(function(){
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        gridurl,
+        url:        url_object_list,
         root:       'objects',
         fields:     FestivalProduct
     });
 
     var supplier_store = new Ext.data.JsonStore({
-        url:        suppliergridurl,
+        url:        url_supplier_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}]
@@ -32,7 +32,7 @@ Ext.onReady(function(){
     supplier_store.load();
 
     var product_store = new Ext.data.JsonStore({
-        url:        productgridurl,
+        url:        url_product_list,
         root:       'objects',
         fields:     [{ name: 'product_id', type: 'int' },
                      { name: 'name',       type: 'string'}]
@@ -138,14 +138,14 @@ Ext.onReady(function(){
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          deleteurl,
+                deleteUrl:          url_object_delete,
                 recordChanges:      recordChanges,
             }
         ),
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
-            { text: 'Festival', handler: function() { window.location = festivalurl; } },
+            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
         ],
     });
     

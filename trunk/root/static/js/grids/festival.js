@@ -17,7 +17,7 @@ Ext.onReady(function(){
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        gridurl,
+        url:        url_object_list,
         root:       'objects',
         fields:     Festival
     });
@@ -87,7 +87,7 @@ Ext.onReady(function(){
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          deleteurl,
+                deleteUrl:          url_object_delete,
                 recordChanges:      recordChanges,
             }
         ),

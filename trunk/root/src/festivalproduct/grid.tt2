@@ -1,16 +1,17 @@
 [% META title = 'Product listing' %]
 
 <script type="text/javascript">
-   var gridurl     = '[% c.uri_for( "/festivalproduct/list/$category.id/$festival.id" ) %]';
-   var posturl     = '[% c.uri_for( "/festivalproduct/submit" ) %]';
-   var deleteurl   = '[% c.uri_for( "/festivalproduct/delete" ) %]';
-   var suppliergridurl     = '[% c.uri_for( "/company/list" ) %]';
-   var productgridurl      = '[% c.uri_for( "/product/list/$category.id" ) %]';
-   var category_id     = '[% category.id %]';
-   var categoryname    = '[% category.description %]';
-   var festivalurl     = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
-   var festivalname    = '[% festival.year | html %]  [% festival.name | html %]';
+   var url_object_list   = '[% c.uri_for( "/festivalproduct/list/$category.id/$festival.id" ) %]';
+   var url_object_submit = '[% c.uri_for( "/festivalproduct/submit" ) %]';
+   var url_object_delete = '[% c.uri_for( "/festivalproduct/delete" ) %]';
+   var url_supplier_list = '[% c.uri_for( "/company/list" ) %]';
+   var url_festival_view = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
+   var url_product_list  = '[% c.uri_for( "/product/list/$category.id" ) %]';
+   var category_id       = '[% category.id %]';
+   var categoryname      = '[% category.description %]';
+   var festivalname      = '[% festival.year | html %]  [% festival.name | html %]';
 </script>
+
 [% js_link( src = '/static/js/grids/festivalproduct.js' ) %]
 
 <select id='volumepopup' style='display: none'>

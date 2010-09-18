@@ -34,7 +34,7 @@ Ext.onReady(function(){
 
     formObject = new Ext.FormPanel({
         labelWidth: 100, // label settings here cascade unless overridden
-        url:       posturl,
+        url:       url_object_submit,
         frame:     true,
         title:     'Stillage details',
         bodyStyle: 'padding:5px 5px 0',

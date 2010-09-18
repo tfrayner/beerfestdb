@@ -1,10 +1,11 @@
 [% META title = 'Company listing' %]
 
 <script type="text/javascript">
-   var gridurl     = '[% c.uri_for( "/company/list" ) %]';
-   var posturl     = '[% c.uri_for( "/company/submit" ) %]';
-   var deleteurl   = '[% c.uri_for( "/company/delete" ) %]';
+   var url_object_list   = '[% c.uri_for( "/company/list" ) %]';
+   var url_object_submit = '[% c.uri_for( "/company/submit" ) %]';
+   var url_object_delete = '[% c.uri_for( "/company/delete" ) %]';
 </script>
+
 [% js_link( src = '/static/js/grids/company.js' ) %]
 
 <select id='regionpopup' style='display: none'>
