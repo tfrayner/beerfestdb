@@ -47,6 +47,7 @@ __PACKAGE__->table("festival_product");
 =head2 sale_price
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_nullable: 1
 
 =head2 product_id
@@ -67,7 +68,7 @@ __PACKAGE__->add_columns(
   "sale_currency_code",
   { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 3 },
   "sale_price",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "product_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
@@ -133,8 +134,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8IN0Drt4OV9y9a9JVXyVZg
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tJmBqA0Cgf4wA5/6XFRbZQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

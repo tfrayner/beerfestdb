@@ -22,7 +22,6 @@ __PACKAGE__->table("container_measure");
 =head2 container_measure_id
 
   data_type: 'integer'
-  extra: {unsigned => 1}
   is_auto_increment: 1
   is_nullable: 0
 
@@ -41,12 +40,7 @@ __PACKAGE__->table("container_measure");
 
 __PACKAGE__->add_columns(
   "container_measure_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_auto_increment => 1,
-    is_nullable => 0,
-  },
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "litre_multiplier",
   { data_type => "float", is_nullable => 0 },
   "description",
@@ -103,8 +97,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ejRY0izieORGdBvHNk1pEw
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HqqdtCiaW0IEbXUI3ttGLQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

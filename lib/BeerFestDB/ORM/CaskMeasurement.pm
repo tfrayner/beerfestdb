@@ -55,7 +55,6 @@ __PACKAGE__->table("cask_measurement");
 =head2 container_measure_id
 
   data_type: 'integer'
-  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
@@ -81,12 +80,7 @@ __PACKAGE__->add_columns(
   "volume",
   { data_type => "decimal", is_nullable => 0, size => [5, 2] },
   "container_measure_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "comment",
   { data_type => "varchar", is_nullable => 1, size => 255 },
 );
@@ -119,8 +113,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PTEuPBi9W1jj/3SHq0Dpkw
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jvXwiD4H3QJ9/+1bmHbB/g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

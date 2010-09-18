@@ -40,6 +40,7 @@ __PACKAGE__->table("cask");
 =head2 distributor_company_id
 
   data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 1
 
 =head2 container_size_id
@@ -70,7 +71,6 @@ __PACKAGE__->table("cask");
 =head2 stillage_location_id
 
   data_type: 'integer'
-  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 1
 
@@ -140,7 +140,7 @@ __PACKAGE__->add_columns(
   "gyle_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "distributor_company_id",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "container_size_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "bar_id",
@@ -150,12 +150,7 @@ __PACKAGE__->add_columns(
   "price",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "stillage_location_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 1,
-  },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "stillage_bay",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "stillage_x_location",
@@ -179,7 +174,7 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key("cask_id");
 __PACKAGE__->add_unique_constraint(
-  "festival_id",
+  "festival_gyle_cask",
   ["festival_id", "gyle_id", "internal_reference"],
 );
 
@@ -221,6 +216,20 @@ __PACKAGE__->belongs_to(
   "festival_id",
   "BeerFestDB::ORM::Festival",
   { festival_id => "festival_id" },
+);
+
+=head2 distributor_company_id
+
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::Company>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "distributor_company_id",
+  "BeerFestDB::ORM::Company",
+  { company_id => "distributor_company_id" },
 );
 
 =head2 currency_code
@@ -277,8 +286,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yLcH1cCSOEns+14NGoIvuQ
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V0zLwF9TIZR0jMDbkfMevA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

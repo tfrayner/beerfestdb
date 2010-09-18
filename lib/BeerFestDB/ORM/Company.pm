@@ -37,6 +37,12 @@ __PACKAGE__->table("company");
   is_nullable: 1
   size: 100
 
+=head2 company_region_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 year_founded
 
   data_type: 'year'
@@ -54,12 +60,6 @@ __PACKAGE__->table("company");
   is_nullable: 1
   size: 255
 
-=head2 company_region_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -69,19 +69,34 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 100 },
   "loc_desc",
   { data_type => "varchar", is_nullable => 1, size => 100 },
+  "company_region_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "year_founded",
   { data_type => "year", is_nullable => 1 },
   "url",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "comment",
   { data_type => "varchar", is_nullable => 1, size => 255 },
-  "company_region_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("company_id");
 __PACKAGE__->add_unique_constraint("name", ["name"]);
 
 =head1 RELATIONS
+
+=head2 casks
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::Cask>
+
+=cut
+
+__PACKAGE__->has_many(
+  "casks",
+  "BeerFestDB::ORM::Cask",
+  { "foreign.distributor_company_id" => "self.company_id" },
+  {},
+);
 
 =head2 company_region_id
 
@@ -142,9 +157,24 @@ __PACKAGE__->has_many(
   {},
 );
 
+=head2 product_orders
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-06-05 23:21:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EAzYw1eiOFwQwRbaLYXR8A
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::ProductOrder>
+
+=cut
+
+__PACKAGE__->has_many(
+  "product_orders",
+  "BeerFestDB::ORM::ProductOrder",
+  { "foreign.distributor_company_id" => "self.company_id" },
+  {},
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BXsV/a7X5P6h76ZBoGioDQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

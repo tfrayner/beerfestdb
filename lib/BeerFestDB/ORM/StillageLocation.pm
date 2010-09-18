@@ -22,7 +22,6 @@ __PACKAGE__->table("stillage_location");
 =head2 stillage_location_id
 
   data_type: 'integer'
-  extra: {unsigned => 1}
   is_auto_increment: 1
   is_nullable: 0
 
@@ -42,12 +41,7 @@ __PACKAGE__->table("stillage_location");
 
 __PACKAGE__->add_columns(
   "stillage_location_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_auto_increment => 1,
-    is_nullable => 0,
-  },
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "festival_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "description",
@@ -88,8 +82,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XsYfbs0627lXzUpV8JynFw
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dNbDOplEU23f9qoyQVDIwA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
