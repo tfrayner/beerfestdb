@@ -69,7 +69,7 @@ SaveButton = Ext.extend(Ext.Button, {
                           for ( var i = 0 ; i < dirty.length ; i++ ) {
                               changes.push( this.recordChanges(dirty[i]) );
                           }
-                          submitChanges( changes, posturl, this.grid.store );
+                          submitChanges( changes, url_object_submit, this.grid.store );
                           this.grid.store.commitChanges();
                       },
                       scope: this,
