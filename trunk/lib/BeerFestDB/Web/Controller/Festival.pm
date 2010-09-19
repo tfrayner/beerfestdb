@@ -37,16 +37,21 @@ sub list : Local {
     my ( $self, $c ) = @_;
 
     my $rs = $c->model( 'DB::Festival' );
+
+    # Maps View onto Model columns.
+    my %mv_map = (        
+        festival_id     => 'festival_id',
+        year            => 'year',
+        name            => 'name',
+        description     => 'description',
+        fst_start_date  => 'fst_start_date',
+        fst_end_date    => 'fst_end_date',
+    );
+
     my @festivals;
-    while ( my $fest = $rs->next ) {
-        push( @festivals, {
-            festival_id => $fest->festival_id,
-            year        => $fest->year,
-            name        => $fest->name,
-            description => $fest->description,
-            fst_start_date  => $fest->fst_start_date,
-            fst_end_date    => $fest->fst_end_date,
-        } );
+    while ( my $obj = $rs->next() ) {
+        my %fest_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
+        push @festivals, \%fest_info;
     }
 
     $c->stash->{ 'objects' } = \@festivals;

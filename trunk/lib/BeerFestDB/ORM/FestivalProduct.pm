@@ -37,12 +37,11 @@ __PACKAGE__->table("festival_product");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 sale_currency_code
+=head2 sale_currency_id
 
-  data_type: 'char'
+  data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
-  size: 3
 
 =head2 sale_price
 
@@ -65,8 +64,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "sale_volume_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "sale_currency_code",
-  { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 3 },
+  "sale_currency_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "sale_price",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "product_id",
@@ -119,7 +118,7 @@ __PACKAGE__->belongs_to(
   { sale_volume_id => "sale_volume_id" },
 );
 
-=head2 sale_currency_code
+=head2 sale_currency_id
 
 Type: belongs_to
 
@@ -128,14 +127,14 @@ Related object: L<BeerFestDB::ORM::Currency>
 =cut
 
 __PACKAGE__->belongs_to(
-  "sale_currency_code",
+  "sale_currency_id",
   "BeerFestDB::ORM::Currency",
-  { currency_code => "sale_currency_code" },
+  { currency_id => "sale_currency_id" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tJmBqA0Cgf4wA5/6XFRbZQ
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-19 14:43:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g06dkFQvLznTY0BFHPu5xQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

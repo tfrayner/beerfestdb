@@ -35,20 +35,23 @@ sub list : Local {
 
     my ( $self, $c ) = @_;
 
-    my @db_objs = $c->model( 'DB::Company' )->all();
+    my $rs = $c->model( 'DB::Company' );
+
+    # Maps View onto Model columns.
+    my %mv_map = (        
+        company_id        => 'company_id',
+        name              => 'name',
+        loc_desc          => 'loc_desc',
+        year_founded      => 'year_founded',
+        url               => 'url',
+        comment           => 'comment',
+        company_region_id => 'company_region_id',
+    );
 
     my @companies;
-    foreach my $obj ( @db_objs ) {
-        my %comp = map { $_ => $obj->$_ } qw( company_id
-                                              name
-                                              loc_desc
-                                              year_founded
-                                              url
-                                              comment );
-        if ( my $region = $obj->company_region_id ) {
-            $comp{company_region_id} = $region->company_region_id();
-        }
-        push @companies, \%comp;
+    while ( my $obj = $rs->next() ) {
+        my %comp_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
+        push @companies, \%comp_info;
     }
 
     $c->stash->{ 'objects' } = \@companies;
@@ -61,15 +64,7 @@ sub list : Local {
 
 =cut
 
-sub grid : Local {
-
-    my ( $self, $c ) = @_;
-
-    my @regions = $c->model('DB::CompanyRegion')->all();
-    $c->stash->{regions} = \@regions;
-
-    return;
-}
+sub grid : Local {}
 
 =head2 submit
 

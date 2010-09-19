@@ -8,13 +8,13 @@ Ext.onReady(function(){
     Ext.QuickTips.init();
     
     var Company = Ext.data.Record.create([
-        { name: 'company_id',       type: 'int' },
-        { name: 'name',             type: 'string',        allowBlank: false },
-        { name: 'loc_desc',         type: 'string' },
+        { name: 'company_id',        type: 'int' },
+        { name: 'name',              type: 'string',   allowBlank: false },
+        { name: 'loc_desc',          type: 'string' },
         { name: 'company_region_id', type: 'int'},
-        { name: 'year_founded',     type: 'int' },
-        { name: 'url',              type: 'string' },
-        { name: 'comment',          type: 'string' },
+        { name: 'year_founded',      type: 'int' },
+        { name: 'url',               type: 'string' },
+        { name: 'comment',           type: 'string' },
     ]);
 
     var store = new Ext.data.JsonStore({
@@ -23,10 +23,20 @@ Ext.onReady(function(){
         fields:     Company
     });
 
+    /* Company region drop-down */
+    var region_store = new Ext.data.JsonStore({
+        url:        url_company_region_list,
+        root:       'objects',
+        fields:     [{ name: 'company_region_id', type: 'int'    },
+                     { name: 'description',       type: 'string' }]
+    });
+    region_store.load();
     var region_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
-        transform:      'regionpopup',
+        store:          region_store,
+        valueField:     'company_region_id',
+        displayField:   'description',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
     });

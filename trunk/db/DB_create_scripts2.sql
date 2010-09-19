@@ -11,12 +11,13 @@
 -- ------------------------------------------------------------
 
 CREATE TABLE currency (
+  currency_id INT(6) NOT NULL AUTO_INCREMENT,
   currency_code CHAR(3) NOT NULL,
   currency_number CHAR(3) NOT NULL,
   currency_format VARCHAR(20) NOT NULL,
   exponent TINYINT(4) NOT NULL,
   currency_symbol VARCHAR(10) NOT NULL,
-  PRIMARY KEY(currency_code),
+  PRIMARY KEY(currency_id),
   INDEX CUR_currencynumber(currency_number)
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
@@ -483,7 +484,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 CREATE TABLE festival_entry (
   festival_opening_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   festival_entry_type_id INTEGER(6) NOT NULL,
-  currency_code CHAR(3) NOT NULL,
+  currency_id INT(6) NOT NULL,
   price INTEGER(11) UNSIGNED NOT NULL,
   PRIMARY KEY(festival_opening_id, festival_entry_type_id),
   FOREIGN KEY FK_FE_fo_FO_fo(festival_opening_id)
@@ -494,8 +495,8 @@ CREATE TABLE festival_entry (
     REFERENCES festival_entry_type(festival_entry_type_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
-  FOREIGN KEY FK_FE_cc_CUR_cc(currency_code)
-    REFERENCES currency(currency_code)
+  FOREIGN KEY FK_FE_cc_CUR_cc(currency_id)
+    REFERENCES currency(currency_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
@@ -545,7 +546,7 @@ CREATE TABLE festival_product (
   festival_product_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   festival_id INTEGER(6) NOT NULL,
   sale_volume_id INTEGER(6) NOT NULL,
-  sale_currency_code CHAR(3) NOT NULL,
+  sale_currency_id INTEGER(6) NOT NULL,
   sale_price INTEGER(11) UNSIGNED NULL,
   product_id INTEGER(6) NOT NULL,
   PRIMARY KEY `fp_key` (festival_product_id, product_id, festival_id),
@@ -563,8 +564,8 @@ CREATE TABLE festival_product (
     REFERENCES sale_volume(sale_volume_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
-  FOREIGN KEY FK_PDCT_slccode_CUR_ccode(sale_currency_code)
-    REFERENCES currency(currency_code)
+  FOREIGN KEY FK_PDCT_slccode_CUR_ccode(sale_currency_id)
+    REFERENCES currency(currency_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
@@ -668,7 +669,7 @@ CREATE TABLE cask (
   distributor_company_id INTEGER(6) NULL,
   container_size_id INTEGER(6) NULL,
   bar_id INTEGER(6) NULL,
-  currency_code CHAR(3) NOT NULL,
+  currency_id INTEGER(6) NOT NULL,
   price INTEGER(11) UNSIGNED NULL,
   stillage_location_id INTEGER(6) NULL,
   stillage_bay INTEGER(4) UNSIGNED NULL,
@@ -688,7 +689,7 @@ CREATE TABLE cask (
   INDEX FK_CSK_bid(bar_id),
   INDEX FK_CSK_stid(stillage_location_id),
   INDEX FK_CSK_csid_CS_csid(container_size_id),
-  INDEX FK_CSK_cc3_CUR_cc3(currency_code),
+  INDEX FK_CSK_cc3_CUR_cc3(currency_id),
   INDEX IDX_CSK_exref(external_reference),
   INDEX IDX_CSK_iref(internal_reference),
   FOREIGN KEY FK_CSK_bid_BR_bid(bar_id)
@@ -707,8 +708,8 @@ CREATE TABLE cask (
     REFERENCES company(company_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CSK_curcd_CUR_curcd(currency_code)
-    REFERENCES currency(currency_code)
+  FOREIGN KEY FK_CSK_curcd_CUR_curcd(currency_id)
+    REFERENCES currency(currency_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_gyleid_GYLE_gyleid(gyle_id)
@@ -769,7 +770,7 @@ CREATE TABLE product_order (
   distributor_company_id INTEGER(6) NULL,
   container_size_id INTEGER(6) NULL,
   cask_count INTEGER UNSIGNED NULL,
-  currency_code CHAR(3) NOT NULL,
+  currency_id INTEGER(6) NOT NULL,
   advertised_price INTEGER UNSIGNED NULL,
   is_final TINYINT(1) NULL,
   comment TEXT NULL,
@@ -779,7 +780,7 @@ CREATE TABLE product_order (
   INDEX FK_ORDER_fid(festival_id),
   INDEX FK_ORDER_pid(product_id),
   INDEX FK_ORDER_dcid(distributor_company_id),
-  INDEX FK_ORDER_cc3_CUR_cc3(currency_code),
+  INDEX FK_ORDER_cc3_CUR_cc3(currency_id),
   INDEX FK_ORDER_csid_CS_csid(container_size_id),
   FOREIGN KEY FK_ORDER_fid_FEST_fid(festival_id)
     REFERENCES festival(festival_id)
@@ -793,8 +794,8 @@ CREATE TABLE product_order (
     REFERENCES company(company_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
-  FOREIGN KEY FK_ORDER_curcd_CUR_curcd(currency_code)
-    REFERENCES currency(currency_code)
+  FOREIGN KEY FK_ORDER_curcd_CUR_curcd(currency_id)
+    REFERENCES currency(currency_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_ORDER_csid_CS_csid(container_size_id)

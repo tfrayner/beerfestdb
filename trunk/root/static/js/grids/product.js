@@ -22,25 +22,14 @@ Ext.onReady(function(){
         fields:     Product
     });
 
-    // N.B. this could be replaced by a two-field list in this case...
-    var Company = Ext.data.Record.create([
-        { name: 'company_id',       type: 'int' },
-        { name: 'name',             type: 'string',  allowBlank: false },
-        { name: 'loc_desc',         type: 'string' },
-        { name: 'year_founded',     type: 'int' },
-        { name: 'url',              type: 'string' },
-        { name: 'comment',          type: 'string' },
-    ]);
-
+    /* Supplier drop-down */
     var supplier_store = new Ext.data.JsonStore({
         url:        url_supplier_list,
         root:       'objects',
-        fields:     Company
+        fields:     [{ name: 'company_id', type: 'int' },
+                     { name: 'name',       type: 'string'}]
     });
-
-    /* Force the store to load from the database */
     supplier_store.load();
-
     var brewer_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -52,11 +41,21 @@ Ext.onReady(function(){
         lazyRender:     true,
         listClass:      'x-combo-list-small',
     });
-    
+
+    /* Product Style drop-down */
+    var style_store = new Ext.data.JsonStore({
+        url:        url_product_style_list,
+        root:       'objects',
+        fields:     [{ name: 'product_style_id', type: 'int'    },
+                     { name: 'description',      type: 'string' }]
+    });
+    style_store.load();
     var style_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
-        transform:      'stylepopup',
+        store:          style_store,
+        valueField:     'product_style_id',
+        displayField:   'description',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
     });

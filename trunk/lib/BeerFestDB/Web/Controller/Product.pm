@@ -49,7 +49,8 @@ sub list : Local {
     # linking via cask and gyle). At some point it may be wiser to
     # split this method, e.g. building on the FestivalProduct class instead.
 
-    my ( $product_rs, $festival );
+    my ( $rs, $festival );
+    my $cond = defined $category_id ? { product_category_id => $category_id } : {};
     if ( defined $festival_id ) {
         $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
         unless ( $festival ) {
@@ -57,30 +58,26 @@ sub list : Local {
             $c->res->redirect( $c->uri_for('/default') );
             $c->detach();
         }
-        $product_rs = $festival->search_related('festival_products')
-                               ->search_related('product_id',
-                                                { product_category_id => $category_id });
+        $rs = $festival->search_related('festival_products')
+                       ->search_related('product_id', $cond);
     }
     else {
-        $product_rs = $c->model( 'DB::Product' )->search_rs({product_category_id => $category_id});
+        $rs = $c->model( 'DB::Product' )->search_rs($cond);
     }
     
+    # Maps View onto Model columns.
+    my %mv_map = (        
+        product_id       => 'product_id',
+        company_id       => 'company_id',
+        name             => 'name',
+        description      => 'description',
+        comment          => 'comment',
+        product_style_id => 'product_style_id',
+    );
+
     my @products;
-    while ( my $prod = $product_rs->next ) {
-        my $style_id;
-        if ( my $style = $prod->product_style_id ) {
-            $style_id = $style->product_style_id;
-        }
-
-        my %prod_info = (
-            product_id  => $prod->product_id,
-            company_id  => $prod->company_id->company_id,
-            name        => $prod->name,
-            description => $prod->description,
-            comment     => $prod->comment,
-            product_style_id => $style_id,
-        );
-
+    while ( my $obj = $rs->next ) {
+        my %prod_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
         push @products, \%prod_info;
     }
 
@@ -175,9 +172,6 @@ sub grid : Local {
         $c->detach();        
     }
     $c->stash->{category} = $category;
-
-    my @styles = $category->product_styles();
-    $c->stash->{styles} = \@styles;
 }
 
 =head1 AUTHOR

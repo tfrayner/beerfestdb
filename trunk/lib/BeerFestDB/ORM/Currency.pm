@@ -19,6 +19,12 @@ __PACKAGE__->table("currency");
 
 =head1 ACCESSORS
 
+=head2 currency_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+
 =head2 currency_code
 
   data_type: 'char'
@@ -51,6 +57,8 @@ __PACKAGE__->table("currency");
 =cut
 
 __PACKAGE__->add_columns(
+  "currency_id",
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "currency_code",
   { data_type => "char", is_nullable => 0, size => 3 },
   "currency_number",
@@ -62,7 +70,7 @@ __PACKAGE__->add_columns(
   "currency_symbol",
   { data_type => "varchar", is_nullable => 0, size => 10 },
 );
-__PACKAGE__->set_primary_key("currency_code");
+__PACKAGE__->set_primary_key("currency_id");
 
 =head1 RELATIONS
 
@@ -77,7 +85,7 @@ Related object: L<BeerFestDB::ORM::Cask>
 __PACKAGE__->has_many(
   "casks",
   "BeerFestDB::ORM::Cask",
-  { "foreign.currency_code" => "self.currency_code" },
+  { "foreign.currency_id" => "self.currency_id" },
   {},
 );
 
@@ -92,7 +100,7 @@ Related object: L<BeerFestDB::ORM::FestivalEntry>
 __PACKAGE__->has_many(
   "festival_entries",
   "BeerFestDB::ORM::FestivalEntry",
-  { "foreign.currency_code" => "self.currency_code" },
+  { "foreign.currency_id" => "self.currency_id" },
   {},
 );
 
@@ -107,7 +115,7 @@ Related object: L<BeerFestDB::ORM::FestivalProduct>
 __PACKAGE__->has_many(
   "festival_products",
   "BeerFestDB::ORM::FestivalProduct",
-  { "foreign.sale_currency_code" => "self.currency_code" },
+  { "foreign.sale_currency_id" => "self.currency_id" },
   {},
 );
 
@@ -122,13 +130,13 @@ Related object: L<BeerFestDB::ORM::ProductOrder>
 __PACKAGE__->has_many(
   "product_orders",
   "BeerFestDB::ORM::ProductOrder",
-  { "foreign.currency_code" => "self.currency_code" },
+  { "foreign.currency_id" => "self.currency_id" },
   {},
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wXue+6DZlmw6W+nlqJsd8w
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-19 14:43:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vsZSP8MdECITT9k5+fRd8Q
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

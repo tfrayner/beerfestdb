@@ -4,14 +4,9 @@
    var url_object_list   = '[% c.uri_for( "/company/list" ) %]';
    var url_object_submit = '[% c.uri_for( "/company/submit" ) %]';
    var url_object_delete = '[% c.uri_for( "/company/delete" ) %]';
+   var url_company_region_list = '[% c.uri_for( "/companyregion/list" ) %]';
 </script>
 
 [% js_link( src = '/static/js/grids/company.js' ) %]
-
-<select id='regionpopup' style='display: none'>
-[% FOREACH region = regions.sort('description') -%]
-<option value="[% region.company_region_id | html %]">[% region.description | html %]</option>
-[% END %]
-</select>
 
 <div id="datagrid"></div>

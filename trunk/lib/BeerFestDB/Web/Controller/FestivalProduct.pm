@@ -39,7 +39,7 @@ sub list : Local {
 
     my ( $self, $c, $category_id, $festival_id ) = @_;
 
-    my ( $fp_rs, $festival );
+    my ( $rs, $festival );
     if ( defined $festival_id ) {
         $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
         unless ( $festival ) {
@@ -47,7 +47,7 @@ sub list : Local {
             $c->res->redirect( $c->uri_for('/default') );
             $c->detach();
         }
-        $fp_rs = $festival->search_related(
+        $rs = $festival->search_related(
             'festival_products',
             { 'product_id.product_category_id' => $category_id },
             {
@@ -59,17 +59,19 @@ sub list : Local {
         die('Error: festival_id not defined.');
     }
     
-    my @fps;
-    while ( my $fp = $fp_rs->next ) {
-        my %fp_info = (
-            festival_product_id => $fp->festival_product_id,
-            product_id          => $fp->product_id->product_id,
-            company_id          => $fp->product_id->company_id->company_id,
-            sale_price          => $fp->sale_price,
-            sale_currency_code  => $fp->sale_currency_code->currency_code,
-            sale_volume_id      => $fp->sale_volume_id->sale_volume_id,
-        );
+    # Maps View onto Model columns.
+    my %mv_map = (        
+        festival_product_id => 'festival_product_id',
+        product_id          => 'product_id',
+        sale_price          => 'sale_price',
+        sale_currency_id    => 'sale_currency_id',
+        sale_volume_id      => 'sale_volume_id',
+    );
 
+    my @fps;
+    while ( my $obj = $rs->next() ) {
+        my %fp_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
+        $fp_info{'company_id'} = $obj->product_id->get_column('company_id');
         push @fps, \%fp_info;
     }
 
@@ -102,12 +104,6 @@ sub grid : Local {
         $c->detach();        
     }
     $c->stash->{category} = $category;
-
-    my @brewers = $c->model('DB::Company')->all();
-    $c->stash->{brewers} = \@brewers;
-
-    my @products = $c->model('DB::Product')->all();
-    $c->stash->{products} = \@products;
 
     my @currencies = $c->model('DB::Currency')->all();
     $c->stash->{currencies} = \@currencies;
