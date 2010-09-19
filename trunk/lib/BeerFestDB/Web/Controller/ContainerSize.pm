@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::ContainerSize;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -14,6 +14,20 @@ Catalyst Controller.
 
 =head1 METHODS
 
+=cut
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    $self->model_view_map({
+        container_size_id => 'container_size_id',
+        volume            => 'container_volume',
+        measure_id        => 'container_measure_id',
+        description       => 'container_description',
+    });
+}
+
 =head2 list
 
 =cut
@@ -24,24 +38,7 @@ sub list : Local {
 
     my $rs = $c->model( 'DB::ContainerSize' );
 
-    # Maps View onto Model columns.
-    my %mv_map = (        
-        container_size_id => 'container_size_id',
-        volume            => 'container_volume',
-        measure_id        => 'container_measure_id',
-        description       => 'container_description',
-    );
-
-    my @sizes;
-    while ( my $obj = $rs->next() ) {
-        my %size_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @sizes, \%size_info;
-    }
-
-    $c->stash->{ 'objects' } = \@sizes;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =cut

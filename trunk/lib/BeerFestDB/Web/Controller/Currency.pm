@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::Currency;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -14,6 +14,22 @@ Catalyst Controller.
 
 =head1 METHODS
 
+=cut
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    $self->model_view_map({
+        currency_id     => 'currency_id',
+        currency_code   => 'currency_code',
+        currency_number => 'currency_number',
+        currency_format => 'currency_format',
+        exponent        => 'exponent',
+        currency_symbol => 'currency_symbol',
+    });
+}
+
 =head2 list
 
 =cut
@@ -24,26 +40,7 @@ sub list : Local {
 
     my $rs = $c->model( 'DB::Currency' );
 
-    # Maps View onto Model columns.
-    my %mv_map = (
-        currency_id     => 'currency_id',
-        currency_code   => 'currency_code',
-        currency_number => 'currency_number',
-        currency_format => 'currency_format',
-        exponent        => 'exponent',
-        currency_symbol => 'currency_symbol',
-    );
-
-    my @currencies;
-    while ( my $obj = $rs->next() ) {
-        my %curr_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @currencies, \%curr_info;
-    }
-
-    $c->stash->{ 'objects' } = \@currencies;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head1 AUTHOR

@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::SaleVolume;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -14,6 +14,20 @@ Catalyst Controller.
 
 =head1 METHODS
 
+=cut
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    $self->model_view_map({
+        sale_volume_id       => 'sale_volume_id',
+        container_measure_id => 'container_measure_id',
+        description          => 'sale_volume_description',
+        volume               => 'volume',
+    });
+}
+
 =head2 list
 
 =cut
@@ -24,24 +38,7 @@ sub list : Local {
 
     my $rs = $c->model( 'DB::SaleVolume' );
 
-    # Maps View onto Model columns.
-    my %mv_map = (
-        sale_volume_id       => 'sale_volume_id',
-        container_measure_id => 'container_measure_id',
-        description          => 'sale_volume_description',
-        volume               => 'volume',
-    );
-
-    my @volumes;
-    while ( my $obj = $rs->next() ) {
-        my %vol_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @volumes, \%vol_info;
-    }
-
-    $c->stash->{ 'objects' } = \@volumes;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head1 AUTHOR
