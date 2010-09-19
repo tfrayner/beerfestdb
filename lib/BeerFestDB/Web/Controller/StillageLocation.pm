@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::StillageLocation;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -16,15 +16,12 @@ Catalyst Controller.
 
 =cut
 
+sub BUILD {
 
-=head2 index
+    my ( $self, $params ) = @_;
 
-=cut
-
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    $c->response->body('Matched BeerFestDB::Web::Controller::StillageLocation in StillageLocation.');
+    $self->model_view_map({
+    });
 }
 
 # FIXME we need a means to edit and view casks on the stillage.
@@ -89,8 +86,6 @@ sub list_casks : Local {
     $c->detach( $c->view( 'JSON' ) );
 
     return;
-
-
 }
 
 =head1 AUTHOR
@@ -104,7 +99,6 @@ it under the same terms as Perl itself.
 
 =cut
 
-# Uncomment when ready FIXME; currently blocks server restart.
-#__PACKAGE__->meta->make_immutable;
+__PACKAGE__->meta->make_immutable;
 
 1;

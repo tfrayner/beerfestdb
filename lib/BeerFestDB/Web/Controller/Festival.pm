@@ -1,8 +1,8 @@
 package BeerFestDB::Web::Controller::Festival;
+use Moose;
+use namespace::autoclean;
 
-use strict;
-use warnings;
-use parent 'Catalyst::Controller';
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -16,6 +16,19 @@ Catalyst Controller.
 
 =cut
 
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    $self->model_view_map({
+        festival_id     => 'festival_id',
+        year            => 'year',
+        name            => 'name',
+        description     => 'description',
+        fst_start_date  => 'fst_start_date',
+        fst_end_date    => 'fst_end_date',
+    });
+}
 
 =head2 index 
 
@@ -38,26 +51,7 @@ sub list : Local {
 
     my $rs = $c->model( 'DB::Festival' );
 
-    # Maps View onto Model columns.
-    my %mv_map = (        
-        festival_id     => 'festival_id',
-        year            => 'year',
-        name            => 'name',
-        description     => 'description',
-        fst_start_date  => 'fst_start_date',
-        fst_end_date    => 'fst_end_date',
-    );
-
-    my @festivals;
-    while ( my $obj = $rs->next() ) {
-        my %fest_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @festivals, \%fest_info;
-    }
-
-    $c->stash->{ 'objects' } = \@festivals;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head2 submit
@@ -70,24 +64,7 @@ sub submit : Local {
 
     my $rs = $c->model( 'DB::Festival' );
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
-
-    foreach my $rec ( @{ $data } ) {
-        eval {
-            $rs->update_or_create( $rec );
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to save one or more festivals to database: $@";
-        }
-    }
-
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->write_to_resultset( $c, $rs );
 }
 
 =head2 delete
@@ -100,34 +77,14 @@ sub delete : Local {
 
     my $rs = $c->model( 'DB::Festival' );
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
-
-    foreach my $id ( @{ $data } ) {
-        my $rec = $rs->find($id);
-        eval {
-            $rec->delete() if $rec;
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to delete one or more festivals: $@";
-        }
-    }
-
-    $c->detach( $c->view( 'JSON' ) );
+    $self->delete_from_resultset( $c, $rs );
 }
 
 =head2 grid
 
 =cut
 
-sub grid : Local {
-
-    my ( $self, $c ) = @_;
-
-}
+sub grid : Local {}
 
 =head2 view
 

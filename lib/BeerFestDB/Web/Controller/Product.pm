@@ -1,8 +1,8 @@
 package BeerFestDB::Web::Controller::Product;
+use Moose;
+use namespace::autoclean;
 
-use strict;
-use warnings;
-use parent 'Catalyst::Controller';
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 use Storable qw(dclone);
 
@@ -18,6 +18,19 @@ Catalyst Controller.
 
 =cut
 
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    $self->model_view_map({
+        product_id       => 'product_id',
+        company_id       => 'company_id',
+        name             => 'name',
+        description      => 'description',
+        comment          => 'comment',
+        product_style_id => 'product_style_id',
+    });
+}
 
 =head2 index
 
@@ -65,26 +78,7 @@ sub list : Local {
         $rs = $c->model( 'DB::Product' )->search_rs($cond);
     }
     
-    # Maps View onto Model columns.
-    my %mv_map = (        
-        product_id       => 'product_id',
-        company_id       => 'company_id',
-        name             => 'name',
-        description      => 'description',
-        comment          => 'comment',
-        product_style_id => 'product_style_id',
-    );
-
-    my @products;
-    while ( my $obj = $rs->next ) {
-        my %prod_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @products, \%prod_info;
-    }
-
-    $c->stash->{ 'objects' } = \@products;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head2 submit
@@ -97,25 +91,7 @@ sub submit : Local {
 
     my $rs = $c->model( 'DB::Product' );
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
-
-    foreach my $rec ( @{ $data } ) {
-        
-        eval {
-            my $prod = $rs->update_or_create( $rec );
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to save one or more products to database: $@";
-        }
-    }
-    
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->write_to_resultset( $c, $rs );
 }
 
 =head2 delete
@@ -128,23 +104,7 @@ sub delete : Local {
 
     my $rs = $c->model( 'DB::Product' );
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
-
-    foreach my $id ( @{ $data } ) {
-        my $rec = $rs->find($id);
-        eval {
-            $rec->delete() if $rec;
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to delete one or more products: $@";
-        }
-    }
-
-    $c->detach( $c->view( 'JSON' ) );
+    $self->delete_from_resultset( $c, $rs );
 }
 
 =head2 grid

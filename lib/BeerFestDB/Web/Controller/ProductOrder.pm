@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::ProductOrder;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -16,15 +16,21 @@ Catalyst Controller.
 
 =cut
 
+sub BUILD {
 
-=head2 index
+    my ( $self, $params ) = @_;
 
-=cut
-
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    $c->response->body('Matched BeerFestDB::Web::Controller::ProductOrder in ProductOrder.');
+    $self->model_view_map({
+        product_order_id  => 'product_order_id',
+        product_id        => 'product_id',
+        distributor_id    => 'distributor_company_id',
+        container_size_id => 'container_size_id',
+        cask_count        => 'cask_count',
+        currency_id       => 'currency_id',
+        price             => 'advertised_price',
+        is_final          => 'is_final',
+        comment           => 'comment',
+    });
 }
 
 =head2 list
@@ -62,29 +68,7 @@ sub list : Local {
         $rs = $c->model( 'DB::ProductOrder' )->search_rs( $cond, $attrs );
     }
 
-    # Maps View onto Model columns.
-    my %mv_map = (
-        product_order_id  => 'product_order_id',
-        product_id        => 'product_id',
-        distributor_id    => 'distributor_company_id',
-        container_size_id => 'container_size_id',
-        cask_count        => 'cask_count',
-        currency_id       => 'currency_id',
-        price             => 'advertised_price',
-        is_final          => 'is_final',
-        comment           => 'comment',
-    );
-
-    my @orders;
-    while ( my $obj = $rs->next ) {
-        my %order_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @orders, \%order_info;
-    }
-
-    $c->stash->{ 'objects' } = \@orders;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head2 submit
@@ -97,25 +81,7 @@ sub submit : Local {
 
     my $rs = $c->model( 'DB::ProductOrder' );
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
-
-    foreach my $rec ( @{ $data } ) {
-        
-        eval {
-            my $order = $rs->update_or_create( $rec );
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to save one or more orders to database: $@";
-        }
-    }
-    
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->write_to_resultset( $c, $rs );
 }
 
 =head2 delete
@@ -128,23 +94,7 @@ sub delete : Local {
 
     my $rs = $c->model( 'DB::ProductOrder' );
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
-
-    foreach my $id ( @{ $data } ) {
-        my $rec = $rs->find($id);
-        eval {
-            $rec->delete() if $rec;
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to delete one or more orders: $@";
-        }
-    }
-
-    $c->detach( $c->view( 'JSON' ) );
+    $self->delete_from_resultset( $c, $rs );
 }
 
 =head2 grid

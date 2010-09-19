@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::ProductStyle;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -14,6 +14,19 @@ Catalyst Controller.
 
 =head1 METHODS
 
+=cut
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    $self->model_view_map({
+        product_style_id      => 'product_style_id',
+        product_category_id   => 'product_category_id',
+        description           => 'description',
+    });
+}
+
 =head2 list
 
 =cut
@@ -24,23 +37,7 @@ sub list : Local {
 
     my $rs = $c->model( 'DB::ProductStyle' );
 
-    # Maps View onto Model columns.
-    my %mv_map = (
-        product_style_id      => 'product_style_id',
-        product_category_id   => 'product_category_id',
-        description           => 'description',
-    );
-
-    my @styles;
-    while ( my $obj = $rs->next() ) {
-        my %style_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @styles, \%style_info;
-    }
-
-    $c->stash->{ 'objects' } = \@styles;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head1 AUTHOR

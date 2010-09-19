@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::Company;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -16,15 +16,19 @@ Catalyst Controller.
 
 =cut
 
+sub BUILD {
 
-=head2 index
+    my ( $self, $params ) = @_;
 
-=cut
-
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    $c->response->body('Matched BeerFestDB::Web::Controller::Company in Company.');
+    $self->model_view_map({
+        company_id        => 'company_id',
+        name              => 'name',
+        loc_desc          => 'loc_desc',
+        year_founded      => 'year_founded',
+        url               => 'url',
+        comment           => 'comment',
+        company_region_id => 'company_region_id',
+    });
 }
 
 =head2 list
@@ -37,27 +41,7 @@ sub list : Local {
 
     my $rs = $c->model( 'DB::Company' );
 
-    # Maps View onto Model columns.
-    my %mv_map = (        
-        company_id        => 'company_id',
-        name              => 'name',
-        loc_desc          => 'loc_desc',
-        year_founded      => 'year_founded',
-        url               => 'url',
-        comment           => 'comment',
-        company_region_id => 'company_region_id',
-    );
-
-    my @companies;
-    while ( my $obj = $rs->next() ) {
-        my %comp_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @companies, \%comp_info;
-    }
-
-    $c->stash->{ 'objects' } = \@companies;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head2 grid
@@ -76,25 +60,7 @@ sub submit : Local {
 
     my $rs = $c->model( 'DB::Company' );
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
-
-    foreach my $rec ( @{ $data } ) {
-
-        eval {
-            my $company = $rs->update_or_create( $rec );
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to save one or more products to database: $@";
-        }
-    }
-
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->write_to_resultset( $c, $rs );
 }
 
 =head2 delete
@@ -107,23 +73,7 @@ sub delete : Local {
 
     my $rs = $c->model( 'DB::Company' );
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
-
-    foreach my $id ( @{ $data } ) {
-        my $rec = $rs->find($id);
-        eval {
-            $rec->delete() if $rec;
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to delete one or more products: $@";
-        }
-    }
-
-    $c->detach( $c->view( 'JSON' ) );
+    $self->delete_from_resultset( $c, $rs );
 }
 
 =head1 AUTHOR

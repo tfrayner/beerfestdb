@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::CompanyRegion;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -14,6 +14,18 @@ Catalyst Controller.
 
 =head1 METHODS
 
+=cut
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    $self->model_view_map({
+        company_region_id  => 'company_region_id',
+        description        => 'description',
+    });
+}
+
 =head2 list
 
 =cut
@@ -24,22 +36,7 @@ sub list : Local {
 
     my $rs = $c->model( 'DB::CompanyRegion' );
 
-    # Maps View onto Model columns.
-    my %mv_map = (        
-        company_region_id  => 'company_region_id',
-        description        => 'name',
-    );
-
-    my @regions;
-    while ( my $obj = $rs->next() ) {
-        my %region_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-        push @regions, \%region_info;
-    }
-
-    $c->stash->{ 'objects' } = \@regions;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head1 AUTHOR

@@ -2,7 +2,7 @@ package BeerFestDB::Web::Controller::FestivalProduct;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'Catalyst::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
@@ -16,6 +16,18 @@ Catalyst Controller.
 
 =cut
 
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    $self->model_view_map({
+        festival_product_id => 'festival_product_id',
+        product_id          => 'product_id',
+        sale_price          => 'sale_price',
+        sale_currency_id    => 'sale_currency_id',
+        sale_volume_id      => 'sale_volume_id',
+    });
+}
 
 =head2 index
 
@@ -60,18 +72,16 @@ sub list : Local {
     }
     
     # Maps View onto Model columns.
-    my %mv_map = (        
-        festival_product_id => 'festival_product_id',
-        product_id          => 'product_id',
-        sale_price          => 'sale_price',
-        sale_currency_id    => 'sale_currency_id',
-        sale_volume_id      => 'sale_volume_id',
-    );
+    my %mv_map = %{ $self->model_view_map() };
 
     my @fps;
     while ( my $obj = $rs->next() ) {
         my %fp_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
+
+        # FIXME rewrite the base class method to handle more complex
+        # maps such as this.
         $fp_info{'company_id'} = $obj->product_id->get_column('company_id');
+
         push @fps, \%fp_info;
     }
 
@@ -104,12 +114,6 @@ sub grid : Local {
         $c->detach();        
     }
     $c->stash->{category} = $category;
-
-    my @currencies = $c->model('DB::Currency')->all();
-    $c->stash->{currencies} = \@currencies;
-
-    my @volumes = $c->model('DB::SaleVolume')->all();
-    $c->stash->{volumes} = \@volumes;
 }
 
 =head2 submit

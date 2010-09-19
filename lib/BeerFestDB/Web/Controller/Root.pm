@@ -1,8 +1,8 @@
 package BeerFestDB::Web::Controller::Root;
+use Moose;
+use namespace::autoclean;
 
-use strict;
-use warnings;
-use parent 'Catalyst::Controller';
+BEGIN {extends 'Catalyst::Controller'; }
 
 #
 # Sets the actions in this controller to be registered with no prefix
