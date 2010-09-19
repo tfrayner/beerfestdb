@@ -200,7 +200,7 @@ sub _load_data {
                 festival_id => $festival->festival_id,
                 product_id  => $product->product_id,
                 sale_volume_id      => $sale_volume,
-                sale_currency_code  => $currency,
+                sale_currency_id    => $currency,
                 sale_price          => $sale_price,
             },
             'FestivalProduct');
@@ -277,7 +277,7 @@ sub _load_data {
                         distributor_company_id => $distributor,
                         festival_id            => $festival,
                         container_size_id      => $cask_size,
-                        currency_code          => $currency,
+                        currency_id            => $currency,
                         price                  => $cask_price,
                         stillage_location_id   => $stillage,
                         bar_id                 => $bar,

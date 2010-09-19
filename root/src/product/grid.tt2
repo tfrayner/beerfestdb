@@ -5,6 +5,7 @@
    var url_object_submit = '[% c.uri_for( "/product/submit" ) %]';
    var url_object_delete = '[% c.uri_for( "/product/delete" ) %]';
    var url_supplier_list = '[% c.uri_for( "/company/list" ) %]';
+   var url_product_style_list = '[% c.uri_for( "/productstyle/list" ) %]';
    var url_festival_view = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var category_id       = '[% category.id %]';
    var categoryname      = '[% category.description %]';
@@ -12,11 +13,5 @@
 </script>
 
 [% js_link( src = '/static/js/grids/product.js' ) %]
-
-<select id='stylepopup' style='display: none'>
-[% FOREACH style = styles.sort('description') -%]
-<option value="[% style.product_style_id | html %]">[% style.description | html %]</option>
-[% END %]
-</select>
 
 <div id="datagrid"></div>
