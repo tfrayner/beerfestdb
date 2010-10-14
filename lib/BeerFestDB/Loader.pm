@@ -361,6 +361,10 @@ sub _load_column_value {
     my $resultset = $self->database()->resultset($class)
 	or confess(qq{Error: No result set returned from DB for class "$class".});
 
+    foreach my $key ( keys %$args ) {
+        delete $args->{$key} if ( ! defined $args->{$key} || $args->{$key} eq q{} );
+    }
+
     # Validate our arguments against the database.
     my ( $required, $optional ) = $self->_find_required_cols( $resultset );
     my @pk = $resultset->result_source()->primary_columns();

@@ -74,7 +74,7 @@ sub product_hash {
         notes    => $product->description(),
     );
 
-    my $currency = $fp->sale_currency_id()->currency_code();
+    my $currency = $fp->sale_currency_id();
     my $format   = $currency->currency_format();
     $prodhash{currency} = $currency->currency_symbol();
 
