@@ -99,13 +99,29 @@ sub _parse_template_styles {
     return;
 }
 
+sub unique_casks {
+
+    my ( $self ) = @_;
+
+    my $casks = $self->festival_casks();
+
+    my %unique;
+        
+    foreach my $cask ( @$casks ) {
+        my $gyle = $cask->gyle_id();
+        my $key = join(':', $gyle->company_id, $gyle->product_id, $cask->bar_id || q{});
+        $unique{ $key } = $cask;
+    }
+
+    return [ values %unique ];
+}
+
 sub dump {
 
     my ( $self, $casks ) = @_;
 
     unless ( $casks ) {
-        $casks = $self->select_festival_casks();
-        $casks = $self->unique_casks( $casks );
+        $casks = $self->unique_casks();
     }
 
     my ( %barinfo, %brewerinfo );
@@ -114,7 +130,7 @@ sub dump {
         my $brewer = $cask->gyle_id->company_id;
         my $beer   = $cask->gyle_id->product_id;
         $barinfo{$bar}{$brewer->name}{$beer->name} = {
-            abv         => $cask->gyle_id->abv,
+            abv         => $cask->gyle_id->abv || $cask->gyle_id->product_id->nominal_abv,
             style       => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
             description => $beer->description || q{Unknown at time of press.},
         };
@@ -176,9 +192,9 @@ BeerFestDB::Dumper::OODoc - Export data to ODF format.
 
  use BeerFestDB::Dumper::OODoc;
  
- # $rs is a DBIx::Class::ResultSet; @logos is an array of image file names.
+ # $casks is an arrayref of DBIx::Class::Row objects;
  my $t = BeerFestDB::Dumper::OODoc->new();
- $t->dump( $rs );
+ $t->dump( $casks );
 
 =head1 DESCRIPTION
 
