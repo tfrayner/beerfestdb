@@ -26,6 +26,9 @@ sub BUILD {
         sale_price          => 'sale_price',
         sale_currency_id    => 'sale_currency_id',
         sale_volume_id      => 'sale_volume_id',
+        company_id          => {
+            product_id          => 'company_id',
+        },
     });
 }
 
@@ -70,25 +73,7 @@ sub list : Local {
     else {
         die('Error: festival_id not defined.');
     }
-    
-    # Maps View onto Model columns.
-    my %mv_map = %{ $self->model_view_map() };
-
-    my @fps;
-    while ( my $obj = $rs->next() ) {
-        my %fp_info = map { $_ => $obj->get_column($mv_map{$_}) } keys %mv_map;
-
-        # FIXME rewrite the base class method to handle more complex
-        # maps such as this.
-        $fp_info{'company_id'} = $obj->product_id->get_column('company_id');
-
-        push @fps, \%fp_info;
-    }
-
-    $c->stash->{ 'objects' } = \@fps;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head2 grid
@@ -124,7 +109,11 @@ sub submit : Local {
 
     my ( $self, $c ) = @_;
 
-    die("Sorry - this has not been implemented yet.");
+    my $rs = $c->model('DB::FestivalProduct');
+
+    # Structure of objects to be created/updated are stored in the
+    # Catalyst context.
+    $self->write_to_resultset( $c, $rs );
 }
 
 =head2 delete
@@ -135,7 +124,10 @@ sub delete : Local {
 
     my ( $self, $c ) = @_;
 
-    die("Sorry - this has not been implemented yet.");
+    my $rs = $c->model('DB::FestivalProduct');
+
+    # Database IDs of objects to be deleted are stored in the Catalyst context.
+    $self->delete_from_resultset( $c, $rs );
 }
 
 =head1 AUTHOR

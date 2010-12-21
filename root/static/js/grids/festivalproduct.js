@@ -8,11 +8,12 @@ Ext.onReady(function(){
     Ext.QuickTips.init();
     
     var FestivalProduct = Ext.data.Record.create([
-        { name: 'product_id',         type: 'int' },
-        { name: 'company_id',         type: 'int' },
-        { name: 'sale_price',         type: 'float' },
-        { name: 'sale_volume_id',     type: 'int' },
-        { name: 'sale_currency_id',   type: 'int' },
+        { name: 'festival_product_id', type: 'int' },
+        { name: 'product_id',          type: 'int' },
+        { name: 'company_id',          type: 'int' },
+        { name: 'sale_price',          type: 'float' },
+        { name: 'sale_volume_id',      type: 'int' },
+        { name: 'sale_currency_id',    type: 'int' },
     ]);
 
     var store = new Ext.data.JsonStore({
