@@ -32,12 +32,104 @@ sub generate_json_and_detach : Private {
 
     my @objects;
     while ( my $obj = $rs->next ) {
-        my %obj_info = map { $_ => $obj->get_column( $mv_map{$_} || $_ ) } keys %mv_map;
+        my %obj_info = map { $_ => $self->_view_to_model($_, $obj) } keys %mv_map;
         push @objects, \%obj_info;
     }
 
     $c->stash->{ 'objects' } = \@objects;
     $c->detach( $c->view( 'JSON' ) );
+}
+
+sub _view_to_model : Private {
+
+    # Method using a JSON view object attribute name (from
+    # model_view_map), to retrieve the appropriate model attribute
+    # from a DBIx::Class::Row object.
+    my ( $self, $view_key, $dbrow, $lookup ) = @_;
+
+    $lookup ||= $self->model_view_map()->{ $view_key } || $view_key;
+
+    if ( ref $lookup eq 'HASH' ) {
+
+        # Hashrefs should contain relationship => column style
+        # structures (this is recursive).
+        my @children;
+        foreach my $relation ( keys %$lookup ) {
+            push @children,
+                $self->_view_to_model( $lookup->{$relation},
+                                       $dbrow->$relation,
+                                       $lookup->{$relation} );
+        }
+
+        if ( scalar @children > 1 ) {
+            confess("Error: Multiple keys in model_view_map"
+                        . " relationships are not supported.");
+        }
+        elsif ( scalar @children < 1 ) {
+            confess("Error: model_view_map contains empty hashrefs.");
+        }
+        return $children[0];
+    }
+    else {
+        return $dbrow->get_column( $lookup );
+    }
+}
+
+sub _build_db_obj : Private {
+
+    my ( $self, $rec, $c, $rs, $mv_map ) = @_;
+
+    # Passed a JSON record nested hashref, Catalyst context and the
+    # appropriate DBIC::ResultSet object, create database objects
+    # recursively (depth first).
+
+    my %dbobj_info;
+
+    $mv_map ||= $self->model_view_map();
+    
+    foreach my $view_key (keys %$rec) {
+
+        # There's a strong risk of key collision from an upper
+        # recursion into this one here; to fix this, we have to manage
+        # the $mv_map hashref as part of that recursion.
+        my $lookup ||= $mv_map->{ $view_key } || $view_key;
+
+        if ( ref $lookup eq 'HASH' ) {
+            my @children = keys %$lookup;
+
+            if ( scalar @children > 1 ) {
+                confess("Error: Multiple keys in model_view_map"
+                            . " relationships are not supported.");
+            }
+            elsif ( scalar @children < 1 ) {
+                confess("Error: model_view_map contains empty hashrefs.");
+            }
+
+            my $rel = $children[0];
+
+            my $next_attr = $lookup->{ $rel };
+            my $next_rs   = $rs->result_source()->related_source( $rel )->resultset();
+            my $next_rec  = { $next_attr => $rec->{ $view_key } };
+
+            $dbobj_info{ $rel } = $self->_build_db_obj( $next_rec, $c, $next_rs, {} );
+        }
+        else {
+            $dbobj_info{ $lookup } = $rec->{ $view_key };
+        }
+    }
+
+    my $dbobj;
+    eval {
+        $dbobj = $rs->update_or_create( \%dbobj_info );
+    };
+    if ($@) {
+        $c->response->status('403');  # Forbidden
+
+        # N.B. flash_to_stash doesn't seem to work for JSON views.
+        $c->stash->{error} = "Unable to save one or more objects to database: $@";
+    }
+
+    return( $dbobj );
 }
 
 =head2 write_to_resultset
@@ -55,23 +147,8 @@ sub write_to_resultset : Private {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    # Quick-and-dirty, if there are duplicate values in the original
-    # hash they'll be clobbered here.
-    my %mv_map = reverse %{ $self->model_view_map };
-
     foreach my $rec ( @{ $data } ) {
-
-        my $dbrec = { map { ( $mv_map{$_} || $_ ) => $rec->{$_} } keys %$rec };
-
-        eval {
-            my $order = $rs->update_or_create( $dbrec );
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to save one or more objects to database: $@";
-        }
+        my $dbobj = $self->_build_db_obj( $rec, $c, $rs );
     }
     
     $c->detach( $c->view( 'JSON' ) );
