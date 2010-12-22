@@ -72,6 +72,7 @@ Ext.onReady(function(){
     });
     volume_store.load();
     var volume_combo = new Ext.form.ComboBox({
+        allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
         store:          volume_store,
@@ -90,6 +91,7 @@ Ext.onReady(function(){
     });
     currency_store.load();
     var currency_combo = new Ext.form.ComboBox({
+        allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
         store:          currency_store,
@@ -117,7 +119,7 @@ Ext.onReady(function(){
           dataIndex:  'sale_price',
           width:      40,
           editor:     new Ext.form.TextField({  // FIXME use currency format, reload on change.
-              allowBlank:     false,
+              allowBlank:     true,
           })},
         { id:         'sale_currency_id',
           header:     'Currency',
@@ -141,6 +143,7 @@ Ext.onReady(function(){
     function recordChanges (record) {
         var fields = record.getChanges();
         fields.festival_product_id = record.get( 'festival_product_id' );
+        fields.festival_id = festival_id;
         return(fields);
     }
 
