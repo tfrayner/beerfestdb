@@ -2,6 +2,8 @@ package BeerFestDB::Web::Controller;
 use Moose;
 use namespace::autoclean;
 
+use List::Util qw(first);
+
 BEGIN {extends 'Catalyst::Controller'; }
 
 has 'model_view_map' => ( is  => 'rw',
@@ -77,17 +79,33 @@ sub _view_to_model : Private {
 
 sub _build_db_obj : Private {
 
-    my ( $self, $rec, $c, $rs, $mv_map ) = @_;
+    my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
 
     # Passed a JSON record nested hashref, Catalyst context and the
     # appropriate DBIC::ResultSet object, create database objects
     # recursively (depth first).
-
-    my %dbobj_info;
-
     $mv_map ||= $self->model_view_map();
-    
+
+    # Firstly, find or create our top-level object. Don't insert a new
+    # object yet, since it won't have all the requisite information.
+    my %dbobj_info;
+    my @primary_cols = $rs->result_source()->primary_columns();
+    foreach my $pk ( @primary_cols ) {
+        my $value = $rec->{ $pk };
+        if ( defined $value ) {
+            $dbobj_info{ $pk } = $value;
+        }
+    }
+    my $dbobj = $rs->find_or_new( \%dbobj_info );
+
+    my @hashrefs;
+
+    # Secondly, deal with simple table-based attributes.
+    VIEW_KEY:
     foreach my $view_key (keys %$rec) {
+
+        # Skip primary columns; we've already dealt with them.
+        next VIEW_KEY if ( first { $view_key eq $_ } @primary_cols );
 
         # There's a strong risk of key collision from an upper
         # recursion into this one here; to fix this, we have to manage
@@ -95,38 +113,75 @@ sub _build_db_obj : Private {
         my $lookup ||= $mv_map->{ $view_key } || $view_key;
 
         if ( ref $lookup eq 'HASH' ) {
-            my @children = keys %$lookup;
-
-            if ( scalar @children > 1 ) {
-                confess("Error: Multiple keys in model_view_map"
-                            . " relationships are not supported.");
-            }
-            elsif ( scalar @children < 1 ) {
-                confess("Error: model_view_map contains empty hashrefs.");
-            }
-
-            my $rel = $children[0];
-
-            my $next_attr = $lookup->{ $rel };
-            my $next_rs   = $rs->result_source()->related_source( $rel )->resultset();
-            my $next_rec  = { $next_attr => $rec->{ $view_key } };
-
-            $dbobj_info{ $rel } = $self->_build_db_obj( $next_rec, $c, $next_rs, {} );
+            push @hashrefs, $view_key;
         }
         else {
-            $dbobj_info{ $lookup } = $rec->{ $view_key };
+            $dbobj->set_column( $lookup, $rec->{ $view_key } );
         }
     }
 
-    my $dbobj;
-    eval {
-        $dbobj = $rs->update_or_create( \%dbobj_info );
-    };
-    if ($@) {
-        $c->response->status('403');  # Forbidden
+    # Thirdly, we handle the relationships.
+    foreach my $view_key (@hashrefs) {
 
-        # N.B. flash_to_stash doesn't seem to work for JSON views.
-        $c->stash->{error} = "Unable to save one or more objects to database: $@";
+        my $lookup ||= $mv_map->{ $view_key } || $view_key;
+        
+        my @children = keys %$lookup;
+
+        if ( scalar @children > 1 ) {
+            confess("Error: Multiple keys in model_view_map"
+                        . " relationships are not supported.");
+        }
+        elsif ( scalar @children < 1 ) {
+            confess("Error: model_view_map contains empty hashrefs.");
+        }
+
+        my $rel = $children[0];
+
+        my $next_attr = $lookup->{ $rel };
+        my $next_rs   = $rs->result_source()->related_source( $rel )->resultset();
+        my $next_rec  = {};
+        my $next_map  = {};
+        my $next_id   = $dbobj->get_column($rel);
+
+        # We have to use the related primary key to safely retrieve
+        # the object.
+        if ( defined $next_id ) {
+            $next_rec->{ $rel } = $next_id;
+        }
+
+        # This part is needed to distinguish what to do for more
+        # deeply-nested mv_maps. In such cases only the related
+        # primary id ($next_id) is used to retrieve the object; to
+        # edit the bridging object it must be linked to a view_key via
+        # an indeterminate number of hashrefs.
+        if ( ref $next_attr eq 'HASH' ) {
+            $next_map = $next_attr;
+        }
+        else {
+            $next_rec->{ $next_attr } = $rec->{ $view_key };
+        }
+        
+        # Database updates are not done below here, for the sake of
+        # interface consistency.
+        my $value = $self->_build_db_obj( $next_rec, $c, $next_rs, $next_map, 1 );
+        my @pks = $next_rs->result_source()->primary_columns();
+        if ( scalar @pks != 1 ) {
+            confess("Error: Unable to update relationship with table not having only one primary column.");
+        }
+        my $pk = $pks[0];
+        $dbobj->set_column( $rel, $value->$pk );
+    }
+
+    unless ( $no_update ) {
+        eval {
+            $dbobj->update_or_insert();
+        };
+        if ($@) {
+            $c->response->status('403');  # Forbidden
+            
+            # N.B. flash_to_stash doesn't seem to work for JSON views.
+            $c->stash->{error} = "Unable to save one or more objects to database: $@";
+        }
     }
 
     return( $dbobj );

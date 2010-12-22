@@ -71,8 +71,8 @@ __PACKAGE__->add_columns(
   "product_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
-__PACKAGE__->set_primary_key("festival_product_id", "product_id", "festival_id");
-__PACKAGE__->add_unique_constraint("festival_product_id", ["festival_product_id"]);
+__PACKAGE__->set_primary_key("festival_product_id");
+__PACKAGE__->add_unique_constraint("festival_id", ["festival_id", "product_id"]);
 
 =head1 RELATIONS
 
@@ -133,8 +133,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-19 14:43:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g06dkFQvLznTY0BFHPu5xQ
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-12-22 15:58:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OsHjGlEkMuC6q5lZSqgM3w
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -11,6 +11,7 @@
    var url_sale_volume_list = '[% c.uri_for( "/salevolume/list" ) %]';
    var category_id          = '[% category.id %]';
    var categoryname         = '[% category.description %]';
+   var festival_id          = '[% festival.id %]';
    var festivalname         = '[% festival.year | html %]  [% festival.name | html %]';
 </script>
 
