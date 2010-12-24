@@ -10,6 +10,7 @@ Ext.onReady(function(){
     var ProductOrder = Ext.data.Record.create([
         { name: 'product_order_id',       type: 'int' },
         { name: 'product_id',             type: 'int' },
+        { name: 'festival_id',            type: 'int' },
         { name: 'distributor_id',         type: 'int' },
         { name: 'container_size_id',      type: 'int' },
         { name: 'currency_id',            type: 'int' },
@@ -165,6 +166,7 @@ Ext.onReady(function(){
     function recordChanges (record) {
         var fields = record.getChanges();
         fields.product_order_id = record.get( 'product_order_id' );
+        fields.festival_id = festival_id;
         return(fields);
     }
 
