@@ -31,6 +31,8 @@ Ext.onReady(function(){
     });
     supplier_store.load();
     var brewer_combo = new Ext.form.ComboBox({
+        triggerAction:  'all',
+        mode:           'local',
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -40,6 +42,15 @@ Ext.onReady(function(){
         displayField:   'name',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
+        listeners: {
+            change: function(evt, t, o) {
+                /* t is the reference to the brewer_combo.
+                   We have evt.record available only because we copied it in
+                   the beforeEdit event from myGrid */
+                evt.record.set('product_id', null);
+                evt.render();
+            }
+        },
     });
 
     /* Product drop-down */
@@ -47,11 +58,18 @@ Ext.onReady(function(){
         url:        url_product_list,
         root:       'objects',
         fields:     [{ name: 'product_id', type: 'int' },
+                     { name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}]
     });
     product_store.load();
-    /* FIXME needs work so that this reloads upon brewer selection */
+
+    /* We need this to reload upon brewer reselection.
+       See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
     var product_combo = new Ext.form.ComboBox({
+        triggerAction:  'all',
+        mode:           'local',
+        lastQuery:      '',  /* to make sure the filter in the store
+                                is not cleared the first time the ComboBox trigger is used */
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -61,6 +79,15 @@ Ext.onReady(function(){
         displayField:   'name',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
+        listeners: {
+            beforeQuery: function(query) { 
+                currentRowId = myGrid.getSelectionModel().getSelected().data.company_id;
+                this.store.clearFilter();
+                this.store.filter( { property:   'company_id',
+                                     value:      currentRowId,
+                                     exactMatch: true } );
+            }
+        }, 
     });
 
     /* Sale volume drop-down */
@@ -147,21 +174,33 @@ Ext.onReady(function(){
         return(fields);
     }
 
+    var myGrid = new MyEditorGrid(
+        {
+            objLabel:           'FestivalProduct',
+            idField:            'festival_product_id',
+            autoExpandColumn:   'product_id',
+            store:              store,
+            contentCols:        content_cols,
+            viewLink:           viewLink,
+            deleteUrl:          url_object_delete,
+            recordChanges:      recordChanges,
+            listeners: {
+                beforeedit: function(e) {
+                    // reference to the currently clicked cell
+                    var ed = e.grid.getColumnModel().getCellEditor(e.column, e.row);    
+                    if (ed && ed.field) {
+                        // copy these references to the current editor (brewer_combo in our case)
+                        Ext.copyTo(ed.field, e, 'grid,record,field,row,column');
+                    }
+                }
+            },
+        }
+    );
+
     var panel = new Ext.Panel({
         title: festivalname + ' product listing: ' + categoryname,
         layout: 'fit',
-        items: new MyEditorGrid(
-            {
-                objLabel:           'FestivalProduct',
-                idField:            'festival_product_id',
-                autoExpandColumn:   'product_id',
-                store:              store,
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_object_delete,
-                recordChanges:      recordChanges,
-            }
-        ),
+        items: myGrid,
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
