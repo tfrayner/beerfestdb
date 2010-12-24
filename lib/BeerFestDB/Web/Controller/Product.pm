@@ -81,6 +81,30 @@ sub list : Local {
     $self->generate_json_and_detach( $c, $rs );
 }
 
+=head2 list_by_company
+
+=cut
+
+sub list_by_company : Local {
+
+    # Sketched-out method to retrieve all products produced by a given
+    # company. It seems likely that this will not be immediately
+    # useful; instead we'll probably just filter on our productStore
+    # in the javascript. This has the benefit of pre-filtering by
+    # category in the list method.
+    my ( $self, $c, $company_id ) = @_;
+
+    my $rs;
+    if ( defined $company_id ) {
+        $rs = $c->model( 'DB::Product' )->search_rs( { company_id => $company_id } );
+    }
+    else {
+        $rs = $c->model( 'DB::Product' );  # FIXME is this actually needed?
+    }
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
 =head2 submit
 
 =cut

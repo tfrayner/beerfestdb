@@ -23,6 +23,7 @@ sub BUILD {
     $self->model_view_map({
         festival_product_id => 'festival_product_id',
         product_id          => 'product_id',
+        festival_id         => 'festival_id',
         sale_price          => 'sale_price',
         sale_currency_id    => 'sale_currency_id',
         sale_volume_id      => 'sale_volume_id',

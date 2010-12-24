@@ -11,6 +11,7 @@
    var url_festival_view  = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var category_id        = '[% category.id %]';
    var categoryname       = '[% category.description %]';
+   var festival_id        = '[% festival.id %]';
    var festivalname       = '[% festival.year | html %]  [% festival.name | html %]';
 </script>
 
