@@ -40,6 +40,12 @@ NewButton = Ext.extend(Ext.Button, {
                           this.grid.stopEditing();
                           this.grid.store.insert( 0, p );
                           this.grid.startEditing( 0, 1 );
+
+                          /* This is important for adding records
+                          where there are linked ComboBoxes, where we
+                          are using the SelectionModel to detect which
+                          row we're on. */
+                          this.grid.getSelectionModel().selectFirstRow();
                       },
                       scope: this,
                   }
