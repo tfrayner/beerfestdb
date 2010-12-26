@@ -255,3 +255,6 @@ MyComboRenderer = function(combo){
     }
 }
 
+MyCheckboxRenderer = function() {
+    return function(value) { return value ? 'yes' : 'no' }
+}

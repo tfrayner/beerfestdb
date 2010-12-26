@@ -41,7 +41,6 @@ Ext.onReady(function(){
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
-        triggerAction:  'all',
         store:          brewer_store,
         valueField:     'company_id',
         displayField:   'name',
@@ -215,6 +214,7 @@ Ext.onReady(function(){
           header:     'Finalised',
           dataIndex:  'is_final',
           width:      50,
+          renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
           })},
     ];
