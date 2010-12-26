@@ -9,9 +9,11 @@ Ext.onReady(function(){
 
     var ProductOrder = Ext.data.Record.create([
         { name: 'product_order_id',       type: 'int' },
+        { name: 'company_id',             type: 'int' },
         { name: 'product_id',             type: 'int' },
         { name: 'festival_id',            type: 'int' },
         { name: 'distributor_id',         type: 'int' },
+        { name: 'cask_count',             type: 'int' },
         { name: 'container_size_id',      type: 'int' },
         { name: 'currency_id',            type: 'int' },
         { name: 'price',                  type: 'int' },
@@ -25,16 +27,55 @@ Ext.onReady(function(){
         fields:     ProductOrder
     });
 
+    /* Brewer drop-down */
+    var brewer_store = new Ext.data.JsonStore({
+        url:        url_supplier_list,
+        root:       'objects',
+        fields:     [{ name: 'company_id', type: 'int' },
+                     { name: 'name',       type: 'string'}]
+    });
+    brewer_store.load();
+    var brewer_combo = new Ext.form.ComboBox({
+        triggerAction:  'all',
+        mode:           'local',
+        forceSelection: true,
+        allowBlank:     false,
+        typeAhead:      true,
+        triggerAction:  'all',
+        store:          brewer_store,
+        valueField:     'company_id',
+        displayField:   'name',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
+        listeners: {
+            change: function(evt, t, o) {
+                /* t is the reference to the brewer_combo.
+                   We have evt.record available only because we copied it in
+                   the beforeEdit event from myGrid */
+                evt.record.set('product_id', null);
+                evt.render();
+            }
+        },
+    });
+
     /* Product drop-down */
     var product_store = new Ext.data.JsonStore({
         url:        url_product_list,
         root:       'objects',
         fields:     [{ name: 'product_id', type: 'int'    },
+                     { name: 'company_id', type: 'int'    },
                      { name: 'name',       type: 'string' }]
 
     });
     product_store.load();
+
+    /* We need this to reload upon brewer reselection.
+       See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
     var product_combo = new Ext.form.ComboBox({
+        triggerAction:  'all',
+        mode:           'local',
+        lastQuery:      '',  /* to make sure the filter in the store
+                                is not cleared the first time the ComboBox trigger is used */
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -44,6 +85,15 @@ Ext.onReady(function(){
         displayField:   'name',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
+        listeners: {
+            beforeQuery: function(query) { 
+                currentRowId = myGrid.getSelectionModel().getSelected().data.company_id;
+                this.store.clearFilter();
+                this.store.filter( { property:   'company_id',
+                                     value:      currentRowId,
+                                     exactMatch: true } );
+            }
+        }, 
     });
     
     /* Distributor drop-down */
@@ -116,8 +166,12 @@ Ext.onReady(function(){
           width:      130,
           renderer:   MyComboRenderer(distributor_combo),
           editor:     distributor_combo, },
-        /* FIXME we need some way to select brewer, then beer. */
-            
+        { id:         'company_id',
+          header:     'Supplier',
+          dataIndex:  'company_id',
+          width:      130,
+          renderer:   MyComboRenderer(brewer_combo),
+          editor:     brewer_combo, },            
         { id:         'product_id',
           header:     'Product',
           dataIndex:  'product_id',
@@ -130,10 +184,17 @@ Ext.onReady(function(){
           width:      40,
           renderer:   MyComboRenderer(cask_size_combo),
           editor:     cask_size_combo, },
+        { id:         'cask_count',
+          header:     'No. Casks',
+          dataIndex:  'cask_count',
+          width:      45,
+          editor:     new Ext.form.TextField({
+              allowBlank:     true,
+          })},
         { id:         'price',
           header:     'Price',
           dataIndex:  'price',
-          width:      40,
+          width:      30,
           editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
@@ -170,25 +231,37 @@ Ext.onReady(function(){
         return(fields);
     }
 
+    var myGrid = new MyEditorGrid(
+        {
+            objLabel:           'ProductOrder',
+            idField:            'product_order_id',
+            autoExpandColumn:   'product_id',
+            store:              store,
+            contentCols:        content_cols,
+            viewLink:           viewLink,
+            deleteUrl:          url_object_delete,
+            recordChanges:      recordChanges,
+            listeners: {
+                beforeedit: function(e) {
+                    // reference to the currently clicked cell
+                    var ed = e.grid.getColumnModel().getCellEditor(e.column, e.row);    
+                    if (ed && ed.field) {
+                        // copy these references to the current editor (brewer_combo in our case)
+                        Ext.copyTo(ed.field, e, 'grid,record,field,row,column');
+                    }
+                }
+            },
+        }
+    );
+
     var panel = new Ext.Panel({
         title: festivalname + ' product listing: ' + categoryname,
         layout: 'fit',
-        items: new MyEditorGrid(
-            {
-                objLabel:           'ProductOrder',
-                idField:            'product_order_id',
-                autoExpandColumn:   'product_id',
-                store:              store,
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_object_delete,
-                recordChanges:      recordChanges,
-            }
-        ),
+        items: myGrid,
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
-//            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
+            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
         ],
     });
     

@@ -6,6 +6,7 @@
    var url_object_delete  = '[% c.uri_for( "/productorder/delete" ) %]';
    var url_product_list   = '[% c.uri_for( "/product/list" ) %]';
    var url_distrib_list   = '[% c.uri_for( "/company/list" ) %]';
+   var url_supplier_list  = '[% c.uri_for( "/company/list" ) %]';
    var url_currency_list  = '[% c.uri_for( "/currency/list" ) %]';
    var url_cask_size_list = '[% c.uri_for( "/containersize/list" ) %]';
    var url_festival_view  = '[% c.uri_for( "/festival/view/$festival.id" ) %]';

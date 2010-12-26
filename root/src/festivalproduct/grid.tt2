@@ -1,7 +1,7 @@
 [% META title = 'Product listing' %]
 
 <script type="text/javascript">
-   var url_object_list      = '[% c.uri_for( "/festivalproduct/list/$category.id/$festival.id" ) %]';
+   var url_object_list      = '[% c.uri_for( "/festivalproduct/list/$festival.id/$category.id" ) %]';
    var url_object_submit    = '[% c.uri_for( "/festivalproduct/submit" ) %]';
    var url_object_delete    = '[% c.uri_for( "/festivalproduct/delete" ) %]';
    var url_supplier_list    = '[% c.uri_for( "/company/list" ) %]';

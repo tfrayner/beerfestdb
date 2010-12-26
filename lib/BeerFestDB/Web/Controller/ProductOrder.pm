@@ -22,6 +22,9 @@ sub BUILD {
 
     $self->model_view_map({
         product_order_id  => 'product_order_id',
+        company_id        => {
+            product_id  => 'company_id',
+        },
         product_id        => 'product_id',
         festival_id       => 'festival_id',
         distributor_id    => 'distributor_company_id',

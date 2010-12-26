@@ -53,13 +53,13 @@ sub index :Path :Args(0) {
 
 sub list : Local {
 
-    my ( $self, $c, $category_id, $festival_id ) = @_;
+    my ( $self, $c, $festival_id, $category_id ) = @_;
 
     my ( $rs, $festival );
     if ( defined $festival_id ) {
         $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
         unless ( $festival ) {
-            $c->stash->{error} = 'Festival not found.';
+            $c->stash->{error} = qq{Festival ID "$festival_id" not found.};
             $c->res->redirect( $c->uri_for('/default') );
             $c->detach();
         }
@@ -83,11 +83,11 @@ sub list : Local {
 
 sub grid : Local {
 
-    my ( $self, $c, $category_id, $festival_id ) = @_;
+    my ( $self, $c, $festival_id, $category_id ) = @_;
 
     my $festival = $c->model('DB::Festival')->find($festival_id);
     unless ( $festival ) {
-        $c->flash->{error} = "Error: Festival not found.";
+        $c->flash->{error} = qq{Festival ID "$festival_id" not found.};
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();        
     }
@@ -95,7 +95,7 @@ sub grid : Local {
 
     my $category = $c->model('DB::ProductCategory')->find($category_id);
     unless ( $category ) {
-        $c->flash->{error} = "Error: Product category not found.";
+        $c->flash->{error} = qq{Product category ID "$category_id" not found.};
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();        
     }
