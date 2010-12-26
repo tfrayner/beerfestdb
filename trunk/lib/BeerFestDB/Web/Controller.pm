@@ -116,7 +116,14 @@ sub _build_db_obj : Private {
             push @hashrefs, $view_key;
         }
         else {
-            $dbobj->set_column( $lookup, $rec->{ $view_key } );
+            my $dbval = $rec->{ $view_key };
+
+            # For some reason these don't want to autoconvert, so we do this manually.
+            if ( UNIVERSAL::isa($dbval, 'JSON::PP::Boolean') ) {
+                $dbval = $dbval ? 1 : 0;
+            }
+
+            $dbobj->set_column( $lookup, $dbval );
         }
     }
 
