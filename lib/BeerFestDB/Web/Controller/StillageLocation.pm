@@ -69,25 +69,6 @@ sub grid : Local {
     return;
 }
 
-sub list_casks : Local {
-
-    my ( $self, $c, $id ) = @_;
-
-    my $rs = $c->model( 'DB::Cask' )->search({ stillage_location_id => $id });
-    my @casks;
-    while ( my $cask = $rs->next ) {
-        push( @casks, {
-            cask_id     => $cask->cask_id,
-            product     => $cask->gyle_id->product_id->name,
-        } );
-    }
-
-    $c->stash->{ 'objects' } = \@casks;
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
-}
-
 =head1 AUTHOR
 
 Tim Rayner

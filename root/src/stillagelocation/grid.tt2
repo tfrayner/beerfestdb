@@ -1,11 +1,13 @@
 [% META title = 'Cask listing' %]
 
 <script type="text/javascript">
-   var url_object_list   = '[% c.uri_for( "/stillagelocation/list_casks/$stillage.id" ) %]';
-   var url_object_submit = '[% c.uri_for( "/FIXME/submit" ) %]';
-   var url_object_delete = '[% c.uri_for( "/FIXME/delete" ) %]';
-   var url_festival_view = '[% c.uri_for( "/festival/view/$stillage.festival_id.id" ) %]';
-   var stillagename      = '[% stillage.description | html %],  [% stillage.festival_id.name | html %]';
+   var url_object_list    = '[% c.uri_for( "/cask/list_by_stillage/$stillage.id" ) %]';
+   var url_object_submit  = '[% c.uri_for( "/cask/submit" ) %]';
+   var url_object_delete  = '[% c.uri_for( "/cask/delete" ) %]';
+   var url_product_list   = '[% c.uri_for( "/product/list" ) %]';
+   var url_supplier_list  = '[% c.uri_for( "/company/list" ) %]';
+   var url_festival_view  = '[% c.uri_for( "/festival/view/$stillage.festival_id.id" ) %]';
+   var stillagename       = '[% stillage.description | html %],  [% stillage.festival_id.name | html %]';
 </script>
 
 [% js_link( src = '/static/js/grids/casks.js' ) %]
