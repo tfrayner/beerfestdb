@@ -1,0 +1,14 @@
+[% META title = 'Product Style listing' %]
+
+<script type="text/javascript">
+   var url_object_list    = '[% c.uri_for( "/productstyle/list_by_category/$category.id" ) %]';
+   var url_object_submit  = '[% c.uri_for( "/productstyle/submit" ) %]';
+   var url_object_delete  = '[% c.uri_for( "/productstyle/delete" ) %]';
+   var url_category_view  = '[% c.uri_for( "/productcategory" ) %]';
+   var categoryname       = '[% category.description | html %]';
+   var category_id        = '[% category.id | html %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_styles.js' ) %]
+
+<div id="datagrid"></div>

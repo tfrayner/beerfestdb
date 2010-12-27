@@ -40,6 +40,45 @@ sub list : Local {
     $self->generate_json_and_detach( $c, $rs );
 }
 
+=head2 list_by_category
+
+=cut
+
+sub list_by_category : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $rs = $c->model( 'DB::ProductStyle' )->search({ product_category_id => $id });
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 submit
+
+=cut
+
+sub submit : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( 'DB::ProductStyle' );
+
+    $self->write_to_resultset( $c, $rs );
+}
+
+=head2 delete
+
+=cut
+
+sub delete : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( 'DB::ProductStyle' );
+
+    $self->delete_from_resultset( $c, $rs );
+}
+
 =head1 AUTHOR
 
 Tim Rayner

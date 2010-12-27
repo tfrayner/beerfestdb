@@ -1,0 +1,11 @@
+[% META title = 'Product Category listing' %]
+
+<script type="text/javascript">
+   var url_object_list    = '[% c.uri_for( "/productcategory/list" ) %]';
+   var url_object_submit  = '[% c.uri_for( "/productcategory/submit" ) %]';
+   var url_object_delete  = '[% c.uri_for( "/productcategory/delete" ) %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_categories.js' ) %]
+
+<div id="datagrid"></div>
