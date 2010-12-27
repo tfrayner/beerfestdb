@@ -1,10 +1,23 @@
 [% META title = "Welcome to BeerFestDB" %]
 
-<p><font color='red'>This web site is currently under development.</font></p> 
-<p>Please enter the site below: 
+<h2><font color='red'>This web site is currently under development.</font></h2> 
+
+<div class="menu">
+<h2>Festival Data</h2>
+<p>
 <ul> 
 <li><a href="[% c.uri_for('/festival/grid') %]">List all festivals</a></li> 
 <li><a href="[% c.uri_for('/product') %]">List all products</a></li> 
 <li><a href="[% c.uri_for('/company/grid') %]">List all suppliers</a></li> 
-</ul> 
+</ul>
 </p>
+</div>
+
+<div class="menu">
+<h2>Database Administration</h2>
+<p>
+<ul>
+<li><a href="[% c.uri_for('/productcategory') %]">Product categorisation</a></li>
+</ul>
+</p>
+</div>
