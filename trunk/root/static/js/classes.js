@@ -214,7 +214,7 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
             defaults: {
                 sortable: true
             },
-            columns: [].concat(sm, this.contentCols, action),
+            columns: [].concat(sm, action, this.contentCols),
         }); 
         
         Ext.apply(this, {
