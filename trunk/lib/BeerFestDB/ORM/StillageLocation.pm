@@ -48,7 +48,7 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 50 },
 );
 __PACKAGE__->set_primary_key("stillage_location_id");
-__PACKAGE__->add_unique_constraint("description", ["description"]);
+__PACKAGE__->add_unique_constraint("festival_id", ["festival_id", "description"]);
 
 =head1 RELATIONS
 
@@ -82,8 +82,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dNbDOplEU23f9qoyQVDIwA
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-12-28 18:10:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oiIJPkmELOFV4/4e8mmoqQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
