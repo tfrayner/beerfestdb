@@ -13,7 +13,7 @@ Ext.onReady(function(){
         { name: 'company_id',        type: 'int' },
         { name: 'product_id',        type: 'int' },
         { name: 'container_size_id', type: 'int' },
-        { name: 'stillage_id',       type: 'int' },
+        { name: 'stillage_location_id', type: 'int' },
         { name: 'gyle_id',           type: 'int' },
         { name: 'int_reference',     type: 'string' },
         { name: 'comment',           type: 'string' },
