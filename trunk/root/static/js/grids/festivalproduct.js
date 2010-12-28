@@ -73,7 +73,6 @@ Ext.onReady(function(){
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
-        triggerAction:  'all',
         store:          product_store,
         valueField:     'product_id',
         displayField:   'name',

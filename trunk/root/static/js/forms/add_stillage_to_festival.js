@@ -18,18 +18,22 @@ Ext.onReady(function(){
      */
     bd.createChild({tag: 'h2', html: 'Add a new stillage location'});
 
-
     var formObject;
 
     var saveHandler = function(button, event) {
-        // FIXME handle failure as well.
-        formObject.form.submit({ waitMsg: 'Saving stillage details...',
-                                 success: doneFunction } );
-    };
-
-    var doneFunction = function(form, action) {
-        alert('success')
-//        window.location = '/festival/grid'
+        // FIXME handle failure as well. Note that while the form
+        // currently submits and creates a new item in the DB, the
+        // waitMsg and success params are being ignored.
+        formObject.form.submit({
+            success: function(form, action) {
+                Ext.Msg.alert('Success', action.result.msg)
+                window.location = url_festival_view
+            },
+            failure: function(res, opts) {
+                var stash = Ext.util.JSON.decode(res.responseText);
+                Ext.Msg.alert('Error', stash.error);
+            },
+        } );
     };
 
     formObject = new Ext.FormPanel({
@@ -49,7 +53,7 @@ Ext.onReady(function(){
                 allowBlank:false
             },{
                 name:   'festival_id',
-                value:  festival,
+                value:  festival_id,
                 hidden: true
             }
         ],

@@ -32,7 +32,24 @@
   <p>No product categories found.</p> 
 [% END %]
 
-<div class='subtitle'><h3>Stillage:</h3></div>
+<div class='subtitle'><h3>Full Cask Listing:</h3></div>
+
+[% IF categories && categories.size > 0 %]
+  <div class='list'>
+    <ul>
+      [% FOREACH cat = categories.sort('description') %] 
+      <li><a href="[% c.uri_for("/cask/grid/$object.id/$cat.id") | html %]">
+                   [% cat.description | html %]</a></li>
+      [% END %]
+    </ul>
+  </div>
+[% ELSE %] 
+  <p>No product categories found.</p> 
+[% END %]
+
+<div class='subtitle'><h3>Stillage:
+  <a href="[% c.uri_for("/stillagelocation/add_to_festival/$object.id") | html %]">[Add]</a></h3>
+</div>
 
 [% IF stillages && stillages.size > 0 %]
   <div class='list'>
@@ -44,10 +61,12 @@
     </ul>
   </div>
 [% ELSE %] 
-  <p>No stillage locations found. (FIXME how to add them?)</p> 
+  <p>No stillage locations defined yet for this festival.</p> 
 [% END %]
 
-<div class='subtitle'><h3>Bars:</h3></div>
+<div class='subtitle'><h3>Bars:
+  <a href="[% c.uri_for("/bar/add_to_festival/$object.id") | html %]">[Add]</a></h3>
+</div>
 
 [% IF bars && bars.size > 0 %]
   <div class='list'>
@@ -59,7 +78,7 @@
     </ul>
   </div>
 [% ELSE %] 
-  <p>No bars found. (FIXME how to add them?)</p> 
+  <p>No bars defined yet for this festival.</p> 
 [% END %]
 
 <p><a href="[% c.uri_for("/") | html %]">Return to start page...</a></p> 
