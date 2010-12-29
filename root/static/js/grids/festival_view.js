@@ -142,9 +142,6 @@ Ext.onReady(function(){
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
-            { title: 'Products Ordered',
-              layout: 'fit',
-              items:  orderGrid, },
             { title: 'Products Received',
               layout: 'fit',
               items:  receivedGrid, },
@@ -154,6 +151,9 @@ Ext.onReady(function(){
             { title: 'Casks by Stillage',
               layout: 'fit',
               items:  stillageGrid, },
+            { title: 'Products Ordered',
+              layout: 'fit',
+              items:  orderGrid, },
         ],
     });
 
