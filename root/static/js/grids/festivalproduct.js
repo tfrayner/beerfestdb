@@ -43,12 +43,11 @@ Ext.onReady(function(){
         lazyRender:     true,
         listClass:      'x-combo-list-small',
         listeners: {
-            change: function(evt, t, o) {
-                /* t is the reference to the brewer_combo.
-                   We have evt.record available only because we copied it in
+            change: function(combo, newValue, oldValue) {
+                /* combo is the reference to the brewer_combo.
+                   We have combo.record available only because we copied it in
                    the beforeEdit event from myGrid */
-                evt.record.set('product_id', null);
-                evt.render();
+                combo.record.set('product_id', null);
             }
         },
     });
@@ -175,13 +174,14 @@ Ext.onReady(function(){
 
     var myGrid = new MyEditorGrid(
         {
-            objLabel:           'FestivalProduct',
+            objLabel:           'Festival Product',
             idField:            'festival_product_id',
             autoExpandColumn:   'product_id',
             store:              store,
             contentCols:        content_cols,
             viewLink:           viewLink,
             deleteUrl:          url_object_delete,
+            submitUrl:          url_object_submit,
             recordChanges:      recordChanges,
             listeners: {
                 beforeedit: function(e) {

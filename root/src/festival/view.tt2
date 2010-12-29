@@ -1,84 +1,15 @@
-[% META title = 'Festival view' %]
+[% META title = 'Festival Details' %]
 
-<div class='title'><h2>[% object.year | html %]  [% object.name | html %]</h2></div>
+<script type="text/javascript">
+   var url_category_list    = '[% c.uri_for( "/productcategory/list" ) %]';
+   var url_stillage_list    = '[% c.uri_for( "/stillagelocation/list/$object.id" ) %]';
+   var url_festival_grid    = '[% c.uri_for( "/festival/grid" ) %]';
+   var url_stillage_submit  = '[% c.uri_for( "/stillagelocation/submit" ) %]';
+   var url_stillage_delete  = '[% c.uri_for( "/stillagelocation/delete" ) %]';
+   var festival_id          = '[% object.id %]';
+   var festivalname         = '[% object.year | html %]  [% object.name | html %]';
+</script>
 
-<div class='subtitle'><h3>Product orders:</h3></div>
+[% js_link( src = '/static/js/grids/festival_view.js' ) %]
 
-[% IF categories && categories.size > 0 %]
-  <div class='list'>
-    <ul>
-      [% FOREACH cat = categories.sort('description') %] 
-      <li><a href="[% c.uri_for("/productorder/grid/$object.id/$cat.id") | html %]">
-                   [% cat.description | html %]</a></li>
-      [% END %]
-    </ul>
-  </div>
-[% ELSE %] 
-  <p>No product categories found.</p> 
-[% END %]
-
-<div class='subtitle'><h3>Products received:</h3></div>
-
-[% IF categories && categories.size > 0 %]
-  <div class='list'>
-    <ul>
-      [% FOREACH cat = categories.sort('description') %] 
-      <li><a href="[% c.uri_for("/festivalproduct/grid/$object.id/$cat.id") | html %]">
-                   [% cat.description | html %]</a></li>
-      [% END %]
-    </ul>
-  </div>
-[% ELSE %] 
-  <p>No product categories found.</p> 
-[% END %]
-
-<div class='subtitle'><h3>Full Cask Listing:</h3></div>
-
-[% IF categories && categories.size > 0 %]
-  <div class='list'>
-    <ul>
-      [% FOREACH cat = categories.sort('description') %] 
-      <li><a href="[% c.uri_for("/cask/grid/$object.id/$cat.id") | html %]">
-                   [% cat.description | html %]</a></li>
-      [% END %]
-    </ul>
-  </div>
-[% ELSE %] 
-  <p>No product categories found.</p> 
-[% END %]
-
-<div class='subtitle'><h3>Stillage:
-  <a href="[% c.uri_for("/stillagelocation/add_to_festival/$object.id") | html %]">[Add]</a></h3>
-</div>
-
-[% IF stillages && stillages.size > 0 %]
-  <div class='list'>
-    <ul>
-      [% FOREACH st = stillages.sort('description') %] 
-      <li><a href="[% c.uri_for("/stillagelocation/grid/$st.id") | html %]">
-                   [% st.description | html %]</a></li>
-      [% END %]
-    </ul>
-  </div>
-[% ELSE %] 
-  <p>No stillage locations defined yet for this festival.</p> 
-[% END %]
-
-<div class='subtitle'><h3>Bars:
-  <a href="[% c.uri_for("/bar/add_to_festival/$object.id") | html %]">[Add]</a></h3>
-</div>
-
-[% IF bars && bars.size > 0 %]
-  <div class='list'>
-    <ul>
-      [% FOREACH bar = bars.sort('description') %] 
-      <li><a href="[% c.uri_for("/bar/view/$bar.id") | html %]">
-                   [% bar.description | html %]</a></li>
-      [% END %]
-    </ul>
-  </div>
-[% ELSE %] 
-  <p>No bars defined yet for this festival.</p> 
-[% END %]
-
-<p><a href="[% c.uri_for("/") | html %]">Return to start page...</a></p> 
+<div id="datagrid"></div>

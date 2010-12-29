@@ -67,6 +67,15 @@ sub submit : Local {
     $self->write_to_resultset( $c, $rs );
 }
 
+sub delete : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model('DB::StillageLocation');
+
+    $self->delete_from_resultset( $c, $rs );
+}
+
 sub grid : Local {
 
     my ( $self, $c, $stillage_id ) = @_;

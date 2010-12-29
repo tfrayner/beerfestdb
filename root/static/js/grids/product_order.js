@@ -233,13 +233,14 @@ Ext.onReady(function(){
 
     var myGrid = new MyEditorGrid(
         {
-            objLabel:           'ProductOrder',
+            objLabel:           'Product Order',
             idField:            'product_order_id',
             autoExpandColumn:   'product_id',
             store:              store,
             contentCols:        content_cols,
             viewLink:           viewLink,
             deleteUrl:          url_object_delete,
+            submitUrl:          url_object_submit,
             recordChanges:      recordChanges,
             listeners: {
                 beforeedit: function(e) {

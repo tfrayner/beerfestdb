@@ -75,7 +75,7 @@ SaveButton = Ext.extend(Ext.Button, {
                           for ( var i = 0 ; i < dirty.length ; i++ ) {
                               changes.push( this.recordChanges(dirty[i]) );
                           }
-                          submitChanges( changes, url_object_submit, this.grid.store );
+                          submitChanges( changes, this.grid.submitUrl, this.grid.store );
                           this.grid.store.commitChanges();
                       },
                       scope: this,
@@ -238,6 +238,56 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                                   deleteUrl:    this.deleteUrl}),
             ]
             
+        });
+        MyEditorGrid.superclass.initComponent.apply(this, arguments);
+    },
+    
+    onRender: function() {
+        this.store.load();
+        MyEditorGrid.superclass.onRender.apply(this, arguments);
+    }
+});
+
+MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
+
+    columnLines:        true,
+    stripeRows:         true,
+    trackMouseOver:     true,
+    loadMask:           true,
+    viewConfig: new Ext.grid.GridView({
+        autoFill: true,
+        forceFit: true,
+        getRowClass: function (record, index) {
+            if (index === 0) { return 'half-grey' }
+        },
+    }),
+
+    frame:true,
+    initComponent: function() {
+
+        var action = new Ext.ux.grid.RowActions({
+            header:'',
+            keepSelection:true,
+            actions:[{
+                iconCls:'icon-open',
+                tooltip:'View ' + this.objLabel,
+            }],
+        });
+
+        action.on({
+            action: this.viewLink,
+        });
+
+        var col_model = new Ext.grid.ColumnModel({
+            defaults: {
+                sortable: true
+            },
+            columns: [].concat(action, this.columns),
+        }); 
+        
+        Ext.apply(this, {
+            cm:                 col_model,
+            plugins:            action,            
         });
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
     },
