@@ -1,5 +1,23 @@
 #!/usr/bin/env perl
 #
+# This file is part of BeerFestDB, a beer festival product management
+# system.
+# 
+# Copyright (C) 2010 Tim F. Rayner
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 # $Id$
 
 use strict;
@@ -108,9 +126,8 @@ Tim F. Rayner, E<lt>tfrayner@gmail.comE<gt>
 
 Copyright (C) 2010 by Tim F. Rayner
 
-This program is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.8 or,
-at your option, any later version of Perl 5 you may have available.
+This library is released under version 3 of the GNU General Public
+License (GPL).
 
 =head1 BUGS
 
