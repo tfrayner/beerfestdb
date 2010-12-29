@@ -90,9 +90,9 @@ sub grid : Local {}
 
 =cut
 
-sub view : Local { 
+sub view : Local {
 
-    my ($self, $c, $id) = @_;
+    my ( $self, $c, $id ) = @_;
 
     my $object = $c->model('DB::Festival')->find($id);
 
@@ -101,14 +101,8 @@ sub view : Local {
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();        
     }
-    my @categories = $c->model('DB::ProductCategory')->all();
-    my @bars       = $c->model('DB::Bar')->search({ 'festival_id' => $id });
-    my @stillages  = $c->model('DB::StillageLocation')->search({ 'festival_id' => $id });
 
     $c->stash->{object}     = $object;
-    $c->stash->{categories} = \@categories;
-    $c->stash->{bars}       = \@bars;
-    $c->stash->{stillages}  = \@stillages;
 
     return;
 }

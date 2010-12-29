@@ -108,6 +108,7 @@ Ext.onReady(function(){
                 contentCols:        content_cols,
                 viewLink:           viewLink,
                 deleteUrl:          url_object_delete,
+                submitUrl:          url_object_submit,
                 recordChanges:      recordChanges,
             }
         ),

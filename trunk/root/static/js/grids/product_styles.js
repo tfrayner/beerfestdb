@@ -46,13 +46,14 @@ Ext.onReady(function(){
         layout: 'fit',
         items: new MyEditorGrid(
             {
-                objLabel:           'ProductStyle',
+                objLabel:           'Product Style',
                 idField:            'product_style_id',
                 autoExpandColumn:   'description',
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
                 deleteUrl:          url_object_delete,
+                submitUrl:          url_object_submit,
                 recordChanges:      recordChanges,
             }
         ),
