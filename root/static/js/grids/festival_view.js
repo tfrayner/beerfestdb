@@ -43,30 +43,51 @@ Ext.onReady(function(){
     });
     stillage_store.load();
     
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate('/productorder/grid/{festival_id}/{product_category_id}');
-        window.location=t.apply({
-                product_category_id: record.get('product_category_id'),
-                festival_id: festival_id,
-            });
-    };
-
-    var orderGrid = new MyViewGrid(
+    /* Order Batch listing */
+    var order_batch_store = new Ext.data.JsonStore({
+        url:        url_order_batch_list,
+        root:       'objects',
+        fields:     [{ name: 'order_batch_id',        type: 'int'    },
+                     { name: 'description',           type: 'string' },
+                     { name: 'order_date',            type: 'date', dateFormat: 'Y-m-d H:i:s'}]
+    });
+    order_batch_store.load();
+    
+    var orderBatchGrid = new MyEditorGrid(
         {
-            store:              category_store,
-            columns: [
+            objLabel:           'Order Batch',
+            idField:            'order_batch_id',
+            autoExpandColumn:   'description',
+            deleteUrl:          url_order_batch_delete,
+            submitUrl:          url_order_batch_submit,
+            recordChanges:      function (record) {
+                var fields = record.getChanges();
+                fields.order_batch_id = record.get( 'order_batch_id' );
+                fields.festival_id = festival_id;
+                return(fields);
+            },
+            store:              order_batch_store,
+            contentCols: [
                 { id:        'description',
-                  header:    'Product Category',
-                  dataIndex: 'description' },
+                  header:    'Order Batch Description',
+                  dataIndex: 'description',
+                  editor:     new Ext.form.TextField({
+                      allowBlank: false,
+                  })},
+                { id:         'order_date',
+                  header:     'Order date',
+                  dataIndex:  'order_date',
+                  width:      100,
+                  editor:     new Ext.form.DateField({
+                      allowBlank: true,
+                  })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/productorder/grid/{festival_id}/{product_category_id}');
+                var t = new Ext.XTemplate('/orderbatch/view/{order_batch_id}');
                 window.location=t.apply({
-                        product_category_id: record.get('product_category_id'),
-                        festival_id: festival_id,
-                    })
+                    order_batch_id: record.get('order_batch_id'),
+                })
             },
-            objLabel: 'orders in this product category',
         }
     );
 
@@ -151,9 +172,9 @@ Ext.onReady(function(){
             { title: 'Casks by Stillage',
               layout: 'fit',
               items:  stillageGrid, },
-            { title: 'Products Ordered',
+            { title: 'Product Order Batches',
               layout: 'fit',
-              items:  orderGrid, },
+              items:  orderBatchGrid, },
         ],
     });
 

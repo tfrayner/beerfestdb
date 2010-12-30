@@ -1,19 +1,27 @@
 [% META title = 'Order listing' %]
 
 <script type="text/javascript">
-   var url_object_list    = '[% c.uri_for( "/productorder/list/$festival.id/$category.id" ) %]';
+   var url_object_list    = '[% c.uri_for( "/productorder/list/$order_batch.id/$category.id" ) %]';
    var url_object_submit  = '[% c.uri_for( "/productorder/submit" ) %]';
    var url_object_delete  = '[% c.uri_for( "/productorder/delete" ) %]';
+
    var url_product_list   = '[% c.uri_for( "/product/list" ) %]';
    var url_distrib_list   = '[% c.uri_for( "/company/list" ) %]';
    var url_supplier_list  = '[% c.uri_for( "/company/list" ) %]';
    var url_currency_list  = '[% c.uri_for( "/currency/list" ) %]';
    var url_cask_size_list = '[% c.uri_for( "/containersize/list" ) %]';
-   var url_festival_view  = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
+
    var category_id        = '[% category.id %]';
    var categoryname       = '[% category.description %]';
+
+   var url_order_batch_view = '[% c.uri_for( "/orderbatch/view/$order_batch.id" ) %]';
+   var order_batch_id       = '[% order_batch.id %]';
+   var orderbatchname       = '[% order_batch.description %]';
+
+   var url_festival_view  = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var festival_id        = '[% festival.id %]';
    var festivalname       = '[% festival.year | html %]  [% festival.name | html %]';
+   
 </script>
 
 [% js_link( src = '/static/js/grids/product_order.js' ) %]

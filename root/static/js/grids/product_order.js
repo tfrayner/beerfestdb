@@ -29,7 +29,7 @@ Ext.onReady(function(){
         { name: 'product_order_id',       type: 'int' },
         { name: 'company_id',             type: 'int' },
         { name: 'product_id',             type: 'int' },
-        { name: 'festival_id',            type: 'int' },
+        { name: 'order_batch_id',         type: 'int' },
         { name: 'distributor_id',         type: 'int' },
         { name: 'cask_count',             type: 'int' },
         { name: 'container_size_id',      type: 'int' },
@@ -245,7 +245,7 @@ Ext.onReady(function(){
     function recordChanges (record) {
         var fields = record.getChanges();
         fields.product_order_id = record.get( 'product_order_id' );
-        fields.festival_id = festival_id;
+        fields.order_batch_id   = order_batch_id;
         return(fields);
     }
 
@@ -274,13 +274,14 @@ Ext.onReady(function(){
     );
 
     var panel = new Ext.Panel({
-        title: festivalname + ' product listing: ' + categoryname,
+        title: orderbatchname + ': ' + categoryname,
         layout: 'fit',
         items: myGrid,
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
             { text: 'Festival', handler: function() { window.location = url_festival_view; } },
+            { text: 'Order Batch', handler: function() { window.location = url_order_batch_view; } },
         ],
     });
     

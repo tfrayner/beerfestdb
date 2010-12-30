@@ -131,17 +131,17 @@ __PACKAGE__->has_many(
   {},
 );
 
-=head2 product_orders
+=head2 order_batches
 
 Type: has_many
 
-Related object: L<BeerFestDB::ORM::ProductOrder>
+Related object: L<BeerFestDB::ORM::OrderBatch>
 
 =cut
 
 __PACKAGE__->has_many(
-  "product_orders",
-  "BeerFestDB::ORM::ProductOrder",
+  "order_batches",
+  "BeerFestDB::ORM::OrderBatch",
   { "foreign.festival_id" => "self.festival_id" },
   {},
 );
@@ -162,8 +162,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GScuTheJyI6j0Z2z24jYBw
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-12-30 12:21:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Gqc33d3i1BDe5aeb23cHzg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

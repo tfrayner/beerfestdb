@@ -2,10 +2,16 @@
 
 <script type="text/javascript">
    var url_category_list    = '[% c.uri_for( "/productcategory/list" ) %]';
-   var url_stillage_list    = '[% c.uri_for( "/stillagelocation/list/$object.id" ) %]';
    var url_festival_grid    = '[% c.uri_for( "/festival/grid" ) %]';
+
+   var url_stillage_list    = '[% c.uri_for( "/stillagelocation/list/$object.id" ) %]';
    var url_stillage_submit  = '[% c.uri_for( "/stillagelocation/submit" ) %]';
    var url_stillage_delete  = '[% c.uri_for( "/stillagelocation/delete" ) %]';
+
+   var url_order_batch_list    = '[% c.uri_for( "/orderbatch/list/$object.id" ) %]';
+   var url_order_batch_submit  = '[% c.uri_for( "/orderbatch/submit" ) %]';
+   var url_order_batch_delete  = '[% c.uri_for( "/orderbatch/delete" ) %]';
+
    var festival_id          = '[% object.id %]';
    var festivalname         = '[% object.year | html %]  [% object.name | html %]';
 </script>
