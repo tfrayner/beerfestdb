@@ -25,7 +25,7 @@ __PACKAGE__->table("product_order");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 festival_id
+=head2 order_batch_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -82,7 +82,7 @@ __PACKAGE__->table("product_order");
 __PACKAGE__->add_columns(
   "product_order_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "festival_id",
+  "order_batch_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "product_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
@@ -103,9 +103,9 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key("product_order_id");
 __PACKAGE__->add_unique_constraint(
-  "festival_product_order",
+  "product_order_batch",
   [
-    "festival_id",
+    "order_batch_id",
     "product_id",
     "distributor_company_id",
     "container_size_id",
@@ -115,18 +115,18 @@ __PACKAGE__->add_unique_constraint(
 
 =head1 RELATIONS
 
-=head2 festival_id
+=head2 order_batch_id
 
 Type: belongs_to
 
-Related object: L<BeerFestDB::ORM::Festival>
+Related object: L<BeerFestDB::ORM::OrderBatch>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "festival_id",
-  "BeerFestDB::ORM::Festival",
-  { festival_id => "festival_id" },
+  "order_batch_id",
+  "BeerFestDB::ORM::OrderBatch",
+  { order_batch_id => "order_batch_id" },
 );
 
 =head2 product_id
@@ -186,8 +186,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-19 14:43:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fKeRFNVdcSoeVSIv+U+pAA
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-12-30 12:21:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Nhv9GZK5ZIKGBxjjemjO6Q
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

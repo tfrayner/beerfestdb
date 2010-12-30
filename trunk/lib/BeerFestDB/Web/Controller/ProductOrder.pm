@@ -47,7 +47,10 @@ sub BUILD {
             product_id  => 'company_id',
         },
         product_id        => 'product_id',
-        festival_id       => 'festival_id',
+        order_batch_id    => 'order_batch_id',
+        festival_id       => {
+            order_batch_id => 'festival_id',
+        },
         distributor_id    => 'distributor_company_id',
         container_size_id => 'container_size_id',
         cask_count        => 'cask_count',
@@ -64,30 +67,29 @@ sub BUILD {
 
 sub list : Local {
 
-    my ( $self, $c, $festival_id, $category_id ) = @_;
+    my ( $self, $c, $order_batch_id, $category_id ) = @_;
 
     # This method is intended to generally work with a defined
-    # festival_id; however, since it was based on the equivalent
+    # order_batch_id; however, since it was based on the equivalent
     # action in Product, it can in principle support a listing of all
     # orders ever.
 
-    # It's not yet clear whether we need to split orders by category
-    # for our own purposes, but we provide that option for more general use.
     my ( $cond, $attrs );
     if ( defined $category_id ) {
         $cond  = { 'product_id.product_category_id' => $category_id };
         $attrs = { join => { product_id => 'product_category_id' } };
     }
 
-    my ( $rs, $festival );
-    if ( defined $festival_id ) {
-        $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
-        unless ( $festival ) {
-            $c->stash->{error} = 'Festival not found.';
+    my ( $rs, $order_batch );
+    if ( defined $order_batch_id ) {
+        $order_batch = $c->model( 'DB::OrderBatch' )->find({
+            order_batch_id => $order_batch_id});
+        unless ( $order_batch ) {
+            $c->stash->{error} = 'OrderBatch not found.';
             $c->res->redirect( $c->uri_for('/default') );
             $c->detach();
         }
-        $rs = $festival->search_related('product_orders', $cond, $attrs)
+        $rs = $order_batch->search_related('product_orders', $cond, $attrs)
     }
     else {
         $rs = $c->model( 'DB::ProductOrder' )->search_rs( $cond, $attrs );
@@ -128,16 +130,17 @@ sub delete : Local {
 
 sub grid : Local {
 
-    my ( $self, $c, $festival_id, $category_id ) = @_;
+    my ( $self, $c, $order_batch_id, $category_id ) = @_;
 
-    if ( defined $festival_id ) {
-        my $festival = $c->model('DB::Festival')->find($festival_id);
-        unless ( $festival ) {
-            $c->flash->{error} = "Error: Festival not found.";
+    if ( defined $order_batch_id ) {
+        my $order_batch = $c->model('DB::OrderBatch')->find($order_batch_id);
+        unless ( $order_batch ) {
+            $c->flash->{error} = "Error: OrderBatch not found.";
             $c->res->redirect( $c->uri_for('/default') );
             $c->detach();        
         }
-        $c->stash->{festival} = $festival;
+        $c->stash->{order_batch} = $order_batch;
+        $c->stash->{festival}    = $order_batch->festival_id();
     }
 
     # It's not clear yet whether splitting orders by category is

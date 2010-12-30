@@ -780,6 +780,27 @@ CREATE TABLE cask_measurement (
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
+-- Table structure for table `order_batch`
+-- Stores the information used to track batches of product orders, so
+-- that we can track primary orders vs. reorders.
+-- ------------------------------------------------------------
+
+CREATE TABLE order_batch (
+  order_batch_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  order_date DATETIME NULL,
+  PRIMARY KEY(order_batch_id),
+  UNIQUE KEY `festival_order_batch` (festival_id, description),
+  INDEX FK_ORDER_fid(festival_id),
+  FOREIGN KEY FK_ORDER_fid_FEST_fid(festival_id)
+    REFERENCES festival(festival_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION
+)
+TYPE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ------------------------------------------------------------
 -- Table structure for table `product_order`
 -- Stores the information used to create an outgoing set of orders prior to the festival.
 -- This is designed to be a work-in-progress style table, with a flag indicating finalised details.
@@ -787,7 +808,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE product_order (
   product_order_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  festival_id INTEGER(6) NULL,
+  order_batch_id INTEGER(6) NULL,
   product_id INTEGER(6) NULL,
   distributor_company_id INTEGER(6) NULL,
   container_size_id INTEGER(6) NULL,
@@ -797,15 +818,15 @@ CREATE TABLE product_order (
   is_final TINYINT(1) NULL,
   comment TEXT NULL,
   PRIMARY KEY(product_order_id),
-  UNIQUE KEY `festival_product_order` (festival_id, product_id, distributor_company_id,
+  UNIQUE KEY `product_order_batch` (order_batch_id, product_id, distributor_company_id,
                                        container_size_id, cask_count),
-  INDEX FK_ORDER_fid(festival_id),
+  INDEX FK_ORDER_fid(order_batch_id),
   INDEX FK_ORDER_pid(product_id),
   INDEX FK_ORDER_dcid(distributor_company_id),
   INDEX FK_ORDER_cc3_CUR_cc3(currency_id),
   INDEX FK_ORDER_csid_CS_csid(container_size_id),
-  FOREIGN KEY FK_ORDER_fid_FEST_fid(festival_id)
-    REFERENCES festival(festival_id)
+  FOREIGN KEY FK_ORDER_fid_BATCH_fid(order_batch_id)
+    REFERENCES order_batch(order_batch_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_ORDER_pid_PROD_pid(product_id)
