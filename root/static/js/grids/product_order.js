@@ -36,6 +36,7 @@ Ext.onReady(function(){
         { name: 'currency_id',            type: 'int' },
         { name: 'price',                  type: 'int' },
         { name: 'is_final',               type: 'int' },
+        { name: 'is_received',            type: 'int' },
         { name: 'comment',                type: 'string' },
     ]);
 
@@ -198,13 +199,13 @@ Ext.onReady(function(){
         { id:         'container_size_id',
           header:     'Cask Size',
           dataIndex:  'container_size_id',
-          width:      40,
+          width:      50,
           renderer:   MyComboRenderer(cask_size_combo),
           editor:     cask_size_combo, },
         { id:         'cask_count',
           header:     'No. Casks',
           dataIndex:  'cask_count',
-          width:      45,
+          width:      50,
           editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
@@ -235,6 +236,13 @@ Ext.onReady(function(){
           renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
           })},
+        { id:         'is_received',
+          header:     'Arrived',
+          dataIndex:  'is_received',
+          width:      50,
+          renderer:   MyCheckboxRenderer(),
+          editor:     new Ext.form.Checkbox({
+          })},
     ];
 
     function viewLink (grid, record, action, row, col) {
@@ -260,18 +268,55 @@ Ext.onReady(function(){
             deleteUrl:          url_object_delete,
             submitUrl:          url_object_submit,
             recordChanges:      recordChanges,
+            view: new Ext.grid.GridView({
+
+                // Set CSS on disabled records.
+                getRowClass: function (rec, idx, rowParams, store){
+                    if (rec.get('is_received') == 1 && ! rec.isModified('is_received') ) {
+              	        return 'disabled-record';
+                    }
+                },
+            }),
             listeners: {
                 beforeedit: function(e) {
+
                     // reference to the currently clicked cell
                     var ed = e.grid.getColumnModel().getCellEditor(e.column, e.row);    
                     if (ed && ed.field) {
                         // copy these references to the current editor (brewer_combo in our case)
                         Ext.copyTo(ed.field, e, 'grid,record,field,row,column');
                     }
+
+                    // Disallow editing of records which we've physically received.
+                    rec = e.record;
+                    if (rec.get('is_received') == 1 && ! rec.isModified('is_received') ) {
+                        return false;
+                    }
                 }
             },
         }
     );
+
+    /* Add an extra warning to the user. */
+    var sb = myGrid.getTopToolbar().get(1);
+    sb.events['click'].clearListeners();
+    sb.addListener({
+        click:  function(evt) {
+            this.grid.stopEditing();
+            // Only fire off an alert if there are any is_received==1 records FIXME.
+            Ext.Msg.show({
+                title:    'Caution',
+                msg:      'If products are marked as "Arrived", further editing will be disabled. Continue?',
+                buttons:  Ext.Msg.YESNO,
+                icon:     Ext.MessageBox.QUESTION,
+                fn:       function(btn, text){
+                    if (btn == 'yes'){
+                        saveGridRecords(sb);
+                    };
+                },
+            });
+        },
+    });
 
     var panel = new Ext.Panel({
         title: orderbatchname + ': ' + categoryname,

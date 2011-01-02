@@ -816,6 +816,7 @@ CREATE TABLE product_order (
   currency_id INTEGER(6) NOT NULL,
   advertised_price INTEGER UNSIGNED NULL,
   is_final TINYINT(1) NULL,
+  is_received TINYINT(1) NULL,
   comment TEXT NULL,
   PRIMARY KEY(product_order_id),
   UNIQUE KEY `product_order_batch` (order_batch_id, product_id, distributor_company_id,

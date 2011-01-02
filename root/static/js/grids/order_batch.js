@@ -54,13 +54,13 @@ Ext.onReady(function(){
     );
 
     var panel = new Ext.Panel({
-        title: festivalname + ' order batch: ' + orderbatchname,
+        title: festivalname + ': ' + orderbatchname,
         layout: 'fit',
         items: myGrid,
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
-            { text: 'Festivals', handler: function() { window.location = url_festival_grid; } },
+            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
         ],
     });
     

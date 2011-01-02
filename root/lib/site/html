@@ -7,6 +7,7 @@
   css_link( href = "/static/tp_skin/resources/css/xtheme-tp.css" );
   css_link( href = "/static/css/Ext.ux.grid.RowActions.css" );
   css_link( href = "/static/css/icons.css" );
+  css_link( href = "/static/css/extras.css" );
 
   js_link( src = "/static/ext/adapter/ext/ext-base.js" );
   js_link( src = "/static/ext/ext-all.js" );
