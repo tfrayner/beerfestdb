@@ -77,26 +77,31 @@ NewButton = Ext.extend(Ext.Button, {
     },
 });
 
+function saveGridRecords(btn, event) {
+    btn.grid.stopEditing();
+    var changes = new Array();
+    var dirty = btn.grid.store.getModifiedRecords();
+    for ( var i = 0 ; i < dirty.length ; i++ ) {
+        changes.push( btn.recordChanges(dirty[i]) );
+    }
+    submitChanges( changes, btn.grid.submitUrl, btn.grid.store );
+    btn.grid.store.commitChanges();
+}
+
 SaveButton = Ext.extend(Ext.Button, {
     
     text:     'Save Changes',
     tooltip:  'Write changes to the database',
     iconCls:  'icon-save-table',
 
+    // We use listeners rather than a handler because it seems to be
+    // simpler to replace listeners after the fact.
     initComponent: function() {
         Ext.apply(this,
                   {
-                      handler:  function() {
-                          this.grid.stopEditing();
-                          var changes = new Array();
-                          var dirty = this.grid.store.getModifiedRecords();
-                          for ( var i = 0 ; i < dirty.length ; i++ ) {
-                              changes.push( this.recordChanges(dirty[i]) );
-                          }
-                          submitChanges( changes, this.grid.submitUrl, this.grid.store );
-                          this.grid.store.commitChanges();
+                      listeners: {
+                          click: saveGridRecords,
                       },
-                      scope: this,
                   }
                  );
 

@@ -77,6 +77,11 @@ __PACKAGE__->table("product_order");
   data_type: 'text'
   is_nullable: 1
 
+=head2 is_received
+
+  data_type: 'tinyint'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -100,6 +105,8 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", is_nullable => 1 },
   "comment",
   { data_type => "text", is_nullable => 1 },
+  "is_received",
+  { data_type => "tinyint", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("product_order_id");
 __PACKAGE__->add_unique_constraint(
@@ -186,8 +193,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-12-30 12:21:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Nhv9GZK5ZIKGBxjjemjO6Q
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-12-30 15:38:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aiUz4EKq1hg6bzHXTCxqcw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

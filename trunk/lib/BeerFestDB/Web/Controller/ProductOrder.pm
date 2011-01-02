@@ -57,6 +57,7 @@ sub BUILD {
         currency_id       => 'currency_id',
         price             => 'advertised_price',
         is_final          => 'is_final',
+        is_received       => 'is_received',
         comment           => 'comment',
     });
 }
