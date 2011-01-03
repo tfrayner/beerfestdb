@@ -78,6 +78,7 @@ Ext.onReady(function(){
                   header:     'Order date',
                   dataIndex:  'order_date',
                   width:      100,
+                  renderer:   Ext.util.Format.dateRenderer('jS M Y'),
                   editor:     new Ext.form.DateField({
                       allowBlank: true,
                   })},

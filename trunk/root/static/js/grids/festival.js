@@ -70,17 +70,18 @@ Ext.onReady(function(){
           header:     'Start date',
           dataIndex:  'fst_start_date',
           width:      100,
-          // FIXME we probably want a custom renderer here and for end_date.
           editor:     new Ext.form.DateField({
               allowBlank:     true,
-          })},
+          }),
+          renderer:   Ext.util.Format.dateRenderer('jS M Y'),},
         { id:         'fst_end_date',
           header:     'End date',
           dataIndex:  'fst_end_date',
           width:      100,
           editor:     new Ext.form.DateField({
               allowBlank:     true,
-          })},
+          }),
+          renderer:   Ext.util.Format.dateRenderer('jS M Y'),},
     ];
 
     function viewLink (grid, record, action, row, col) {
