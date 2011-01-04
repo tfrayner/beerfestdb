@@ -24,7 +24,7 @@ Ext.onReady(function(){
 
     // Enable tooltips
     Ext.QuickTips.init();
-    
+
     /* Category listing */
     var category_store = new Ext.data.JsonStore({
         url:        url_category_list,
@@ -161,9 +161,62 @@ Ext.onReady(function(){
         }
     );
 
+    // turn on validation errors beside form fields globally
+    Ext.form.Field.prototype.msgTarget = 'side';
+
+    var festivalForm = new Ext.form.FormPanel({
+            labelWidth:  150,
+            url:         url_object_submit,
+            frame:       true,
+            title:       'Festival details',
+            bodyStyle:   'padding:5px',
+            width:       500,
+            defaults:    {width: 300}, // field box width
+            defaultType: 'textfield',
+            
+            items: [
+                { name:       'year',
+                  fieldLabel: 'Year',
+                  allowBlank: false, },
+                { name:       'name',
+                  fieldLabel: 'Festival Name',
+                  allowBlank: false, },
+                { name:       'fst_start_date',
+                  fieldLabel: 'Start Date',
+                  xtype:      'datefield',
+                  format:     'jS M Y',
+                  allowBlank: true, },
+                { name:       'fst_end_date',
+                  fieldLabel: 'End Date',
+                  xtype:      'datefield',
+                  format:     'jS M Y',
+                  allowBlank: true, },
+                { name:       'description',
+                  fieldLabel: 'Description', },
+                { name:       'festival_id',
+                  value:      festival_id,
+                  xtype:      'hidden', },
+            ],
+            layout: 'form',
+            buttons: [{
+                    text: 'Save Changes',
+                },{
+                    text: 'Discard Changes',
+                }],
+            
+        });
+
+    festivalForm.load(
+              { url:     url_festival_load_form,
+                waitMsg: 'Loading Festival details...',
+                params:  { festival_id: festival_id }, });
+
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
+            { title: 'Festival Information',
+              layout: 'anchor',
+              items:  festivalForm, },
             { title: 'Products Received',
               layout: 'fit',
               items:  receivedGrid, },
