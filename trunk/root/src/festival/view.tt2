@@ -3,6 +3,8 @@
 <script type="text/javascript">
    var url_category_list    = '[% c.uri_for( "/productcategory/list" ) %]';
    var url_festival_grid    = '[% c.uri_for( "/festival/grid" ) %]';
+   var url_festival_load_form = '[% c.uri_for( "/festival/load_form" ) %]';
+   var url_object_submit      = '[% c.uri_for( "/festival/submit" ) %]';
 
    var url_stillage_list    = '[% c.uri_for( "/stillagelocation/list/$object.id" ) %]';
    var url_stillage_submit  = '[% c.uri_for( "/stillagelocation/submit" ) %]';

@@ -62,6 +62,47 @@ sub index :Path :Args(0) {
     $c->response->redirect($c->uri_for('grid'));
 }
 
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $id = $c->request->param( 'festival_id' );
+
+    if ( defined $id ) {
+        my $festival = $c->model('DB::Festival')->find({ festival_id => $id });
+
+        if ( $festival ) {
+            my $mv_map = $self->model_view_map();
+
+            # FIXME generalise this to nested mv_maps and put in Web/Controller.pm
+            my %obj_hash;
+            foreach my $key ( %$mv_map ) {
+                my $method = $mv_map->{ $key };
+                $obj_hash{ $key } = $festival->$method;
+            }
+
+            $c->stash->{ 'data' } = \%obj_hash;
+            $c->stash->{ 'success' } = JSON::Any->true();
+        }
+        else {
+            $c->stash->{ 'success' } = JSON::Any->false();
+            $c->stash->{ 'errorMessage' } = qq{Error: Unable to find festival_id "$id".};
+        }
+    }
+    else {
+        $c->stash->{ 'success' } = JSON::Any->false();
+        $c->stash->{ 'errorMessage' } = "Error: festival_id is not defined.";
+    }
+
+    $c->detach( $c->view( 'JSON' ) );
+
+    return;
+}
+
 =head2 list
 
 =cut
