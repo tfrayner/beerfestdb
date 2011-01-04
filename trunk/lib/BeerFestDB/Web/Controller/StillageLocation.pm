@@ -48,16 +48,6 @@ sub BUILD {
     });
 }
 
-# FIXME this method is likely to end up as redundant. Instead, we'll
-# support this via a multi-tab festival page with a grid for stillage
-# locations
-sub add_to_festival : Local {
-
-    my ( $self, $c, $festival_id ) = @_;
-
-    $c->stash()->{festival_id} = $festival_id;
-}
-
 sub list : Local {
 
     my ( $self, $c, $festival_id ) = @_;
