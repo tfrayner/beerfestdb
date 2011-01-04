@@ -71,6 +71,7 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 10 },
 );
 __PACKAGE__->set_primary_key("currency_id");
+__PACKAGE__->add_unique_constraint("currency_code", ["currency_code"]);
 
 =head1 RELATIONS
 
@@ -135,8 +136,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-19 14:43:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vsZSP8MdECITT9k5+fRd8Q
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-04 17:32:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oL1YAbHe4JjgoBjVHJhh0A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

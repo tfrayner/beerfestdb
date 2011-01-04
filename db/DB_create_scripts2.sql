@@ -40,6 +40,7 @@ CREATE TABLE currency (
   exponent TINYINT(4) NOT NULL,
   currency_symbol VARCHAR(10) NOT NULL,
   PRIMARY KEY(currency_id),
+  UNIQUE KEY(currency_code),
   INDEX CUR_currencynumber(currency_number)
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
