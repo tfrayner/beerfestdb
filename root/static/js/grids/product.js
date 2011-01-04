@@ -31,6 +31,7 @@ Ext.onReady(function(){
         { name: 'name',             type: 'string',   allowBlank: false },
         { name: 'description',      type: 'string' },
         { name: 'comment',          type: 'string' },
+        { name: 'nominal_abv',      type: 'float' },
         { name: 'product_style_id', type: 'int' },
     ]);
 
@@ -91,6 +92,14 @@ Ext.onReady(function(){
           width:      130,
           editor:     new Ext.form.TextField({
               allowBlank:     false,
+          })},
+        { id:         'nominal_abv',
+          header:     'Advertised ABV',
+          dataIndex:  'nominal_abv',
+          width:      130,
+          renderer:   function(value) { return value ? value : '' },
+          editor:     new Ext.form.NumberField({
+              allowBlank:     true,
           })},
         { id:         'description',
           header:     'Description',

@@ -49,6 +49,7 @@ sub BUILD {
         name             => 'name',
         description      => 'description',
         comment          => 'comment',
+        nominal_abv      => 'nominal_abv',
         product_style_id => 'product_style_id',
     });
 }
