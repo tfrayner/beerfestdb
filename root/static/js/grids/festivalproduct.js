@@ -89,7 +89,7 @@ Ext.onReady(function(){
                                 is not cleared the first time the ComboBox trigger is used */
         forceSelection: true,
         allowBlank:     false,
-        typeAhead:      true,
+        typeAhead:      false, // bypasses the filter; FIXME in future?
         store:          product_store,
         valueField:     'product_id',
         displayField:   'name',
