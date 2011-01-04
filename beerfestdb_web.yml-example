@@ -16,6 +16,12 @@ Model::DB:
     - RaiseError: 1
       AutoCommit: 1
 
+# Default currency and sale volume measures. These values must also be
+# entered into the currency.currency_code and
+# sale_volume.sale_volume_description database columns.
+default_currency:    GBP
+default_sale_volume: pint
+
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:
 

@@ -109,7 +109,86 @@ sub submit : Local {
 
     my $rs = $c->model( 'DB::ProductOrder' );
 
-    $self->write_to_resultset( $c, $rs );
+    my $j = JSON::Any->new;
+    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
+
+    # First we check that we haven't been passed records marked as
+    # is_received more than once.
+    my @received;
+    foreach my $rec ( @{ $data } ) {
+        if ( exists $rec->{ 'is_received' } && $rec->{ 'is_received' } ) {
+            if ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) {
+                if ( $po->is_received() ) {
+                    die("Error: Product Order newly marked as is_received"
+                            . " is already is_received in database.");
+                }
+            }
+            push @received, $rec;
+        }
+    }
+
+    # Create the core ProductOrder records in the database.
+    foreach my $rec ( @{ $data } ) {
+        $self->build_database_object( $rec, $c, $rs );
+    }
+    
+    # Copy any arrived products into FestivalProduct et al.
+    foreach my $rec ( @received ) {
+
+        # Failing to find the DB object is now an error (and really should never happen).
+        my $po = $rs->find( $rec->{ 'product_order_id' } )
+            or die("Error: unable to retrieve loaded product order");
+
+        my $default_currency = $c->model('DB::Currency')->find({
+            currency_code => $c->config->{'default_currency'},
+        }) or die("Error retrieving default currency; check config settings.");
+
+        my $default_sale_vol = $c->model('DB::SaleVolume')->find({
+            sale_volume_description => $c->config->{'default_sale_volume'},
+        }) or die("Error retrieving default sale volume; check config settings.");
+
+        my $festival_id = $po->order_batch_id()->get_column('festival_id');
+        my $product_id  = $po->get_column('product_id');
+        my $currency_id = $default_currency->get_column('currency_id');
+
+        $c->model('DB::FestivalProduct')->find_or_create({
+            festival_id      => $festival_id,
+            sale_volume_id   => $default_sale_vol->get_column('sale_volume_id'),
+            sale_currency_id => $currency_id,
+            product_id       => $product_id,
+        });
+
+        # This should really be constrained somehow to control the
+        # number of gyles created; I'm not sure how though - we might
+        # need to actually track gyle information, which is not always
+        # available. FIXME?
+        my $gyle = $c->model('DB::Gyle')->create({
+            company_id => $po->product_id()->get_column('company_id'),
+            product_id => $product_id,
+        });
+
+        my $casksize = $po->get_column('container_size_id');
+        my $previous_max = $c->model('DB::Cask')->search({
+            festival_id          => $festival_id,
+            'gyle_id.product_id' => $product_id,
+        },{ join => { gyle_id => 'product_id' } })
+            ->get_column('internal_reference')->max();            
+
+        foreach my $n ( 1..$po->cask_count() ) {
+            $c->model('DB::Cask')->create({
+                gyle_id                => $gyle->get_column('gyle_id'),
+                festival_id            => $festival_id,
+                distributor_company_id => $po->get_column('distributor_company_id'),
+                container_size_id      => $casksize,
+                currency_id            => $currency_id,
+                internal_reference     => $previous_max + $n,
+            });
+        }
+    }
+
+    $c->detach( $c->view( 'JSON' ) );
+
+    return;
 }
 
 =head2 delete
