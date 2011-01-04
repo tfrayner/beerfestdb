@@ -98,7 +98,7 @@ sub _view_to_model : Private {
     }
 }
 
-sub _build_db_obj : Private {
+sub build_database_object : Private {
 
     my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
 
@@ -191,7 +191,7 @@ sub _build_db_obj : Private {
         
         # Database updates are not done below here, for the sake of
         # interface consistency.
-        my $value = $self->_build_db_obj( $next_rec, $c, $next_rs, $next_map, 1 );
+        my $value = $self->build_database_object( $next_rec, $c, $next_rs, $next_map, 1 );
         my @pks = $next_rs->result_source()->primary_columns();
         if ( scalar @pks != 1 ) {
             confess("Error: Unable to update relationship with table not having only one primary column.");
@@ -231,7 +231,7 @@ sub write_to_resultset : Private {
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
     foreach my $rec ( @{ $data } ) {
-        my $dbobj = $self->_build_db_obj( $rec, $c, $rs );
+        my $dbobj = $self->build_database_object( $rec, $c, $rs );
     }
     
     $c->detach( $c->view( 'JSON' ) );
