@@ -161,55 +161,39 @@ Ext.onReady(function(){
         }
     );
 
-    // turn on validation errors beside form fields globally
-    Ext.form.Field.prototype.msgTarget = 'side';
+    var festivalForm = new MyFormPanel({
 
-    var festivalForm = new Ext.form.FormPanel({
-            labelWidth:  150,
-            url:         url_object_submit,
-            frame:       true,
-            title:       'Festival details',
-            bodyStyle:   'padding:5px',
-            width:       500,
-            defaults:    {width: 300}, // field box width
-            defaultType: 'textfield',
+        url:         url_object_submit,
+        title:       'Festival details',
             
-            items: [
-                { name:       'year',
-                  fieldLabel: 'Year',
-                  allowBlank: false, },
-                { name:       'name',
-                  fieldLabel: 'Festival Name',
-                  allowBlank: false, },
-                { name:       'fst_start_date',
-                  fieldLabel: 'Start Date',
-                  xtype:      'datefield',
-                  format:     'Y-m-d',
-                  allowBlank: true, },
-                { name:       'fst_end_date',
-                  fieldLabel: 'End Date',
-                  xtype:      'datefield',
-                  format:     'Y-m-d',
-                  allowBlank: true, },
-                { name:       'description',
-                  fieldLabel: 'Description', },
-                { name:       'festival_id',
-                  value:      festival_id,
-                  xtype:      'hidden', },
-            ],
-            layout: 'form',
-            buttons: [{
-                    text: 'Save Changes',
-                },{
-                    text: 'Discard Changes',
-                }],
-            
-        });
+        items: [
+            { name:       'year',
+              fieldLabel: 'Year',
+              allowBlank: false, },
+            { name:       'name',
+              fieldLabel: 'Festival Name',
+              allowBlank: false, },
+            { name:       'fst_start_date',
+              fieldLabel: 'Start Date',
+              xtype:      'datefield',
+              format:     'Y-m-d',
+              allowBlank: true, },
+            { name:       'fst_end_date',
+              fieldLabel: 'End Date',
+              xtype:      'datefield',
+              format:     'Y-m-d',
+              allowBlank: true, },
+            { name:       'description',
+              fieldLabel: 'Description', },
+            { name:       'festival_id',
+              value:      festival_id,
+              xtype:      'hidden', },
+        ],
 
-    festivalForm.load(
-              { url:     url_festival_load_form,
-                waitMsg: 'Loading Festival details...',
-                params:  { festival_id: festival_id }, });
+        loadUrl:     url_festival_load_form,
+        loadParams:  { festival_id: festival_id },
+        waitMsg:     'Loading Festival details...',
+    });
 
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
