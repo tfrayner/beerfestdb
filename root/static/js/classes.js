@@ -341,6 +341,7 @@ MyCheckboxRenderer = function() {
 
 MyFormPanel = Ext.extend(Ext.form.FormPanel, {
 
+    labelAlign:  'right',
     labelWidth:  150,
     frame:       true,
     bodyStyle:   'padding:5px',
