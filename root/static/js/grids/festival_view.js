@@ -191,7 +191,7 @@ Ext.onReady(function(){
         ],
 
         loadUrl:     url_festival_load_form,
-        loadParams:  { festival_id: festival_id },
+        idParams:    { festival_id: festival_id },
         waitMsg:     'Loading Festival details...',
     });
 
