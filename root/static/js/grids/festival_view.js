@@ -49,7 +49,7 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'order_batch_id',        type: 'int'    },
                      { name: 'description',           type: 'string' },
-                     { name: 'order_date',            type: 'date', dateFormat: 'Y-m-d H:i:s'}]
+                     { name: 'order_date',            type: 'date', dateFormat: 'Y-m-d'}]
     });
     order_batch_store.load();
     
@@ -78,7 +78,7 @@ Ext.onReady(function(){
                   header:     'Order date',
                   dataIndex:  'order_date',
                   width:      100,
-                  renderer:   Ext.util.Format.dateRenderer('jS M Y'),
+                  renderer:   Ext.util.Format.dateRenderer('Y-m-d'),
                   editor:     new Ext.form.DateField({
                       allowBlank: true,
                   })},
@@ -184,12 +184,12 @@ Ext.onReady(function(){
                 { name:       'fst_start_date',
                   fieldLabel: 'Start Date',
                   xtype:      'datefield',
-                  format:     'jS M Y',
+                  format:     'Y-m-d',
                   allowBlank: true, },
                 { name:       'fst_end_date',
                   fieldLabel: 'End Date',
                   xtype:      'datefield',
-                  format:     'jS M Y',
+                  format:     'Y-m-d',
                   allowBlank: true, },
                 { name:       'description',
                   fieldLabel: 'Description', },

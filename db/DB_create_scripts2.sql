@@ -59,8 +59,8 @@ CREATE TABLE festival (
   year YEAR(4) NOT NULL,
   name VARCHAR(60) NOT NULL,
   description TEXT NULL,
-  fst_start_date DATETIME NULL,
-  fst_end_date DATETIME NULL,
+  fst_start_date DATE NULL,
+  fst_end_date DATE NULL,
   PRIMARY KEY(festival_id)
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
@@ -790,7 +790,7 @@ CREATE TABLE order_batch (
   order_batch_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   festival_id INTEGER(6) NOT NULL,
   description VARCHAR(255) NOT NULL,
-  order_date DATETIME NULL,
+  order_date DATE NULL,
   PRIMARY KEY(order_batch_id),
   UNIQUE KEY `festival_order_batch` (festival_id, description),
   INDEX FK_ORDER_fid(festival_id),

@@ -30,8 +30,8 @@ Ext.onReady(function(){
         { name: 'year',        type: 'int' ,   allowBlank: false },
         { name: 'name',        type: 'string', allowBlank: false },
         { name: 'description', type: 'string' },
-        { name: 'fst_start_date',  type: 'date', dateFormat: 'Y-m-d H:i:s' },
-        { name: 'fst_end_date',    type: 'date', dateFormat: 'Y-m-d H:i:s' },
+        { name: 'fst_start_date',  type: 'date', dateFormat: 'Y-m-d' },
+        { name: 'fst_end_date',    type: 'date', dateFormat: 'Y-m-d' },
     ]);
 
     var store = new Ext.data.JsonStore({
@@ -73,7 +73,7 @@ Ext.onReady(function(){
           editor:     new Ext.form.DateField({
               allowBlank:     true,
           }),
-          renderer:   Ext.util.Format.dateRenderer('jS M Y'),},
+          renderer:   Ext.util.Format.dateRenderer('Y-m-d'),},
         { id:         'fst_end_date',
           header:     'End date',
           dataIndex:  'fst_end_date',
@@ -81,7 +81,7 @@ Ext.onReady(function(){
           editor:     new Ext.form.DateField({
               allowBlank:     true,
           }),
-          renderer:   Ext.util.Format.dateRenderer('jS M Y'),},
+          renderer:   Ext.util.Format.dateRenderer('Y-m-d'),},
     ];
 
     function viewLink (grid, record, action, row, col) {
