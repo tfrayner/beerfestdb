@@ -331,3 +331,44 @@ MyComboRenderer = function(combo){
 MyCheckboxRenderer = function() {
     return function(value) { return value ? 'yes' : 'no' }
 }
+
+MyFormPanel = Ext.extend(Ext.form.FormPanel, {
+
+    labelWidth:  150,
+    frame:       true,
+    bodyStyle:   'padding:5px',
+    width:       500,
+    defaults:    {width: 300}, // field box width
+    defaultType: 'textfield',
+            
+    initComponent: function() {
+
+        // turn on validation errors beside form fields globally
+        Ext.form.Field.prototype.msgTarget = 'side';
+
+        Ext.apply(this, {
+            buttons: [{
+                    text: 'Save Changes',
+                },{
+                    text: 'Discard Changes',
+                    handler: function(b, e) {
+                        this.getForm().reset();
+                    },
+                    scope: this,
+                }],
+            initialConfig: {
+                trackResetOnLoad: true,
+            },
+        });
+        MyFormPanel.superclass.initComponent.apply(this, arguments);
+    },
+    
+    onRender: function() {
+        this.load({
+            url:  this.loadUrl,
+            params: this.loadParams,
+            waitMsg: this.waitMsg,
+        });
+        MyFormPanel.superclass.onRender.apply(this, arguments);
+    }
+});
