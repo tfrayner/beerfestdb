@@ -23,7 +23,14 @@
 function submitChanges( data, url, store ) {
     Ext.Ajax.request({
         url:        url,
-        success:    function() { store.reload() },
+        success:    function() {
+            if ( store ) {
+                store.reload();
+            }
+            else {
+                Ext.Msg.alert('Success', 'Record saved to database');
+            }
+        },
         failure:    function(res, opts) {
             var stash = Ext.util.JSON.decode(res.responseText);
             Ext.Msg.alert('Error', stash.error);
@@ -348,14 +355,26 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
 
         Ext.apply(this, {
             buttons: [{
-                    text: 'Save Changes',
-                },{
-                    text: 'Discard Changes',
-                    handler: function(b, e) {
-                        this.getForm().reset();
-                    },
-                    scope: this,
-                }],
+                text:    'Save Changes',
+                tooltip: 'Write changes to the database',
+                iconCls: 'icon-save-table',
+                handler: function(b, e) {
+                    var fields = this.getForm().getFieldValues({ dirtyOnly: true });
+                    for ( var key in this.idParams ) {
+                        fields[key] = this.idParams[key];
+                    }
+                    submitChanges( [ fields ], this.url );
+                },
+                scope: this,
+            },{
+                text:    'Discard Changes',
+                tooltip: 'Restore the previously saved version',
+                iconCls: 'icon-cancel',
+                handler: function(b, e) {
+                    this.getForm().reset();
+                },
+                scope: this,
+            }],
             initialConfig: {
                 trackResetOnLoad: true,
             },
@@ -365,8 +384,8 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
     
     onRender: function() {
         this.load({
-            url:  this.loadUrl,
-            params: this.loadParams,
+            url:     this.loadUrl,
+            params:  this.idParams,
             waitMsg: this.waitMsg,
         });
         MyFormPanel.superclass.onRender.apply(this, arguments);
