@@ -2,8 +2,6 @@
 
 <script type="text/javascript">
    var url_object_list    = '[% c.uri_for( "/productstyle/list_by_category/$category.id" ) %]';
-   var url_object_submit  = '[% c.uri_for( "/productstyle/submit" ) %]';
-   var url_object_delete  = '[% c.uri_for( "/productstyle/delete" ) %]';
    var url_category_view  = '[% c.uri_for( "/productcategory" ) %]';
    var categoryname       = '[% category.description | xml %]';
    var category_id        = '[% category.id | xml %]';

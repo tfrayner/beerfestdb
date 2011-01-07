@@ -2,14 +2,6 @@
 
 <script type="text/javascript">
    var url_object_list    = '[% c.uri_for( "/productorder/list/$order_batch.id/$category.id" ) %]';
-   var url_object_submit  = '[% c.uri_for( "/productorder/submit" ) %]';
-   var url_object_delete  = '[% c.uri_for( "/productorder/delete" ) %]';
-
-   var url_product_list   = '[% c.uri_for( "/product/list" ) %]';
-   var url_distrib_list   = '[% c.uri_for( "/company/list" ) %]';
-   var url_supplier_list  = '[% c.uri_for( "/company/list" ) %]';
-   var url_currency_list  = '[% c.uri_for( "/currency/list" ) %]';
-   var url_cask_size_list = '[% c.uri_for( "/containersize/list" ) %]';
 
    var category_id        = '[% category.id %]';
    var categoryname       = '[% category.description %]';

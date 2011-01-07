@@ -2,13 +2,8 @@
 
 <script type="text/javascript">
    var url_object_list      = '[% c.uri_for( "/festivalproduct/list/$festival.id/$category.id" ) %]';
-   var url_object_submit    = '[% c.uri_for( "/festivalproduct/submit" ) %]';
-   var url_object_delete    = '[% c.uri_for( "/festivalproduct/delete" ) %]';
-   var url_supplier_list    = '[% c.uri_for( "/company/list" ) %]';
    var url_festival_view    = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var url_product_list     = '[% c.uri_for( "/product/list/$category.id" ) %]';
-   var url_currency_list    = '[% c.uri_for( "/currency/list" ) %]';
-   var url_sale_volume_list = '[% c.uri_for( "/salevolume/list" ) %]';
    var category_id          = '[% category.id %]';
    var categoryname         = '[% category.description %]';
    var festival_id          = '[% festival.id %]';

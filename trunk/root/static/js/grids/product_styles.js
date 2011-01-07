@@ -70,8 +70,8 @@ Ext.onReady(function(){
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          url_object_delete,
-                submitUrl:          url_object_submit,
+                deleteUrl:          url_productstyle_delete,
+                submitUrl:          url_productstyle_submit,
                 recordChanges:      recordChanges,
             }
         ),

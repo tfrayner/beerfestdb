@@ -1,11 +1,5 @@
 [% META title = 'Festival listing' %]
 
-<script type="text/javascript">
-   var url_object_list   = '[% c.uri_for( "/festival/list/" ) %]';
-   var url_object_submit = '[% c.uri_for( "/festival/submit" ) %]';
-   var url_object_delete = '[% c.uri_for( "/festival/delete" ) %]';
-</script>
-
 [% js_link( src = '/static/js/grids/festival.js' ) %]
 
 <div id="datagrid"></div>

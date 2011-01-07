@@ -35,7 +35,7 @@ Ext.onReady(function(){
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        url_object_list,
+        url:        url_festival_list,
         root:       'objects',
         fields:     Festival
     });
@@ -106,8 +106,8 @@ Ext.onReady(function(){
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          url_object_delete,
-                submitUrl:          url_object_submit,
+                deleteUrl:          url_festival_delete,
+                submitUrl:          url_festival_submit,
                 recordChanges:      recordChanges,
             }
         ),

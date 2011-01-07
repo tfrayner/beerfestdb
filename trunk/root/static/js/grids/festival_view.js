@@ -135,8 +135,8 @@ Ext.onReady(function(){
             objLabel:           'Stillage Location',
             idField:            'stillage_location_id',
             autoExpandColumn:   'description',
-            deleteUrl:          url_stillage_delete,
-            submitUrl:          url_stillage_submit,
+            deleteUrl:          url_stillageloc_delete,
+            submitUrl:          url_stillageloc_submit,
             recordChanges:      function (record) {
                 var fields = record.getChanges();
                 fields.stillage_location_id = record.get( 'stillage_location_id' );
@@ -163,7 +163,7 @@ Ext.onReady(function(){
 
     var festivalForm = new MyFormPanel({
 
-        url:         url_object_submit,
+        url:         url_festival_submit,
         title:       'Festival details',
             
         items: [

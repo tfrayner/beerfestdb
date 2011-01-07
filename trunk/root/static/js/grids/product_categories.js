@@ -31,7 +31,7 @@ Ext.onReady(function(){
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        url_object_list,
+        url:        url_category_list,
         root:       'objects',
         fields:     ProductCategory
     });
@@ -68,8 +68,8 @@ Ext.onReady(function(){
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          url_object_delete,
-                submitUrl:          url_object_submit,
+                deleteUrl:          url_category_delete,
+                submitUrl:          url_category_submit,
                 recordChanges:      recordChanges,
             }
         ),
