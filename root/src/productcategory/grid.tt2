@@ -5,8 +5,8 @@
    var url_object_submit  = '[% c.uri_for( "/productstyle/submit" ) %]';
    var url_object_delete  = '[% c.uri_for( "/productstyle/delete" ) %]';
    var url_category_view  = '[% c.uri_for( "/productcategory" ) %]';
-   var categoryname       = '[% category.description | html %]';
-   var category_id        = '[% category.id | html %]';
+   var categoryname       = '[% category.description | xml %]';
+   var category_id        = '[% category.id | xml %]';
 </script>
 
 [% js_link( src = '/static/js/grids/product_styles.js' ) %]

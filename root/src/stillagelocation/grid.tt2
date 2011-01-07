@@ -7,7 +7,7 @@
    var url_product_list   = '[% c.uri_for( "/product/list" ) %]';
    var url_supplier_list  = '[% c.uri_for( "/company/list" ) %]';
    var url_festival_view  = '[% c.uri_for( "/festival/view/$stillage.festival_id.id" ) %]';
-   var stillagename       = '[% stillage.description | html %],  [% stillage.festival_id.name | html %]';
+   var stillagename       = '[% stillage.description | xml %],  [% stillage.festival_id.name | xml %]';
 </script>
 
 [% js_link( src = '/static/js/grids/stillage_cask.js' ) %]
