@@ -70,37 +70,9 @@ sub load_form : Local {
 
     my ( $self, $c ) = @_;
 
-    my $id = $c->request->param( 'festival_id' );
+    my $rs = $c->model('DB::Festival');
 
-    if ( defined $id ) {
-        my $festival = $c->model('DB::Festival')->find({ festival_id => $id });
-
-        if ( $festival ) {
-            my $mv_map = $self->model_view_map();
-
-            # FIXME generalise this to nested mv_maps and put in Web/Controller.pm
-            my %obj_hash;
-            foreach my $key ( %$mv_map ) {
-                my $method = $mv_map->{ $key };
-                $obj_hash{ $key } = $festival->$method;
-            }
-
-            $c->stash->{ 'data' } = \%obj_hash;
-            $c->stash->{ 'success' } = JSON::Any->true();
-        }
-        else {
-            $c->stash->{ 'success' } = JSON::Any->false();
-            $c->stash->{ 'errorMessage' } = qq{Error: Unable to find festival_id "$id".};
-        }
-    }
-    else {
-        $c->stash->{ 'success' } = JSON::Any->false();
-        $c->stash->{ 'errorMessage' } = "Error: festival_id is not defined.";
-    }
-
-    $c->detach( $c->view( 'JSON' ) );
-
-    return;
+    $self->form_json_and_detach( $c, $rs, 'festival_id' );
 }
 
 =head2 list
