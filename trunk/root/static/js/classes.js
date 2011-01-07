@@ -365,6 +365,7 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
                         fields[key] = this.idParams[key];
                     }
                     submitChanges( [ fields ], this.url );
+                    this.getForm().setValues({ values: fields }); // doesn't currently work.
                 },
                 scope: this,
             },{
