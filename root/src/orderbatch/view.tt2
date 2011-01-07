@@ -3,10 +3,6 @@
 <script type="text/javascript">
 
    var url_object_list    = '[% c.uri_for( "/orderbatch/list/$object.id" ) %]';
-   var url_object_submit  = '[% c.uri_for( "/orderbatch/submit" ) %]';
-   var url_object_delete  = '[% c.uri_for( "/orderbatch/delete" ) %]';
-
-   var url_category_list  = '[% c.uri_for( "/productcategory/list" ) %]';
 
    var order_batch_id     = '[% object.id %]';
    var orderbatchname     = '[% object.description %]';

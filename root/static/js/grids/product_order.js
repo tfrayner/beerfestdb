@@ -48,7 +48,7 @@ Ext.onReady(function(){
 
     /* Brewer drop-down */
     var brewer_store = new Ext.data.JsonStore({
-        url:        url_supplier_list,
+        url:        url_company_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}]
@@ -116,7 +116,7 @@ Ext.onReady(function(){
     
     /* Distributor drop-down */
     var distributor_store = new Ext.data.JsonStore({
-        url:        url_distrib_list,
+        url:        url_company_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int'    },
                      { name: 'name',       type: 'string' }]
@@ -265,8 +265,8 @@ Ext.onReady(function(){
             store:              store,
             contentCols:        content_cols,
             viewLink:           viewLink,
-            deleteUrl:          url_object_delete,
-            submitUrl:          url_object_submit,
+            deleteUrl:          url_productorder_delete,
+            submitUrl:          url_productorder_submit,
             recordChanges:      recordChanges,
             view: new Ext.grid.GridView({
 

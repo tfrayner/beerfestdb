@@ -47,7 +47,7 @@ Ext.onReady(function(){
     });
 
     var brewer_store = new Ext.data.JsonStore({
-        url:        url_supplier_list,
+        url:        url_company_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int'    },
                      { name: 'name',       type: 'string' }],
@@ -146,8 +146,8 @@ Ext.onReady(function(){
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          url_object_delete,
-                submitUrl:          url_object_submit,
+                deleteUrl:          url_cask_delete,
+                submitUrl:          url_cask_submit,
                 recordChanges:      recordChanges,
             }
         ),

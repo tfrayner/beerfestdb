@@ -36,7 +36,7 @@ Ext.onReady(function(){
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        url_object_list,
+        url:        url_company_list,
         root:       'objects',
         fields:     Company
     });
@@ -126,8 +126,8 @@ Ext.onReady(function(){
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          url_object_delete,
-                submitUrl:          url_object_submit,
+                deleteUrl:          url_company_delete,
+                submitUrl:          url_company_submit,
                 recordChanges:      recordChanges,
             }
         ),

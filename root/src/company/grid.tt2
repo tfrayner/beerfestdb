@@ -1,12 +1,5 @@
 [% META title = 'Company listing' %]
 
-<script type="text/javascript">
-   var url_object_list   = '[% c.uri_for( "/company/list" ) %]';
-   var url_object_submit = '[% c.uri_for( "/company/submit" ) %]';
-   var url_object_delete = '[% c.uri_for( "/company/delete" ) %]';
-   var url_company_region_list = '[% c.uri_for( "/companyregion/list" ) %]';
-</script>
-
 [% js_link( src = '/static/js/grids/company.js' ) %]
 
 <div id="datagrid"></div>

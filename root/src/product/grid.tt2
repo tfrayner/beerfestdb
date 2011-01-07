@@ -2,10 +2,6 @@
 
 <script type="text/javascript">
    var url_object_list   = '[% c.uri_for( "/product/list/$category.id/$festival.id" ) %]';
-   var url_object_submit = '[% c.uri_for( "/product/submit" ) %]';
-   var url_object_delete = '[% c.uri_for( "/product/delete" ) %]';
-   var url_supplier_list = '[% c.uri_for( "/company/list" ) %]';
-   var url_product_style_list = '[% c.uri_for( "/productstyle/list" ) %]';
    var url_festival_view = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var category_id       = '[% category.id %]';
    var categoryname      = '[% category.description %]';
