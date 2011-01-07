@@ -15,7 +15,7 @@
    var url_order_batch_delete  = '[% c.uri_for( "/orderbatch/delete" ) %]';
 
    var festival_id          = '[% object.id %]';
-   var festivalname         = '[% object.year | html %]  [% object.name | html %]';
+   var festivalname         = '[% object.year | xml %]  [% object.name | xml %]';
 </script>
 
 [% js_link( src = '/static/js/grids/festival_view.js' ) %]

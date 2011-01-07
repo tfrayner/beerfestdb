@@ -13,7 +13,7 @@
 
    var url_festival_view  = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var festival_id        = '[% festival.id %]';
-   var festivalname       = '[% festival.year | html %]  [% festival.name | html %]';
+   var festivalname       = '[% festival.year | xml %]  [% festival.name | xml %]';
 
 </script>
 
