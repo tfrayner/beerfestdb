@@ -103,7 +103,6 @@ sub list : Local {
             { 'product_id.product_category_id' => $category_id },
             {
                 join     => { gyle_id => { product_id => 'product_category_id' } },
-                prefetch => { gyle_id => { product_id => 'product_category_id' } },
             });
     }
     else {
@@ -147,6 +146,25 @@ sub list_by_stillage : Local {
     my ( $self, $c, $id ) = @_;
 
     my $rs = $c->model( 'DB::Cask' )->search({ stillage_location_id => $id });
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 list_by_festival_product
+
+=cut
+
+sub list_by_festival_product : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $fp = $c->model( 'DB::FestivalProduct' )
+               ->find({ festival_product_id => $id });
+
+    my $rs = $c->model( 'DB::Cask' )
+               ->search({ festival_id          => $fp->get_column('festival_id'),
+                          'gyle_id.product_id' => $fp->get_column('product_id') },
+                        { join => { gyle_id => 'product_id' } });
 
     $self->generate_json_and_detach( $c, $rs );
 }
