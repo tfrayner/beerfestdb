@@ -163,9 +163,10 @@ sub submit : Local {
         # need to actually track gyle information, which is not always
         # available. FIXME?
         my $gyle = $c->model('DB::Gyle')->create({
-            company_id => $po->product_id()->get_column('company_id'),
-            product_id => $product_id,
-            comment    => 'Gyle automatically generated upon arrival.',
+            company_id         => $po->product_id()->get_column('company_id'),
+            product_id         => $product_id,
+            internal_reference => 'auto-generated',
+            comment            => 'Gyle automatically generated upon arrival.',
         });
 
         my $casksize = $po->get_column('container_size_id');

@@ -228,6 +228,7 @@ sub _load_data {
 	? $self->_load_column_value(
 	    {
 		external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
+                internal_reference => 'auto-generated',
 		company_id         => $brewer,
 		product_id         => $product,
 		abv                => $datahash->{$GYLE_ABV},

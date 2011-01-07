@@ -58,7 +58,7 @@ __PACKAGE__->table("gyle");
 =head2 internal_reference
 
   data_type: 'varchar'
-  is_nullable: 1
+  is_nullable: 0
   size: 255
 
 =cut
@@ -77,7 +77,7 @@ __PACKAGE__->add_columns(
   "external_reference",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "internal_reference",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "varchar", is_nullable => 0, size => 255 },
 );
 __PACKAGE__->set_primary_key("gyle_id");
 
@@ -127,8 +127,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CCgALpxK3QHEPDWWU9RW8A
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-07 23:46:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XA+eaiwBswQBUkhuzY+oCg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
