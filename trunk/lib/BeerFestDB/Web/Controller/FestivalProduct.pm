@@ -68,6 +68,19 @@ sub index :Path :Args(0) {
     $c->stash->{categories} = \@categories;
 }
 
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model('DB::FestivalProduct');
+
+    $self->form_json_and_detach( $c, $rs, 'festival_product_id' );
+}
+
 =head2 list
 
 =cut
@@ -150,6 +163,28 @@ sub delete : Local {
 
     # Database IDs of objects to be deleted are stored in the Catalyst context.
     $self->delete_from_resultset( $c, $rs );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::FestivalProduct')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: FestivalProduct not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object}     = $object;
+    $c->stash->{festival}   = $object->festival_id();
+
+    return;
 }
 
 =head1 COPYRIGHT AND LICENSE

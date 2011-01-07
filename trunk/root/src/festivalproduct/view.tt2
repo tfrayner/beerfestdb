@@ -1,0 +1,23 @@
+[% META title = 'Festival Product Details' %]
+
+<script type="text/javascript">
+   var url_fp_load_form     = '[% c.uri_for( "/festivalproduct/load_form" ) %]';
+   var url_object_submit    = '[% c.uri_for( "/festivalproduct/submit" ) %]';
+   var url_fp_grid          = '[% c.uri_for( "/festivalproduct/grid/$festival.id/$object.product_id.product_category_id.id" ) %]';
+
+   var url_festival_view    = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
+   var festival_id          = '[% festival.id %]';
+
+   var url_sale_volume_list = '[% c.uri_for( "/salevolume/list" ) %]';
+   var url_currency_list    = '[% c.uri_for( "/currency/list" ) %]';
+   var url_company_list     = '[% c.uri_for( "/company/list" ) %]';
+   var url_product_list     = '[% c.uri_for( "/product/list" ) %]';
+
+   var festival_product_id  = '[% object.id %]';
+   var fpname               = '[% object.product_id.company_id.name | xml %]:&nbsp;
+       [%- object.product_id.name | xml %] ([% object.festival_id.name | xml %])';
+</script>
+
+[% js_link( src = '/static/js/grids/festival_product_view.js' ) %]
+
+<div id="datagrid"></div>
