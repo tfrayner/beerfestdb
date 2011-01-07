@@ -72,6 +72,7 @@ Ext.onReady(function(){
     var style_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        forceSelection: true,
         store:          style_store,
         valueField:     'product_style_id',
         displayField:   'description',

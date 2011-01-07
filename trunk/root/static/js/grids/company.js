@@ -53,6 +53,7 @@ Ext.onReady(function(){
         typeAhead:      true,
         triggerAction:  'all',
         store:          region_store,
+        forceSelection: true,
         valueField:     'company_region_id',
         displayField:   'description',
         lazyRender:     true,
