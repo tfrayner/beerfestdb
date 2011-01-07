@@ -652,7 +652,7 @@ CREATE TABLE gyle (
   abv DECIMAL(3,1) NULL,
   comment VARCHAR(255) NULL,
   external_reference VARCHAR(255) NULL,
-  internal_reference VARCHAR(255) NULL,
+  internal_reference VARCHAR(255) NOT NULL,
   PRIMARY KEY(gyle_id),
   INDEX IDX_BB_bcpnyid(company_id),
   INDEX IDX_BB_bpid(product_id),
