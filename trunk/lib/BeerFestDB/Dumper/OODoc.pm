@@ -128,7 +128,7 @@ sub unique_casks {
         
     foreach my $cask ( @$casks ) {
         my $gyle = $cask->gyle_id();
-        my $key = join(':', $gyle->company_id, $gyle->product_id, $cask->bar_id || q{});
+        my $key = join(':', $gyle->company_id, $gyle->festival_product_id, $cask->bar_id || q{});
         $unique{ $key } = $cask;
     }
 
@@ -147,9 +147,9 @@ sub dump {
     foreach my $cask ( @$casks ) {
         my $bar    = $cask->bar_id() ? $cask->bar_id()->description() : q{};
         my $brewer = $cask->gyle_id->company_id;
-        my $beer   = $cask->gyle_id->product_id;
+        my $beer   = $cask->gyle_id->festival_product_id()->product_id;
         $barinfo{$bar}{$brewer->name}{$beer->name} = {
-            abv         => $cask->gyle_id->abv || $cask->gyle_id->product_id->nominal_abv,
+            abv         => $cask->gyle_id->abv || $beer->nominal_abv,
             style       => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
             description => $beer->description || q{Unknown at time of press.},
         };

@@ -105,21 +105,6 @@ __PACKAGE__->has_many(
   {},
 );
 
-=head2 gyles
-
-Type: has_many
-
-Related object: L<BeerFestDB::ORM::Gyle>
-
-=cut
-
-__PACKAGE__->has_many(
-  "gyles",
-  "BeerFestDB::ORM::Gyle",
-  { "foreign.product_id" => "self.product_id" },
-  {},
-);
-
 =head2 company_id
 
 Type: belongs_to
@@ -193,8 +178,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2cMkbHKyDXCCQpl3q1NeAA
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-08 17:45:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FJ10lHpIz+Km8kDEVI7b4g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

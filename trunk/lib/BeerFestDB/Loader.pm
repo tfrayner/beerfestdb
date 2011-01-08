@@ -211,8 +211,9 @@ sub _load_data {
 	    'Product')
 	: undef;
 
+    my $festival_product;
     if ( $product && $festival ) {
-        $self->_load_column_value(
+        $festival_product = $self->_load_column_value(
             {
                 festival_id => $festival->festival_id,
                 product_id  => $product->product_id,
@@ -224,13 +225,13 @@ sub _load_data {
     }
 
     my $gyle
-	= $product
+	= $festival_product
 	? $self->_load_column_value(
 	    {
 		external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
                 internal_reference => 'auto-generated',
 		company_id         => $brewer,
-		product_id         => $product,
+		festival_product_id => $festival_product,
 		abv                => $datahash->{$GYLE_ABV},
 		comment            => $datahash->{$GYLE_COMMENT},
 	    },

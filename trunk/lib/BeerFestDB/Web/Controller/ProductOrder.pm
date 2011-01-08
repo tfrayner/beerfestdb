@@ -151,29 +151,29 @@ sub submit : Local {
         my $product_id  = $po->get_column('product_id');
         my $currency_id = $default_currency->get_column('currency_id');
 
-        $c->model('DB::FestivalProduct')->find_or_create({
+        my $fp = $c->model('DB::FestivalProduct')->find_or_create({
             festival_id      => $festival_id,
             sale_volume_id   => $default_sale_vol->get_column('sale_volume_id'),
             sale_currency_id => $currency_id,
             product_id       => $product_id,
         });
+        my $fp_id = $fp->get_column('festival_product_id');
 
         # This should really be constrained somehow to control the
         # number of gyles created; I'm not sure how though - we might
         # need to actually track gyle information, which is not always
         # available. FIXME?
-        my $gyle = $c->model('DB::Gyle')->create({
+        my $gyle = $c->model('DB::Gyle')->find_or_create({
             company_id         => $po->product_id()->get_column('company_id'),
-            product_id         => $product_id,
+            festival_product_id => $fp_id,
             internal_reference => 'auto-generated',
-            comment            => 'Gyle automatically generated upon arrival.',
+            comment            => 'Gyle automatically generated upon cask receipt.',
         });
 
         my $casksize = $po->get_column('container_size_id');
         my $previous_max = $c->model('DB::Cask')->search({
-            festival_id          => $festival_id,
-            'gyle_id.product_id' => $product_id,
-        },{ join => { gyle_id => 'product_id' } })
+            'gyle_id.festival_product_id' => $fp_id,
+        },{ join => { gyle_id => 'festival_product_id' } })
             ->get_column('internal_reference')->max();            
 
         foreach my $n ( 1..$po->cask_count() ) {
