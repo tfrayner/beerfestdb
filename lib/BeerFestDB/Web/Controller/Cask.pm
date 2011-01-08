@@ -52,12 +52,12 @@ sub BUILD {
         price             => 'price',
         gyle_id           => 'gyle_id',
         product_id        => {
-            gyle_id  => 'product_id',
+            gyle_id  => {
+                festival_product_id => 'product_id',
+            },            
         },
         company_id        => {
-            gyle_id  => {
-                product_id => 'company_id',
-            },
+            gyle_id  => 'company_id',
         },
         stillage_bay      => 'stillage_bay',
         stillage_x        => 'stillage_x_location',
@@ -162,9 +162,10 @@ sub list_by_festival_product : Local {
                ->find({ festival_product_id => $id });
 
     my $rs = $c->model( 'DB::Cask' )
-               ->search({ festival_id          => $fp->get_column('festival_id'),
-                          'gyle_id.product_id' => $fp->get_column('product_id') },
-                        { join => { gyle_id => 'product_id' } });
+               ->search({
+                   'me.festival_id'              => $fp->get_column('festival_id'),
+                   'gyle_id.festival_product_id' => $fp->get_column('festival_product_id'),
+               }, { join => { gyle_id => 'festival_product_id' } });
 
     $self->generate_json_and_detach( $c, $rs );
 }

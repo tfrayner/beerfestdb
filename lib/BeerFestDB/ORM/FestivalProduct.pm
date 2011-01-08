@@ -132,9 +132,24 @@ __PACKAGE__->belongs_to(
   { currency_id => "sale_currency_id" },
 );
 
+=head2 gyles
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-12-22 15:58:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OsHjGlEkMuC6q5lZSqgM3w
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::Gyle>
+
+=cut
+
+__PACKAGE__->has_many(
+  "gyles",
+  "BeerFestDB::ORM::Gyle",
+  { "foreign.festival_product_id" => "self.festival_product_id" },
+  {},
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-08 17:45:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XFszTocrGqgtBDy870+dxg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

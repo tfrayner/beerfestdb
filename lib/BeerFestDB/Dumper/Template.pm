@@ -144,7 +144,9 @@ sub dump {
     my ( @template_data, %stillage );
     if ( $self->dump_class eq 'cask' ) {
         foreach my $cask ( @{ $self->festival_casks() } ) {
-            my $caskhash = $self->product_hash( $cask->gyle_id()->product_id() );
+            my $caskhash = $self->product_hash(
+                $cask->gyle_id()->festival_product_id()->product_id()
+            );
             $self->update_gyle_hash( $caskhash, $cask->gyle_id() );
             $self->update_cask_hash( $caskhash, $cask );
 
@@ -158,14 +160,15 @@ sub dump {
     elsif ( $self->dump_class eq 'gyle' ) {
         foreach my $product ( @{ $self->festival_products } ) {
 	    my @gyles =
-		$product->search_related('gyles', 
+		$product->search_related('festival_products')
+                        ->search_related('gyles', 
 					 { 'casks.festival_id' => $self->festival->id() },
 					 {
 					     prefetch => { casks => 'festival_id' },
 					     join     => { casks => 'festival_id' },
 					 });
             foreach my $gyle ( @gyles ) {
-                my $gylehash = $self->product_hash( $gyle->product_id() );
+                my $gylehash = $self->product_hash( $gyle->festival_product_id()->product_id() );
                 $self->update_gyle_hash( $gylehash, $gyle );
 
                 push @template_data, $gylehash;

@@ -642,28 +642,43 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 -- the beer is associated with and a brewer that is a contact of the 
 -- individual that brewed the beer, if the beer is brewed outside the 
 -- actual brewery the company that actually brewed the beer can be traced
--- through the company contact provided that there is a link there. 
+-- through the company contact provided that there is a link there.
+--
+-- Addendum: This table now references festival_product instead of
+-- product. This is conceptually flawed in that now each gyle is
+-- assumed to exist at a single festival only, but it does make
+-- automated management of gyles much simpler. If this
+-- oversimplification ever becomes an issue then one way to resolve
+-- this would be to rename this table "festival_gyle", and have it
+-- link out to a separate gyle table containing abv,
+-- external_reference and the like. The only downside of doing that,
+-- and indeed of leaving this as an abstract concept table related
+-- directly to product, is that at some point it forces the user to
+-- either (a) actively manage gyle information, or (b) completely
+-- disregard it. In most cases forcing this choice on users will be
+-- undesirable.
 -- ------------------------------------------------------------
 
 CREATE TABLE gyle (
   gyle_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   company_id INTEGER(6) NOT NULL,
-  product_id INTEGER(6) NOT NULL,
+  festival_product_id INTEGER(6) NOT NULL,
   abv DECIMAL(3,1) NULL,
   comment VARCHAR(255) NULL,
   external_reference VARCHAR(255) NULL,
   internal_reference VARCHAR(255) NOT NULL,
   PRIMARY KEY(gyle_id),
+  UNIQUE KEY(festival_product_id, internal_reference),
   INDEX IDX_BB_bcpnyid(company_id),
-  INDEX IDX_BB_bpid(product_id),
+  INDEX IDX_BB_bpid(festival_product_id),
   INDEX IDX_BB_eref(external_reference),
   INDEX IDX_BB_iref(internal_reference),
   FOREIGN KEY FK_BB_coid_COMP_coid(company_id)
     REFERENCES company(company_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
-  FOREIGN KEY FK_PDCT_prdid_BB_prdid(product_id)
-    REFERENCES product(product_id)
+  FOREIGN KEY FK_PDCT_prdid_BB_prdid(festival_product_id)
+    REFERENCES festival_product(festival_product_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
@@ -980,7 +995,7 @@ begin
     if ( (select count(fp.festival_id)
             from festival_product fp, gyle g
             where new.gyle_id=g.gyle_id
-            and g.product_id=fp.product_id
+            and g.festival_product_id=fp.festival_product_id
             and fp.festival_id=new.festival_id) = 0 ) then
         call ERROR_CASK_INSERT_TRIGGER();
     end if;
@@ -995,7 +1010,7 @@ begin
     if ( (select count(fp.festival_id)
             from festival_product fp, gyle g
             where new.gyle_id=g.gyle_id
-            and g.product_id=fp.product_id
+            and g.festival_product_id=fp.festival_product_id
             and fp.festival_id=new.festival_id) = 0 ) then
         call ERROR_CASK_UPDATE_TRIGGER();
     end if;
@@ -1011,46 +1026,26 @@ begin
     if ( (select count(festival_id)
           from cask c, gyle g
           where c.gyle_id=g.gyle_id
-          and g.product_id=old.product_id
+          and g.festival_product_id=old.festival_product_id
           and c.festival_id=old.festival_id) != 0 ) then
         call ERROR_CASK_DELETE_TRIGGER();
     end if;
 end;
 //
 
--- Company to Product to Gyle
-
--- Check inserts, updates on gyle table
-drop trigger if exists `gyle_insert_trigger`//
-create trigger `gyle_insert_trigger`
-    before insert on gyle
-for each row
-begin
-    if ( (select count(product_id)
-            from product
-            where company_id=new.company_id
-            and product_id=new.product_id) = 0 ) then
-        call ERROR_GYLE_INSERT_TRIGGER();
-    end if;
-end;
-//
+-- Product to Gyle (N.B. gyle.company_id is not necessarily expected
+-- to agree with product.company_id).
 
 drop trigger if exists `gyle_update_trigger`//
 create trigger `gyle_update_trigger`
     before update on gyle
 for each row
 begin
-    if ( (select count(product_id)
-            from product
-            where company_id=new.company_id
-            and product_id=new.product_id) = 0 ) then
-        call ERROR_GYLE_UPDATE_TRIGGER();
-    end if;
     -- carried over from the festival_product link above.
     if ( (select count(fp.festival_id)
             from festival_product fp, cask c, gyle g
             where new.gyle_id=c.gyle_id
-            and g.product_id=fp.product_id
+            and g.festival_product_id=fp.festival_product_id
             and fp.festival_id=c.festival_id) = 0 ) then
         call ERROR_CASK_UPDATE_FP_TRIGGER();
     end if;
@@ -1065,7 +1060,7 @@ for each row
 begin
     if ( (select count(festival_id)
           from gyle g, cask c
-          where g.product_id=old.product_id
+          where g.festival_product_id=old.festival_product_id
           and g.gyle_id=c.gyle_id
           and c.festival_id=old.festival_id) != 0 ) then
         call ERROR_GYLE_DELETE_TRIGGER();

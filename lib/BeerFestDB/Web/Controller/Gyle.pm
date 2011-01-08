@@ -44,7 +44,7 @@ sub BUILD {
     $self->model_view_map({
         gyle_id           => 'gyle_id',
         company_id        => 'company_id',
-        product_id        => 'product_id',
+        festival_product_id => 'festival_product_id',
         abv               => 'abv',
         comment           => 'comment',
         ext_reference     => 'external_reference',
@@ -70,14 +70,7 @@ sub list_by_festival_product : Local {
 
     my ( $self, $c, $id ) = @_;
 
-    my $fp = $c->model( 'DB::FestivalProduct' )
-               ->find({ festival_product_id => $id });
-
-    my $rs = $c->model( 'DB::Cask' )
-               ->search({ festival_id          => $fp->get_column('festival_id'),
-                          'gyle_id.product_id' => $fp->get_column('product_id') },
-                        { join => { gyle_id => 'product_id' } })
-               ->search_related('gyle_id', undef, { distinct => 1 });
+    my $rs = $c->model( 'DB::Gyle' )->search({ festival_product_id => $id });
 
     $self->generate_json_and_detach( $c, $rs );
 }

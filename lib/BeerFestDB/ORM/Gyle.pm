@@ -31,7 +31,7 @@ __PACKAGE__->table("gyle");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 product_id
+=head2 festival_product_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -68,7 +68,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "company_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "product_id",
+  "festival_product_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "abv",
   { data_type => "decimal", is_nullable => 1, size => [3, 1] },
@@ -80,6 +80,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 255 },
 );
 __PACKAGE__->set_primary_key("gyle_id");
+__PACKAGE__->add_unique_constraint(
+  "festival_product_id",
+  ["festival_product_id", "internal_reference"],
+);
 
 =head1 RELATIONS
 
@@ -112,23 +116,23 @@ __PACKAGE__->belongs_to(
   { company_id => "company_id" },
 );
 
-=head2 product_id
+=head2 festival_product_id
 
 Type: belongs_to
 
-Related object: L<BeerFestDB::ORM::Product>
+Related object: L<BeerFestDB::ORM::FestivalProduct>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "product_id",
-  "BeerFestDB::ORM::Product",
-  { product_id => "product_id" },
+  "festival_product_id",
+  "BeerFestDB::ORM::FestivalProduct",
+  { festival_product_id => "festival_product_id" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-07 23:46:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XA+eaiwBswQBUkhuzY+oCg
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-08 17:51:55
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UhB4wP82TmvSrviGtkCAxw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
