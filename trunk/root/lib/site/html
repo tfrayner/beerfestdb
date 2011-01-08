@@ -43,6 +43,8 @@
    var url_festival_submit      = '[% c.uri_for( "/festival/submit" ) %]';
    var url_festivalproduct_delete = '[% c.uri_for( "/festivalproduct/delete" ) %]';
    var url_festivalproduct_submit = '[% c.uri_for( "/festivalproduct/submit" ) %]';
+   var url_gyle_delete          = '[% c.uri_for( "/gyle/delete" ) %]';
+   var url_gyle_submit          = '[% c.uri_for( "/gyle/submit" ) %]';
    var url_order_batch_submit   = '[% c.uri_for( "/orderbatch/submit" ) %]';
    var url_order_batch_delete   = '[% c.uri_for( "/orderbatch/delete" ) %]';
    var url_product_submit       = '[% c.uri_for( "/product/submit" ) %]';

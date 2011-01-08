@@ -33,7 +33,7 @@ Ext.onReady(function(){
                      { name: 'name',       type: 'string'}]
     });
     company_store.load();
-    var distributor_combo = new Ext.form.ComboBox({
+    var company_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -109,6 +109,11 @@ Ext.onReady(function(){
         url:        url_gyle_list,
         root:       'objects',
         fields:     [{ name: 'gyle_id',       type: 'int'    },
+                     { name: 'company_id',    type: 'int' },
+                     { name: 'festival_product_id',    type: 'int' },
+                     { name: 'abv',           type: 'float' },
+                     { name: 'comment',       type: 'string' },
+                     { name: 'ext_reference', type: 'string' },
                      { name: 'int_reference', type: 'string' }]
     });
     gyle_store.load();
@@ -214,6 +219,65 @@ Ext.onReady(function(){
         waitMsg:     'Loading Festival Product details...',
     });
 
+    /* Gyle grid */
+    var gyleGrid = new MyEditorGrid(
+        {
+            objLabel:           'Gyle',
+            idField:            'gyle_id',
+            autoExpandColumn:   'int_reference',
+            deleteUrl:          url_gyle_delete,
+            submitUrl:          url_gyle_submit,
+            recordChanges:      function (record) {
+                var fields = record.getChanges();
+                fields.gyle_id             = record.get( 'gyle_id' );
+                fields.festival_product_id = festival_product_id;
+                return(fields);
+            },
+            store:              gyle_store,
+            contentCols: [
+                { id:        'int_reference',
+                  header:    'Festival Gyle ID',
+                  dataIndex: 'int_reference',
+                  width:      50,
+                  editor:     new Ext.form.TextField({
+                      allowBlank: false,
+                  })},
+                { id:        'ext_reference',
+                  header:    'Brewery Gyle ID',
+                  dataIndex: 'ext_reference',
+                  width:      50,
+                  editor:     new Ext.form.TextField({
+                      allowBlank: true,
+                  })},
+                { id:         'company_id',
+                  header:     'Actual Brewer',
+                  dataIndex:  'company_id',
+                  width:      130,
+                  renderer:   MyComboRenderer(company_combo),
+                  editor:     company_combo, },
+                { id:         'abv',
+                  header:     'Gyle ABV',
+                  dataIndex:  'abv',
+                  width:      30,
+                  editor:     new Ext.form.NumberField({
+                      allowBlank: true,
+                  })},
+                { id:        'comment',
+                  header:    'Comment',
+                  dataIndex: 'comment',
+                  editor:     new Ext.form.TextField({
+                      allowBlank: true,
+                  })},
+            ],
+            viewLink: function (grid, record, action, row, col) {
+                var t = new Ext.XTemplate('/gyle/view/{gyle_id}');
+                window.location=t.apply({
+                    gyle_id: record.get('gyle_id'),
+                })
+            },
+        }
+    );
+
     /* Cask grid */
     var caskGrid = new MyEditorGrid(
         {
@@ -248,13 +312,13 @@ Ext.onReady(function(){
                 { id:         'container_size_id',
                   header:     'Cask Size',
                   dataIndex:  'container_size_id',
-                  width:      50,
+                  width:      40,
                   renderer:   MyComboRenderer(casksize_combo),
                   editor:     casksize_combo, },
                 { id:         'price',
-                  header:     'Price',
+                  header:     'Cask Price',
                   dataIndex:  'price',
-                  width:      30,
+                  width:      40,
                   editor:     new Ext.form.TextField({
                       allowBlank:     true,
                   })},
@@ -274,8 +338,8 @@ Ext.onReady(function(){
                   header:     'Distributor',
                   dataIndex:  'distributor_id',
                   width:      130,
-                  renderer:   MyComboRenderer(distributor_combo),
-                  editor:     distributor_combo, },
+                  renderer:   MyComboRenderer(company_combo),
+                  editor:     company_combo, },
                 { id:        'comment',
                   header:    'Comment',
                   dataIndex: 'comment',
@@ -298,6 +362,9 @@ Ext.onReady(function(){
             { title: 'Festival Product Information',
               layout: 'anchor',
               items:  fpForm, },
+            { title: 'Gyles',
+              layout: 'fit',
+              items:  gyleGrid, },
             { title: 'Casks',
               layout: 'fit',
               items:  caskGrid, },
