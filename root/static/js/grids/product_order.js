@@ -254,6 +254,7 @@ Ext.onReady(function(){
     function recordChanges (record) {
         var fields = record.getChanges();
         fields.product_order_id = record.get( 'product_order_id' );
+        fields.currency_id      = record.get( 'currency_id' );
         fields.order_batch_id   = order_batch_id;
         return(fields);
     }

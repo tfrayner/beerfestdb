@@ -190,6 +190,8 @@ Ext.onReady(function(){
     function recordChanges (record) {
         var fields = record.getChanges();
         fields.festival_product_id = record.get( 'festival_product_id' );
+        fields.sale_currency_id    = record.get( 'sale_currency_id' );
+        fields.sale_volume_id      = record.get( 'sale_volume_id' );
         fields.festival_id = festival_id;
         return(fields);
     }
