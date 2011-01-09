@@ -148,7 +148,7 @@ Ext.onReady(function(){
     
     var content_cols = [
         { id:         'company_id',
-          header:     'Supplier',
+          header:     'Brewer',
           dataIndex:  'company_id',
           width:      130,
           renderer:   MyComboRenderer(brewer_combo),
