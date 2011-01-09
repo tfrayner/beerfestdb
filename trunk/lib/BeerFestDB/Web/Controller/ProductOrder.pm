@@ -236,6 +236,8 @@ sub grid : Local {
         }
         $c->stash->{category} = $category;
     }
+
+    $self->get_default_currency( $c );
 }
 
 =head1 COPYRIGHT AND LICENSE

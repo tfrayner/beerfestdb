@@ -305,6 +305,40 @@ sub delete_from_resultset : Private {
     $c->detach( $c->view( 'JSON' ) );
 }
 
+=head2 get_default_currency
+
+=cut
+
+sub get_default_currency : Private {
+
+    my ( $self, $c ) = @_;
+
+    my $def = $c->model('DB::Currency')->find({
+        currency_code => $c->config->{'default_currency'},
+    }) or die("Error retrieving default currency; check config settings.");
+
+    $c->stash->{ 'default_currency' } = $def->currency_id();
+
+    return;
+}
+
+=head2 get_default_sale_volume
+
+=cut
+
+sub get_default_sale_volume : Private {
+
+    my ( $self, $c ) = @_;
+
+    my $def = $c->model('DB::SaleVolume')->find({
+        sale_volume_description => $c->config->{'default_sale_volume'},
+    }) or die("Error retrieving default sale volume; check config settings.");
+
+    $c->stash->{ 'default_sale_volume' } = $def->sale_volume_id();
+
+    return;
+}
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2010 by Tim F. Rayner

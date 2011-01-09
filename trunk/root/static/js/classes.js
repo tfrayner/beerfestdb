@@ -61,7 +61,8 @@ NewButton = Ext.extend(Ext.Button, {
         Ext.apply(this,
                   {               
                       handler: function() {
-                          var p = new this.grid.store.recordType();
+                          var d = this.grid.store.defaultData;
+                          var p = new this.grid.store.recordType(d);
                           this.grid.stopEditing();
                           this.grid.store.insert( 0, p );
                           this.grid.startEditing( 0, 1 );

@@ -134,6 +134,9 @@ sub grid : Local {
         $c->detach();        
     }
     $c->stash->{category} = $category;
+
+    $self->get_default_currency( $c );
+    $self->get_default_sale_volume( $c );
 }
 
 =head2 submit

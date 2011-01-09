@@ -37,7 +37,9 @@ Ext.onReady(function(){
     var store = new Ext.data.JsonStore({
         url:        url_object_list,
         root:       'objects',
-        fields:     FestivalProduct
+        fields:     FestivalProduct,
+        defaultData: { sale_currency_id: default_currency,
+                       sale_volume_id:   default_sale_volume },
     });
 
     /* Supplier drop-down */
