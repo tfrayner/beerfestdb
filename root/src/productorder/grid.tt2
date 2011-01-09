@@ -14,6 +14,7 @@
    var festival_id        = '[% festival.id %]';
    var festivalname       = '[% festival.year | xml %]  [% festival.name | xml %]';
    
+   var default_currency     = '[% default_currency %]';
 </script>
 
 [% js_link( src = '/static/js/grids/product_order.js' ) %]

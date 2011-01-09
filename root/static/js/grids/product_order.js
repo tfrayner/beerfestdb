@@ -43,7 +43,8 @@ Ext.onReady(function(){
     var store = new Ext.data.JsonStore({
         url:        url_object_list,
         root:       'objects',
-        fields:     ProductOrder
+        fields:     ProductOrder,
+        defaultData: { currency_id: default_currency },
     });
 
     /* Brewer drop-down */
