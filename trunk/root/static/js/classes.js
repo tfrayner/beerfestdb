@@ -94,6 +94,7 @@ function saveGridRecords(btn, event) {
     }
     submitChanges( changes, btn.grid.submitUrl, btn.grid.store );
     btn.grid.store.commitChanges();
+    window.location.reload(); // a sledgehammer to crush an egg FIXME.
 }
 
 SaveButton = Ext.extend(Ext.Button, {
