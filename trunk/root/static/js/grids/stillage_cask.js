@@ -51,6 +51,10 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int'    },
                      { name: 'name',       type: 'string' }],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
     var brewer_combo = new Ext.form.ComboBox({
         store:          brewer_store,
@@ -65,6 +69,10 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'product_id', type: 'int'    },
                      { name: 'name',       type: 'string' }],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
     var product_combo = new Ext.form.ComboBox({
         store:          product_store,

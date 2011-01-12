@@ -30,7 +30,11 @@ Ext.onReady(function(){
         url:        url_category_list,
         root:       'objects',
         fields:     [{ name: 'product_category_id',   type: 'int'    },
-                     { name: 'description',           type: 'string' }]
+                     { name: 'description',           type: 'string' }],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
     });
     category_store.load();
 
@@ -39,7 +43,11 @@ Ext.onReady(function(){
         url:        url_stillage_list,
         root:       'objects',
         fields:     [{ name: 'stillage_location_id',  type: 'int'    },
-                     { name: 'description',           type: 'string' }]
+                     { name: 'description',           type: 'string' }],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
     });
     stillage_store.load();
     
@@ -49,7 +57,11 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'order_batch_id',        type: 'int'    },
                      { name: 'description',           type: 'string' },
-                     { name: 'order_date',            type: 'date', dateFormat: 'Y-m-d'}]
+                     { name: 'order_date',            type: 'date', dateFormat: 'Y-m-d'}],
+        sortInfo:   {
+            field:     'order_date',
+            direction: 'ASC',
+        },
     });
     order_batch_store.load();
     

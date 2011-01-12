@@ -52,7 +52,11 @@ Ext.onReady(function(){
         url:        url_company_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}]
+                     { name: 'name',       type: 'string'}],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
     brewer_store.load();
     var brewer_combo = new Ext.form.ComboBox({
@@ -83,8 +87,11 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'product_id', type: 'int'    },
                      { name: 'company_id', type: 'int'    },
-                     { name: 'name',       type: 'string' }]
-
+                     { name: 'name',       type: 'string' }],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
     product_store.load();
 
@@ -120,8 +127,11 @@ Ext.onReady(function(){
         url:        url_company_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int'    },
-                     { name: 'name',       type: 'string' }]
-
+                     { name: 'name',       type: 'string' }],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
     distributor_store.load();
     var distributor_combo = new Ext.form.ComboBox({
@@ -141,8 +151,11 @@ Ext.onReady(function(){
         url:        url_currency_list,
         root:       'objects',
         fields:     [{ name: 'currency_id',   type: 'int'    },
-                     { name: 'currency_code', type: 'string' }]
-
+                     { name: 'currency_code', type: 'string' }],
+        sortInfo:   {
+            field:     'currency_code',
+            direction: 'ASC',
+        },
     });
     currency_store.load();
     var currency_combo = new Ext.form.ComboBox({
@@ -162,8 +175,11 @@ Ext.onReady(function(){
         url:        url_cask_size_list,
         root:       'objects',
         fields:     [{ name: 'container_size_id', type: 'int'    },
-                     { name: 'description',       type: 'string' }]
-
+                     { name: 'description',       type: 'string' }],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
     });
     cask_size_store.load();
     var cask_size_combo = new Ext.form.ComboBox({

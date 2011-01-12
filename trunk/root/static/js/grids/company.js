@@ -46,7 +46,11 @@ Ext.onReady(function(){
         url:        url_company_region_list,
         root:       'objects',
         fields:     [{ name: 'company_region_id', type: 'int'    },
-                     { name: 'description',       type: 'string' }]
+                     { name: 'description',       type: 'string' }],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
     });
     region_store.load();
     var region_combo = new Ext.form.ComboBox({

@@ -24,7 +24,7 @@ Ext.onReady(function(){
 
     // Enable tooltips
     Ext.QuickTips.init();
-    
+
     /* Category listing */
     var category_store = new Ext.data.JsonStore({
         url:        url_category_list,
@@ -38,7 +38,7 @@ Ext.onReady(function(){
     });
     category_store.load();
 
-    var myGrid = new MyViewGrid(
+    var categoryGrid = new MyViewGrid(
         {
             store:              category_store,
             columns: [
@@ -47,24 +47,22 @@ Ext.onReady(function(){
                   dataIndex: 'description' },
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/productorder/grid/{order_batch_id}/{product_category_id}');
+                var t = new Ext.XTemplate('/product/grid/{category_id}');
                 window.location=t.apply({
-                        product_category_id: record.get('product_category_id'),
-                        order_batch_id:      order_batch_id,
+                        category_id: record.get('product_category_id'),
                     })
             },
-            objLabel: 'orders in this product category',
+            objLabel: 'products in this category',
         }
     );
 
     var panel = new Ext.Panel({
-        title: festivalname + ': ' + orderbatchname,
+        title: 'Product categories',            
         layout: 'fit',
-        items: myGrid,
+        items: categoryGrid,
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
-            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
         ],
     });
     
@@ -73,8 +71,5 @@ Ext.onReady(function(){
         items:  panel,
     });
 
-    //  FIXME we also need to warn the user if they're trying to
-    //  navigate away from a dirty grid.
-    
 });
 

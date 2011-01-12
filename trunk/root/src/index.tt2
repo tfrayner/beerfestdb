@@ -1,23 +1,37 @@
 [% META title = "Welcome to BeerFestDB" %]
 
-<h2><font color='red'>This web site is currently under development.</font></h2> 
+<div id="html-content">
 
-<div class="menu">
-<h2>Festival Data</h2>
-<p>
-<ul> 
-<li><a href="[% c.uri_for('/festival/grid') %]">List all festivals</a></li> 
-<li><a href="[% c.uri_for('/product') %]">List all products</a></li> 
-<li><a href="[% c.uri_for('/company/grid') %]">List all suppliers</a></li> 
-</ul>
-</p>
+<div class="menu" id="main-menu">
+
+  <div class="heading"><h1>Welcome to BeerFestDB</h1></div>
+
+  <p class="textblock" style="color: red">Warning: this web site is still under construction.</p>
+
+  <p class="textblock">This is the main entry page for the BeerFestDB product management web site. Please use the links below to navigate:</p>
+
+  <ul class="linkslist"> 
+    <li><a href="[% c.uri_for('/festival/grid') %]">Festival Information</a></li> 
+    <li><a href="[% c.uri_for('/product') %]">Product Data</a></li> 
+    <li><a href="[% c.uri_for('/company/grid') %]">Supplier List</a></li> 
+  </ul>
+
 </div>
 
-<div class="menu">
-<h2>Database Administration</h2>
-<p>
-<ul>
-<li><a href="[% c.uri_for('/productcategory') %]">Product categorisation</a></li>
-</ul>
-</p>
+<div class="menu" id="admin-menu">
+
+  <div class="heading"><h1>BeerfestDB Database Administration</h1></div>
+
+  <p class="textblock">This area is used to make changes to the way the database is organised. Assuming you know what you're doing, please follow the links below:</p>
+
+  <ul class="linkslist">
+    <li><a href="[% c.uri_for('/productcategory') %]">Product categorisation</a></li>
+  </ul>
+
 </div>
+
+</div>
+
+[% js_link( src = '/static/js/grids/main.js' ) %]
+
+<div id="datagrid"></div>

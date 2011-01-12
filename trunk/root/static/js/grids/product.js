@@ -38,7 +38,7 @@ Ext.onReady(function(){
     var store = new Ext.data.JsonStore({
         url:        url_object_list,
         root:       'objects',
-        fields:     Product
+        fields:     Product,
     });
 
     /* Supplier drop-down */
@@ -46,7 +46,11 @@ Ext.onReady(function(){
         url:        url_company_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}]
+                     { name: 'name',       type: 'string'}],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
     supplier_store.load();
     var brewer_combo = new Ext.form.ComboBox({
@@ -66,7 +70,11 @@ Ext.onReady(function(){
         url:        url_product_style_list,
         root:       'objects',
         fields:     [{ name: 'product_style_id', type: 'int'    },
-                     { name: 'description',      type: 'string' }]
+                     { name: 'description',      type: 'string' }],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
     });
     style_store.load();
     var style_combo = new Ext.form.ComboBox({
@@ -155,7 +163,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
-//            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
+            { text: 'Categories', handler: function() { window.location = url_product_index; } },
         ],
     });
     
