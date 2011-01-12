@@ -94,7 +94,17 @@ function saveGridRecords(btn, event) {
     }
     submitChanges( changes, btn.grid.submitUrl, btn.grid.store );
     btn.grid.store.commitChanges();
-    window.location.reload(); // a sledgehammer to crush an egg FIXME.
+
+    // Some ComboBox fields don't properly reload because of the
+    // lastQuery mechanism we're using to filter on the fly. We
+    // currently pass them in as grid.reloadableStore, and reload them
+    // manually here. This seems rather kludgey FIXME.
+    var reloadable = btn.grid.reloadableStores;
+    if ( reloadable ) {
+        for ( var n=0; n < reloadable.length; n++) {
+            reloadable[n].reload();
+        }
+    }
 }
 
 SaveButton = Ext.extend(Ext.Button, {
