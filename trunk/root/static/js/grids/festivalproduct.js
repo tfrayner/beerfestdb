@@ -43,13 +43,13 @@ Ext.onReady(function(){
     });
 
     /* Supplier drop-down */
-    var supplier_store = new Ext.data.JsonStore({
+    var brewer_store = new Ext.data.JsonStore({
         url:        url_company_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}]
     });
-    supplier_store.load();
+    brewer_store.load();
     var brewer_combo = new Ext.form.ComboBox({
         triggerAction:  'all',
         mode:           'local',
@@ -57,7 +57,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
-        store:          supplier_store,
+        store:          brewer_store,
         valueField:     'company_id',
         displayField:   'name',
         lazyRender:     true,
@@ -196,6 +196,9 @@ Ext.onReady(function(){
         return(fields);
     }
 
+    var reloadStores = new Array();
+    reloadStores.push( brewer_store, product_store );
+
     var myGrid = new MyEditorGrid(
         {
             objLabel:           'Festival Product',
@@ -217,6 +220,7 @@ Ext.onReady(function(){
                     }
                 }
             },
+            reloadableStores: reloadStores,
         }
     );
 

@@ -259,6 +259,9 @@ Ext.onReady(function(){
         return(fields);
     }
 
+    var reloadStores = new Array();
+    reloadStores.push( brewer_store, product_store );
+
     var myGrid = new MyEditorGrid(
         {
             objLabel:           'Product Order',
@@ -296,6 +299,7 @@ Ext.onReady(function(){
                     }
                 }
             },
+            reloadableStores: reloadStores,
         }
     );
 
