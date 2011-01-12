@@ -49,7 +49,11 @@ Ext.onReady(function(){
         url:        url_company_list,
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}]
+                     { name: 'name',       type: 'string'}],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
     supplier_store.load();
     var brewer_combo = new Ext.form.ComboBox({
@@ -64,7 +68,11 @@ Ext.onReady(function(){
         url:        url_product_list,
         root:       'objects',
         fields:     [{ name: 'product_id', type: 'int' },
-                     { name: 'name',       type: 'string'}]
+                     { name: 'name',       type: 'string'}],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
     product_store.load();
     var product_combo = new Ext.form.ComboBox({
@@ -79,7 +87,11 @@ Ext.onReady(function(){
         url:        url_cask_size_list,
         root:       'objects',
         fields:     [{ name: 'container_size_id', type: 'int' },
-                     { name: 'description',    type: 'string'}]
+                     { name: 'description',    type: 'string'}],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
     });
     casksize_store.load();
     var casksize_combo = new Ext.form.ComboBox({
@@ -98,7 +110,11 @@ Ext.onReady(function(){
         url:        url_stillage_list,
         root:       'objects',
         fields:     [{ name: 'stillage_location_id', type: 'int' },
-                     { name: 'description',          type: 'string'}]
+                     { name: 'description',          type: 'string'}],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
     });
     stillage_store.load();
     var stillage_combo = new Ext.form.ComboBox({

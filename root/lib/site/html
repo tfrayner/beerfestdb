@@ -55,7 +55,9 @@
    var url_productstyle_delete  = '[% c.uri_for( "/productstyle/delete" ) %]';
    var url_stillageloc_submit   = '[% c.uri_for( "/stillagelocation/submit" ) %]';
    var url_stillageloc_delete   = '[% c.uri_for( "/stillagelocation/delete" ) %]';
-   
+
+   var url_product_index        = '[% c.uri_for( "/product" ) %]';
+
 </script>
  
 [% content %]

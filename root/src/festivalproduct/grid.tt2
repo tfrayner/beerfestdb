@@ -1,4 +1,4 @@
-[% META title = 'Product listing' %]
+[% META title = 'Festival Product Listing' %]
 
 <script type="text/javascript">
    var url_object_list      = '[% c.uri_for( "/festivalproduct/list/$festival.id/$category.id" ) %]';
