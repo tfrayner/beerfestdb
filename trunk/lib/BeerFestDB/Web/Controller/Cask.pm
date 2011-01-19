@@ -69,6 +69,7 @@ sub BUILD {
         is_vented         => 'is_vented',
         is_tapped         => 'is_tapped',
         is_ready          => 'is_ready',
+        is_condemned      => 'is_condemned',
     });
 }
 

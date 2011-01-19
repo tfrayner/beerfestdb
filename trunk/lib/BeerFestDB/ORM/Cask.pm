@@ -47,7 +47,7 @@ __PACKAGE__->table("cask");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 bar_id
 
@@ -129,6 +129,11 @@ __PACKAGE__->table("cask");
   data_type: 'tinyint'
   is_nullable: 1
 
+=head2 is_condemned
+
+  data_type: 'tinyint'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -141,7 +146,7 @@ __PACKAGE__->add_columns(
   "distributor_company_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "container_size_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "bar_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "currency_id",
@@ -169,6 +174,8 @@ __PACKAGE__->add_columns(
   "is_tapped",
   { data_type => "tinyint", is_nullable => 1 },
   "is_ready",
+  { data_type => "tinyint", is_nullable => 1 },
+  "is_condemned",
   { data_type => "tinyint", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("cask_id");
@@ -285,8 +292,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-19 14:43:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9WiJRrvOTpsbGm+LJlaAWA
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-19 18:30:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/H5BAazOiNSFmM06SkHs0Q
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -278,8 +278,18 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                                   ref:          '../removeButton',
                                   idField:      this.idField,
                                   deleteUrl:    this.deleteUrl}),
-            ]
-            
+            ],
+            listeners: {
+                beforerender: function() {
+                    var reloadable = this.reloadableStores;
+                    if ( reloadable ) {
+                        for ( var n=0; n < reloadable.length; n++) {
+                            reloadable[n].load();
+                        }
+                    }
+                    return true
+                },
+            },
         });
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
     },

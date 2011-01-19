@@ -38,6 +38,7 @@ Ext.onReady(function(){
         { name: 'is_vented',         type: 'int' },
         { name: 'is_tapped',         type: 'int' },
         { name: 'is_ready',          type: 'int' },
+        { name: 'is_condemned',      type: 'int' },
     ]);
 
     var store = new Ext.data.JsonStore({
@@ -129,6 +130,13 @@ Ext.onReady(function(){
           width:      150,
           editor:     new Ext.form.TextField({
               allowBlank:     true,
+          })},
+        { id:         'is_condemned',
+          header:     'Condemned',
+          dataIndex:  'is_condemned',
+          width:      50,
+          renderer:   MyCheckboxRenderer(),
+          editor:     new Ext.form.Checkbox({
           })},
     ];
 

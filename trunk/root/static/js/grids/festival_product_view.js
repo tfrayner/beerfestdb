@@ -206,6 +206,7 @@ Ext.onReady(function(){
             
             { name:           'sale_price',
               fieldLabel:     'Sale Price',
+              xtype:          'numberfield',
               allowBlank:     true, },
             
             { name:           'sale_currency_id',
@@ -232,6 +233,11 @@ Ext.onReady(function(){
               xtype:          'combo',
               allowBlank:     false, },
             
+            { name:           'comment',
+              fieldLabel:     'Comment',
+              xtype:          'textarea',
+              allowBlank:     true, },
+
             { name:           'festival_product_id',
               value:          festival_product_id,
               xtype:          'hidden', },

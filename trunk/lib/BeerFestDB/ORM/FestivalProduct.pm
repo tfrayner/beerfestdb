@@ -55,6 +55,11 @@ __PACKAGE__->table("festival_product");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 comment
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -70,6 +75,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "product_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "comment",
+  { data_type => "text", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("festival_product_id");
 __PACKAGE__->add_unique_constraint("festival_id", ["festival_id", "product_id"]);
@@ -148,8 +155,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-08 17:45:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XFszTocrGqgtBDy870+dxg
+# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-18 21:53:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RXQ+oFmvMt21boP7xE5UMw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
