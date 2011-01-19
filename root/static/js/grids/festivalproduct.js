@@ -53,7 +53,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    brewer_store.load();
+
     var brewer_combo = new Ext.form.ComboBox({
         triggerAction:  'all',
         mode:           'local',
@@ -88,7 +88,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    product_store.load();
+
 
     /* We need this to reload upon brewer reselection.
        See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
@@ -234,7 +234,7 @@ Ext.onReady(function(){
                         // copy these references to the current editor (brewer_combo in our case)
                         Ext.copyTo(ed.field, e, 'grid,record,field,row,column');
                     }
-                }
+                },
             },
             reloadableStores: reloadStores,
         }
