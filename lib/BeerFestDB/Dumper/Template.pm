@@ -172,6 +172,17 @@ sub dump {
                 $self->update_gyle_hash( $gylehash, $gyle );
 
                 push @template_data, $gylehash;
+
+                # For typical use-case this might be better done by bar rather than stillage FIXME.
+                my %stillage_seen;
+                STILLAGE:
+                foreach my $cask ( $gyle->search_related('casks',
+                                                         { festival_id => $self->festival->id() }) ) { 
+                    my $stillage_name = $cask->stillage_location_id()
+                        ? $cask->stillage_location_id()->description() : '';
+                    next STILLAGE if $stillage_seen{ $stillage_name }++;
+                    push @{ $stillage{ $stillage_name } }, $gylehash;
+                }
             }
         }
     }
