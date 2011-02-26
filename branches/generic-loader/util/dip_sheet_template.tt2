@@ -1,0 +1,93 @@
+%
+% $Id: cask_end_template.tt2 54 2010-01-20 18:30:33Z tfrayner $
+%
+% Example LaTeX template for use with cask_end_signs_latex.pl
+
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, landscape, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
+\usepackage[absolute]{textpos}
+\usepackage{babel}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{fix-cm}
+\begin{document}
+
+%\hyphenpenalty=10000
+%\exhyphenpenalty=10000
+
+[% BLOCK stillage_name %]
+  [% sname | replace('&', '\\&') %]
+[% END %]
+
+[% BLOCK table_header %]
+  \begin{tabular}{ | l | l | l | c | c | c | c | c | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{0.7cm} | p{5cm} | }
+    \hline
+  Location & Brewer & Beer & No.& Stillaged & V & T & R & Start & Mon & Tue & Wed & Thu & Fri & Sat & Notes \\ \hline
+[% END %]
+
+[% BLOCK table_end %]
+  \end{tabular}
+[% END %]
+
+
+[% FOREACH stillage IN stillages.pairs %]
+
+  \setlength{\TPHorizModule}{\paperwidth}
+  \setlength{\TPVertModule}{\paperheight}
+  \textblockorigin{0mm}{10mm} % start everything near the top-left corner
+  \setlength{\parindent}{0pt}
+
+  \pagestyle{empty}
+
+  \fontsize{24}{30}
+
+  [% PROCESS stillage_name sname=stillage.key %]
+
+  \vspace{ 5 mm }
+
+  \fontsize{10}{12}
+  \selectfont
+
+  [% PROCESS table_header %]
+
+  [% SET casks = stillage.value.sort('brewery', 'product', 'number') %]
+
+  [% SET counter = 0 %]
+
+  [% FOREACH cask = casks %]
+
+    [% NEXT IF cask.category != 'beer' %]
+    &
+    [% cask.brewery | replace( '&', '\\&' ) %] &
+    [% cask.product | truncate(40) | replace( '&', '\\&' ) %] &
+    [% cask.number %] &
+    &  &  &  &
+    [% cask.size | format('%d') %] &
+    &  &  &  &  &  & \\ \hline
+
+    [% counter = counter + 1 %]
+
+    [% IF counter > 35 %]
+      [% counter = 0 %]
+      [% PROCESS table_end %]
+
+      \null\newpage
+
+      [% PROCESS stillage_name stillage=stillage.key %] (continued)
+
+      \vspace{ 5 mm }
+
+      [% PROCESS table_header %]
+    [% END %]
+
+  [% END %]
+
+  [% PROCESS table_end %]
+
+  \null\newpage
+
+[% END %]
+
+\end{document}

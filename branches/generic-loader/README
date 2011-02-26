@@ -1,0 +1,17 @@
+BeerfestDB
+==========
+
+Run script/beerfestdb_web_server.pl to test the application.
+
+Credits
+=======
+
+Thanks to Mark James for allowing the use of his excellent Silk icon
+set:
+
+  http://www.famfamfam.com/lab/icons/silk/
+
+Thanks also to the TargetProcess team for contributing their ExtJS 3.0
+theme:
+
+  http://www.targetprocess.com/Files/TargetProcessSkin_ext_3.zip
