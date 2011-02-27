@@ -22,61 +22,28 @@
 use strict;
 use warnings;
 
-package BeerFestDB::Loader;
+package BeerFestDB::Loader::RowIterator;
 
 use Moose;
-
-use Text::CSV_XS;
-use Readonly;
 use Carp;
+use Text::CSV_XS;
 
-use BeerFestDB::ORM;
+has 'file'        => ( is       => 'ro',
+                       isa      => 'Str',
+                       required => 1 );
 
-has 'database' => ( is       => 'ro',
-                    isa      => 'DBIx::Class::Schema',
-                    required => 1 );
+has 'csv_parser'  => ( is    => 'rw',
+                       isa   => 'Text::CSV_XS' );
 
-# Constants used throughout to label data columns. The actual numbers
-# here are arbitrary; they only have to be unique.
-Readonly my $UNKNOWN_COLUMN            => 0;
-Readonly my $FESTIVAL_YEAR             => 1;
-Readonly my $FESTIVAL_DESCRIPTION      => 2;
-Readonly my $BAR_DESCRIPTION           => 3;
-Readonly my $BREWER_NAME               => 4;
-Readonly my $BREWER_LOC_DESC           => 5;
-Readonly my $BREWER_YEAR_FOUNDED       => 6;
-Readonly my $BREWER_COMMENT            => 7;
-Readonly my $PRODUCT_NAME              => 8;
-Readonly my $PRODUCT_STYLE             => 9;
-Readonly my $PRODUCT_DESCRIPTION       => 10;
-Readonly my $PRODUCT_COMMENT           => 11;
-Readonly my $GYLE_BREWERY_NUMBER       => 12;
-Readonly my $GYLE_ABV                  => 13;
-Readonly my $GYLE_PINT_PRICE           => 14;
-Readonly my $GYLE_COMMENT              => 15;
-Readonly my $DISTRIBUTOR_NAME          => 16;
-Readonly my $DISTRIBUTOR_LOC_DESC      => 17;
-Readonly my $DISTRIBUTOR_YEAR_FOUNDED  => 18;
-Readonly my $DISTRIBUTOR_COMMENT       => 19;
-Readonly my $CASK_COUNT                => 20;
-Readonly my $CASK_SIZE                 => 21;
-Readonly my $CASK_PRICE                => 22;
-Readonly my $CASK_COMMENT              => 23;
-Readonly my $CASK_MEASUREMENT_DATE     => 24;
-Readonly my $CASK_MEASUREMENT_VOLUME   => 25;
-Readonly my $CASK_MEASUREMENT_COMMENT  => 26;
-Readonly my $FESTIVAL_NAME             => 27;
-Readonly my $PRODUCT_CATEGORY          => 28;
-Readonly my $STILLAGE_LOCATION         => 29;
-Readonly my $PRODUCT_ABV               => 30;
+has 'header'      => ( is     => 'rw',
+                       isa    => 'ArrayRef[Str]' );
 
-########
-# SUBS #
-########
+has '_filehandle' => ( is       => 'rw',
+                       isa      => 'Filehandle' );
 
-sub _get_csv_parser {
+sub BUILD {
 
-    my ( $self ) = @_;
+    my ( $self, $params ) = @_;
 
     my $csv_parser = Text::CSV_XS->new(
         {   sep_char    => qq{\t},
@@ -87,7 +54,118 @@ sub _get_csv_parser {
         }
     );
 
-    return $csv_parser;
+    $self->csv_parser( $csv_parser );
+
+    open( my $fh, '<', $self->file() )
+        or die("Unable to open input file: $!\n");
+    $self->_filehandle( $fh );
+
+    # Scan through the file to the first non-commented line.
+    my $header = $csv_parser->getline( $fh );
+    HEADERLINE:
+    while( join( q{}, @$header ) =~ /\A \s* #/xms ) {
+        $header = $csv_parser->getline( $fh );
+        last HEADERLINE unless $header;
+    }
+
+    unless( $header ) {
+        croak("Unable to detect a suitable header line in file.\n");
+    }
+
+    # Strip whitespace.
+    $header = [ map { $_ =~ s/\A \s* (.*?) \s* \z/$1/xms; $_ } @$header ];
+
+    # Check for duplicated headings.
+    my %count;
+    foreach my $col ( @$header ) {
+        $count{ $col }++;
+    }
+    if ( grep { $_ > 1 } values %count ) {
+        croak("Header contains duplicated column names.\n");
+    }
+    
+    $self->header( $header );
+
+    return;
+}
+
+sub next {
+
+    my ( $self ) = @_;
+
+    my $csv = $self->csv_parser();
+    my $fh  = $self->_filehandle();
+
+    my $line = $csv->getline( $fh );
+
+    BODYLINE:
+    while( join( q{}, @$line ) =~ /\A \s* #/xms ) {
+        $line = $csv->getline( $fh );
+        last BODYLINE unless $line;
+    }
+
+    unless ( $line ) {
+
+        # Check that parsing completed successfully.
+        my ( $error, $mess ) = $csv->error_diag();
+        if ( $error != 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
+            die(
+                sprintf(
+                    "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
+                    $mess,
+                    $csv->error_input(),
+                ),
+            );
+        }
+        else {
+            return;  # EOF
+        }
+    }
+
+    my %data;
+    @data{ @{ $self->header() } } = @$line;
+
+    return \%data;
+}
+
+
+
+package BeerFestDB::Loader;
+
+use Moose;
+
+use Readonly;
+use Carp;
+
+use BeerFestDB::ORM;
+
+has 'database' => ( is       => 'ro',
+                    isa      => 'DBIx::Class::Schema',
+                    required => 1 );
+
+sub load {
+
+    my ( $self, $file ) = @_;
+
+    my $iter = BeerFestDB::Loader::RowIterator->new( file => $file );
+
+    while ( my $row = $iter->next() ) {
+        $self->_load_data( $row );
+    }
+
+    return;
+}
+
+{
+
+    my %used;
+
+    sub _load_data {  # Recursive method.
+
+        my ( $self, $row ) = @_;
+
+    }
+
 }
 
 sub _check_not_null {
@@ -96,6 +174,56 @@ sub _check_not_null {
 
     return ( defined $value && $value ne q{} && $value !~ m/\A \?+ \z/xms );
 }
+
+sub _find_required_cols {
+
+    my ( $self, $resultset ) = @_;
+
+    my $source = $resultset->result_source();
+
+    my %is_pk = map { $_ => 1 } $source->primary_columns();
+
+    my @cols = $source->columns();
+
+    my ( @required, @optional );
+    foreach my $col (@cols) {
+
+	# FIXME we should introspect to identify primary
+	# key/autoincrement columns where possible.
+	next if $is_pk{ $col };
+	my $info = $source->column_info($col);
+	if ( $info->{'is_nullable'} ) {
+	    push ( @optional, $col );
+	}
+	else {
+	    push ( @required, $col );
+	}
+    }
+
+    return ( \@required, \@optional );
+}
+
+sub _confirm_required_cols {
+
+    my ( $self, $args, $required ) = @_;
+
+    my $problem;
+    foreach my $col ( @{ $required } ) {
+	unless ( $self->_check_not_null( $args->{$col} ) ) {
+	    warn(qq{Warning: Required column value "$col" not present.\n});
+	    $problem++;
+	}
+    }
+
+    if ( $problem ) {
+	return;
+    }
+    else {
+	return 1;
+    }
+}
+
+__END__
 
 sub _load_data {
 
@@ -325,54 +453,6 @@ sub _load_data {
     return;
 }
 
-sub _find_required_cols {
-
-    my ( $self, $resultset ) = @_;
-
-    my $source = $resultset->result_source();
-
-    my %is_pk = map { $_ => 1 } $source->primary_columns();
-
-    my @cols = $source->columns();
-
-    my ( @required, @optional );
-    foreach my $col (@cols) {
-
-	# FIXME we should introspect to identify primary
-	# key/autoincrement columns where possible.
-	next if $is_pk{ $col };
-	my $info = $source->column_info($col);
-	if ( $info->{'is_nullable'} ) {
-	    push ( @optional, $col );
-	}
-	else {
-	    push ( @required, $col );
-	}
-    }
-
-    return ( \@required, \@optional );
-}
-
-sub _confirm_required_cols {
-
-    my ( $self, $args, $required ) = @_;
-
-    my $problem;
-    foreach my $col ( @{ $required } ) {
-	unless ( $self->_check_not_null( $args->{$col} ) ) {
-	    warn(qq{Warning: Required column value "$col" not present.\n});
-	    $problem++;
-	}
-    }
-
-    if ( $problem ) {
-	return;
-    }
-    else {
-	return 1;
-    }
-}
-
 sub _load_column_value {
 
     my ( $self, $args, $class, $trigger ) = @_;
@@ -400,84 +480,6 @@ sub _load_column_value {
     my $object = $resultset->update_or_create($args);
 
     return $object;
-}
-
-sub _coerce_headings {
-
-    my ( $self, $headings ) = @_;
-
-    my %map = (
-        qr/festival [_ -]* year/ixms                   => $FESTIVAL_YEAR,
-        qr/festival [_ -]* name/ixms                   => $FESTIVAL_NAME,
-        qr/festival [_ -]* description/ixms            => $FESTIVAL_DESCRIPTION,
-        qr/bar [_ -]* description/ixms                 => $BAR_DESCRIPTION,
-        qr/stillage [_ -]* loc (?:ation)?/ixms         => $STILLAGE_LOCATION,
-        qr/brewery? [_ -]* name/ixms                   => $BREWER_NAME,
-        qr/brewery? [_ -]* loc [_ -]* desc/ixms        => $BREWER_LOC_DESC,
-        qr/brewery? [_ -]* year [_ -]* founded/ixms    => $BREWER_YEAR_FOUNDED,
-        qr/brewery? [_ -]* comment/ixms                => $BREWER_COMMENT,
-        qr/product [_ -]* name/ixms                    => $PRODUCT_NAME,
-        qr/product [_ -]* style/ixms                   => $PRODUCT_STYLE,
-        qr/product [_ -]* description/ixms             => $PRODUCT_DESCRIPTION,
-        qr/product [_ -]* comment/ixms                 => $PRODUCT_COMMENT,
-        qr/product [_ -]* abv/ixms                     => $PRODUCT_ABV,
-        qr/gyle [_ -]* brewery? [_ -]* number/ixms     => $GYLE_BREWERY_NUMBER,
-        qr/gyle [_ -]* abv/ixms                        => $GYLE_ABV,
-        qr/product [_ -]* sale [_ -]* price/ixms       => $GYLE_PINT_PRICE,
-        qr/gyle [_ -]* comment/ixms                    => $GYLE_COMMENT,
-        qr/distributor [_ -]* name/ixms                => $DISTRIBUTOR_NAME,
-        qr/distributor [_ -]* loc [_ -]* desc/ixms     => $DISTRIBUTOR_LOC_DESC,
-        qr/distributor [_ -]* year [_ -]* founded/ixms => $DISTRIBUTOR_YEAR_FOUNDED,
-        qr/distributor [_ -]* comment/ixms             => $DISTRIBUTOR_COMMENT,
-        qr/cask [_ -]* (?:count|number)/ixms           => $CASK_COUNT,
-        qr/cask [_ -]* size/ixms                       => $CASK_SIZE,
-        qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
-        qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,
-        qr/cask [_ -]* measurement [_ -]* date/ixms    => $CASK_MEASUREMENT_DATE,
-        qr/cask [_ -]* measurement [_ -]* volume/ixms  => $CASK_MEASUREMENT_VOLUME,
-        qr/cask [_ -]* measurement [_ -]* comment/ixms => $CASK_MEASUREMENT_COMMENT,
-        qr/product [_ -]* category/ixms                => $PRODUCT_CATEGORY,
-    );
-
-    my @new_headings;
-
-    foreach my $heading (@$headings) {
-        my @matches = grep { $heading =~ $_ } keys %map;
-        if ( scalar @matches == 1 ) {
-            push @new_headings, $map{ $matches[0] };
-        }
-        elsif ( scalar @matches > 1 ) {
-            croak(qq{Error: ambiguous column heading "$heading".\n});
-        }
-        elsif ( scalar @matches < 1 ) {
-
-            # FIXME maybe fix this to prompt on whether this is okay?
-            warn(qq{Warning: Unrecognised column "$heading" will be ignored.\n});
-            push @new_headings, $UNKNOWN_COLUMN;
-        }
-    }
-
-    return \@new_headings;
-}
-
-sub load {
-
-    my ( $self, $input ) = @_;
-
-    my $csv_parser = $self->_get_csv_parser();
-
-    open( my $input_fh, '<', $input )
-	or die(qq{Error opening input file "$input": $!});
-
-    # Assume first line is the header, for now:
-    my $headings = $self->_coerce_headings( $csv_parser->getline($input_fh) );
-
-    while ( my $rowlist = $csv_parser->getline($input_fh) ) {
-	next if $rowlist->[0] =~ /^\s*#/;
-	my %datahash;
-	@datahash{ @$headings } = @$rowlist;
-	$self->_load_data( \%datahash );
-    }
 }
 
 =head1 COPYRIGHT AND LICENSE
