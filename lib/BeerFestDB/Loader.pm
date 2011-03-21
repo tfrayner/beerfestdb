@@ -69,6 +69,11 @@ Readonly my $FESTIVAL_NAME             => 27;
 Readonly my $PRODUCT_CATEGORY          => 28;
 Readonly my $STILLAGE_LOCATION         => 29;
 Readonly my $PRODUCT_ABV               => 30;
+Readonly my $ORDER_BATCH_NAME          => 31;
+Readonly my $ORDER_BATCH_DATE          => 32;
+Readonly my $ORDER_FINALISED           => 33;
+Readonly my $ORDER_RECEIVED            => 34;
+Readonly my $ORDER_COMMENT             => 35;
 
 ########
 # SUBS #
@@ -276,50 +281,78 @@ sub _load_data {
         $count = 1;
     }
 
-    # We need to support adding casks in multiple loads; cask count
-    # becomes an issue so we check against the database here.
-    my $preexist = 0;
-    if ( $gyle ) { 
-	$preexist = $gyle->search_related(
-	    'casks',
-	    { 'festival_id' => $festival->id })->count();
-	$count += $preexist;
+    if ( my $batchname = $datahash->{$ORDER_BATCH_NAME} ) { # ProductOrder
+        my $order_batch = $self->_load_column_value(
+            {
+                festival_id            => $festival,
+                description            => $batchname,
+                order_date             => $datahash->{$ORDER_BATCH_DATE},
+            },
+            'OrderBatch',
+        );
+        my $product_order = $self->_load_column_value(
+            {
+                order_batch_id         => $order_batch,
+                product_id             => $product,
+                distributor_company_id => $distributor,
+                container_size_id      => $cask_size,
+                cask_count             => $count,
+                currency_id            => $currency,
+                advertised_price       => $cask_price,
+                is_final               => $datahash->{$ORDER_FINALISED},
+                is_received            => $datahash->{$ORDER_RECEIVED},
+                comment                => $datahash->{$ORDER_COMMENT},
+            },
+            'ProductOrder',
+        );
     }
+    else {  # FestivalProduct
+        
+        # We need to support adding casks in multiple loads; cask count
+        # becomes an issue so we check against the database here.
+        my $preexist = 0;
+        if ( $gyle ) { 
+            $preexist = $gyle->search_related(
+                'casks',
+                { 'festival_id' => $festival->id })->count();
+            $count += $preexist;
+        }
+        
+        foreach my $n ( ($preexist+1)..$count ) {
 
-    foreach my $n ( ($preexist+1)..$count ) {
+            my $cask
+                = $product
+                    ? $self->_load_column_value(
+                        {
+                            gyle_id                => $gyle,
+                            distributor_company_id => $distributor,
+                            festival_id            => $festival,
+                            container_size_id      => $cask_size,
+                            currency_id            => $currency,
+                            price                  => $cask_price,
+                            stillage_location_id   => $stillage,
+                            bar_id                 => $bar,
+                            comment                => $datahash->{$CASK_COMMENT},
+                            internal_reference     => $n,
+                        },
+                        'Cask')
+                        : undef;
 
-        my $cask
-            = $product
-                ? $self->_load_column_value(
-                    {
-                        gyle_id                => $gyle,
-                        distributor_company_id => $distributor,
-                        festival_id            => $festival,
-                        container_size_id      => $cask_size,
-                        currency_id            => $currency,
-                        price                  => $cask_price,
-                        stillage_location_id   => $stillage,
-                        bar_id                 => $bar,
-                        comment                => $datahash->{$CASK_COMMENT},
-                        internal_reference     => $n,
-                    },
-                    'Cask')
-                    : undef;
-
-        # FIXME at the moment we're assuming that dip measurements use the
-        # same volume units as the cask sizes.
-        my $cask_measurement
-            = $self->_check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
-                ? $self->load_cask_measurement(
-                    {
-                        cask_id              => $cask,
-                        date                 => $datahash->{$CASK_MEASUREMENT_DATE},
-                        volume               => $datahash->{$CASK_MEASUREMENT_VOLUME},
-                        container_measure_id => $cask_measure,
-                        comment              => $datahash->{$CASK_MEASUREMENT_COMMENT},
-	    },
-                    'CaskMeasurement')
-                    : undef;
+            # FIXME at the moment we're assuming that dip measurements use the
+            # same volume units as the cask sizes.
+            my $cask_measurement
+                = $self->_check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
+                    ? $self->load_cask_measurement(
+                        {
+                            cask_id              => $cask,
+                            date                 => $datahash->{$CASK_MEASUREMENT_DATE},
+                            volume               => $datahash->{$CASK_MEASUREMENT_VOLUME},
+                            container_measure_id => $cask_measure,
+                            comment              => $datahash->{$CASK_MEASUREMENT_COMMENT},
+                        },
+                        'CaskMeasurement')
+                        : undef;
+        }
     }
 
     return;
@@ -437,6 +470,11 @@ sub _coerce_headings {
         qr/cask [_ -]* measurement [_ -]* volume/ixms  => $CASK_MEASUREMENT_VOLUME,
         qr/cask [_ -]* measurement [_ -]* comment/ixms => $CASK_MEASUREMENT_COMMENT,
         qr/product [_ -]* category/ixms                => $PRODUCT_CATEGORY,
+        qr/order [_ -]* batch/ixms                     => $ORDER_BATCH_NAME,
+        qr/order [_ -]* batch [_ -]* date/ixms         => $ORDER_BATCH_DATE,
+        qr/order [_ -]* finali[sz]ed/ixms              => $ORDER_FINALISED,
+        qr/order [_ -]* received/ixms                  => $ORDER_RECEIVED,
+        qr/order [_ -]* comment/ixms                   => $ORDER_COMMENT,
     );
 
     my @new_headings;

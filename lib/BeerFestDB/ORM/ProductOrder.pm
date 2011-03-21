@@ -29,25 +29,25 @@ __PACKAGE__->table("product_order");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 product_id
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 distributor_company_id
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 container_size_id
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 cask_count
 
@@ -88,13 +88,13 @@ __PACKAGE__->add_columns(
   "product_order_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "order_batch_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "product_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "distributor_company_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "container_size_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "cask_count",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "currency_id",
@@ -193,8 +193,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-04 17:32:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XpfCyO8DC5/kKWzL9dT7OQ
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-21 18:53:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aU+TfDMQScps0kKJN1SNcA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

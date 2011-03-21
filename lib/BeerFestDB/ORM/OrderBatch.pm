@@ -40,6 +40,7 @@ __PACKAGE__->table("order_batch");
 =head2 order_date
 
   data_type: 'date'
+  datetime_undef_if_invalid: 1
   is_nullable: 1
 
 =cut
@@ -52,7 +53,7 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "varchar", is_nullable => 0, size => 255 },
   "order_date",
-  { data_type => "date", is_nullable => 1 },
+  { data_type => "date", "datetime_undef_if_invalid" => 1, is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("order_batch_id");
 __PACKAGE__->add_unique_constraint("festival_order_batch", ["festival_id", "description"]);
@@ -89,8 +90,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-06 19:11:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5ia060JMSqKVKf9SqepD8w
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-21 18:53:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qYZKkVsKvijRsurnSzYn4A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
