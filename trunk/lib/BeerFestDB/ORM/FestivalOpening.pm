@@ -34,11 +34,13 @@ __PACKAGE__->table("festival_opening");
 =head2 op_start_date
 
   data_type: 'datetime'
+  datetime_undef_if_invalid: 1
   is_nullable: 0
 
 =head2 op_end_date
 
   data_type: 'datetime'
+  datetime_undef_if_invalid: 1
   is_nullable: 0
 
 =cut
@@ -49,9 +51,17 @@ __PACKAGE__->add_columns(
   "festival_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "op_start_date",
-  { data_type => "datetime", is_nullable => 0 },
+  {
+    data_type => "datetime",
+    "datetime_undef_if_invalid" => 1,
+    is_nullable => 0,
+  },
   "op_end_date",
-  { data_type => "datetime", is_nullable => 0 },
+  {
+    data_type => "datetime",
+    "datetime_undef_if_invalid" => 1,
+    is_nullable => 0,
+  },
 );
 __PACKAGE__->set_primary_key("festival_opening_id");
 
@@ -87,8 +97,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XrpBKoJzlFWr/OkxZiKypA
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-21 18:53:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UxOALWijVpsIzP5TYOrJpA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

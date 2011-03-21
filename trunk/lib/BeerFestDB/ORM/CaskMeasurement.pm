@@ -34,16 +34,19 @@ __PACKAGE__->table("cask_measurement");
 =head2 date
 
   data_type: 'datetime'
+  datetime_undef_if_invalid: 1
   is_nullable: 1
 
 =head2 start_date
 
   data_type: 'datetime'
+  datetime_undef_if_invalid: 1
   is_nullable: 1
 
 =head2 end_date
 
   data_type: 'datetime'
+  datetime_undef_if_invalid: 1
   is_nullable: 1
 
 =head2 volume
@@ -72,11 +75,23 @@ __PACKAGE__->add_columns(
   "cask_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "date",
-  { data_type => "datetime", is_nullable => 1 },
+  {
+    data_type => "datetime",
+    "datetime_undef_if_invalid" => 1,
+    is_nullable => 1,
+  },
   "start_date",
-  { data_type => "datetime", is_nullable => 1 },
+  {
+    data_type => "datetime",
+    "datetime_undef_if_invalid" => 1,
+    is_nullable => 1,
+  },
   "end_date",
-  { data_type => "datetime", is_nullable => 1 },
+  {
+    data_type => "datetime",
+    "datetime_undef_if_invalid" => 1,
+    is_nullable => 1,
+  },
   "volume",
   { data_type => "decimal", is_nullable => 0, size => [5, 2] },
   "container_measure_id",
@@ -113,8 +128,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jvXwiD4H3QJ9/+1bmHbB/g
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-21 18:53:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5F7OthI4nvDO8C9QQwh3wA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

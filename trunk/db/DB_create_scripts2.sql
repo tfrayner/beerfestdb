@@ -826,10 +826,10 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE product_order (
   product_order_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  order_batch_id INTEGER(6) NULL,
-  product_id INTEGER(6) NULL,
-  distributor_company_id INTEGER(6) NULL,
-  container_size_id INTEGER(6) NULL,
+  order_batch_id INTEGER(6) NOT NULL,
+  product_id INTEGER(6) NOT NULL,
+  distributor_company_id INTEGER(6) NOT NULL,
+  container_size_id INTEGER(6) NOT NULL,
   cask_count INTEGER UNSIGNED NULL,
   currency_id INTEGER(6) NOT NULL,
   advertised_price INTEGER UNSIGNED NULL,

@@ -44,11 +44,13 @@ __PACKAGE__->table("festival");
 =head2 fst_start_date
 
   data_type: 'date'
+  datetime_undef_if_invalid: 1
   is_nullable: 1
 
 =head2 fst_end_date
 
   data_type: 'date'
+  datetime_undef_if_invalid: 1
   is_nullable: 1
 
 =cut
@@ -63,9 +65,9 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "text", is_nullable => 1 },
   "fst_start_date",
-  { data_type => "date", is_nullable => 1 },
+  { data_type => "date", "datetime_undef_if_invalid" => 1, is_nullable => 1 },
   "fst_end_date",
-  { data_type => "date", is_nullable => 1 },
+  { data_type => "date", "datetime_undef_if_invalid" => 1, is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("festival_id");
 
@@ -162,8 +164,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-06 19:11:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ID8tb95ff9bk3QLAgL0D9g
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-21 18:53:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oZiaUsgSt3CyZvykyGwvHg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

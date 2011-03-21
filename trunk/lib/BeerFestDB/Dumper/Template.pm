@@ -109,6 +109,29 @@ sub product_hash {
     return \%prodhash;
 }
 
+sub order_hash {
+
+    my ( $self, $order ) = @_;
+
+    my $fest = $self->festival();
+
+    # N.B. Changes here need to be documented in the POD. FIXME this is not documented at all yet.
+    my %orderhash = (
+        brewery     => $order->product_id->company_id->name(),
+        product     => $order->product_id->name(),
+        distributor => $order->distributor_company_id->name(),
+        cask_size   => $order->container_size_id->container_volume(),
+        cask_count  => $order->cask_count(),
+    );
+
+    my $currency = $order->currency_id();
+    my $format   = $currency->currency_format();
+    $orderhash{currency} = $currency->currency_symbol();
+    $orderhash{price}    = $self->format_price( $order->advertised_price(), $format );
+
+    return \%orderhash;
+}
+
 sub update_gyle_hash {
 
     my ( $self, $gylehash, $gyle ) = @_;
@@ -190,6 +213,12 @@ sub dump {
         foreach my $product ( @{ $self->festival_products() } ) {
             my $prodhash = $self->product_hash( $product );
             push @template_data, $prodhash;
+        }
+    }
+    elsif ( $self->dump_class eq 'product_order' ) {
+        foreach my $order ( @{ $self->festival_orders() } ) {
+            my $orderhash = $self->order_hash( $order );
+            push @template_data, $orderhash;
         }
     }
     else {
@@ -334,7 +363,7 @@ An arrayref containing logo file names to pass through to the templates.
 =item dump_class
 
 A string indicating the level at which to dump out data. Can be one of
-"cask", "gyle" or "product".
+"cask", "gyle", "product" or "product_order".
 
 =back
 

@@ -88,7 +88,7 @@ sub select_festival {
 
 sub festival_casks {
 
-    my ( $self, $category ) = @_;
+    my ( $self ) = @_;
 
     my $fest = $self->festival();
 
@@ -99,7 +99,7 @@ sub festival_casks {
 
 sub festival_products {
 
-    my ( $self, $category ) = @_;
+    my ( $self ) = @_;
 
     my $fest = $self->festival();
 
@@ -107,6 +107,18 @@ sub festival_products {
                         ->search_related('product_id')->all();
 
     return \@products;
+}
+
+sub festival_orders {
+
+    my ( $self ) = @_;
+
+    my $fest = $self->festival();
+
+    my @orders = $fest->search_related('order_batches')
+                      ->search_related('product_orders')->all();
+
+    return \@orders;
 }
 
 sub format_price {
