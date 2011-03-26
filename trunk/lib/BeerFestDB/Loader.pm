@@ -74,6 +74,14 @@ Readonly my $ORDER_BATCH_DATE          => 32;
 Readonly my $ORDER_FINALISED           => 33;
 Readonly my $ORDER_RECEIVED            => 34;
 Readonly my $ORDER_COMMENT             => 35;
+Readonly my $CONTACT_TYPE              => 36;
+Readonly my $CONTACT_FIRST_NAME        => 37;
+Readonly my $CONTACT_LAST_NAME         => 38;
+Readonly my $CONTACT_STREET_ADDRESS    => 39;
+Readonly my $CONTACT_POSTCODE          => 40;
+Readonly my $CONTACT_COUNTRY           => 41;
+Readonly my $CONTACT_EMAIL             => 42;
+Readonly my $CONTACT_COMMENT           => 43;
 
 ########
 # SUBS #
@@ -255,6 +263,45 @@ sub _load_data {
 	    'Company')
 	: undef;
 
+    my $contact_type
+        = $self->_check_not_null( $datahash->{$CONTACT_TYPE} )
+        ? $self->_load_column_value(
+            {
+                description => $datahash->{$CONTACT_TYPE},
+            },
+            'ContactType')
+        : undef;
+
+    ## N.B. Will fail if not already present in the database; we don't
+    ## want to support all the iso2, iso3, num3 data for a simple
+    ## product order load.
+    my $country   
+        = $self->_check_not_null( $datahash->{$CONTACT_COUNTRY} )
+        ? $self->_load_column_value(
+            {
+                country_code_iso2 => $datahash->{$CONTACT_COUNTRY},
+            },
+            'Country')
+        : undef;
+
+    my $contact
+        = $contact_type
+        ? $self->_load_column_value(
+            {
+
+                last_name      => $datahash->{$CONTACT_LAST_NAME},
+                first_name     => $datahash->{$CONTACT_FIRST_NAME},
+                street_address => $datahash->{$CONTACT_STREET_ADDRESS},
+                postcode       => $datahash->{$CONTACT_POSTCODE},
+                email          => $datahash->{$CONTACT_EMAIL},
+                country_id     => $country,
+                comment        => $datahash->{$CONTACT_COMMENT},
+            },
+            'Contact')
+        : undef;
+
+    my $company_contact;
+
     # This is going to be pretty much constant for UK beers. Will need
     # modification for European casks though FIXME.
     my $cask_measure = $self->_load_column_value(
@@ -305,6 +352,16 @@ sub _load_data {
             },
             'ProductOrder',
         );
+        $company_contact
+            = $contact
+            ? $self->_load_column_value(
+                {
+                    company_id => $distributor,
+                    contact_id => $contact,
+                    contact_type_id => $contact_type,
+                },
+                'CompanyContact',
+            ) : undef;        
     }
     else {  # FestivalProduct
         
@@ -353,6 +410,30 @@ sub _load_data {
                         'CaskMeasurement')
                         : undef;
         }
+
+        $company_contact
+            = $contact
+            ? $self->_load_column_value(
+                {
+                    company_id      => $brewer,
+                    contact_id      => $contact,
+                    contact_type_id => $contact_type,
+                },
+                'CompanyContact',
+            ) : undef;
+    }
+
+    # If the use of contact is non-obvious, attach it to brewer preferentially.
+    if ( $contact && ! $company_contact ) {
+        $company_contact
+            = $self->_load_column_value(
+                {
+                    company_id      => ( $brewer || $distributor ),
+                    contact_id      => $contact,
+                    contact_type_id => $contact_type,
+                },
+                'CompanyContact',
+            );
     }
 
     return;
@@ -475,6 +556,15 @@ sub _coerce_headings {
         qr/order [_ -]* finali[sz]ed/ixms              => $ORDER_FINALISED,
         qr/order [_ -]* received/ixms                  => $ORDER_RECEIVED,
         qr/order [_ -]* comment/ixms                   => $ORDER_COMMENT,
+        qr/contact [_ -]* type/ixms                    => $CONTACT_TYPE,
+        qr/contact [_ -]* first [_ -]* name/ixms       => $CONTACT_FIRST_NAME,
+        qr/contact [_ -]* last [_ -]* name/ixms        => $CONTACT_LAST_NAME,
+        qr/contact [_ -]* street [_ -]* address/ixms   => $CONTACT_STREET_ADDRESS,
+        qr/contact [_ -]* postcode/ixms                => $CONTACT_POSTCODE,
+        qr/contact [_ -]* country [_ -]* iso2/ixms     => $CONTACT_COUNTRY,
+        qr/contact [_ -]* email/ixms                   => $CONTACT_EMAIL,
+        qr/contact [_ -]* comment/ixms                 => $CONTACT_COMMENT,
+        # FIXME CONTACT TELEPHONEs
     );
 
     my @new_headings;
