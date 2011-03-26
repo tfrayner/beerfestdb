@@ -18,7 +18,7 @@ Model::DB:
 
 # Default currency and sale volume measures. These values must also be
 # entered into the currency.currency_code and
-# sale_volume.sale_volume_description database columns.
+# sale_volume.description database columns.
 default_currency:    GBP
 default_sale_volume: pint
 

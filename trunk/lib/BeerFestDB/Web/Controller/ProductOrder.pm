@@ -144,7 +144,7 @@ sub submit : Local {
         }) or die("Error retrieving default currency; check config settings.");
 
         my $default_sale_vol = $c->model('DB::SaleVolume')->find({
-            sale_volume_description => $c->config->{'default_sale_volume'},
+            description => $c->config->{'default_sale_volume'},
         }) or die("Error retrieving default sale volume; check config settings.");
 
         my $festival_id = $po->order_batch_id()->get_column('festival_id');
@@ -171,10 +171,15 @@ sub submit : Local {
         });
 
         my $casksize = $po->get_column('container_size_id');
-        my $previous_max = $c->model('DB::Cask')->search({
-            'gyle_id.festival_product_id' => $fp_id,
-        },{ join => { gyle_id => 'festival_product_id' } })
-            ->get_column('internal_reference')->max();            
+        my $previous_max = $c->model('DB::Cask')->search(
+            {
+                'gyle_id.festival_product_id' => $fp_id,
+            },
+            {
+                join => {
+                    gyle_id => 'festival_product_id'
+                }
+            })->get_column('internal_reference')->max() || 0;            
 
         foreach my $n ( 1..$po->cask_count() ) {
             $c->model('DB::Cask')->create({

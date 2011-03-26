@@ -191,7 +191,7 @@ sub _load_data {
     my $sale_volume = $self->_load_column_value(
         {
             container_measure_id    => $pint_size,
-            sale_volume_description => 'pint',
+            description             => 'pint',
         },
         'SaleVolume');
 
@@ -223,33 +223,6 @@ sub _load_data {
 		nominal_abv         => $nominal_abv,
 	    },
 	    'Product')
-	: undef;
-
-    my $festival_product;
-    if ( $product && $festival ) {
-        $festival_product = $self->_load_column_value(
-            {
-                festival_id => $festival->festival_id,
-                product_id  => $product->product_id,
-                sale_volume_id      => $sale_volume,
-                sale_currency_id    => $currency,
-                sale_price          => $sale_price,
-            },
-            'FestivalProduct');
-    }
-
-    my $gyle
-	= $festival_product
-	? $self->_load_column_value(
-	    {
-		external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
-                internal_reference => 'auto-generated',
-		company_id         => $brewer,
-		festival_product_id => $festival_product,
-		abv                => $datahash->{$GYLE_ABV},
-		comment            => $datahash->{$GYLE_COMMENT},
-	    },
-	    'Gyle')
 	: undef;
 
     my $distributor
@@ -359,6 +332,33 @@ sub _load_data {
     }
     else {  # FestivalProduct
         
+        my $festival_product;
+        if ( $product && $festival ) {
+            $festival_product = $self->_load_column_value(
+                {
+                    festival_id => $festival->festival_id,
+                    product_id  => $product->product_id,
+                    sale_volume_id      => $sale_volume,
+                    sale_currency_id    => $currency,
+                    sale_price          => $sale_price,
+                },
+                'FestivalProduct');
+        }
+
+        my $gyle
+            = $festival_product
+            ? $self->_load_column_value(
+                {
+                    external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
+                    internal_reference => 'auto-generated',
+                    company_id         => $brewer,
+                    festival_product_id => $festival_product,
+                    abv                => $datahash->{$GYLE_ABV},
+                    comment            => $datahash->{$GYLE_COMMENT},
+                },
+                'Gyle')
+            : undef;
+
         # We need to support adding casks in multiple loads; cask count
         # becomes an issue so we check against the database here.
         my $preexist = 0;

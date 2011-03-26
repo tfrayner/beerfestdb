@@ -1,0 +1,14 @@
+[% META title = 'Company Details' %]
+
+<script type="text/javascript">
+   var url_company_grid       = '[% c.uri_for( "/company/grid" ) %]';
+   var url_company_load_form  = '[% c.uri_for( "/company/load_form" ) %]';
+   var url_contact_list       = '[% c.uri_for( "/contact/list_by_company/$object.id" ) %]';
+
+   var company_id  = '[% object.id %]';
+   var companyname = '[% object.name | xml %]';
+</script>
+
+[% js_link( src = '/static/js/grids/company_view.js' ) %]
+
+<div id="datagrid"></div>

@@ -25,7 +25,7 @@ __PACKAGE__->table("contact_type");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 contact_type_description
+=head2 description
 
   data_type: 'varchar'
   is_nullable: 0
@@ -36,11 +36,11 @@ __PACKAGE__->table("contact_type");
 __PACKAGE__->add_columns(
   "contact_type_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "contact_type_description",
+  "description",
   { data_type => "varchar", is_nullable => 0, size => 30 },
 );
 __PACKAGE__->set_primary_key("contact_type_id");
-__PACKAGE__->add_unique_constraint("contact_type_description", ["contact_type_description"]);
+__PACKAGE__->add_unique_constraint("description", ["description"]);
 
 =head1 RELATIONS
 
@@ -60,8 +60,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 17:28:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3JF9YSkc8qEkbemhsd1C+g
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NbR7yEPreji+2Ma/UvsCFQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -63,9 +63,8 @@ __PACKAGE__->table("cask_measurement");
 
 =head2 comment
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 255
 
 =cut
 
@@ -97,7 +96,7 @@ __PACKAGE__->add_columns(
   "container_measure_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "comment",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "text", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("cask_measurement_id");
 
@@ -128,8 +127,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-21 18:53:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5F7OthI4nvDO8C9QQwh3wA
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ongqDa7H6OHKzwMfomrFYg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
