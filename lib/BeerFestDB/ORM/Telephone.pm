@@ -37,7 +37,7 @@ __PACKAGE__->table("telephone");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 interational_code
+=head2 international_code
 
   data_type: 'varchar'
   is_nullable: 1
@@ -70,7 +70,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "contact_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "interational_code",
+  "international_code",
   { data_type => "varchar", is_nullable => 1, size => 10 },
   "area_code",
   { data_type => "varchar", is_nullable => 1, size => 10 },
@@ -112,8 +112,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 17:28:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BgSxMOrps75wxWiBULgQUg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 19:56:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g9WtN8KT9PnOQ2g9dZyVhA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
