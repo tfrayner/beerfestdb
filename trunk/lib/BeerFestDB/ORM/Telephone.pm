@@ -31,6 +31,12 @@ __PACKAGE__->table("telephone");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 contact_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =head2 interational_code
 
   data_type: 'varchar'
@@ -62,6 +68,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "telephone_type_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "contact_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "interational_code",
   { data_type => "varchar", is_nullable => 1, size => 10 },
   "area_code",
@@ -75,19 +83,18 @@ __PACKAGE__->set_primary_key("telephone_id");
 
 =head1 RELATIONS
 
-=head2 contact_telephones
+=head2 contact_id
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<BeerFestDB::ORM::ContactTelephone>
+Related object: L<BeerFestDB::ORM::Contact>
 
 =cut
 
-__PACKAGE__->has_many(
-  "contact_telephones",
-  "BeerFestDB::ORM::ContactTelephone",
-  { "foreign.telephone_id" => "self.telephone_id" },
-  {},
+__PACKAGE__->belongs_to(
+  "contact_id",
+  "BeerFestDB::ORM::Contact",
+  { contact_id => "contact_id" },
 );
 
 =head2 telephone_type_id
@@ -105,8 +112,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 16:28:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4AJGj35fd77ftMcNWuu0uA
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 17:28:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BgSxMOrps75wxWiBULgQUg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

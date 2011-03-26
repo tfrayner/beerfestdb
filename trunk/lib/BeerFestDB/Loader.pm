@@ -285,41 +285,6 @@ sub _load_data {
             'Country')
         : undef;
 
-    my $contact
-        = $contact_type
-        ? $self->_load_column_value(
-            {
-
-                last_name      => $datahash->{$CONTACT_LAST_NAME},
-                first_name     => $datahash->{$CONTACT_FIRST_NAME},
-                street_address => $datahash->{$CONTACT_STREET_ADDRESS},
-                postcode       => $datahash->{$CONTACT_POSTCODE},
-                email          => $datahash->{$CONTACT_EMAIL},
-                country_id     => $country,
-                comment        => $datahash->{$CONTACT_COMMENT},
-            },
-            'Contact')
-        : undef;
-
-    my $telephone  ## FIXME ultimately we'll want to split into area+local.
-        = $self->_check_not_null( $datahash->{$CONTACT_TELEPHONE} )
-        ? $self->_load_column_value(
-            {
-                local_number => $datahash->{$CONTACT_TELEPHONE},
-            },
-            'Telephone')
-        : undef;
-    if ( $telephone && $contact ) {
-        $self->_load_column_value(
-            {
-                contact_id    => $contact,
-                telephone_id  => $telephone,
-            },
-            'ContactTelephone');
-    }
-
-    my $company_contact;
-
     # This is going to be pretty much constant for UK beers. Will need
     # modification for European casks though FIXME.
     my $cask_measure = $self->_load_column_value(
@@ -346,6 +311,18 @@ sub _load_data {
         $count = 1;
     }
 
+    my $contact_hash = {
+        contact_type_id => $contact_type,
+        last_name       => $datahash->{$CONTACT_LAST_NAME},
+        first_name      => $datahash->{$CONTACT_FIRST_NAME},
+        street_address  => $datahash->{$CONTACT_STREET_ADDRESS},
+        postcode        => $datahash->{$CONTACT_POSTCODE},
+        email           => $datahash->{$CONTACT_EMAIL},
+        country_id      => $country,
+        comment         => $datahash->{$CONTACT_COMMENT},
+    };
+    my $contact;
+
     if ( my $batchname = $datahash->{$ORDER_BATCH_NAME} ) { # ProductOrder
         my $order_batch = $self->_load_column_value(
             {
@@ -370,16 +347,15 @@ sub _load_data {
             },
             'ProductOrder',
         );
-        $company_contact
-            = $contact
+        $contact
+            = $contact_type
             ? $self->_load_column_value(
                 {
-                    company_id => $distributor,
-                    contact_id => $contact,
-                    contact_type_id => $contact_type,
+                    %{ $contact_hash },
+                    company_id     => $distributor,
                 },
-                'CompanyContact',
-            ) : undef;        
+                'Contact')
+            : undef;
     }
     else {  # FestivalProduct
         
@@ -429,30 +405,37 @@ sub _load_data {
                         : undef;
         }
 
-        $company_contact
-            = $contact
+        $contact
+            = $contact_type
             ? $self->_load_column_value(
                 {
-                    company_id      => $brewer,
-                    contact_id      => $contact,
-                    contact_type_id => $contact_type,
+                    %{ $contact_hash },
+                    company_id     => $brewer,
                 },
-                'CompanyContact',
-            ) : undef;
+                'Contact')
+            : undef;
     }
 
     # If the use of contact is non-obvious, attach it to brewer preferentially.
-    if ( $contact && ! $company_contact ) {
-        $company_contact
+    if ( $contact_type && ! $contact ) {
+        $contact
             = $self->_load_column_value(
                 {
-                    company_id      => ( $brewer || $distributor ),
-                    contact_id      => $contact,
-                    contact_type_id => $contact_type,
+                    %{ $contact_hash },
+                    company_id     => ( $brewer || $distributor ),
                 },
-                'CompanyContact',
-            );
+                'Contact');
     }
+
+    my $telephone  ## FIXME ultimately we'll want to split into area+local.
+        = $contact
+        ? $self->_load_column_value(
+            {
+                contact_id   => $contact,
+                local_number => $datahash->{$CONTACT_TELEPHONE},
+            },
+            'Telephone')
+        : undef;
 
     return;
 }
