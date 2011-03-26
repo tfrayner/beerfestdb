@@ -20,6 +20,16 @@
  * $Id$
  */
 
+// This override allows us to avoid zeroes from the database polluting
+// our number fields for e.g. year_founded. This affects all
+// NumberFields so is set on a per-view basis.
+Ext.override(Ext.form.NumberField, {
+    setValue : function(v){
+        v = v == 0 ? '' : v
+        return Ext.form.NumberField.superclass.setValue.call(this, v);
+    }
+});
+
 Ext.onReady(function(){
 
     // Enable tooltips
@@ -139,7 +149,6 @@ Ext.onReady(function(){
             { name:           'year_founded',
               fieldLabel:     'Year Founded',
               xtype:          'numberfield',
-              renderer:       function(value) { return value ? value : '' }, // FIXME this doesn't work.
               allowBlank:     true, },
             
             { name:           'url',
