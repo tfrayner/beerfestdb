@@ -95,11 +95,12 @@ INSERT INTO container_measure (litre_multiplier, description) VALUES(0.2841,'hal
 -- ------------------------------------------------------------
 
 CREATE TABLE country (
+  country_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   country_code_iso2 CHAR(2) NOT NULL,
   country_code_iso3 CHAR(3) NOT NULL,
   country_code_num3 CHAR(3) NOT NULL,
   country_name VARCHAR(100) NOT NULL,
-  PRIMARY KEY(country_code_iso2),
+  PRIMARY KEY(country_id),
   INDEX IDX_CNTRY_countrycode3(country_code_iso3),
   INDEX IDX_CNTRY_countrynum3(country_code_num3)
 )
@@ -453,22 +454,17 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE contact (
   contact_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  contact_type_id INTEGER(6) NOT NULL,
   last_name VARCHAR(100) NULL,
   first_name VARCHAR(100) NULL,
-  street_address VARCHAR(255) NULL,
+  street_address TEXT NULL,
   postcode VARCHAR(10) NULL,
-  country_code_iso2 CHAR(2) NULL,
+  email VARCHAR(10) NULL,
+  country_id INTEGER(6) NULL,
   comment VARCHAR(255) NULL,
   PRIMARY KEY(contact_id),
-  INDEX IDX_CNT_cc2(country_code_iso2),
-  INDEX IDX_CNT_cnttyid(contact_type_id),
-  FOREIGN KEY FK_CON_ctid_CTPY_ctid(contact_type_id)
-    REFERENCES contact_type(contact_type_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CON_ccode_CNTRY_ccode(country_code_iso2)
-    REFERENCES country(country_code_iso2)
+  INDEX IDX_CNT_cc2(country_id),
+  FOREIGN KEY FK_CON_ccode_CNTRY_ccode(country_id)
+    REFERENCES country(country_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
@@ -624,9 +620,15 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 CREATE TABLE company_contact (
   company_id INTEGER(6) NOT NULL,
   contact_id INTEGER(6) NOT NULL,
+  contact_type_id INTEGER(6) NOT NULL,
   PRIMARY KEY(company_id, contact_id),
+  INDEX IDX_CMPCNT_cnttyid(contact_type_id),
   FOREIGN KEY FK_CMPCNT_coid_DMPcoid(company_id)
     REFERENCES company(company_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CMPCNT_cntid_CTPY_ctid(contact_type_id)
+    REFERENCES contact_type(contact_type_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CMPCNT_cntid_CNT_cntid(contact_id)
