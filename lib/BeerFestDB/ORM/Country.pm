@@ -19,6 +19,12 @@ __PACKAGE__->table("country");
 
 =head1 ACCESSORS
 
+=head2 country_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+
 =head2 country_code_iso2
 
   data_type: 'char'
@@ -46,6 +52,8 @@ __PACKAGE__->table("country");
 =cut
 
 __PACKAGE__->add_columns(
+  "country_id",
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "country_code_iso2",
   { data_type => "char", is_nullable => 0, size => 2 },
   "country_code_iso3",
@@ -55,7 +63,7 @@ __PACKAGE__->add_columns(
   "country_name",
   { data_type => "varchar", is_nullable => 0, size => 100 },
 );
-__PACKAGE__->set_primary_key("country_code_iso2");
+__PACKAGE__->set_primary_key("country_id");
 
 =head1 RELATIONS
 
@@ -70,13 +78,13 @@ Related object: L<BeerFestDB::ORM::Contact>
 __PACKAGE__->has_many(
   "contacts",
   "BeerFestDB::ORM::Contact",
-  { "foreign.country_code_iso2" => "self.country_code_iso2" },
+  { "foreign.country_id" => "self.country_id" },
   {},
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uXPfhEZhGbRkjknUSmhK7A
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 11:41:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2LJqbojLB/zErqsS3LTM7w
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

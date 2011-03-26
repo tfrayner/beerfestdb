@@ -25,12 +25,6 @@ __PACKAGE__->table("contact");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 contact_type_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 last_name
 
   data_type: 'varchar'
@@ -45,9 +39,8 @@ __PACKAGE__->table("contact");
 
 =head2 street_address
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 255
 
 =head2 postcode
 
@@ -55,12 +48,17 @@ __PACKAGE__->table("contact");
   is_nullable: 1
   size: 10
 
-=head2 country_code_iso2
+=head2 email
 
-  data_type: 'char'
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 country_id
+
+  data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 1
-  size: 2
 
 =head2 comment
 
@@ -73,18 +71,18 @@ __PACKAGE__->table("contact");
 __PACKAGE__->add_columns(
   "contact_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "contact_type_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "last_name",
   { data_type => "varchar", is_nullable => 1, size => 100 },
   "first_name",
   { data_type => "varchar", is_nullable => 1, size => 100 },
   "street_address",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "text", is_nullable => 1 },
   "postcode",
   { data_type => "varchar", is_nullable => 1, size => 10 },
-  "country_code_iso2",
-  { data_type => "char", is_foreign_key => 1, is_nullable => 1, size => 2 },
+  "email",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "country_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "comment",
   { data_type => "varchar", is_nullable => 1, size => 255 },
 );
@@ -107,21 +105,7 @@ __PACKAGE__->has_many(
   {},
 );
 
-=head2 contact_type_id
-
-Type: belongs_to
-
-Related object: L<BeerFestDB::ORM::ContactType>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "contact_type_id",
-  "BeerFestDB::ORM::ContactType",
-  { contact_type_id => "contact_type_id" },
-);
-
-=head2 country_code_iso2
+=head2 country_id
 
 Type: belongs_to
 
@@ -130,9 +114,9 @@ Related object: L<BeerFestDB::ORM::Country>
 =cut
 
 __PACKAGE__->belongs_to(
-  "country_code_iso2",
+  "country_id",
   "BeerFestDB::ORM::Country",
-  { country_code_iso2 => "country_code_iso2" },
+  { country_id => "country_id" },
 );
 
 =head2 contact_telephones
@@ -151,8 +135,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oqM+5LElDdJMvSl5C8DiYg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 11:41:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:d2qEhXKyrSiprPdpXDIJRg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
