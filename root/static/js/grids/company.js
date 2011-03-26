@@ -89,6 +89,7 @@ Ext.onReady(function(){
           header:     'Year founded',
           dataIndex:  'year_founded',
           width:      20,
+          renderer:   function(value) { return value ? value : '' }, // year zero never happened.
           editor:     new Ext.form.TextField({
 //              allowBlank:     false,
           })},

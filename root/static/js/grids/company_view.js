@@ -92,11 +92,12 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'contact_id',       type: 'int'    },
                      { name: 'contact_type_id',  type: 'int'    },
+                     { name: 'company_id',       type: 'int'    },
                      { name: 'first_name',       type: 'string' },
                      { name: 'last_name',        type: 'string' },
                      { name: 'street_address',   type: 'string' },
                      { name: 'postcode',         type: 'string' },
-                     { name: 'country_id',       type: 'int' },
+                     { name: 'country_id',       type: 'int'    },
                      { name: 'email',            type: 'string' },
                      { name: 'comment',          type: 'string' }],
         sortInfo:   {
@@ -138,6 +139,7 @@ Ext.onReady(function(){
             { name:           'year_founded',
               fieldLabel:     'Year Founded',
               xtype:          'numberfield',
+              renderer:       function(value) { return value ? value : '' }, // FIXME this doesn't work.
               allowBlank:     true, },
             
             { name:           'url',
@@ -166,7 +168,7 @@ Ext.onReady(function(){
         {
             objLabel:           'Contact',
             idField:            'contact_id',
-            autoExpandColumn:   'last_name',
+            autoExpandColumn:   'contact_type_id',
             deleteUrl:          url_contact_delete,
             submitUrl:          url_contact_submit,
             recordChanges:      function (record) {
@@ -260,6 +262,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Companies', handler: function() { window.location = url_company_grid; } },
         ],
     });
     
