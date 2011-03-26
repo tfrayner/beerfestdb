@@ -80,7 +80,7 @@ sub list_by_company : Local {
 
     my ( $self, $c, $company_id ) = @_;
 
-    my $rs = $c->model( 'DB::Contact' )->search({ contact_id => $company_id });
+    my $rs = $c->model( 'DB::Contact' )->search({ company_id => $company_id });
 
     $self->generate_json_and_detach( $c, $rs );
 }
@@ -96,6 +96,27 @@ sub load_form : Local {
     my $rs = $c->model('DB::Contact');
 
     $self->form_json_and_detach( $c, $rs, 'contact_id' );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::Contact')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: Contact not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object}     = $object;
+
+    return;
 }
 
 =head2 submit
