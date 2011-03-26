@@ -151,7 +151,7 @@ CREATE TABLE telephone_type (
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO telephone_type (description) VALUES('telephone');
+INSERT INTO telephone_type (description) VALUES('landline');
 INSERT INTO telephone_type (description) VALUES('fax');
 INSERT INTO telephone_type (description) VALUES('mobile');
 
@@ -339,7 +339,7 @@ CREATE TABLE telephone (
   telephone_type_id INTEGER(6) NULL,
   interational_code VARCHAR(10) NULL,
   area_code VARCHAR(10) NULL,
-  telephone VARCHAR(50) NOT NULL,
+  local_number VARCHAR(50) NOT NULL,
   extension VARCHAR(10) NULL,
   PRIMARY KEY(telephone_id),
   INDEX IDX_TEL_ttid(telephone_type_id),

@@ -82,6 +82,7 @@ Readonly my $CONTACT_POSTCODE          => 40;
 Readonly my $CONTACT_COUNTRY           => 41;
 Readonly my $CONTACT_EMAIL             => 42;
 Readonly my $CONTACT_COMMENT           => 43;
+Readonly my $CONTACT_TELEPHONE         => 44;
 
 ########
 # SUBS #
@@ -299,6 +300,23 @@ sub _load_data {
             },
             'Contact')
         : undef;
+
+    my $telephone  ## FIXME ultimately we'll want to split into area+local.
+        = $self->_check_not_null( $datahash->{$CONTACT_TELEPHONE} )
+        ? $self->_load_column_value(
+            {
+                local_number => $datahash->{$CONTACT_TELEPHONE},
+            },
+            'Telephone')
+        : undef;
+    if ( $telephone && $contact ) {
+        $self->_load_column_value(
+            {
+                contact_id    => $contact,
+                telephone_id  => $telephone,
+            },
+            'ContactTelephone');
+    }
 
     my $company_contact;
 
@@ -563,6 +581,7 @@ sub _coerce_headings {
         qr/contact [_ -]* postcode/ixms                => $CONTACT_POSTCODE,
         qr/contact [_ -]* country [_ -]* iso2/ixms     => $CONTACT_COUNTRY,
         qr/contact [_ -]* email/ixms                   => $CONTACT_EMAIL,
+        qr/contact [_ -]* (?:tele)? phone/ixms         => $CONTACT_TELEPHONE,
         qr/contact [_ -]* comment/ixms                 => $CONTACT_COMMENT,
         # FIXME CONTACT TELEPHONEs
     );

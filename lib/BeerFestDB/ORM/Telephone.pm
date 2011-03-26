@@ -43,7 +43,7 @@ __PACKAGE__->table("telephone");
   is_nullable: 1
   size: 10
 
-=head2 telephone
+=head2 local_number
 
   data_type: 'varchar'
   is_nullable: 0
@@ -66,7 +66,7 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 10 },
   "area_code",
   { data_type => "varchar", is_nullable => 1, size => 10 },
-  "telephone",
+  "local_number",
   { data_type => "varchar", is_nullable => 0, size => 50 },
   "extension",
   { data_type => "varchar", is_nullable => 1, size => 10 },
@@ -105,8 +105,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2C2CeS530lJGGUcYYEtXOw
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 16:28:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4AJGj35fd77ftMcNWuu0uA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
