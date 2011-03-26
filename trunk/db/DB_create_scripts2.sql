@@ -469,7 +469,7 @@ CREATE TABLE telephone (
   telephone_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   telephone_type_id INTEGER(6) NULL,
   contact_id INTEGER(6) NOT NULL,
-  interational_code VARCHAR(10) NULL,
+  international_code VARCHAR(10) NULL,
   area_code VARCHAR(10) NULL,
   local_number VARCHAR(50) NOT NULL,
   extension VARCHAR(10) NULL,
