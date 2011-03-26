@@ -112,17 +112,17 @@ __PACKAGE__->belongs_to(
   { company_region_id => "company_region_id" },
 );
 
-=head2 company_contacts
+=head2 contacts
 
 Type: has_many
 
-Related object: L<BeerFestDB::ORM::CompanyContact>
+Related object: L<BeerFestDB::ORM::Contact>
 
 =cut
 
 __PACKAGE__->has_many(
-  "company_contacts",
-  "BeerFestDB::ORM::CompanyContact",
+  "contacts",
+  "BeerFestDB::ORM::Contact",
   { "foreign.company_id" => "self.company_id" },
   {},
 );
@@ -173,8 +173,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BXsV/a7X5P6h76ZBoGioDQ
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 17:28:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:O571OYYThTFcq/e9cVLTKg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

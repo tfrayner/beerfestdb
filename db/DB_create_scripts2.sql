@@ -329,28 +329,6 @@ CREATE TABLE festival_opening (
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
--- Table structure for table `telephone`
--- Simple table to store all the elements that make up a telephone number
--- the interational code, area_code,telephone and extenstion
--- ------------------------------------------------------------
-
-CREATE TABLE telephone (
-  telephone_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  telephone_type_id INTEGER(6) NULL,
-  interational_code VARCHAR(10) NULL,
-  area_code VARCHAR(10) NULL,
-  local_number VARCHAR(50) NOT NULL,
-  extension VARCHAR(10) NULL,
-  PRIMARY KEY(telephone_id),
-  INDEX IDX_TEL_ttid(telephone_type_id),
-  FOREIGN KEY FK_TEL_ttid_TT_ttid(telephone_type_id)
-    REFERENCES telephone_type(telephone_type_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION
-)
-TYPE=InnoDB DEFAULT CHARSET=utf8;
-
--- ------------------------------------------------------------
 -- Table structure for table `container_size`
 -- Simple table to be able to refer to a container_size by a container_size_id
 -- rather than name name.
@@ -454,6 +432,8 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE contact (
   contact_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  company_id INTEGER(6) NOT NULL,
+  contact_type_id INTEGER(6) NOT NULL,
   last_name VARCHAR(100) NULL,
   first_name VARCHAR(100) NULL,
   street_address TEXT NULL,
@@ -463,6 +443,15 @@ CREATE TABLE contact (
   comment VARCHAR(255) NULL,
   PRIMARY KEY(contact_id),
   INDEX IDX_CNT_cc2(country_id),
+  INDEX IDX_CNT_cnttyid(contact_type_id),
+  FOREIGN KEY FK_CON_coid_DMPcoid(company_id)
+    REFERENCES company(company_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CON_cntid_CTPY_ctid(contact_type_id)
+    REFERENCES contact_type(contact_type_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
   FOREIGN KEY FK_CON_ccode_CNTRY_ccode(country_id)
     REFERENCES country(country_id)
       ON DELETE RESTRICT
@@ -471,22 +460,28 @@ CREATE TABLE contact (
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
--- Table structure for table `contact_telephone`
--- Joining table to allow more than one telephone number of each contact.
+-- Table structure for table `telephone`
+-- Simple table to store all the elements that make up a telephone number
+-- the interational code, area_code,telephone and extenstion
 -- ------------------------------------------------------------
 
-CREATE TABLE contact_telephone (
+CREATE TABLE telephone (
+  telephone_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  telephone_type_id INTEGER(6) NULL,
   contact_id INTEGER(6) NOT NULL,
-  telephone_id INTEGER(6) NOT NULL,
-  PRIMARY KEY(contact_id, telephone_id),
-  INDEX IDX_CT_tid(telephone_id),
-  INDEX IDX_CT_cntid(contact_id),
-  FOREIGN KEY FK_CNT_cntid_CT_cntid(contact_id)
+  interational_code VARCHAR(10) NULL,
+  area_code VARCHAR(10) NULL,
+  local_number VARCHAR(50) NOT NULL,
+  extension VARCHAR(10) NULL,
+  PRIMARY KEY(telephone_id),
+  INDEX IDX_TEL_ttid(telephone_type_id),
+  INDEX IDX_TEL_cntid(contact_id),
+  FOREIGN KEY FK_TEL_cntid_CT_cntid(contact_id)
     REFERENCES contact(contact_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CTEL_telid_TEL_telid(telephone_id)
-    REFERENCES telephone(telephone_id)
+  FOREIGN KEY FK_TEL_ttid_TT_ttid(telephone_type_id)
+    REFERENCES telephone_type(telephone_type_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
@@ -606,33 +601,6 @@ CREATE TABLE product_characteristic (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_PDCT_pdid_PC_pid(product_id)
     REFERENCES product(product_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION
-)
-TYPE=InnoDB DEFAULT CHARSET=utf8;
-
--- ------------------------------------------------------------
--- Table structure for table `company_contact`
--- Simple table to link a company to a number of contacts so that a 
--- company can have any number of contacts.
--- ------------------------------------------------------------
-
-CREATE TABLE company_contact (
-  company_id INTEGER(6) NOT NULL,
-  contact_id INTEGER(6) NOT NULL,
-  contact_type_id INTEGER(6) NOT NULL,
-  PRIMARY KEY(company_id, contact_id),
-  INDEX IDX_CMPCNT_cnttyid(contact_type_id),
-  FOREIGN KEY FK_CMPCNT_coid_DMPcoid(company_id)
-    REFERENCES company(company_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CMPCNT_cntid_CTPY_ctid(contact_type_id)
-    REFERENCES contact_type(contact_type_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION,
-  FOREIGN KEY FK_CMPCNT_cntid_CNT_cntid(contact_id)
-    REFERENCES contact(contact_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )

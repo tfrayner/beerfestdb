@@ -44,24 +44,24 @@ __PACKAGE__->add_unique_constraint("contact_type_description", ["contact_type_de
 
 =head1 RELATIONS
 
-=head2 company_contacts
+=head2 contacts
 
 Type: has_many
 
-Related object: L<BeerFestDB::ORM::CompanyContact>
+Related object: L<BeerFestDB::ORM::Contact>
 
 =cut
 
 __PACKAGE__->has_many(
-  "company_contacts",
-  "BeerFestDB::ORM::CompanyContact",
+  "contacts",
+  "BeerFestDB::ORM::Contact",
   { "foreign.contact_type_id" => "self.contact_type_id" },
   {},
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 11:41:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hhRd1Fn6QFQnWFZovbv9Vw
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 17:28:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3JF9YSkc8qEkbemhsd1C+g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
