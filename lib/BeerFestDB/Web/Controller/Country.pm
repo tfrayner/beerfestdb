@@ -19,7 +19,7 @@
 #
 # $Id$
 
-package BeerFestDB::Web::Controller::SaleVolume;
+package BeerFestDB::Web::Controller::Country;
 use Moose;
 use namespace::autoclean;
 
@@ -27,7 +27,7 @@ BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
-BeerFestDB::Web::Controller::SaleVolume - Catalyst Controller
+BeerFestDB::Web::Controller::Country - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -42,10 +42,11 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     $self->model_view_map({
-        sale_volume_id       => 'sale_volume_id',
-        container_measure_id => 'container_measure_id',
-        description          => 'description',
-        volume               => 'volume',
+        country_id        => 'country_id',
+        country_code_iso2 => 'country_code_iso2',
+        country_code_iso3 => 'country_code_iso3',
+        country_code_num3 => 'country_code_num3',
+        country_name      => 'country_name',
     });
 }
 
@@ -57,7 +58,7 @@ sub list : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( 'DB::SaleVolume' );
+    my $rs = $c->model( 'DB::Country' );
 
     $self->generate_json_and_detach( $c, $rs );
 }

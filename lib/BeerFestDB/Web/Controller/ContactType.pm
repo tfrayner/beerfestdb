@@ -19,7 +19,7 @@
 #
 # $Id$
 
-package BeerFestDB::Web::Controller::SaleVolume;
+package BeerFestDB::Web::Controller::ContactType;
 use Moose;
 use namespace::autoclean;
 
@@ -27,7 +27,7 @@ BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
-BeerFestDB::Web::Controller::SaleVolume - Catalyst Controller
+BeerFestDB::Web::Controller::ContactType - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -42,10 +42,8 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     $self->model_view_map({
-        sale_volume_id       => 'sale_volume_id',
-        container_measure_id => 'container_measure_id',
-        description          => 'description',
-        volume               => 'volume',
+        contact_type_id  => 'contact_type_id',
+        description      => 'description',
     });
 }
 
@@ -57,7 +55,7 @@ sub list : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( 'DB::SaleVolume' );
+    my $rs = $c->model( 'DB::ContactType' );
 
     $self->generate_json_and_detach( $c, $rs );
 }

@@ -45,7 +45,7 @@ sub BUILD {
         container_size_id => 'container_size_id',
         volume            => 'container_volume',
         measure_id        => 'container_measure_id',
-        description       => 'container_description',
+        description       => 'description',
     });
 }
 

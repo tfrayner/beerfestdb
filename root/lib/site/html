@@ -32,11 +32,16 @@
    var url_product_list         = '[% c.uri_for( "/product/list" ) %]';
    var url_product_style_list   = '[% c.uri_for( "/productstyle/list" ) %]';
    var url_sale_volume_list     = '[% c.uri_for( "/salevolume/list" ) %]';
+   var url_contact_type_list    = '[% c.uri_for( "/contacttype/list" ) %]';
+   var url_telephone_type_list  = '[% c.uri_for( "/telephonetype/list" ) %]';
+   var url_country_list         = '[% c.uri_for( "/country/list" ) %]';
 
    var url_cask_delete          = '[% c.uri_for( "/cask/delete" ) %]';
    var url_cask_submit          = '[% c.uri_for( "/cask/submit" ) %]';
    var url_category_submit      = '[% c.uri_for( "/productcategory/submit" ) %]';
    var url_category_delete      = '[% c.uri_for( "/productcategory/delete" ) %]';
+   var url_contact_delete       = '[% c.uri_for( "/contact/delete" ) %]';
+   var url_contact_submit       = '[% c.uri_for( "/contact/submit" ) %]';
    var url_company_delete       = '[% c.uri_for( "/company/delete" ) %]';
    var url_company_submit       = '[% c.uri_for( "/company/submit" ) %]';
    var url_festival_delete      = '[% c.uri_for( "/festival/delete" ) %]';

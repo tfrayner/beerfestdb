@@ -89,7 +89,7 @@ sub product_hash {
                     ? $product->product_style_id()->description() : q{},
         category => $product->product_category_id()->description(),
         abv      => $product->nominal_abv(),
-        sale_volume => $fp->sale_volume_id()->sale_volume_description(),
+        sale_volume => $fp->sale_volume_id()->description(),
         notes    => $product->description(),
     );
 

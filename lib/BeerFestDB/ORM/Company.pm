@@ -56,9 +56,8 @@ __PACKAGE__->table("company");
 
 =head2 comment
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 255
 
 =cut
 
@@ -76,7 +75,7 @@ __PACKAGE__->add_columns(
   "url",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "comment",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "text", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("company_id");
 __PACKAGE__->add_unique_constraint("name", ["name"]);
@@ -173,8 +172,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 17:28:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:O571OYYThTFcq/e9cVLTKg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gg9/gxlHgbg0wAowWX/hrg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

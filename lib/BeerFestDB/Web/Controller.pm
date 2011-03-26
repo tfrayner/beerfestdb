@@ -331,7 +331,7 @@ sub get_default_sale_volume : Private {
     my ( $self, $c ) = @_;
 
     my $def = $c->model('DB::SaleVolume')->find({
-        sale_volume_description => $c->config->{'default_sale_volume'},
+        description => $c->config->{'default_sale_volume'},
     }) or die("Error retrieving default sale volume; check config settings.");
 
     $c->stash->{ 'default_sale_volume' } = $def->sale_volume_id();

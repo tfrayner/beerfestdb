@@ -203,15 +203,15 @@ INSERT INTO product_category (description) VALUES ('mead');
 
 CREATE TABLE contact_type (
   contact_type_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  contact_type_description VARCHAR(30) NOT NULL,
+  description VARCHAR(30) NOT NULL,
   PRIMARY KEY(contact_type_id),
-  UNIQUE KEY(contact_type_description)
+  UNIQUE KEY(description)
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 
-INSERT INTO contact_type (contact_type_description) VALUES ('Main');
-INSERT INTO contact_type (contact_type_description) VALUES ('Customer Service');
+INSERT INTO contact_type (description) VALUES ('Main');
+INSERT INTO contact_type (description) VALUES ('Customer Service');
 
 
 -- ------------------------------------------------------------
@@ -250,7 +250,7 @@ CREATE TABLE company (
   company_region_id INTEGER(6),
   year_founded YEAR(4) NULL,
   url VARCHAR(255) NULL,
-  comment VARCHAR(255) NULL,
+  comment TEXT NULL,
   PRIMARY KEY(company_id),
   UNIQUE KEY(name),
   FOREIGN KEY FK_CO_rgnid_RGN_rgnid(company_region_id)
@@ -338,9 +338,9 @@ CREATE TABLE container_size (
   container_size_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   container_volume DECIMAL(4,2) NOT NULL,
   container_measure_id INTEGER(6) NOT NULL,
-  container_description VARCHAR(100) NULL,
+  description VARCHAR(100) NULL,
   PRIMARY KEY(container_size_id),
-  UNIQUE KEY(container_description),
+  UNIQUE KEY(description),
   FOREIGN KEY FK_CS_cmid_CM_cmid(container_measure_id)
     REFERENCES container_measure(container_measure_id)
       ON DELETE RESTRICT
@@ -348,10 +348,10 @@ CREATE TABLE container_size (
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (9,2,'firkin'); 
-INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (18,2,'kilderkin'); 
-INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (22,2,'22 gallon'); 
-INSERT INTO container_size (container_volume, container_measure_id, container_description) VALUES (36,2,'barrel'); 
+INSERT INTO container_size (container_volume, container_measure_id, description) VALUES (9,2,'firkin'); 
+INSERT INTO container_size (container_volume, container_measure_id, description) VALUES (18,2,'kilderkin'); 
+INSERT INTO container_size (container_volume, container_measure_id, description) VALUES (22,2,'22 gallon'); 
+INSERT INTO container_size (container_volume, container_measure_id, description) VALUES (36,2,'barrel'); 
 
 
 -- ------------------------------------------------------------
@@ -411,10 +411,10 @@ INSERT INTO product_style (product_category_id,description) VALUES ((SELECT prod
 CREATE TABLE sale_volume (
   sale_volume_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   container_measure_id INTEGER(6) NOT NULL,
-  sale_volume_description VARCHAR(30) NOT NULL,
+  description VARCHAR(30) NOT NULL,
   volume DECIMAL(4,2) NULL,
   PRIMARY KEY(sale_volume_id),
-  UNIQUE KEY(sale_volume_description),
+  UNIQUE KEY(description),
   FOREIGN KEY FK_SV_cmid_CM_cmid(container_measure_id)
     REFERENCES container_measure(container_measure_id)
       ON DELETE RESTRICT
@@ -440,7 +440,7 @@ CREATE TABLE contact (
   postcode VARCHAR(10) NULL,
   email VARCHAR(10) NULL,
   country_id INTEGER(6) NULL,
-  comment VARCHAR(255) NULL,
+  comment TEXT NULL,
   PRIMARY KEY(contact_id),
   INDEX IDX_CNT_cc2(country_id),
   INDEX IDX_CNT_cnttyid(contact_type_id),
@@ -635,7 +635,7 @@ CREATE TABLE gyle (
   company_id INTEGER(6) NOT NULL,
   festival_product_id INTEGER(6) NOT NULL,
   abv DECIMAL(3,1) NULL,
-  comment VARCHAR(255) NULL,
+  comment TEXT NULL,
   external_reference VARCHAR(255) NULL,
   internal_reference VARCHAR(255) NOT NULL,
   PRIMARY KEY(gyle_id),
@@ -753,7 +753,7 @@ CREATE TABLE cask_measurement (
   end_date DATETIME NULL,
   volume decimal(5,2) NOT NULL,
   container_measure_id INTEGER(6) NOT NULL,
-  comment VARCHAR(255) NULL,
+  comment TEXT NULL,
   PRIMARY KEY(cask_measurement_id),
   INDEX IDX_CM_cid(cask_id),
   FOREIGN KEY FK_CSKM_cskid_CSK_cskid(cask_id)

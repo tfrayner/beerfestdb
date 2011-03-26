@@ -31,7 +31,7 @@ __PACKAGE__->table("sale_volume");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 sale_volume_description
+=head2 description
 
   data_type: 'varchar'
   is_nullable: 0
@@ -50,13 +50,13 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "container_measure_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "sale_volume_description",
+  "description",
   { data_type => "varchar", is_nullable => 0, size => 30 },
   "volume",
   { data_type => "decimal", is_nullable => 1, size => [4, 2] },
 );
 __PACKAGE__->set_primary_key("sale_volume_id");
-__PACKAGE__->add_unique_constraint("sale_volume_description", ["sale_volume_description"]);
+__PACKAGE__->add_unique_constraint("description", ["description"]);
 
 =head1 RELATIONS
 
@@ -90,8 +90,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:X/ciWodqHDz7BzhIKf3Ggg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M0/oW/XEx+voyOmBkw0hnw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

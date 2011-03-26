@@ -45,9 +45,8 @@ __PACKAGE__->table("gyle");
 
 =head2 comment
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 255
 
 =head2 external_reference
 
@@ -73,7 +72,7 @@ __PACKAGE__->add_columns(
   "abv",
   { data_type => "decimal", is_nullable => 1, size => [3, 1] },
   "comment",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "text", is_nullable => 1 },
   "external_reference",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "internal_reference",
@@ -131,8 +130,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-08 17:51:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UhB4wP82TmvSrviGtkCAxw
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eA+oiumBiRaSswHM3SUdUA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
