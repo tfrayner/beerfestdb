@@ -114,6 +114,12 @@ __PACKAGE__->table("cask");
   is_nullable: 1
   size: 255
 
+=head2 cellar_reference
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 255
+
 =head2 is_vented
 
   data_type: 'tinyint'
@@ -169,6 +175,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "internal_reference",
   { data_type => "varchar", is_nullable => 1, size => 255 },
+  "cellar_reference",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
   "is_vented",
   { data_type => "tinyint", is_nullable => 1 },
   "is_tapped",
@@ -179,6 +187,7 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("cask_id");
+__PACKAGE__->add_unique_constraint("festival_cellar_ref", ["festival_id", "cellar_reference"]);
 __PACKAGE__->add_unique_constraint(
   "festival_gyle_cask",
   ["festival_id", "gyle_id", "internal_reference"],
@@ -292,8 +301,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-19 18:30:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/H5BAazOiNSFmM06SkHs0Q
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-27 11:17:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xw9V+Dr5O3dNOFWniyILtg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

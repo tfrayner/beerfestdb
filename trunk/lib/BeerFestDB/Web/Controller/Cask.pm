@@ -66,6 +66,7 @@ sub BUILD {
         comment           => 'comment',
         ext_reference     => 'external_reference',
         int_reference     => 'internal_reference',
+        festival_ref      => 'cellar_reference',
         is_vented         => 'is_vented',
         is_tapped         => 'is_tapped',
         is_ready          => 'is_ready',

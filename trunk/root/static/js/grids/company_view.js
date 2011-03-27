@@ -25,7 +25,7 @@
 // NumberFields so is set on a per-view basis.
 Ext.override(Ext.form.NumberField, {
     setValue : function(v){
-        v = v == 0 ? '' : v
+        v = v == 0 ? null : v
         return Ext.form.NumberField.superclass.setValue.call(this, v);
     }
 });
@@ -129,6 +129,11 @@ Ext.onReady(function(){
               fieldLabel:     'Name',
               xtype:          'textfield',
               allowBlank:     false, },
+            
+            { name:           'full_name',
+              fieldLabel:     'Full Name',
+              xtype:          'textfield',
+              allowBlank:     true, },
             
             { name:           'loc_desc',
               fieldLabel:     'Location',

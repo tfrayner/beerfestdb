@@ -28,6 +28,7 @@ Ext.onReady(function(){
     var Company = Ext.data.Record.create([
         { name: 'company_id',        type: 'int' },
         { name: 'name',              type: 'string',   allowBlank: false },
+        { name: 'full_name',         type: 'string' },
         { name: 'loc_desc',          type: 'string' },
         { name: 'company_region_id', type: 'int'},
         { name: 'year_founded',      type: 'int' },
@@ -72,13 +73,16 @@ Ext.onReady(function(){
           editor:     new Ext.form.TextField({
               allowBlank:     false,
           })},
+        { id:         'full_name',
+          header:     'Full Name',
+          dataIndex:  'full_name',
+          width:      150,
+          editor:     new Ext.form.TextField()},
         { id:         'loc_desc',
           header:     'Location',
           dataIndex:  'loc_desc',
           width:      150,
-          editor:     new Ext.form.TextField({
-//              allowBlank:     false,
-          })},
+          editor:     new Ext.form.TextField()},
         { id:         'company_region_id',
           header:     'Region',
           dataIndex:  'company_region_id',
@@ -90,23 +94,17 @@ Ext.onReady(function(){
           dataIndex:  'year_founded',
           width:      20,
           renderer:   function(value) { return value ? value : '' }, // year zero never happened.
-          editor:     new Ext.form.TextField({
-//              allowBlank:     false,
-          })},
+          editor:     new Ext.form.NumberField()},
         { id:         'url',
           header:     'Web site',
           dataIndex:  'url',
           width:      70,
-          editor:     new Ext.form.TextField({
-//              allowBlank:     false,
-          })},
+          editor:     new Ext.form.TextField()},
         { id:         'comment',
           header:     'Comment',
           dataIndex:  'comment',
           width:      70,
-          editor:     new Ext.form.TextField({
-//              allowBlank:     false,
-          })},
+          editor:     new Ext.form.TextField()},
     ];
 
     function viewLink (grid, record, action, row, col) {
