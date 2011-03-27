@@ -35,6 +35,7 @@ requires 'parent';
 requires 'Config::YAML';
 
 requires 'Catalyst::View::JSON';
+requires 'JSON::DWIW';
 requires 'Catalyst::View::TT';
 requires 'DBIx::Class';
 requires 'Moose';
