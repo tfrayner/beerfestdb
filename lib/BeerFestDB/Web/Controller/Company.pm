@@ -44,6 +44,7 @@ sub BUILD {
     $self->model_view_map({
         company_id        => 'company_id',
         name              => 'name',
+        full_name         => 'full_name',
         loc_desc          => 'loc_desc',
         year_founded      => 'year_founded',
         url               => 'url',

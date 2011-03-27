@@ -83,6 +83,8 @@ Readonly my $CONTACT_COUNTRY           => 41;
 Readonly my $CONTACT_EMAIL             => 42;
 Readonly my $CONTACT_COMMENT           => 43;
 Readonly my $CONTACT_TELEPHONE         => 44;
+Readonly my $BREWER_FULL_NAME          => 45;
+Readonly my $DISTRIBUTOR_FULL_NAME     => 45;
 
 ########
 # SUBS #
@@ -148,12 +150,12 @@ sub _load_data {
 	    'Bar')
 	: undef;
 
-    # FIXME no addresses at this point.
     my $brewer
 	= $self->_check_not_null( $datahash->{$BREWER_NAME} )
 	? $self->_load_column_value(
 	    {
 		name         => $datahash->{$BREWER_NAME},
+		full_name    => $datahash->{$BREWER_FULL_NAME},
 		loc_desc     => $datahash->{$BREWER_LOC_DESC},
 		year_founded => $datahash->{$BREWER_YEAR_FOUNDED},
 		comment      => $datahash->{$BREWER_COMMENT},
@@ -230,6 +232,7 @@ sub _load_data {
 	? $self->_load_column_value(
 	    {
 		name         => $datahash->{$DISTRIBUTOR_NAME},
+		full_name    => $datahash->{$DISTRIBUTOR_FULL_NAME},
 		loc_desc     => $datahash->{$DISTRIBUTOR_LOC_DESC},
 		year_founded => $datahash->{$DISTRIBUTOR_YEAR_FOUNDED},
 		comment      => $datahash->{$DISTRIBUTOR_COMMENT},
@@ -528,6 +531,7 @@ sub _coerce_headings {
         qr/bar [_ -]* description/ixms                 => $BAR_DESCRIPTION,
         qr/stillage [_ -]* loc (?:ation)?/ixms         => $STILLAGE_LOCATION,
         qr/brewery? [_ -]* name/ixms                   => $BREWER_NAME,
+        qr/brewery? [_ -]* full [_ -]* name/ixms       => $BREWER_FULL_NAME,
         qr/brewery? [_ -]* loc [_ -]* desc/ixms        => $BREWER_LOC_DESC,
         qr/brewery? [_ -]* year [_ -]* founded/ixms    => $BREWER_YEAR_FOUNDED,
         qr/brewery? [_ -]* comment/ixms                => $BREWER_COMMENT,
@@ -541,6 +545,7 @@ sub _coerce_headings {
         qr/product [_ -]* sale [_ -]* price/ixms       => $GYLE_PINT_PRICE,
         qr/gyle [_ -]* comment/ixms                    => $GYLE_COMMENT,
         qr/distributor [_ -]* name/ixms                => $DISTRIBUTOR_NAME,
+        qr/distributor [_ -]* full [_ -]* name/ixms    => $DISTRIBUTOR_FULL_NAME,
         qr/distributor [_ -]* loc [_ -]* desc/ixms     => $DISTRIBUTOR_LOC_DESC,
         qr/distributor [_ -]* year [_ -]* founded/ixms => $DISTRIBUTOR_YEAR_FOUNDED,
         qr/distributor [_ -]* comment/ixms             => $DISTRIBUTOR_COMMENT,

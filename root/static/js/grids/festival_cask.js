@@ -31,6 +31,7 @@ Ext.onReady(function(){
         { name: 'company_id',           type: 'int' },
         { name: 'stillage_location_id', type: 'int' },
         { name: 'int_reference',        type: 'string' },
+        { name: 'festival_ref',         type: 'string' },
         { name: 'container_size_id',    type: 'int' },
         { name: 'bar_id',               type: 'int' },
         { name: 'gyle_id',              type: 'int' },
@@ -159,8 +160,15 @@ Ext.onReady(function(){
           editor:     new Ext.form.NumberField({
               allowBlank:     true,
           })},
+        { id:         'festival_ref',
+          header:     'Festival Cask ID',
+          dataIndex:  'festival_ref',
+          width:      40,
+          editor:     new Ext.form.TextField({
+              allowBlank:     true,
+          })},
         { id:         'int_reference',
-          header:     'Cask ID',
+          header:     'Cellar Cask No.',
           dataIndex:  'int_reference',
           width:      40,
           editor:     new Ext.form.TextField({

@@ -31,6 +31,12 @@ __PACKAGE__->table("company");
   is_nullable: 0
   size: 100
 
+=head2 full_name
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 255
+
 =head2 loc_desc
 
   data_type: 'varchar'
@@ -66,6 +72,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "varchar", is_nullable => 0, size => 100 },
+  "full_name",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
   "loc_desc",
   { data_type => "varchar", is_nullable => 1, size => 100 },
   "company_region_id",
@@ -172,8 +180,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gg9/gxlHgbg0wAowWX/hrg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-27 11:17:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bb4vIUwHMFAqcYMLB+0tWw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

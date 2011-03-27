@@ -166,6 +166,7 @@ Ext.onReady(function(){
                      { name: 'price',             type: 'int' },
                      { name: 'int_reference',     type: 'string' },
                      { name: 'ext_reference',     type: 'string' },
+                     { name: 'festival_ref',      type: 'string' },
                      { name: 'comment',           type: 'string' }],
         sortInfo:   {
             field:     'int_reference',
@@ -329,8 +330,15 @@ Ext.onReady(function(){
             },
             store:              cask_store,
             contentCols: [
-                { id:        'int_reference',
+                { id:        'festival_ref',
                   header:    'Festival Cask ID',
+                  dataIndex: 'festival_ref',
+                  width:      50,
+                  editor:     new Ext.form.TextField({
+                      allowBlank: true,
+                  })},
+                { id:        'int_reference',
+                  header:    'Cellar Cask ID',
                   dataIndex: 'int_reference',
                   width:      50,
                   editor:     new Ext.form.TextField({
