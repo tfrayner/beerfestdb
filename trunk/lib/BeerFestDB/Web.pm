@@ -57,6 +57,9 @@ __PACKAGE__->config(
     name    => 'BeerFestDB::Web',
     session => { flash_to_stash => 1,
                  expires        => 3600, },
+    'View::JSON' => {
+        json_driver => 'JSON::DWIW', # Better utf-8 support than JSON(::XS)
+    },
  );
 
 # Start the application
