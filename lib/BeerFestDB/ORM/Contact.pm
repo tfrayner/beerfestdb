@@ -58,13 +58,13 @@ __PACKAGE__->table("contact");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 10
+  size: 20
 
 =head2 email
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 10
+  size: 100
 
 =head2 country_id
 
@@ -93,9 +93,9 @@ __PACKAGE__->add_columns(
   "street_address",
   { data_type => "text", is_nullable => 1 },
   "postcode",
-  { data_type => "varchar", is_nullable => 1, size => 10 },
+  { data_type => "varchar", is_nullable => 1, size => 20 },
   "email",
-  { data_type => "varchar", is_nullable => 1, size => 10 },
+  { data_type => "varchar", is_nullable => 1, size => 100 },
   "country_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "comment",
@@ -163,8 +163,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0nLkKyIC6giztusL1hnfAg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-27 21:23:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e+9Ze98rVFmwO6Je4gCXEA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
