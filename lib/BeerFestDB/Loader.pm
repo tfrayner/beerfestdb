@@ -84,7 +84,8 @@ Readonly my $CONTACT_EMAIL             => 42;
 Readonly my $CONTACT_COMMENT           => 43;
 Readonly my $CONTACT_TELEPHONE         => 44;
 Readonly my $BREWER_FULL_NAME          => 45;
-Readonly my $DISTRIBUTOR_FULL_NAME     => 45;
+Readonly my $DISTRIBUTOR_FULL_NAME     => 46;
+Readonly my $BREWER_URL                => 47;
 
 ########
 # SUBS #
@@ -128,7 +129,7 @@ sub _load_data {
                 description => $datahash->{$FESTIVAL_DESCRIPTION},
 	    },
 	    'Festival')
-	: die("Error: Must have full festival info information (i.e. year)");
+	: undef;
 
     my $stillage
 	= $self->_check_not_null( $datahash->{$STILLAGE_LOCATION} )
@@ -158,6 +159,7 @@ sub _load_data {
 		full_name    => $datahash->{$BREWER_FULL_NAME},
 		loc_desc     => $datahash->{$BREWER_LOC_DESC},
 		year_founded => $datahash->{$BREWER_YEAR_FOUNDED},
+		url          => $datahash->{$BREWER_URL},
 		comment      => $datahash->{$BREWER_COMMENT},
 	    },
 	    'Company')
@@ -365,7 +367,7 @@ sub _load_data {
         # We need to support adding casks in multiple loads; cask count
         # becomes an issue so we check against the database here.
         my $preexist = 0;
-        if ( $gyle ) { 
+        if ( $gyle && $festival ) { 
             $preexist = $gyle->search_related(
                 'casks',
                 { 'festival_id' => $festival->id })->count();
@@ -375,7 +377,7 @@ sub _load_data {
         foreach my $n ( ($preexist+1)..$count ) {
 
             my $cask
-                = $product
+                = ( $product && $festival )
                     ? $self->_load_column_value(
                         {
                             gyle_id                => $gyle,
@@ -535,6 +537,7 @@ sub _coerce_headings {
         qr/brewery? [_ -]* loc [_ -]* desc/ixms        => $BREWER_LOC_DESC,
         qr/brewery? [_ -]* year [_ -]* founded/ixms    => $BREWER_YEAR_FOUNDED,
         qr/brewery? [_ -]* comment/ixms                => $BREWER_COMMENT,
+        qr/brewery? [_ -]* website/ixms                => $BREWER_URL,
         qr/product [_ -]* name/ixms                    => $PRODUCT_NAME,
         qr/product [_ -]* style/ixms                   => $PRODUCT_STYLE,
         qr/product [_ -]* description/ixms             => $PRODUCT_DESCRIPTION,
