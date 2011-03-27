@@ -86,6 +86,7 @@ Readonly my $CONTACT_TELEPHONE         => 44;
 Readonly my $BREWER_FULL_NAME          => 45;
 Readonly my $DISTRIBUTOR_FULL_NAME     => 46;
 Readonly my $BREWER_URL                => 47;
+Readonly my $TELEPHONE_TYPE            => 48;
 
 ########
 # SUBS #
@@ -411,7 +412,7 @@ sub _load_data {
         }
 
         $contact
-            = $contact_type
+            = ( $contact_type && $festival_product )
             ? $self->_load_column_value(
                 {
                     %{ $contact_hash },
@@ -432,12 +433,22 @@ sub _load_data {
                 'Contact');
     }
 
+    my $phone_type
+        = $self->_check_not_null( $datahash->{$TELEPHONE_TYPE} )
+        ? $self->_load_column_value(
+            {
+                description => $datahash->{$TELEPHONE_TYPE},
+            },
+            'TelephoneType')
+        : undef;
+
     my $telephone  ## FIXME ultimately we'll want to split into area+local.
-        = $contact
+        = ( $contact && $self->_check_not_null( $datahash->{$CONTACT_TELEPHONE} ) )
         ? $self->_load_column_value(
             {
                 contact_id   => $contact,
                 local_number => $datahash->{$CONTACT_TELEPHONE},
+                telephone_type_id => $phone_type,
             },
             'Telephone')
         : undef;
@@ -574,7 +585,7 @@ sub _coerce_headings {
         qr/contact [_ -]* email/ixms                   => $CONTACT_EMAIL,
         qr/contact [_ -]* (?:tele)? phone/ixms         => $CONTACT_TELEPHONE,
         qr/contact [_ -]* comment/ixms                 => $CONTACT_COMMENT,
-        # FIXME CONTACT TELEPHONEs
+        qr/telephone[_ -]* type/ixms                   => $TELEPHONE_TYPE,
     );
 
     my @new_headings;
