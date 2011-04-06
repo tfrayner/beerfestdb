@@ -117,6 +117,69 @@ Ext.onReady(function(){
     });
     contact_store.load();
 
+    var product_store = new Ext.data.JsonStore({
+        url:        url_product_list,
+        root:       'objects',
+        fields:     [{ name: 'product_id',       type: 'int' },
+                     { name: 'company_id',       type: 'int' },
+                     { name: 'name',             type: 'string',   allowBlank: false },
+                     { name: 'description',      type: 'string' },
+                     { name: 'comment',          type: 'string' },
+                     { name: 'nominal_abv',      type: 'float' },
+                     { name: 'product_style_id', type: 'int' }],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+    });
+    product_store.load();
+
+    /* Product Style drop-down */
+    var style_store = new Ext.data.JsonStore({
+        url:        url_product_style_list,
+        root:       'objects',
+        fields:     [{ name: 'product_style_id', type: 'int'    },
+                     { name: 'description',      type: 'string' }],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    style_store.load();
+    var style_combo = new Ext.form.ComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        forceSelection: true,
+        store:          style_store,
+        valueField:     'product_style_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
+    });
+
+    /* Product Category drop-down */
+    var category_store = new Ext.data.JsonStore({
+        url:        url_category_list,
+        root:       'objects',
+        fields:     [{ name: 'product_category_id', type: 'int'    },
+                     { name: 'description',      type: 'string' }],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    category_store.load();
+    var category_combo = new Ext.form.ComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        forceSelection: true,
+        store:          category_store,
+        valueField:     'product_category_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
+    });
+
     /* Company form */
     var coForm = new MyFormPanel({
 
@@ -257,6 +320,74 @@ Ext.onReady(function(){
         }
     );
 
+    /* Product grid */
+    var productGrid = new MyEditorGrid(
+        {
+            objLabel:           'Product',
+            idField:            'product_id',
+            autoExpandColumn:   'product_type_id',
+            deleteUrl:          url_product_delete,
+            submitUrl:          url_product_submit,
+            recordChanges:      function (record) {
+                var fields = record.getChanges();
+                fields.product_id = record.get( 'product_id' );
+                fields.company_id = company_id;
+                return(fields);
+            },
+            store:              product_store,
+            contentCols:
+            [
+                { id:         'name',
+                  header:     'Name',
+                  dataIndex:  'name',
+                  width:      130,
+                  editor:     new Ext.form.TextField({
+                      allowBlank:     false,
+                  })},
+                { id:         'nominal_abv',
+                  header:     'Advertised ABV',
+                  dataIndex:  'nominal_abv',
+                  width:      130,
+                  renderer:   function(value) { return value ? value : '' },
+                  editor:     new Ext.form.NumberField({
+                      allowBlank:     true,
+                  })},
+                { id:         'description',
+                  header:     'Description',
+                  dataIndex:  'description',
+                  width:      150,
+                  editor:     new Ext.form.TextField({
+                      allowBlank:     true,
+                  })},
+                { id:         'comment',
+                  header:     'Comment',
+                  dataIndex:  'comment',
+                  width:      150,
+                  editor:     new Ext.form.TextField({
+                      allowBlank:     true,
+                  })},
+                { id:         'product_category_id',
+                  header:     'Category',
+                  dataIndex:  'product_category_id',
+                  width:      70,
+                  renderer:   MyComboRenderer(category_combo),
+                  editor:     category_combo },
+                { id:         'product_style_id',
+                  header:     'Style',
+                  dataIndex:  'product_style_id',
+                  width:      70,
+                  renderer:   MyComboRenderer(style_combo),
+                  editor:     style_combo },
+            ],
+            viewLink: function (grid, record, action, row, col) {
+                var t = new Ext.XTemplate('/product/view/{product_id}');
+                window.location=t.apply({
+                    product_id: record.get('product_id'),
+                })
+            },
+        }
+    );
+
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
@@ -266,6 +397,9 @@ Ext.onReady(function(){
             { title: 'Contacts',
               layout: 'fit',
               items:  contactGrid, },
+            { title: 'Products',
+              layout: 'fit',
+              items:  productGrid, },
         ],
     });
 
