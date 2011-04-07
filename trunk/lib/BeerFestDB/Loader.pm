@@ -29,12 +29,18 @@ use Moose;
 use Text::CSV_XS;
 use Readonly;
 use Carp;
+use List::Util qw(first);
 
 use BeerFestDB::ORM;
 
 has 'database' => ( is       => 'ro',
                     isa      => 'DBIx::Class::Schema',
                     required => 1 );
+
+has 'protected' => ( is       => 'ro',
+                     isa      => 'ArrayRef',
+                     required => 0,
+                     default  => sub { [] } );
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -504,6 +510,15 @@ sub _confirm_required_cols {
     }
 }
 
+sub _retrieve_obj_id {
+
+    my ( $self, $obj ) = @_;
+
+    return $obj unless ref $obj;
+
+    $obj->id();  # Calls here will likely fail for multi-column PKs.
+}
+
 sub _load_column_value {
 
     my ( $self, $args, $class, $trigger ) = @_;
@@ -528,7 +543,33 @@ sub _load_column_value {
 	or croak(qq{Error: Incomplete data for "$class" object.});
 
     # Create an object in the database.
-    my $object = $resultset->update_or_create($args);
+    my $object;
+    if ( first { $class eq $_ } @{ $self->protected() } ) {
+
+        my %req = map { $_ => $self->_retrieve_obj_id( $args->{$_} ) } @{ $required };
+
+        # Protected class; do not create a new row.
+        my @objects = $resultset->search(\%req);
+        if ( scalar @objects == 1 ) {
+            $object = $objects[0];
+        }
+        elsif ( scalar @objects == 0 ) {
+            use Data::Dumper;
+            $Data::Dumper::Maxdepth = 3;
+            croak(qq{Error: Object from protected class "$class" not found in}
+                      . qq{ database; will not autocreate. Query dump follows: }
+                          . Dumper \%req);
+        }
+        else {  # This is bad - it indicates a class which is not
+                # uniquely defined by its required attributes.
+            confess(qq{Error: Multiple objects returned from protected class "$class".});
+        }
+    }
+    else {
+
+        # Regular class; update and/or create as necessary.
+        $object = $resultset->update_or_create($args);
+    }
 
     return $object;
 }

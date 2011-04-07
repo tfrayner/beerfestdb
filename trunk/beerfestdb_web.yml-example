@@ -32,3 +32,20 @@ OODoc:
     brewery_name:     'Brewery'
     brewery_location: 'Brewery Location'
 
+# Uncomment and customise as needed to protect classes from modification
+# once the core "global" information has been loaded.
+#
+# protected_classes:
+#   - Company
+#   - Product
+#   - ProductStyle
+#   - ProductCategory
+#   - Currency
+#   - CompanyRegion
+#   - ContactType
+#   - ContainerMeasure
+#   - ContainerSize
+#   - Country
+#   - ProductCharacteristicType
+#   - SaleVolume
+#   - TelephoneType
