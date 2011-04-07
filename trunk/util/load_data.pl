@@ -75,7 +75,10 @@ my ( $input, $config ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
-my $loader = BeerFestDB::Loader->new( database => $schema );
+my $loader = BeerFestDB::Loader->new(
+    database  => $schema,
+    protected => ( $config->{'protected_classes'} || [] ),
+);
 
 $loader->load( $input );
 
