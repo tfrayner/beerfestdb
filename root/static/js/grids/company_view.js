@@ -126,6 +126,7 @@ Ext.onReady(function(){
                      { name: 'description',      type: 'string' },
                      { name: 'comment',          type: 'string' },
                      { name: 'nominal_abv',      type: 'float' },
+                     { name: 'product_category_id', type: 'int' },
                      { name: 'product_style_id', type: 'int' }],
         sortInfo:   {
             field:     'name',
@@ -162,7 +163,7 @@ Ext.onReady(function(){
         url:        url_category_list,
         root:       'objects',
         fields:     [{ name: 'product_category_id', type: 'int'    },
-                     { name: 'description',      type: 'string' }],
+                     { name: 'description',         type: 'string' }],
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
@@ -172,6 +173,7 @@ Ext.onReady(function(){
     var category_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        allowBlank:     false,
         forceSelection: true,
         store:          category_store,
         valueField:     'product_category_id',
