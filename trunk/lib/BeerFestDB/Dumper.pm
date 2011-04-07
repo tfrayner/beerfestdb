@@ -40,6 +40,9 @@ has 'database'  => ( is       => 'ro',
 has '_festival' => ( is       => 'rw',
                      isa      => 'BeerFestDB::ORM::Festival' );
 
+has '_order_batch' => ( is       => 'rw',
+                        isa      => 'BeerFestDB::ORM::OrderBatch' );
+
 sub festival {
 
     my ( $self, $fest ) = @_;
@@ -109,6 +112,52 @@ sub festival_products {
     return \@products;
 }
 
+sub order_batch {
+
+    my ( $self, $batch ) = @_;
+
+    if ( $batch ) {
+        $self->_order_batch( $batch );
+        return( $batch );
+    }
+
+    if ( $batch = $self->_order_batch() ) {
+        return $batch;
+    }
+
+    $batch = $self->select_order_batch();
+
+    $self->_order_batch($batch);
+
+    return $batch;
+}
+
+sub select_order_batch {
+
+    my ( $self ) = @_;
+
+    # Just retrieve the casks for the festival in question. We need an
+    # interactive menu here.
+    my @batches = $self->festival->order_batches();
+
+    my $wanted;
+
+    SELECT:
+    {
+        warn("Please select the order batch:\n\n");
+        foreach my $n ( 1..@batches ) {
+            my $batch = $batches[$n-1];
+            warn(sprintf("  %d: %s %s\n", $n, $batch->description, $batch->order_date || q{}));
+        }
+        warn("\n");
+        chomp(my $select = <STDIN>);
+        redo SELECT unless ( looks_like_number( $select )
+                                 && ($wanted = $batches[ $select-1 ]) );
+    }
+
+    return $wanted;
+}
+
 sub festival_orders {
 
     my ( $self ) = @_;
@@ -116,9 +165,23 @@ sub festival_orders {
     my $fest = $self->festival();
 
     my @orders = $fest->search_related('order_batches')
-                      ->search_related('product_orders')->all();
+                      ->search_related('product_orders', { is_final => 1 })->all();
 
     return \@orders;
+}
+
+sub festival_distributors {
+
+    my ( $self ) = @_;
+
+    my $fest = $self->festival();
+
+    my @distributors = $fest->search_related('order_batches')
+                            ->search_related('product_orders', { is_final => 1 })
+                            ->search_related('distributor_company_id', undef, { distinct => 1})
+                            ->all();
+    
+    return \@distributors;
 }
 
 sub format_price {

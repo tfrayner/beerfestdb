@@ -64,7 +64,7 @@ sub BUILD {
 
     my $class = $params->{'dump_class'};
     if ( defined $class ) {
-        unless ( first { $class eq $_ } qw(cask gyle product) ) {
+        unless ( first { $class eq $_ } qw(cask gyle product product_order distributor) ) {
             confess(qq{Error: Unsupported dump class "$class"});
         }
     }
@@ -127,9 +127,46 @@ sub order_hash {
     my $currency = $order->currency_id();
     my $format   = $currency->currency_format();
     $orderhash{currency} = $currency->currency_symbol();
-    $orderhash{price}    = $self->format_price( $order->advertised_price(), $format );
+#    use Data::Dumper; warn Dumper [$format, $order->advertised_price()];
+#    $orderhash{price}    = $self->format_price( $order->advertised_price(), $format ); FIXME
 
     return \%orderhash;
+}
+
+sub distributor_hash {
+
+    my ( $self, $dist ) = @_;
+
+    my $fest       = $self->festival();
+    my $orderbatch = $self->order_batch();
+
+    my $ct = $self->database()->resultset('ContactType')->find({ description => 'Sales' })
+        or croak(qq{Cannot find 'Sales' ContactType in database.});
+
+    my $contact = $dist->search_related('contacts', {contact_type_id => $ct->id})->first()
+        or croak(sprintf(qq{Cannot find 'Sales' contact for '%s'.}, $dist->name()));
+    
+    my %disthash = (
+        id         => $dist->id(),
+        name       => $dist->name(),
+        full_name  => $dist->full_name(),
+        address    => $contact->street_address(),
+        postcode   => $contact->postcode(),
+        batch_id   => $orderbatch->id(),
+    );
+
+    my $order_rs
+        = $dist->search_related('product_orders',
+                                { order_batch_id => $orderbatch->id(),
+                                  is_final       => 1 });
+    
+    my @orderlist;
+    while ( my $order = $order_rs->next() ) {
+        push @orderlist, $self->order_hash( $order );
+    }
+    $disthash{'orders'} = \@orderlist;
+
+    return \%disthash;
 }
 
 sub update_gyle_hash {
@@ -221,13 +258,19 @@ sub dump {
             push @template_data, $orderhash;
         }
     }
+    elsif ( $self->dump_class eq 'distributor' ) {
+        foreach my $dist ( @{ $self->festival_distributors() } ) {
+            my $disthash = $self->distributor_hash( $dist );
+            push @template_data, $disthash;
+        }
+    }
     else {
         confess(sprintf(qq{Attempt to dump data from unsupported class "%s"}, $self->dump_class));
     }
 
     my $vars = {
         logos      => $self->logos(),
-        casks      => \@template_data,
+        objects    => \@template_data,
         stillages  => \%stillage,
     };
 
