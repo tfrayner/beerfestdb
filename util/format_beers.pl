@@ -32,13 +32,13 @@ use BeerFestDB::Dumper::Template;
 
 sub parse_args {
 
-    my ( $conffile, $templatefile, $logofile, $all_casks, $want_help );
+    my ( $conffile, $templatefile, $logofile, $objectlevel, $want_help );
 
     GetOptions(
         "c|config=s"   => \$conffile,
         "t|template=s" => \$templatefile,
         "l|logo=s"     => \$logofile,
-        "a|all"        => \$all_casks,
+        "o|objects=s"  => \$objectlevel,
         "h|help"       => \$want_help,
     );
 
@@ -51,6 +51,7 @@ sub parse_args {
     }
 
     $conffile ||= 'beerfestdb_web.yml';
+    $objectlevel ||= 'cask';
 
     unless ( $conffile && $templatefile ) {
         pod2usage(
@@ -63,14 +64,14 @@ sub parse_args {
 
     my $config = Config::YAML->new( config => $conffile );
 
-    return( $templatefile, $logofile, $config, $all_casks );
+    return( $templatefile, $logofile, $config, $objectlevel );
 }
 
 ########
 # MAIN #
 ########
 
-my ( $templatefile, $logofile, $config, $all_casks ) = parse_args();
+my ( $templatefile, $logofile, $config, $objectlevel ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
@@ -78,7 +79,7 @@ my $dumper = BeerFestDB::Dumper::Template->new(
     database => $schema,
     template => $templatefile,
     logos    => [ $logofile ],
-    dump_class => $all_casks ? 'cask' : 'gyle',
+    dump_class => $objectlevel,
 );
 
 $dumper->dump();
@@ -119,10 +120,11 @@ The Template Toolkit file to apply to the data.
 An optional logo file, the name of which will be passed into the
 template file as the first element of the "logos" array.
 
-=item -a
+=item -o
 
-Indicate that one record per cask should be formatted. The default is
-to write one record per product.
+Indicate the database class to use for dumping. See
+L<BeerFestDB::Dumper::Template> for a list of acceptable options. The
+default is 'cask'.
 
 =back
 
