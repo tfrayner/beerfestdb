@@ -15,7 +15,7 @@
         <th width="8%" valign="middle">Style</th>
         <th width="65%" valign="middle">Tasting notes</th>
       </tr>
-      [% FOREACH cask = casks %]
+      [% FOREACH cask = objects %]
       <tr>
         <td>[% cask.brewery | html %]</td>
         <td>[% cask.product | html %]</td>

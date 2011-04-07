@@ -17,7 +17,7 @@
 %\hyphenpenalty=10000
 %\exhyphenpenalty=10000
 
-[% FOREACH cask = casks %]
+[% FOREACH cask = objects %]
 
 \setlength{\TPHorizModule}{\paperwidth}
 \setlength{\TPVertModule}{\paperheight}
