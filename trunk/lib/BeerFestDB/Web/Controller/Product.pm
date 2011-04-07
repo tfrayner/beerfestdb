@@ -51,6 +51,7 @@ sub BUILD {
         comment          => 'comment',
         nominal_abv      => 'nominal_abv',
         product_style_id => 'product_style_id',
+        product_category_id => 'product_category_id',
     });
 }
 
