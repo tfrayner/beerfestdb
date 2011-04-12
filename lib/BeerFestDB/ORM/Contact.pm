@@ -102,6 +102,7 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("contact_id");
+__PACKAGE__->add_unique_constraint("company_id", ["company_id", "contact_type_id"]);
 
 =head1 RELATIONS
 
@@ -163,8 +164,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-27 21:23:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e+9Ze98rVFmwO6Je4gCXEA
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-04-12 10:01:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8zMciiQEy2IsagkDXETS1g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
