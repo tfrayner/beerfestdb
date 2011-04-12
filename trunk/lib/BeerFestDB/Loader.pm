@@ -530,6 +530,11 @@ sub _load_column_value {
         delete $args->{$key} if ( ! defined $args->{$key} || $args->{$key} eq q{} );
     }
 
+    # This would be pretty useless.
+    unless ( scalar grep { defined $_ } values %$args ) {
+        confess("Error: no query information for $class.");
+    }
+
     # Validate our arguments against the database.
     my ( $required, $optional ) = $self->_find_required_cols( $resultset );
     my @pk = $resultset->result_source()->primary_columns();
