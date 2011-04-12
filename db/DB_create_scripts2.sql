@@ -443,6 +443,7 @@ CREATE TABLE contact (
   country_id INTEGER(6) NULL,
   comment TEXT NULL,
   PRIMARY KEY(contact_id),
+  UNIQUE KEY(company_id, contact_type_id),
   INDEX IDX_CNT_cc2(country_id),
   INDEX IDX_CNT_cnttyid(contact_type_id),
   FOREIGN KEY FK_CON_coid_DMPcoid(company_id)
