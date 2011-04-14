@@ -245,7 +245,8 @@ sub _derive_status_report : Private {
 
     my $fp_rs = $festival->search_related('festival_products', $cond, $attr);
     my $po_rs = $festival->search_related('order_batches')
-                          ->search_related('product_orders', $cond, $attr);
+                          ->search_related('product_orders',
+                                           { %$cond, is_final => 1 }, $attr);
 
 
     my %festprod;
