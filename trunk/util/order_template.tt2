@@ -122,7 +122,7 @@ Contact phone (voice mail): 01223 967808\\
 \end{textblock}
 
 
-\begin{textblock}{35}(3,10)
+\begin{textblock}{35}(3,9)
 Map to festival site:
 
 \vspace{5mm}
@@ -135,8 +135,10 @@ Not to scale.
 
 \end{textblock}
 
-\begin{textblock}{35}(2,42)
+\begin{textblock}{35}(2,41)
 \begin{itemize}
+\item Satnav coordinates: Latitude 52.211842, Longitude 0.1245 or Latitude 52\begin{math}^\circ\end{math} 12\begin{math}'\end{math} 42.624\begin{math}''\end{math} Longitude 0\begin{math}^\circ\end{math} 7\begin{math}'\end{math} 28.1994\begin{math}''\end{math}
+
 \item Please arrange to arrive at site coming from the direction of the arrow on the map. This will allow waiting without blocking the road until the vehicle can enter onto Jesus Green. If you do approach from the other way you can turn round by following the road around the Mitcham's Corner one way system to arrive back to enter from the correct direction.
 
 \item On approaching the festival site, please phone \textbf{07703459484} (Al) to gain admittance, or park and walk to the site. It would be much appreciated if you can phone well ahead to arrange a time window when you will arrive.
