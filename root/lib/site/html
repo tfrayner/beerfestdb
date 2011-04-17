@@ -2,7 +2,8 @@
 <html>
  <head>
   <title>[% template.title or site.title %]</title>
-[%
+[% IF ! generate_bare_html -%]
+[%-
   css_link( href = "/static/ext/resources/css/ext-all.css" );
   css_link( href = "/static/tp_skin/resources/css/xtheme-tp.css" );
   css_link( href = "/static/css/Ext.ux.grid.RowActions.css" );
@@ -13,13 +14,14 @@
   js_link( src = "/static/ext/ext-all.js" );
   js_link( src = "/static/js/Ext.ux.grid.RowActions.js" );
   js_link( src = "/static/js/classes.js" );
-%]
+-%]
   <style type="text/css">
-[% PROCESS ttsite.css %]
+[%- PROCESS ttsite.css -%]
   </style>
+[%- END %]
  </head>
  <body>
-
+[%- IF ! generate_bare_html -%]
    <!-- These variables may be overridden in the content section. -->
  <script type="text/javascript">
 
@@ -66,8 +68,7 @@
    var url_product_index        = '[% c.uri_for( "/product" ) %]';
 
 </script>
- 
-[% content %]
- 
+[%- END %]
+[% content %] 
  </body>
 </html>
