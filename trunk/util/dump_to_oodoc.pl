@@ -84,11 +84,11 @@ __END__
 
 =head1 NAME
 
-oodoc_dump.pl
+dump_to_oodoc.pl
 
 =head1 SYNOPSIS
 
- oodoc_dump.pl -c <config file> -f <output file> -t <template file>
+ dump_to_oodoc.pl -c <config file> -f <output file> -t <template file>
 
 =head1 DESCRIPTION
 

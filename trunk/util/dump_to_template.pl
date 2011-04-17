@@ -88,15 +88,15 @@ __END__
 
 =head1 NAME
 
-format_beers.pl
+dump_to_template.pl
 
 =head1 SYNOPSIS
 
- format_beers.pl -c <config file> -t <template file> -l <logo file>
+ dump_to_template.pl -c <config file> -t <template file> -l <logo file>
 
 =head1 DESCRIPTION
 
-This is a general-purpose script used to dump information on beers
+This is a general-purpose script used to dump information 
 held in the BeerFestDB database into a variety of file formats. It
 works by taking a Template Toolkit-style template file, and applying
 it to the information held in the database. See
