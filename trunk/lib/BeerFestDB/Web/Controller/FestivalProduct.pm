@@ -220,6 +220,9 @@ sub html_status_list : Local {
 
     $c->stash->{objects} = $objects;
 
+    # Don't include CSS and JS code.
+    $c->stash->{generate_bare_html} = 1;
+
     return;
 }
 
