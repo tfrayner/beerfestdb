@@ -1,0 +1,96 @@
+%
+% $Id: cask_end_template.tt2 84 2010-05-18 18:13:26Z tfrayner $
+%
+% Example LaTeX template for use with cask_end_signs_latex.pl
+
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, portrait]{geometry}
+
+\usepackage[absolute]{textpos}
+\usepackage{babel}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{fix-cm}
+\begin{document}
+
+%\hyphenpenalty=10000
+%\exhyphenpenalty=10000
+
+[% BLOCK stillage_name %]
+  \textbf{[% sname | replace('&', '\\&') %]}
+[% END %]
+
+[% BLOCK table_header %]
+  \begin{tabular}{ l l l r r }
+  Brewer & Beer & ABV & Price per pint & Price per half pint \\
+[% END %]
+
+[% BLOCK table_end %]
+  \end{tabular}
+[% END %]
+
+[% FOREACH stillage IN stillages.pairs %]
+
+  \setlength{\TPHorizModule}{\paperwidth}
+  \setlength{\TPVertModule}{\paperheight}
+  \textblockorigin{0mm}{10mm} % start everything near the top-left corner
+  \setlength{\parindent}{0pt}
+
+  \pagestyle{empty}
+
+  \fontsize{24}{44}
+  \selectfont
+  \textbf{Bar Price List}
+
+  \fontsize{18}{30}
+  \selectfont
+
+  [% PROCESS stillage_name sname=stillage.key %]
+
+  \vspace{ 5 mm }
+
+  \fontsize{10}{12}
+  \selectfont
+
+  [% PROCESS table_header %]
+
+  [% SET products = stillage.value.sort('brewery', 'product', 'number') %]
+
+  [% SET counter = 0 %]
+
+  [% FOREACH product = products %]
+
+    [% product.brewery | replace( '&', '\\&' ) %] &
+    [% product.product | truncate(40) | replace( '&', '\\&' ) %] &
+    [% product.abv %] &
+    [%- product.currency | replace( '£', '\pounds' ) -%]
+    [%- product.price    | format('%.2f') -%]&
+
+    [%- product.currency | replace( '£', '\pounds' ) -%]
+    [%- product.half_price | format('%.2f') -%] \\
+
+    [% counter = counter + 1 %]
+
+    [% IF counter > 65 %]
+      [% counter = 0 %]
+      [% PROCESS table_end %]
+
+      \null\newpage
+
+      [% PROCESS stillage_name stillage=stillage.key %] (continued)
+
+      \vspace{ 5 mm }
+
+      [% PROCESS table_header %]
+    [% END %]
+
+  [% END %]
+
+  [% PROCESS table_end %]
+
+  \null\newpage
+
+[% END %]
+
+\end{document}

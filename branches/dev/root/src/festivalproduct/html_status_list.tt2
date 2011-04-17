@@ -1,0 +1,28 @@
+[% META title = 'Festival Product Status' %]
+
+[% IF objects && objects.size > 0 %]
+  <div>
+    <table>
+    <thead>
+      <tr>
+        <td>Brewer</td>
+        <td>Beer</td>
+        <td>ABV</td>
+        <td>Status</td>
+      </tr>
+    </thead>
+    <tbody>
+    [% FOREACH fp = objects.sort('company','product') %] 
+      <tr> 
+        <td> [% fp.company        | html %] </td>
+        <td> [% fp.product        | html %] </td>
+        <td> [% fp.abv            | html %] </td>
+        <td> [% fp.status         | html %] </td>
+      </tr>
+    [% END %]
+    </tbody>
+    </table>
+  </div>
+[% ELSE %] 
+  <p>Error: No festival products found for festival.</p> 
+[% END %] 
