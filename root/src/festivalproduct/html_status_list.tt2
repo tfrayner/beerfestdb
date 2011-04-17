@@ -1,7 +1,13 @@
-[% META title = 'Festival Product Status' %]
-
-[% IF objects && objects.size > 0 %]
-  <div>
+[%- META title = 'Festival Product Status' -%]
+<?php
+require_once ('header.php');
+require_once ('form.inc.php');
+require_once ('core.inc.php');
+output_set_type ('html');
+Output::set_title ('Cambridge Beer Festival Beer List');
+Output::set_description ('Cambridge Beer Festival Beer List');
+include("summer/lists/beer/header.html");?>
+[% IF objects && objects.size > 0 -%]
     <table>
     <thead>
       <tr>
@@ -19,10 +25,10 @@
         <td> [% fp.abv            | html %] </td>
         <td> [% fp.status         | html %] </td>
       </tr>
-    [% END %]
+    [%- END %]
     </tbody>
     </table>
-  </div>
-[% ELSE %] 
+[%- ELSE -%] 
   <p>Error: No festival products found for festival.</p> 
-[% END %] 
+[%- END %] 
+<?php include("summer/lists/beer/footer.html");?>
