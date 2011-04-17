@@ -1,0 +1,18 @@
+[% META title = 'Product categories' %]
+
+<div class='subtitle'><h3>Product categories:</h3></div>
+
+[% IF categories && categories.size > 0 %]
+  <div class='list'>
+    <ul>
+      [% FOREACH cat = categories.sort('description') %] 
+      <li><a href="[% c.uri_for("/product/grid/$cat.id") | html %]">
+                   [% cat.description | html %]</a></li>
+      [% END %]
+    </ul>
+  </div>
+[% ELSE %] 
+  <p>No product categories found.</p> 
+[% END %] 
+
+<p><a href="[% c.uri_for("/") | html %]">Return to start page...</a></p> 

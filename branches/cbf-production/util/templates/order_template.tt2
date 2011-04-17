@@ -1,0 +1,157 @@
+\documentclass[english,a4paper]{article}
+
+\usepackage[absolute]{textpos}
+\usepackage[british]{babel}
+\usepackage{palatino}
+\usepackage{graphicx}
+
+\setlength{\TPHorizModule}{5mm}
+\setlength{\TPVertModule}{\TPHorizModule}
+\textblockorigin{10mm}{10mm} % start everything near the top-left corner
+\setlength{\parindent}{0pt}
+
+\pagestyle{empty}
+\renewcommand\familydefault{\sfdefault} % makes it use sans serif
+
+% found at http://www.devdaily.com/blog/post/linux-unix/latex-control-line-spacing-in-lists
+%
+% this makes list spacing much better.
+%
+\newenvironment{my_itemize}{
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}}{\end{itemize}
+}
+
+\begin{document}
+
+[% FOREACH dist = objects %]
+
+\begin{textblock}{5}(2,1)
+\includegraphics[width=2.5cm]{images/camra_logo.png}
+\end{textblock}
+
+\begin{textblock}{5}(33,1)
+\includegraphics[width=2.5cm]{images/frank.png}
+\end{textblock}
+
+
+\begin{textblock}{30}(5,2)
+\center{\Huge{38\textsuperscript{th} Cambridge Beer Festival}}
+\center{\Large{23--28 May 2011}}
+\end{textblock}
+
+\begin{textblock}{22}(2,9)
+\Large{\textbf{ORDER} (Our reference: CBF-38-[% dist.id %]-[% dist.batch_id %])} % insert generated unique ref here
+\end{textblock}
+
+\begin{textblock}{10}(26,9)
+Date issued: \today
+\end{textblock}
+
+\begin{textblock}{20}(2,11)
+\textbf{Vendor:} [% IF dist.full_name %][% dist.full_name | replace( '&', '\\&' ) %][% ELSE %][% dist.name | replace( '&', '\\&' ) %][% END %] \\
+\end{textblock}
+
+\begin{textblock}{10}(2,13)
+\textbf{Invoice to:}\\
+Cambridge Beer Festival\\
+c/o Festival Treasurer\\
+74 Corrie Road\\
+Cambridge\\
+CB1 3RB
+\end{textblock}
+
+\begin{textblock}{15}(20,13)
+\textbf{Deliver to:}\\
+Jesus Green (off Victoria Avenue---gate near bridge)\\
+Cambridge\\
+CB5 8AL\\
+Contact phone (voice mail): 01223 967808\\
+\vspace{3mm} 
+\small{\emph{Please see page 2 for map to the festival site.}}\\
+\end{textblock}
+
+\begin{textblock}{35}(2,19)
+\textbf{Please supply for delivery on Wednesday 18 May 2011:}
+
+\emph{Delivery will not be accepted on any other date unless prior arrangements have been made.}
+\end{textblock}
+\begin{textblock}{34}(3,21)
+% stuff goes here
+[% FOR order = dist.orders %]
+  [% IF dist.name != order.brewery %] [% order.brewery | replace( '&', '\\&' ) %]: [% END %] [% order.product | replace( '&', '\\&' ) %] [% order.cask_count %] x [% order.cask_size | format('%i') %]s
+[% END %]
+
+\vspace{5mm}
+
+\textbf{Any additional beer for the volunteer staff, or items for the festival raffle, would be greatly appreciated. Thank you.}
+\end{textblock}
+
+\begin{textblock}{35}(2,43)
+\textbf{Terms and additional information:}
+
+\begin{my_itemize}
+\item \small{Please notify the festival at the above number no later than \textbf{Friday 6 May 2011} of any changes (beer availability, cask size, delivery, etc.) to this order. We cannot guarantee that we will be able to accommodate changes that are brought to our attention after this date, and may refuse delivery.}
+
+\item \small{Please supply prior to or at time of unloading an inventory for items delivered with their replacement cost value, for inclusion on Festival Insurance. Any items not listed on an inventory will be classed as \textbf{LEFT AT OWNER'S OWN RISK} when signed for.}
+
+\item \small{Empty casks must be collected no later than \textbf{Wednesday 1 June 2011} unless special arrangements are made in advance (on or before 6 May).  After this date they will be removed to a secure location off-site and a storage fee will be charged.}   % usually weds; ff agreed thurs in advance for 2011
+
+\item \small{No invoices for payment will be accepted without a quote reference.}
+
+\item \small{\textbf{By accepting this purchase order, you are agreeing to the above conditions.}}
+\end{my_itemize}
+\end{textblock}
+
+\null\newpage
+
+\begin{textblock}{5}(2,1)
+\includegraphics[width=2.5cm]{images/camra_logo.png}
+\end{textblock}
+
+\begin{textblock}{5}(33,1)
+\includegraphics[width=2.5cm]{images/frank.png}
+\end{textblock}
+
+
+\begin{textblock}{30}(5,2)
+\center{\Huge{38\textsuperscript{th} Cambridge Beer Festival}}
+\center{\Large{23--28 May 2011}}
+\end{textblock}
+
+
+\begin{textblock}{35}(3,9)
+Map to festival site:
+
+\vspace{5mm}
+
+\includegraphics[width=17.5cm]{images/jesus_green_map.png}
+
+\vspace{5mm}
+
+Not to scale.
+
+\end{textblock}
+
+\begin{textblock}{35}(2,41)
+\begin{itemize}
+\item Satnav coordinates: Latitude 52.211842, Longitude 0.1245 or Latitude 52\begin{math}^\circ\end{math} 12\begin{math}'\end{math} 42.624\begin{math}''\end{math} Longitude 0\begin{math}^\circ\end{math} 7\begin{math}'\end{math} 28.1994\begin{math}''\end{math}
+
+\item Please arrange to arrive at site coming from the direction of the arrow on the map. This will allow waiting without blocking the road until the vehicle can enter onto Jesus Green. If you do approach from the other way you can turn round by following the road around the Mitcham's Corner one way system to arrive back to enter from the correct direction.
+
+\item On approaching the festival site, please phone \textbf{07703459484} (Al) to gain admittance, or park and walk to the site. It would be much appreciated if you can phone well ahead to arrange a time window when you will arrive.
+
+\item \textbf{Articulated lorries and vehicles over 7.5t will be handled at the Midsummer Common hard standing area as shown on the map. Please inform us by phoning ahead prior to approaching site if you fall into this category.}
+
+\item Please follow Festival Staff directions at all times.
+\end{itemize}
+
+\end{textblock}
+\null\newpage
+
+[% END %]
+
+\end{document}
+

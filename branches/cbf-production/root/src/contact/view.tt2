@@ -1,0 +1,12 @@
+[% META title = 'Contact Details' %]
+
+<script type="text/javascript">
+   var url_company_view       = '[% c.uri_for( "/company/view/$object.company_id.id" ) %]';
+   var url_contact_load_form  = '[% c.uri_for( "/contact/load_form" ) %]';
+   var url_telephone_list     = '[% c.uri_for( "/telephone/list_by_contact/$object.id" ) %]';
+   var contact_id  = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/contact_view.js' ) %]
+
+<div id="datagrid"></div>

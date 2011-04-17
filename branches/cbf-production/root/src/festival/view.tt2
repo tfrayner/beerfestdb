@@ -1,0 +1,17 @@
+[% META title = 'Festival Details' %]
+
+<script type="text/javascript">
+   var url_festival_grid    = '[% c.uri_for( "/festival/grid" ) %]';
+   var url_festival_load_form = '[% c.uri_for( "/festival/load_form" ) %]';
+
+   var url_stillage_list    = '[% c.uri_for( "/stillagelocation/list/$object.id" ) %]';
+
+   var url_order_batch_list    = '[% c.uri_for( "/orderbatch/list/$object.id" ) %]';
+
+   var festival_id          = '[% object.id %]';
+   var festivalname         = '[% object.year | xml %]  [% object.name | xml %]';
+</script>
+
+[% js_link( src = '/static/js/grids/festival_view.js' ) %]
+
+<div id="datagrid"></div>
