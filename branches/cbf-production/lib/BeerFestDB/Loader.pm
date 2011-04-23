@@ -569,6 +569,13 @@ sub _load_column_value {
                 # uniquely defined by its required attributes.
             confess(qq{Error: Multiple objects returned from protected class "$class".});
         }
+
+        # Update optional columns, e.g. description on Product.
+        my %opt = map { $_ => $self->_retrieve_obj_id( $args->{$_} ) } @{ $optional };
+        while ( my ( $col, $value ) = each %opt ) {
+            $object->set_column( $col, $value ) if defined $value;
+        }
+        $object->update();
     }
     else {
 
