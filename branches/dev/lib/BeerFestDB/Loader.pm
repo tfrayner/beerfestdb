@@ -526,8 +526,9 @@ sub _load_column_value {
     my $resultset = $self->database()->resultset($class)
 	or confess(qq{Error: No result set returned from DB for class "$class".});
 
+    # Fields containing only whitespace are discarded.
     foreach my $key ( keys %$args ) {
-        delete $args->{$key} if ( ! defined $args->{$key} || $args->{$key} eq q{} );
+        delete $args->{$key} if ( ! defined $args->{$key} || $args->{$key} =~ /\A \s* \z/xms );
     }
 
     # This would be pretty useless.
