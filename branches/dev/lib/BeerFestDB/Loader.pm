@@ -550,9 +550,9 @@ sub _load_column_value {
 
     # Create an object in the database.
     my $object;
-    if ( first { $class eq $_ } @{ $self->protected() } ) {
+    my %req = map { $_ => $self->_retrieve_obj_id( $args->{$_} ) } @{ $required };
 
-        my %req = map { $_ => $self->_retrieve_obj_id( $args->{$_} ) } @{ $required };
+    if ( first { $class eq $_ } @{ $self->protected() } ) {
 
         # Protected class; do not create a new row.
         my @objects = $resultset->search(\%req);
@@ -570,19 +570,34 @@ sub _load_column_value {
                 # uniquely defined by its required attributes.
             confess(qq{Error: Multiple objects returned from protected class "$class".});
         }
-
-        # Update optional columns, e.g. description on Product.
-        my %opt = map { $_ => $self->_retrieve_obj_id( $args->{$_} ) } @{ $optional };
-        while ( my ( $col, $value ) = each %opt ) {
-            $object->set_column( $col, $value ) if defined $value;
-        }
-        $object->update();
     }
     else {
 
-        # Regular class; update and/or create as necessary.
-        $object = $resultset->update_or_create($args);
+        # Regular class; find and/or create as necessary.
+        $object = $resultset->find_or_create(\%req);
     }
+
+    # Update optional columns, e.g. description on Product.
+    my %opt = map { $_ => $self->_retrieve_obj_id( $args->{$_} ) } @{ $optional };
+
+    COLUMN:
+    while ( my ( $col, $value ) = each %opt ) {
+
+        next COLUMN unless defined $value;
+
+        # Special-case for comment fields - append new text rather than replacing the old.
+        if ( $col eq 'comment' ) {
+            my $dbval = $object->get_column( $col );
+            if ( defined $dbval && $dbval !~ /\A \s* \z/xms ) {
+                next COLUMN if ( $dbval =~ /\Q$value\E/ );  # Comment already contains the text.
+                $dbval =~ s/(?:\.)? \z/./xms;
+                $value = "$dbval $value";
+            }
+        }
+        
+        $object->set_column( $col, $value ) if defined $value;
+    }
+    $object->update();
 
     return $object;
 }
