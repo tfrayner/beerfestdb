@@ -31,23 +31,11 @@ __PACKAGE__->table("cask_measurement");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 date
+=head2 measurement_batch_id
 
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 start_date
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 end_date
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
 
 =head2 volume
 
@@ -73,24 +61,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "cask_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "date",
-  {
-    data_type => "datetime",
-    "datetime_undef_if_invalid" => 1,
-    is_nullable => 1,
-  },
-  "start_date",
-  {
-    data_type => "datetime",
-    "datetime_undef_if_invalid" => 1,
-    is_nullable => 1,
-  },
-  "end_date",
-  {
-    data_type => "datetime",
-    "datetime_undef_if_invalid" => 1,
-    is_nullable => 1,
-  },
+  "measurement_batch_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "volume",
   { data_type => "decimal", is_nullable => 0, size => [5, 2] },
   "container_measure_id",
@@ -112,6 +84,20 @@ Related object: L<BeerFestDB::ORM::Cask>
 
 __PACKAGE__->belongs_to("cask_id", "BeerFestDB::ORM::Cask", { cask_id => "cask_id" });
 
+=head2 measurement_batch_id
+
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::MeasurementBatch>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "measurement_batch_id",
+  "BeerFestDB::ORM::MeasurementBatch",
+  { measurement_batch_id => "measurement_batch_id" },
+);
+
 =head2 container_measure_id
 
 Type: belongs_to
@@ -127,8 +113,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ongqDa7H6OHKzwMfomrFYg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-04-29 20:57:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DWkyPY0htqreQ2NasOh58g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
