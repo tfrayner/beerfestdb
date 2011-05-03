@@ -49,3 +49,12 @@ OODoc:
 #   - ProductCharacteristicType
 #   - SaleVolume
 #   - TelephoneType
+
+status_query:
+  festival_name:
+  product_category:
+  beerfestdb_uri:
+  public_site_upload_uri:
+  public_site_clientid:
+  public_site_key:
+
