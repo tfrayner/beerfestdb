@@ -254,21 +254,31 @@ sub _derive_status_report : Private {
 
     my %festprod;
     while ( my $po = $po_rs->next() ) {
+        my $product = $po->product_id();
+        my $company = $product->company_id();
         $festprod{ $po->get_column('product_id') } = {
-            company =>  $po->product_id()->company_id()->name(),
-            product =>  $po->product_id()->name(),
-            abv     =>  $po->product_id()->nominal_abv(),
-            status  =>  'Ordered',
+            company      => $company->name(),
+            location     => $company->loc_desc(),
+            year_founded => $company->year_founded(),
+            product      => $product->name(),
+            abv          => $product->nominal_abv(),
+            description  => $product->description(),
+            status       =>  'Ordered',
         };
     }
 
     while ( my $fp = $fp_rs->next() ) {
         my $product_id = $fp->get_column('product_id');
+        my $product = $fp->product_id();
+        my $company = $product->company_id();
         $festprod{ $product_id } = {
-            company =>  $fp->product_id()->company_id()->name(),
-            product =>  $fp->product_id()->name(),
-            abv     =>  $fp->product_id()->nominal_abv(),
-            status  =>  'Arrived',
+            company      => $company->name(),
+            location     => $company->loc_desc(),
+            year_founded => $company->year_founded(),
+            product      => $product->name(),
+            abv          => $product->nominal_abv(),
+            description  => $product->description(),
+            status       =>  'Arrived',
         };
 
         my $cask_rs = $festival->search_related(
