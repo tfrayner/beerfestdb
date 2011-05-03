@@ -294,7 +294,7 @@ sub _derive_status_report : Private {
                 is_vented    => 'Vented',
                 is_tapped    => 'Tapped',
                 is_ready     => 'Ready',
-                is_condemned => 'Under Review',  # Is this too polite?
+                is_condemned => 'Arrived',  # Totally non-committal, this is for public consumption.
             );
             my %caskstat;
             while ( my $cask = $cask_rs->next() ) {
