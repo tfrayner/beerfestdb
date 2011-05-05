@@ -131,6 +131,7 @@ sub send_update {
 
     my ( $content, $uri, $clientid, $key ) = @_;
 
+    $content     =~ s/[\r\n]//g;  # workaround for server bug
     my $counter  = time;
     my $mac      = hmac_sha256_hex($clientid . $counter . $content, $key);
 
@@ -140,14 +141,13 @@ sub send_update {
         [ 'clientid' => $clientid,
           'counter'  => $counter,
           'mac'      => $mac,
-          'content'  => $content ],
+          'content'  => $content, ],
     );
     
     if ( ! $res->is_success() ) {
         die("Error: Unable to connect to Public web site: " . $res->status_line() );
     }
 
-#    print $response->content;
     return();
 }
 
@@ -229,9 +229,6 @@ my $output;
 $tt2->process(\$template, { brewers => [ values %brewery_info ] }, \$output )
     or die( "Template processing error: " . $tt2->error() );
 
-# FIXME this needs removing.
-print $output; die;
-
 # Do the upload itself.
 send_update($output,
             map { $config->{$_} }
@@ -274,7 +271,7 @@ Probably.
 __DATA__
 <div class="beerlist">
 [%- FOREACH brewer = brewers.sort('name') %]
-  <span class="brewery">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
+  <span class="brewery">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded && brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
   <div class="beers">[% FOREACH beer = brewer.beers.sort('product') %]
     <span class="beer">
       <span class="beername">[% beer.product | xml %]</span>
