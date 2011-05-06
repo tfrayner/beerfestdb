@@ -275,7 +275,7 @@ __DATA__
   <div class="beers">[% FOREACH beer = brewer.beers.sort('product') %]
     <span class="beer">
       <span class="beername">[% beer.product | xml %]</span>
-      <span class="abv">[% beer.abv | xml %]</span>
+      <span class="abv">[% IF beer.abv.defined %][% beer.abv | xml %]%[% END %]</span>
       <span class="tasting">[% beer.description | xml %]</span>
       <span class="status">[% beer.status | xml %]</span>
     </span>
