@@ -746,6 +746,7 @@ CREATE TABLE measurement_batch (
   measurement_batch_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   festival_id INTEGER(6) NOT NULL,
   measurement_time DATETIME NOT NULL,
+  description VARCHAR(255) default NULL,  -- people like free-text mnemonics
   PRIMARY KEY(measurement_batch_id),
   UNIQUE KEY `festival_measurement_batch` (festival_id, measurement_time),
   INDEX FK_ORDER_fid(festival_id),
@@ -855,6 +856,30 @@ CREATE TABLE product_order (
       ON UPDATE NO ACTION
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
+
+-- A set of views that are often useful.
+CREATE VIEW programme_notes_view AS (
+     SELECT f.name AS festival,
+       pc.description AS category,
+       c.name AS brewer,
+       c.loc_desc AS location,
+       c.year_founded AS year_established,
+       p.name AS beer,
+       p.nominal_abv AS abv,
+       p.description AS tasting_notes,
+       ps.description AS style
+     FROM company c,
+       product p LEFT JOIN product_style ps ON ps.product_style_id=p.product_style_id,
+       product_category pc,
+       product_order po,
+       order_batch ob,
+       festival f
+     WHERE f.festival_id=ob.festival_id
+       AND ob.order_batch_id=po.order_batch_id
+       AND po.product_id=p.product_id
+       AND p.company_id=c.company_id
+       AND pc.product_category_id=p.product_category_id
+     ORDER BY festival, category, brewer, beer);
 
 -- Create some basic triggers to make sure that product_style and
 -- product_characteristic usage is properly constrained to their

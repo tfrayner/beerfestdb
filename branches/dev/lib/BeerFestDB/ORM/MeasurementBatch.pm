@@ -37,6 +37,12 @@ __PACKAGE__->table("measurement_batch");
   datetime_undef_if_invalid: 1
   is_nullable: 0
 
+=head2 description
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 255
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -50,6 +56,8 @@ __PACKAGE__->add_columns(
     "datetime_undef_if_invalid" => 1,
     is_nullable => 0,
   },
+  "description",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
 );
 __PACKAGE__->set_primary_key("measurement_batch_id");
 __PACKAGE__->add_unique_constraint(
@@ -89,8 +97,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-04-29 21:03:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e2kJuyjky6GHvFaXK0hGKQ
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-05-08 17:17:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lzOzfOJOvsOTjnHvPUFThg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

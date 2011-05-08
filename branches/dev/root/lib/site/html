@@ -13,6 +13,7 @@
   js_link( src = "/static/ext/adapter/ext/ext-base.js" );
   js_link( src = "/static/ext/ext-all.js" );
   js_link( src = "/static/js/Ext.ux.grid.RowActions.js" );
+  js_link( src = "/static/js/Ext.ux.form.DateTime.js" );
   js_link( src = "/static/js/classes.js" );
 -%]
   <style type="text/css">
@@ -54,6 +55,8 @@
    var url_gyle_submit          = '[% c.uri_for( "/gyle/submit" ) %]';
    var url_order_batch_submit   = '[% c.uri_for( "/orderbatch/submit" ) %]';
    var url_order_batch_delete   = '[% c.uri_for( "/orderbatch/delete" ) %]';
+   var url_measurement_batch_submit = '[% c.uri_for( "/measurementbatch/submit" ) %]';
+   var url_measurement_batch_delete = '[% c.uri_for( "/measurementbatch/delete" ) %]';
    var url_product_submit       = '[% c.uri_for( "/product/submit" ) %]';
    var url_product_delete       = '[% c.uri_for( "/product/delete" ) %]';
    var url_productorder_delete  = '[% c.uri_for( "/productorder/delete" ) %]';

@@ -55,7 +55,7 @@ sub generate_json_and_detach : Private {
 
     my @objects;
     while ( my $obj = $rs->next ) {
-        my %obj_info = map { $_ => $self->_viewhash_from_model($_, $obj) } keys %mv_map;
+        my %obj_info = map { $_ => $self->viewhash_from_model($_, $obj) } keys %mv_map;
         push @objects, \%obj_info;
     }
 
@@ -79,7 +79,7 @@ sub form_json_and_detach : Private {
         if ( $obj ) {
             my %mv_map = %{ $self->model_view_map() };
 
-            my %obj_hash = map { $_ => $self->_viewhash_from_model($_, $obj) } keys %mv_map;
+            my %obj_hash = map { $_ => $self->viewhash_from_model($_, $obj) } keys %mv_map;
 
             $c->stash->{ 'data' } = \%obj_hash;
             $c->stash->{ 'success' } = JSON::Any->true();
@@ -99,7 +99,7 @@ sub form_json_and_detach : Private {
     return;
 }
 
-sub _viewhash_from_model : Private {
+sub viewhash_from_model : Private {
 
     # Method using a JSON view object attribute name (from
     # model_view_map), to retrieve the appropriate model attribute
@@ -115,9 +115,9 @@ sub _viewhash_from_model : Private {
         my @children;
         foreach my $relation ( keys %$lookup ) {
             push @children,
-                $self->_viewhash_from_model( $lookup->{$relation},
-                                             $dbrow->$relation,
-                                             $lookup->{$relation} );
+                $self->viewhash_from_model( $lookup->{$relation},
+                                            $dbrow->$relation,
+                                            $lookup->{$relation} );
         }
 
         if ( scalar @children > 1 ) {
