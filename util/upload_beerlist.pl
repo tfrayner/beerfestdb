@@ -271,10 +271,10 @@ Probably.
 __DATA__
 <div class="beerlist">
 [%- FOREACH brewer = brewers.sort('name') %]
-  <span class="brewery">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded && brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
-  <div class="beers">[% FOREACH beer = brewer.beers.sort('product') %]
-    <span class="beer">
-      <span class="beername">[% beer.product | xml %]</span>
+  <span class="producer">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded && brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
+  <div class="products">[% FOREACH beer = brewer.beers.sort('product') %]
+    <span class="product">
+      <span class="productname">[% beer.product | xml %]</span>
       <span class="abv">[% IF beer.abv.defined %][% beer.abv | xml %]%[% END %]</span>
       <span class="tasting">[% beer.description | xml %]</span>
       <span class="status">[% beer.status | xml %]</span>
