@@ -202,9 +202,20 @@ sub list_status : Local {
 
     my ( $self, $c, @args ) = @_;
 
-    my $objects = $self->_derive_status_report( $c, @args );
+    my $objects;
+    eval {
+        $objects = $self->_derive_status_report( $c, @args );
+    };
 
-    $c->stash->{objects} = $objects;
+    if ( my $rc = $@ ) {
+        $rc =~ s/\n \z//xms;
+        $c->stash->{success} = JSON::Any->false();
+        $c->stash->{errorMessage} = $rc;
+    }
+    else {
+        $c->stash->{success} = JSON::Any->true();
+        $c->stash->{objects} = $objects;
+    }
 
     $c->detach( $c->view( 'JSON' ) );
 }
@@ -217,7 +228,16 @@ sub html_status_list : Local {
 
     my ( $self, $c, @args ) = @_;
 
-    my $objects = $self->_derive_status_report( $c, @args );
+    my $objects;
+
+    eval {
+        $objects = $self->_derive_status_report( $c, @args );
+    };
+    if ( $@ ) {
+        $c->flash->{error} = qq{JSON query error: $@};
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
 
     $c->stash->{objects} = $objects;
 
@@ -259,7 +279,7 @@ sub _derive_status_report : Private {
                            $timeparts[4] + 1,
                            $timeparts[3] );
     my $opendate = $festival->fst_start_date()
-        or croak("Error: Attempt to create status report for festival without start date.");
+        or die("Error: Attempt to create status report for festival without start date.\n");
     $opendate =~ s/-//g;
     my $festival_open = ( $datenow - $opendate >= 0 ) ? 1 : 0;
 
