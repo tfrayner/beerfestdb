@@ -249,7 +249,7 @@ CREATE TABLE company (
   full_name VARCHAR(255) NULL,
   loc_desc VARCHAR(100) NULL,
   company_region_id INTEGER(6),
-  year_founded YEAR(4) NULL,
+  year_founded INT(4) NULL,  -- otherwise older brewers are out of luck.
   url VARCHAR(255) NULL,
   comment TEXT NULL,
   PRIMARY KEY(company_id),

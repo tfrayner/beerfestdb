@@ -256,10 +256,11 @@ sub _derive_status_report : Private {
     while ( my $po = $po_rs->next() ) {
         my $product = $po->product_id();
         my $company = $product->company_id();
+        my $year    = $company->year_founded();
         $festprod{ $po->get_column('product_id') } = {
             company      => $company->name(),
             location     => $company->loc_desc(),
-            year_founded => $company->year_founded(),
+            year_founded => $year ? $year : undef,
             product      => $product->name(),
             abv          => $product->nominal_abv(),
             description  => $product->description(),
@@ -271,10 +272,11 @@ sub _derive_status_report : Private {
         my $product_id = $fp->get_column('product_id');
         my $product = $fp->product_id();
         my $company = $product->company_id();
+        my $year    = $company->year_founded();
         $festprod{ $product_id } = {
             company      => $company->name(),
             location     => $company->loc_desc(),
-            year_founded => $company->year_founded(),
+            year_founded => $year ? $year : undef,
             product      => $product->name(),
             abv          => $product->nominal_abv(),
             description  => $product->description(),
