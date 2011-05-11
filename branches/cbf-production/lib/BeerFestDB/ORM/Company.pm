@@ -51,7 +51,7 @@ __PACKAGE__->table("company");
 
 =head2 year_founded
 
-  data_type: 'year'
+  data_type: 'integer'
   is_nullable: 1
 
 =head2 url
@@ -79,7 +79,7 @@ __PACKAGE__->add_columns(
   "company_region_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "year_founded",
-  { data_type => "year", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 1 },
   "url",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "comment",
@@ -180,8 +180,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-27 11:17:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bb4vIUwHMFAqcYMLB+0tWw
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-05-04 19:02:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lFetQ2vT8RW0UBh7AXYBuQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
