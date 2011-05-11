@@ -24,6 +24,7 @@ use Moose;
 use namespace::autoclean;
 
 use List::Util qw( min );
+use Carp;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -201,9 +202,20 @@ sub list_status : Local {
 
     my ( $self, $c, @args ) = @_;
 
-    my $objects = $self->_derive_status_report( $c, @args );
+    my $objects;
+    eval {
+        $objects = $self->_derive_status_report( $c, @args );
+    };
 
-    $c->stash->{objects} = $objects;
+    if ( my $rc = $@ ) {
+        $rc =~ s/\n \z//xms;
+        $c->stash->{success} = JSON::Any->false();
+        $c->stash->{errorMessage} = $rc;
+    }
+    else {
+        $c->stash->{success} = JSON::Any->true();
+        $c->stash->{objects} = $objects;
+    }
 
     $c->detach( $c->view( 'JSON' ) );
 }
@@ -216,7 +228,16 @@ sub html_status_list : Local {
 
     my ( $self, $c, @args ) = @_;
 
-    my $objects = $self->_derive_status_report( $c, @args );
+    my $objects;
+
+    eval {
+        $objects = $self->_derive_status_report( $c, @args );
+    };
+    if ( $@ ) {
+        $c->flash->{error} = qq{JSON query error: $@};
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
 
     $c->stash->{objects} = $objects;
 
@@ -251,23 +272,39 @@ sub _derive_status_report : Private {
                           ->search_related('product_orders',
                                            { %$cond, is_final => 1 }, $attr);
 
+    # Figure out whether the festival is open or not.
+    my @timeparts = gmtime();
+    my $datenow = sprintf( "%04d%02d%02d",
+                           $timeparts[5] + 1900,
+                           $timeparts[4] + 1,
+                           $timeparts[3] );
+    my $opendate = $festival->fst_start_date()
+        or die("Error: Attempt to create status report for festival without start date.\n");
+    $opendate =~ s/-//g;
+    my $festival_open = ( $datenow - $opendate >= 0 ) ? 1 : 0;
 
     my %festprod;
-    while ( my $po = $po_rs->next() ) {
-        my $product = $po->product_id();
-        my $company = $product->company_id();
-        my $year    = $company->year_founded();
-        $festprod{ $po->get_column('product_id') } = {
-            company      => $company->name(),
-            location     => $company->loc_desc(),
-            year_founded => $year ? $year : undef,
-            product      => $product->name(),
-            abv          => $product->nominal_abv(),
-            description  => $product->description(),
-            status       =>  'Ordered',
-        };
+
+    # Don't check the order table once we're open.
+    if ( ! $festival_open ) {
+        while ( my $po = $po_rs->next() ) {
+            my $product = $po->product_id();
+            my $company = $product->company_id();
+            my $year    = $company->year_founded();
+            $festprod{ $po->get_column('product_id') } = {
+                company      => $company->name(),
+                location     => $company->loc_desc(),
+                year_founded => $year ? $year : undef,
+                product      => $product->name(),
+                abv          => $product->nominal_abv(),
+                description  => $product->description(),
+                status       => 'Ordered',
+                css_status   => 'ordered',
+            };
+        }
     }
 
+    FP:
     while ( my $fp = $fp_rs->next() ) {
         my $product_id = $fp->get_column('product_id');
         my $product = $fp->product_id();
@@ -280,8 +317,12 @@ sub _derive_status_report : Private {
             product      => $product->name(),
             abv          => $product->nominal_abv(),
             description  => $product->description(),
-            status       =>  'Arrived',
+            status       => 'Arrived',
+            css_status   => 'arrived',
         };
+
+        # Prior to opening, "Arrived" is all we really want.
+        next FP unless $festival_open;
 
         my $cask_rs = $festival->search_related(
             'casks',
@@ -291,34 +332,46 @@ sub _derive_status_report : Private {
           }
         );
 
-        if ( $cask_rs->count() ) {
-            my %caskstat_map = (
-                is_vented    => 'Vented',
-                is_tapped    => 'Tapped',
-                is_ready     => 'Ready',
-                is_condemned => 'Arrived',  # Totally non-committal, this is for public consumption.
-            );
-            my %caskstat;
+        if ( my $not_condemned = $cask_rs->count() ) {
+
+            # Check for condemned casks and ABVs deviated from nominal.
             while ( my $cask = $cask_rs->next() ) {
                 my $abv = $cask->gyle_id()->abv();
                 $festprod{ $product_id }{abv} = $abv if defined $abv;
-                foreach my $column ( keys %caskstat_map ) {
-                    $caskstat{ $column } = 1 if $cask->$column;
-                }
+                $not_condemned-- if ( $cask->is_condemned );
             }
-            CASKSTAT:
-            foreach my $key ( qw( is_condemned is_ready is_tapped is_vented ) ) {
-                if ( $caskstat{ $key } ) {
-                    if ( $key eq 'is_ready' ) {
-                        my $amt_remaining = $self->_amount_remaining( $fp );
-                        $festprod{ $product_id }{status} = defined $amt_remaining
-                                                         ? "$amt_remaining Remaining"
-                                                         : $caskstat_map{$key};
-                    }
-                    else {
-                        $festprod{ $product_id }{status} = $caskstat_map{$key};
-                    }
-                    last CASKSTAT;
+
+            if ( $not_condemned == 0 ) {
+
+                # All casks condemned. Totally non-committal, this
+                # description is for public consumption.
+                $festprod{ $product_id }{status}     = 'Sold Out';
+                $festprod{ $product_id }{css_status} = 'sold_out';
+            }
+            else {
+
+                # If not condemned, get the amount remaining.
+                my ( $amt_remaining, $measure ) = $self->_amount_remaining( $fp );
+                if ( ! ( defined $amt_remaining && defined $measure ) ) {
+
+                    # Shouldn't happen.
+                    confess("Error: undef return from amount calculation.");
+                }
+                elsif ( $amt_remaining == 0 ) {
+                    $festprod{ $product_id }{status}     = 'Sold Out';
+                    $festprod{ $product_id }{css_status} = 'sold_out'; 
+                }
+                elsif ( $amt_remaining > 0 ) {
+
+                    # FIXME proper plural inflections.
+                    $festprod{ $product_id }{status}
+                        = sprintf("%d %ss Remaining", $amt_remaining, $measure->description());
+                    $festprod{ $product_id }{css_status} = 'product_remaining'; 
+                }
+                else {
+
+                    # Again, shouldn't happen.
+                    confess("Error: negative return from amount calculation.");
                 }
             }
         }
@@ -343,11 +396,11 @@ sub _amount_remaining : Private {
       }
     );
 
-    my $output;
+    # The output volume and measurement unit.
+    my ( $remaining, $overall_measure );
     if ( $cask_rs->count() ) {
 
         my $running_volume = 0;
-        my $overall_measure;  # The output measurement unit.
         CASK:
         while ( my $cask = $cask_rs->next() ) {
             next CASK if $cask->is_condemned();
@@ -365,15 +418,11 @@ sub _amount_remaining : Private {
             $running_volume += $vol;
         }
         
-        $output = $running_volume / $overall_measure->litre_multiplier();
-
-        $output .= ' ' . $overall_measure->description() . 's';  # FIXME proper plural inflections
-    }
-    else {
-        $output = 'None';
+        $remaining = $running_volume / $overall_measure->litre_multiplier();
     }
 
-    return $output;
+    # Undef return implies no Cask objects attached to Gyles for this FestivalProduct.
+    return ( $remaining, $overall_measure );
 }
 
 =head1 COPYRIGHT AND LICENSE
