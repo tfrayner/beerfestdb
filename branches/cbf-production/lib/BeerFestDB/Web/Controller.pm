@@ -59,6 +59,7 @@ sub generate_json_and_detach : Private {
         push @objects, \%obj_info;
     }
 
+    $c->stash->{ 'success' } = JSON::Any->true();
     $c->stash->{ 'objects' } = \@objects;
     $c->detach( $c->view( 'JSON' ) );
 }

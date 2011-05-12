@@ -112,7 +112,11 @@ sub _data_from_uri {
     }
 
     my $json = $res->decoded_content();
+
     my $data = $self->json_parser->from_json($json);
+    unless ( $data->{success} ) {
+        die("Error: JSON query returned error: $data->{errorMessage}\n");
+    }
 
     return( $data->{objects} );
 }
@@ -214,7 +218,7 @@ foreach my $item ( @$statuslist ) {
     $brewery_info{ $brewer }{location}     ||= $item->{location};
     $brewery_info{ $brewer }{year_founded} ||= $item->{year_founded};
     push @{ $brewery_info{ $brewer }{beers} },
-        { map { $_ => $item->{$_} } qw( product status abv description ) };
+        { map { $_ => $item->{$_} } qw( product status abv description css_status ) };
 }
 
 # Generate the XML fragment to upload.
@@ -274,10 +278,12 @@ __DATA__
   <span class="producer">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded && brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
   <div class="products">[% FOREACH beer = brewer.beers.sort('product') %]
     <span class="product">
+    [%- IF beer.css_status == 'sold_out' %]<span class="status [% beer.css_status %]">[% END -%]
       <span class="productname">[% beer.product | xml %]</span>
       <span class="abv">[% IF beer.abv.defined %][% beer.abv | xml %]%[% END %]</span>
       <span class="tasting">[% beer.description | xml %]</span>
-      <span class="status">[% beer.status | xml %]</span>
+      <span class="status [% beer.css_status %]">[% beer.status | xml %]</span>
+    [%- IF beer.css_status == 'sold_out' %]</span>[% END -%]
     </span>
     [%- END %]
   </div>
