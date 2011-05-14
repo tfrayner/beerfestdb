@@ -41,6 +41,8 @@
 
    var url_cask_delete          = '[% c.uri_for( "/cask/delete" ) %]';
    var url_cask_submit          = '[% c.uri_for( "/cask/submit" ) %]';
+   var url_caskmeasurement_delete = '[% c.uri_for( "/caskmeasurement/delete" ) %]';
+   var url_caskmeasurement_submit = '[% c.uri_for( "/caskmeasurement/submit" ) %]';
    var url_category_submit      = '[% c.uri_for( "/productcategory/submit" ) %]';
    var url_category_delete      = '[% c.uri_for( "/productcategory/delete" ) %]';
    var url_contact_delete       = '[% c.uri_for( "/contact/delete" ) %]';

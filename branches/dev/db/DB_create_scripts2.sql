@@ -771,6 +771,7 @@ CREATE TABLE cask_measurement (
   container_measure_id INTEGER(6) NOT NULL,
   comment TEXT NULL,
   PRIMARY KEY(cask_measurement_id),
+  UNIQUE KEY `cask_measurement_batch` (cask_id, measurement_batch_id),
   INDEX IDX_CM_cid(cask_id),
   FOREIGN KEY FK_CSKM_cskid_CSK_cskid(cask_id)
     REFERENCES cask(cask_id)

@@ -71,6 +71,7 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("cask_measurement_id");
+__PACKAGE__->add_unique_constraint("cask_measurement_batch", ["cask_id", "measurement_batch_id"]);
 
 =head1 RELATIONS
 
@@ -113,8 +114,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-04-29 20:57:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DWkyPY0htqreQ2NasOh58g
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-05-14 20:10:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WO7zWaFAdLIQZTHF1ZroPw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
