@@ -61,7 +61,8 @@ CREATE TABLE festival (
   description TEXT NULL,
   fst_start_date DATE NULL,
   fst_end_date DATE NULL,
-  PRIMARY KEY(festival_id)
+  PRIMARY KEY(festival_id),
+  UNIQUE KEY(name)
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
