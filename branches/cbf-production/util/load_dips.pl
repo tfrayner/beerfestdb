@@ -131,7 +131,7 @@ eval {
                 $schema->resultset('CaskMeasurement')->update_or_create({
                     cask_id              => $cask->id(),
                     measurement_batch_id => $batch->id(),
-                    volume               => $line->[0],
+                    volume               => $line->[1],
                     container_measure_id => $cask->container_size_id()
                                                  ->get_column('container_measure_id'),
                 });
