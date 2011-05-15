@@ -158,20 +158,23 @@ Ext.onReady(function(){
           width:      40,
           renderer:   function(value) { return value ? value : '' }, // bay zero is non-existent.
           editor:     new Ext.form.NumberField({
+              allowDecimals:  false,
               allowBlank:     true,
           })},
         { id:         'festival_ref',
           header:     'Festival Cask ID',
           dataIndex:  'festival_ref',
           width:      40,
-          editor:     new Ext.form.TextField({
+          editor:     new Ext.form.NumberField({
+              allowDecimals:  false,
               allowBlank:     true,
           })},
         { id:         'int_reference',
           header:     'Cellar Cask No.',
           dataIndex:  'int_reference',
           width:      40,
-          editor:     new Ext.form.TextField({
+          editor:     new Ext.form.NumberField({
+              allowDecimals:  false,
               allowBlank:     true,
           })},
         { id:         'comment',

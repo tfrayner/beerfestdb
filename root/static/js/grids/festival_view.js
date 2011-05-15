@@ -262,12 +262,36 @@ Ext.onReady(function(){
         waitMsg:     'Loading Festival details...',
     });
 
+    var festivalStatus = new MyFormPanel({ // FIXME not entirely appropriate for readOnly.
+
+        title:       'Festival status',
+            
+        items: [
+            { name:       'kils_ordered',
+              fieldLabel: 'Total kils of beer ordered',
+              readOnly:   true, },
+            { name:       'kils_remaining',
+              fieldLabel: 'Total kils of beer remaining',
+              readOnly:   true, },
+            { name:       'num_beers_available',
+              fieldLabel: 'Beers available',
+              readOnly:   true, },
+        ],
+
+        loadUrl:     url_festival_status,
+        idParams:    { festival_id: festival_id },
+        waitMsg:     'Loading Festival status...',
+    });
+
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
             { title: 'Festival Information',
               layout: 'anchor',
               items:  festivalForm, },
+            { title: 'Festival Status',
+              layout: 'anchor',
+              items:  festivalStatus, },
             { title: 'Products Received',
               layout: 'fit',
               items:  receivedGrid, },

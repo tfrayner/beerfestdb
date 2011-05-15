@@ -210,7 +210,7 @@ sub list_status : Local {
     if ( my $rc = $@ ) {
         $rc =~ s/\n \z//xms;
         $c->stash->{success} = JSON::Any->false();
-        $c->stash->{errorMessage} = $rc;
+        $c->stash->{error}   = $rc;
     }
     else {
         $c->stash->{success} = JSON::Any->true();

@@ -61,7 +61,8 @@ CREATE TABLE festival (
   description TEXT NULL,
   fst_start_date DATE NULL,
   fst_end_date DATE NULL,
-  PRIMARY KEY(festival_id)
+  PRIMARY KEY(festival_id),
+  UNIQUE KEY(name)
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -689,8 +690,8 @@ CREATE TABLE cask (
   stillage_z_location INTEGER(6) UNSIGNED NULL,
   comment TEXT NULL,
   external_reference VARCHAR(255) NULL,
-  internal_reference VARCHAR(255) NULL,
-  cellar_reference VARCHAR(255) NULL,
+  internal_reference INTEGER(6) NULL,
+  cellar_reference INTEGER(6) NULL,
   is_vented TINYINT(1) NULL,
   is_tapped TINYINT(1) NULL,
   is_ready TINYINT(1) NULL,
