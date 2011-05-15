@@ -141,6 +141,102 @@ sub view : Local {
     return;
 }
 
+=head2 status
+
+=cut
+
+sub status : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    $id ||= $c->request->param( 'festival_id' );
+
+    my $festival = $c->model('DB::Festival')->find($id);
+
+    unless ( $festival ) {
+        $c->stash->{ 'errorMessage' } = "Error: Festival not found.";
+        $c->stash->{ 'success' }      = JSON::Any->false();
+        $c->detach( $c->view( 'JSON' ) );
+    }
+    
+    # Here we're going to be a bit cheeky and hard-code a
+    # ProductCategory (beer) and ContainerSize
+    # (kilderkin). Alternatively we could (and should) create new
+    # default config items FIXME.
+    my $beercat = $c->model('DB::ProductCategory')->find({ description => 'beer' });
+    unless ( $beercat ) {
+        $c->stash->{ 'errorMessage' } = "Error: beer ProductCategory not found.";
+        $c->stash->{ 'success' }      = JSON::Any->false();
+        $c->detach( $c->view( 'JSON' ) );
+    }
+    my $kilsize = $c->model('DB::ContainerSize')->find({ description => 'kilderkin' });
+    unless ( $kilsize ) {
+        $c->stash->{ 'errorMessage' } = "Error: kilderkin ContainerSize not found.";
+        $c->stash->{ 'success' }      = JSON::Any->false();
+        $c->detach( $c->view( 'JSON' ) );
+    }
+
+    # kils_ordered
+    my $orders = $festival->search_related('order_batches')
+                          ->search_related('product_orders',
+                                           { 'product_id.product_category_id' => $beercat->id(),
+                                             'is_final'                       => 1 },
+                                           { join => 'product_id' } );
+    my $order_tot = 0;
+    while ( my $order = $orders->next() ) {
+        $order_tot += $order->container_size_id()->container_volume() * $order->cask_count();
+    }
+
+    # kils_remaining and num_beers_available
+    my $casks  = $festival->search_related(
+        'casks',
+        { 'product_id.product_category_id' => $beercat->id() },
+        { join => {
+            gyle_id => { festival_product_id => 'product_id' }
+        }
+      }
+    );
+    
+    my $remaining_tot = 0;
+    my %product_available;
+
+    CASK:
+    while ( my $cask = $casks->next() ) {
+        next CASK if $cask->is_condemned();
+        my @meas = $cask->search_related(
+            'cask_measurements',
+            undef,
+            {
+                join     => 'measurement_batch_id',
+                order_by => { -desc => 'measurement_batch_id.measurement_time' },
+            }
+        );
+        if ( my $latest = $meas[0] ) {
+            $remaining_tot += $latest->volume();
+            if ( $latest->volume() > 0 ) {
+                $product_available{ $cask->gyle_id->get_column('festival_product_id') }++;
+            }
+        }
+        else {
+            $remaining_tot += $cask->container_size_id()->container_volume();
+            $product_available{ $cask->gyle_id->get_column('festival_product_id') }++;
+        }
+    }
+    my $ko = $order_tot     / $kilsize->container_volume();
+    my $kr = $remaining_tot / $kilsize->container_volume();
+    my $pc = $ko != 0 ? sprintf("%.1f%%", ($kr/$ko) * 100) : q{};
+    my %obj_hash = (
+        kils_ordered   => sprintf('%.1f', $ko),
+        kils_remaining => sprintf('%.1f %s', $kr, $pc),
+        num_beers_available => scalar( grep { defined $_ } values %product_available ),
+    );
+
+    $c->stash->{ 'data' }    = \%obj_hash;
+    $c->stash->{ 'success' } = JSON::Any->true();
+
+    $c->detach( $c->view( 'JSON' ) );
+}
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2010 by Tim F. Rayner
