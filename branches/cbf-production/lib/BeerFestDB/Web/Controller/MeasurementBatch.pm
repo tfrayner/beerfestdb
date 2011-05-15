@@ -45,6 +45,7 @@ sub BUILD {
         measurement_batch_id    => 'measurement_batch_id',
         measurement_time        => 'measurement_time',
         festival_id             => 'festival_id',
+        description             => 'description',
     });
 }
 
