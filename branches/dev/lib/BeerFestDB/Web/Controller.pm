@@ -267,9 +267,14 @@ sub write_to_resultset : Private {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    foreach my $rec ( @{ $data } ) {
-        my $dbobj = $self->build_database_object( $rec, $c, $rs );
-    }
+    # Wrap everything in a transaction - all should pass, or none.
+    $rs->result_source()->schema()->txn_do(
+        sub {
+            foreach my $rec ( @{ $data } ) {
+                my $dbobj = $self->build_database_object( $rec, $c, $rs );
+            }
+        }
+    );
     
     $c->detach( $c->view( 'JSON' ) );
 
@@ -290,18 +295,22 @@ sub delete_from_resultset : Private {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    foreach my $id ( @{ $data } ) {
-        my $rec = $rs->find($id);
-        eval {
-            $rec->delete() if $rec;
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
+    $rs->result_source()->schema()->txn_do(
+        sub {
+            foreach my $id ( @{ $data } ) {
+                my $rec = $rs->find($id);
+                eval {
+                    $rec->delete() if $rec;
+                };
+                if ($@) {
+                    $c->response->status('403');  # Forbidden
 
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to delete one or more objects: $@";
+                    # N.B. flash_to_stash doesn't seem to work for JSON views.
+                    $c->stash->{error} = "Unable to delete one or more objects: $@";
+                }
+            }
         }
-    }
+    );
 
     $c->detach( $c->view( 'JSON' ) );
 }

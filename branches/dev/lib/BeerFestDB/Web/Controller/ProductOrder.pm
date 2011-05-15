@@ -112,6 +112,17 @@ sub submit : Local {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
+    $rs->result_source()->schema()->txn_do(
+        sub { $self->_save_records( $c, $rs, $data ); }
+    );
+
+    $c->detach( $c->view( 'JSON' ) );
+}
+
+sub _save_records : Private {
+
+    my ( $self, $c, $rs, $data ) = @_;
+
     # First we check that we haven't been passed records marked as
     # is_received more than once.
     my @received;
@@ -131,7 +142,7 @@ sub submit : Local {
     foreach my $rec ( @{ $data } ) {
         $self->build_database_object( $rec, $c, $rs );
     }
-    
+
     # Copy any arrived products into FestivalProduct et al.
     foreach my $rec ( @received ) {
 
@@ -171,6 +182,8 @@ sub submit : Local {
         });
 
         my $casksize = $po->get_column('container_size_id');
+
+        # Cellar Cask No., i.e. number of cask within FP.
         my $previous_max = $c->model('DB::Cask')->search(
             {
                 'gyle_id.festival_product_id' => $fp_id,
@@ -181,6 +194,10 @@ sub submit : Local {
                 }
             })->get_column('internal_reference')->max() || 0;            
 
+        # Festival Cask ID., i.e. a unique ID for cask within festival.
+        my $previous_festival_max = $c->model('DB::Cask')->search(
+            { festival_id => $festival_id })->get_column('cellar_reference')->max() || 0;
+
         foreach my $n ( 1..$po->cask_count() ) {
             $c->model('DB::Cask')->create({
                 gyle_id                => $gyle->get_column('gyle_id'),
@@ -189,11 +206,10 @@ sub submit : Local {
                 container_size_id      => $casksize,
                 currency_id            => $currency_id,
                 internal_reference     => $previous_max + $n,
+                cellar_reference       => $previous_festival_max + $n,
             });
         }
     }
-
-    $c->detach( $c->view( 'JSON' ) );
 
     return;
 }
