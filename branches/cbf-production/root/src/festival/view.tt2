@@ -6,7 +6,8 @@
 
    var url_stillage_list    = '[% c.uri_for( "/stillagelocation/list/$object.id" ) %]';
 
-   var url_order_batch_list    = '[% c.uri_for( "/orderbatch/list/$object.id" ) %]';
+   var url_order_batch_list       = '[% c.uri_for( "/orderbatch/list/$object.id" ) %]';
+   var url_measurement_batch_list = '[% c.uri_for( "/measurementbatch/list/$object.id" ) %]';
 
    var festival_id          = '[% object.id %]';
    var festivalname         = '[% object.year | xml %]  [% object.name | xml %]';
