@@ -112,9 +112,14 @@ sub submit : Local {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    $rs->result_source()->schema()->txn_do(
-        sub { $self->_save_records( $c, $rs, $data ); }
-    );
+    eval {
+        $rs->result_source()->schema()->txn_do(
+            sub { $self->_save_records( $c, $rs, $data ); }
+        );
+    };
+    if ( $@ ) {
+        $self->detach_with_txn_failure( $c, $rs, $@ );
+    }
 
     $c->detach( $c->view( 'JSON' ) );
 }
@@ -130,8 +135,8 @@ sub _save_records : Private {
         if ( exists $rec->{ 'is_received' } && $rec->{ 'is_received' } ) {
             if ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) {
                 if ( $po->is_received() ) {
-                    die("Error: Product Order newly marked as is_received"
-                            . " is already is_received in database.");
+                    die("Product Order set as is_received"
+                            . " was already is_received in database.");
                 }
             }
             push @received, $rec;
@@ -148,15 +153,15 @@ sub _save_records : Private {
 
         # Failing to find the DB object is now an error (and really should never happen).
         my $po = $rs->find( $rec->{ 'product_order_id' } )
-            or die("Error: unable to retrieve loaded product order");
+            or die("Unable to retrieve loaded product order");
 
         my $default_currency = $c->model('DB::Currency')->find({
             currency_code => $c->config->{'default_currency'},
-        }) or die("Error retrieving default currency; check config settings.");
+        }) or die("Unable to retrieve default currency; check config settings.");
 
         my $default_sale_vol = $c->model('DB::SaleVolume')->find({
             description => $c->config->{'default_sale_volume'},
-        }) or die("Error retrieving default sale volume; check config settings.");
+        }) or die("Unable to retrieve default sale volume; check config settings.");
 
         my $festival_id = $po->order_batch_id()->get_column('festival_id');
         my $product_id  = $po->get_column('product_id');

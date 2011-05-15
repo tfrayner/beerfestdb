@@ -154,8 +154,8 @@ sub status : Local {
     my $festival = $c->model('DB::Festival')->find($id);
 
     unless ( $festival ) {
-        $c->stash->{ 'errorMessage' } = "Error: Festival not found.";
-        $c->stash->{ 'success' }      = JSON::Any->false();
+        $c->stash->{ 'error' }   = "Error: Festival not found.";
+        $c->stash->{ 'success' } = JSON::Any->false();
         $c->detach( $c->view( 'JSON' ) );
     }
     
@@ -165,14 +165,14 @@ sub status : Local {
     # default config items FIXME.
     my $beercat = $c->model('DB::ProductCategory')->find({ description => 'beer' });
     unless ( $beercat ) {
-        $c->stash->{ 'errorMessage' } = "Error: beer ProductCategory not found.";
-        $c->stash->{ 'success' }      = JSON::Any->false();
+        $c->stash->{ 'error' }   = "Error: beer ProductCategory not found.";
+        $c->stash->{ 'success' } = JSON::Any->false();
         $c->detach( $c->view( 'JSON' ) );
     }
     my $kilsize = $c->model('DB::ContainerSize')->find({ description => 'kilderkin' });
     unless ( $kilsize ) {
-        $c->stash->{ 'errorMessage' } = "Error: kilderkin ContainerSize not found.";
-        $c->stash->{ 'success' }      = JSON::Any->false();
+        $c->stash->{ 'error' }    = "Error: kilderkin ContainerSize not found.";
+        $c->stash->{ 'success' }  = JSON::Any->false();
         $c->detach( $c->view( 'JSON' ) );
     }
 
