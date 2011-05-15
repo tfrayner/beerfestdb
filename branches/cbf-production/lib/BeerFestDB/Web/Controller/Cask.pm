@@ -213,18 +213,24 @@ sub delete_from_stillage : Local {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    foreach my $id ( @{ $data } ) {
-        my $rec = $rs->find($id);
-        eval {
-            $rec->set_column('stillage_location_id', undef) if $rec;
-            $rec->update();
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
-            
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to delete one or more objects: $@";
-        }
+    eval {
+        $rs->result_source()->schema()->txn_do(
+            sub {
+                foreach my $id ( @{ $data } ) {
+                    my $rec = $rs->find($id);
+                    eval {
+                        $rec->set_column('stillage_location_id', undef) if $rec;
+                        $rec->update();
+                    };
+                    if ($@) {
+                        die("Unable to delete Cask with ID=$id from stillage\n");
+                    }
+                }
+            }
+        );
+    };
+    if ( $@ ) {
+        $self->detach_with_txn_failure( $c, $rs, $@ );
     }
 
     $c->detach( $c->view( 'JSON' ) );

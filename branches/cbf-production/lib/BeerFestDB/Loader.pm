@@ -692,16 +692,24 @@ sub load {
 
     # Run the whole load in a single transaction.
     my $db = $self->database();
-    $db->txn_do(
-        sub {
-            while ( my $rowlist = $csv_parser->getline($input_fh) ) {
-                next if $rowlist->[0] =~ /^\s*#/;
-                my %datahash;
-                @datahash{ @$headings } = @$rowlist;
-                $self->_load_data( \%datahash );
+    eval {
+        $db->txn_do(
+            sub {
+                while ( my $rowlist = $csv_parser->getline($input_fh) ) {
+                    next if $rowlist->[0] =~ /^\s*#/;
+                    my %datahash;
+                    @datahash{ @$headings } = @$rowlist;
+                    $self->_load_data( \%datahash );
+                }
             }
-        }
-    );
+        );
+    };
+    if ( $@ ) {
+        die(qq{Errors encountered during load:\n\n$@});
+    }
+    else {
+        warn("All data successfully loaded.\n");
+    }
 }
 
 =head1 COPYRIGHT AND LICENSE

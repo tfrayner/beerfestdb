@@ -102,14 +102,16 @@ Ext.onReady(function(){
           header:     'Festival Cask ID',
           dataIndex:  'festival_ref',
           width:      50,
-          editor:     new Ext.form.TextField({
+          editor:     new Ext.form.NumberField({
+              allowDecimals:  false,
               allowBlank:     true,
           })},
         { id:         'int_reference',
           header:     'Cellar Cask No.',
           dataIndex:  'int_reference',
           width:      50,
-          editor:     new Ext.form.TextField({
+          editor:     new Ext.form.NumberField({
+              allowDecimals:  false,
               allowBlank:     true,
           })},
         { id:         'is_vented',

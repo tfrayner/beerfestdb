@@ -191,8 +191,10 @@ sub update_cask_hash {
 
     # N.B. Changes here need to be documented in the POD.
     $caskhash ||= {};
-    $caskhash->{number} = $cask->internal_reference();
-    $caskhash->{size}   = $cask->container_size_id ? $cask->container_size_id->container_volume() : q{};
+    $caskhash->{number}      = $cask->internal_reference();
+    $caskhash->{festival_id} = $cask->cellar_reference();
+    $caskhash->{size}        = $cask->container_size_id
+          ? $cask->container_size_id->container_volume() : q{};
 
     return $caskhash;
 }
@@ -336,6 +338,10 @@ The name of the beer, cider, or whatever.
 =item number
 
 (Cask-level export only). The internal reference number for the cask.
+
+=item festival_id
+
+(Cask-level export only). The unique festival ID for the cask.
 
 =item size
 

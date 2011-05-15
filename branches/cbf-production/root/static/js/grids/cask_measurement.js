@@ -89,14 +89,16 @@ Ext.onReady(function(){
           header:     'Cellar No.',
           dataIndex:  'internal_reference',
           width:      50,
-          editor:     new Ext.form.TextField({
+          editor:     new Ext.form.NumberField({
+              allowDecimals: false,
               readOnly: true,
           })},
         { id:         'cellar_reference',
           header:     'Festival ID',
           dataIndex:  'cellar_reference',
           width:      50,
-          editor:     new Ext.form.TextField({
+          editor:     new Ext.form.NumberField({
+              allowDecimals: false,
               readOnly: true,
           })},
         { id:         'previous_volume',
@@ -112,6 +114,7 @@ Ext.onReady(function(){
           width:      30,
           renderer:   function(value) { return undefined != value ? value : '' },
           editor:     new Ext.form.NumberField({
+              decimalPrecision: 1,
           })},
         { id:         'container_measure',
           header:     'Units',

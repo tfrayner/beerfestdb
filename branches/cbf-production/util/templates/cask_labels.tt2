@@ -1,0 +1,44 @@
+%
+% $Id$
+%
+
+\documentclass[a4paper,12pt]{article} 
+\usepackage[newdimens]{labels}
+%\usepackage{palatino}
+
+\LabelCols=3 % Number of columns of labels per page
+\LabelRows=7 % Number of rows of labels per page
+\LabelInfotrue
+
+% These four parameters give the page gutter sizes. The outer edges of
+% the outer labels are the specified distances from the edge of the
+% paper.
+\LeftPageMargin=7mm
+\RightPageMargin=7mm
+\TopPageMargin=15mm
+\BottomPageMargin=15mm
+
+\InterLabelColumn=2mm % Gap between columns of labels
+\InterLabelRow=0mm % Gap between rows of labels
+
+% These four parameters give the extra space used around the text on
+% each actual label.
+\LeftLabelBorder=5mm
+\RightLabelBorder=5mm
+\TopLabelBorder=5mm
+\BottomLabelBorder=5mm
+
+\renewcommand\familydefault{\sfdefault} % makes it use sans serif
+
+\begin{document}% End of preamble
+
+\begin{labels}
+[% FOREACH cask = objects %]
+Cask ID: \textbf{[% IF cask.festival_id.defined %][% cask.festival_id %][% ELSE %]NOT AVAILABLE[% END %]}
+[% cask.brewery | replace( '&', '\\&' ) %]
+[% cask.product | replace( '&', '\\&' )  | truncate(30) %]
+ABV: [% cask.abv %]\%
+[% END %]
+\end{labels}
+
+\end{document}

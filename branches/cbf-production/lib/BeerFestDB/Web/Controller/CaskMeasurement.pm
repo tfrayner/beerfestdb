@@ -166,12 +166,28 @@ sub submit : Local {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
+    eval {
+        $rs->result_source()->schema()->txn_do(
+            sub { $self->_save_records( $c, $rs, $data ) }
+        );
+    };
+    if ( $@ ) {
+        $self->detach_with_txn_failure( $c, $rs, $@ );
+    }
+    
+    $c->stash->{success} = JSON::Any->true();
+
+    $c->detach( $c->view( 'JSON' ) );
+}
+
+sub _save_records : Private {
+
+    my ( $self, $c, $rs, $data ) = @_;
+
     foreach my $rec ( @{ $data } ) {
         my $cask  = $c->model( 'DB::Cask' )->find( { cask_id => $rec->{cask_id} } );
         unless ( $cask ) {
-            $c->stash->{success} = JSON::Any->false();
-            $c->stash->{error}   = "Error: cask_id not found: $rec->{cask_id}";
-            $c->detach( $c->view( 'JSON' ) );
+            die("Cask with ID=$rec->{cask_id} not found");
         }
 
         # Cask-level editing at the point of dip entry for convenience.
@@ -186,10 +202,8 @@ sub submit : Local {
 
         my $dbobj = $self->build_database_object( $rec, $c, $rs );
     }
-    
-    $c->stash->{success} = JSON::Any->true();
 
-    $c->detach( $c->view( 'JSON' ) );
+    return;
 }
 
 =head2 delete
