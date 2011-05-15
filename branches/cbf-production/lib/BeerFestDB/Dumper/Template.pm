@@ -195,6 +195,8 @@ sub update_cask_hash {
     $caskhash->{festival_id} = $cask->cellar_reference();
     $caskhash->{size}        = $cask->container_size_id
           ? $cask->container_size_id->container_volume() : q{};
+    $caskhash->{dips} = { map { $_->get_column('measurement_batch_id') => $_->volume() }
+                              $cask->cask_measurements() };
 
     return $caskhash;
 }
@@ -203,7 +205,7 @@ sub dump {
 
     my ( $self ) = @_;
 
-    my ( @template_data, %stillage );
+    my ( @template_data, %stillage, @dip_batches );
     if ( $self->dump_class eq 'cask' ) {
         foreach my $cask ( @{ $self->festival_casks() } ) {
             my $caskhash = $self->product_hash(
@@ -217,6 +219,15 @@ sub dump {
             my $stillage_name = $cask->stillage_location_id()
                                 ? $cask->stillage_location_id()->description() : '';
             push @{ $stillage{ $stillage_name } }, $caskhash;
+        }
+
+        my $batches = $self->festival
+                           ->search_related('measurement_batches',
+                                            undef,
+                                            { order_by => { -asc => 'measurement_time' } });
+        while ( my $batch = $batches->next() ) {
+            push @dip_batches, { id   => $batch->id(),
+                                 name => $batch->description() };
         }
     }
     elsif ( $self->dump_class eq 'gyle' ) {
@@ -269,11 +280,12 @@ sub dump {
     else {
         confess(sprintf(qq{Attempt to dump data from unsupported class "%s"}, $self->dump_class));
     }
-
+    
     my $vars = {
         logos      => $self->logos(),
         objects    => \@template_data,
         stillages  => \%stillage,
+        dip_batches => \@dip_batches,
     };
 
     # We define a custom title case filter for convenience.
@@ -379,6 +391,10 @@ The price per half sale unit.
 
 The sale unit itself.
 
+=item dips
+
+A hashref of dip measurements, keyed by batch ID.
+
 =back
 
 =item stillages
@@ -390,6 +406,11 @@ documented above.
 
 An arrayref containing the names of image files which can be
 referenced in the template to place logos etc.
+
+=item dip_batches
+
+An arrayref of measurement_batch hashrefs sorted by
+measurement_time. Actual dip data are attached to cask hashrefs.
 
 =back
 
