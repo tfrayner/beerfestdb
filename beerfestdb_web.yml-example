@@ -23,6 +23,10 @@ Model::DB:
 default_currency:    GBP
 default_sale_volume: pint
 
+# CBF-production config item: since we only ever run a single festival
+#  at a time we can designate the current festival:
+current_festival:   '38th Cambridge Beer Festival'
+
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:
 
