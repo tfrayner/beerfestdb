@@ -15,6 +15,7 @@ Model::DB:
     -
     - RaiseError: 1
       AutoCommit: 1
+      on_connect_call: set_strict_mode
 
 # Default currency and sale volume measures. These values must also be
 # entered into the currency.currency_code and

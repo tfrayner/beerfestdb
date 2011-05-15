@@ -24,6 +24,7 @@ use Moose;
 use namespace::autoclean;
 
 use List::Util qw(first);
+use Carp;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -55,10 +56,11 @@ sub generate_json_and_detach : Private {
 
     my @objects;
     while ( my $obj = $rs->next ) {
-        my %obj_info = map { $_ => $self->_viewhash_from_model($_, $obj) } keys %mv_map;
+        my %obj_info = map { $_ => $self->viewhash_from_model($_, $obj) } keys %mv_map;
         push @objects, \%obj_info;
     }
 
+    $c->stash->{ 'success' } = JSON::Any->true();
     $c->stash->{ 'objects' } = \@objects;
     $c->detach( $c->view( 'JSON' ) );
 }
@@ -79,19 +81,19 @@ sub form_json_and_detach : Private {
         if ( $obj ) {
             my %mv_map = %{ $self->model_view_map() };
 
-            my %obj_hash = map { $_ => $self->_viewhash_from_model($_, $obj) } keys %mv_map;
+            my %obj_hash = map { $_ => $self->viewhash_from_model($_, $obj) } keys %mv_map;
 
             $c->stash->{ 'data' } = \%obj_hash;
             $c->stash->{ 'success' } = JSON::Any->true();
         }
         else {
             $c->stash->{ 'success' } = JSON::Any->false();
-            $c->stash->{ 'errorMessage' } = qq{Error: Unable to find $pk "$id".};
+            $c->stash->{ 'error' } = qq{Error: Unable to find $pk "$id".};
         }
     }
     else {
         $c->stash->{ 'success' } = JSON::Any->false();
-        $c->stash->{ 'errorMessage' } = "Error: $pk is not defined.";
+        $c->stash->{ 'error' } = "Error: $pk is not defined.";
     }
 
     $c->detach( $c->view( 'JSON' ) );
@@ -99,7 +101,7 @@ sub form_json_and_detach : Private {
     return;
 }
 
-sub _viewhash_from_model : Private {
+sub viewhash_from_model : Private {
 
     # Method using a JSON view object attribute name (from
     # model_view_map), to retrieve the appropriate model attribute
@@ -115,9 +117,9 @@ sub _viewhash_from_model : Private {
         my @children;
         foreach my $relation ( keys %$lookup ) {
             push @children,
-                $self->_viewhash_from_model( $lookup->{$relation},
-                                             $dbrow->$relation,
-                                             $lookup->{$relation} );
+                $self->viewhash_from_model( $lookup->{$relation},
+                                            $dbrow->$relation,
+                                            $lookup->{$relation} );
         }
 
         if ( scalar @children > 1 ) {
@@ -241,10 +243,11 @@ sub build_database_object : Private {
             $dbobj->update_or_insert();
         };
         if ($@) {
-            $c->response->status('403');  # Forbidden
-            
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to save one or more objects to database: $@";
+
+            # Called within a transaction, we die hard.
+            my $valstr = join(', ', map { $_ . ' => ' . $rec->{$_} } keys %$rec);
+            die(sprintf("Unable to save %s object with values: %s\n",
+                        $rs->result_source->source_name(), $valstr));
         }
     }
 
@@ -266,10 +269,21 @@ sub write_to_resultset : Private {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    foreach my $rec ( @{ $data } ) {
-        my $dbobj = $self->build_database_object( $rec, $c, $rs );
-    }
-    
+    # Wrap everything in a transaction - all should pass, or none.
+    eval {
+        $rs->result_source()->schema()->txn_do(
+            sub {
+                foreach my $rec ( @{ $data } ) {
+                    my $dbobj = $self->build_database_object( $rec, $c, $rs );
+                }
+            }
+        );
+    };
+    if ( $@ ) {
+        $self->detach_with_txn_failure( $c, $rs, $@ );
+    };
+
+    $c->stash->{ 'success' } = JSON::Any->false();
     $c->detach( $c->view( 'JSON' ) );
 
     return;
@@ -289,20 +303,46 @@ sub delete_from_resultset : Private {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
-    foreach my $id ( @{ $data } ) {
-        my $rec = $rs->find($id);
-        eval {
-            $rec->delete() if $rec;
-        };
-        if ($@) {
-            $c->response->status('403');  # Forbidden
+    eval {
+        $rs->result_source()->schema()->txn_do(
+            sub {
+                foreach my $id ( @{ $data } ) {
+                    my $rec = $rs->find($id);
+                    eval {
+                        $rec->delete() if $rec;
+                    };
+                    if ($@) {
+                        die(sprintf("Unable to delete %s object with ID=%s\n",
+                                    $rs->result_source->source_name(), $id));
+                    }
+                }
+            }
+        );
+    };
+    if ( $@ ) {
+        $self->detach_with_txn_failure( $c, $rs, $@ );
+    };
 
-            # N.B. flash_to_stash doesn't seem to work for JSON views.
-            $c->stash->{error} = "Unable to delete one or more objects: $@";
-        }
-    }
+    $c->stash->{ 'success' } = JSON::Any->false();
+    $c->detach( $c->view( 'JSON' ) );
 
     $c->detach( $c->view( 'JSON' ) );
+}
+
+sub detach_with_txn_failure : Private {
+
+    my ( $self, $c, $rs, $error ) = @_;
+
+    $error =~ s/\A (.*) [\r\n]* \z/$1/xms;
+
+    $error = "Transaction failed: $error";
+    $c->log->error($error);
+    $c->response->status('403');  # Forbidden; must use this or
+                                  # similar for ExtJS to detect
+                                  # failure.
+    $c->stash->{ 'success' } = JSON::Any->false();
+    $c->stash->{ 'error' }   = $error;
+    $c->detach( $c->view( 'JSON' ) );    
 }
 
 =head2 get_default_currency

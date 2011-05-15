@@ -70,6 +70,7 @@ __PACKAGE__->add_columns(
   { data_type => "date", "datetime_undef_if_invalid" => 1, is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("festival_id");
+__PACKAGE__->add_unique_constraint("name", ["name"]);
 
 =head1 RELATIONS
 
@@ -133,6 +134,21 @@ __PACKAGE__->has_many(
   {},
 );
 
+=head2 measurement_batches
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::MeasurementBatch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "measurement_batches",
+  "BeerFestDB::ORM::MeasurementBatch",
+  { "foreign.festival_id" => "self.festival_id" },
+  {},
+);
+
 =head2 order_batches
 
 Type: has_many
@@ -164,8 +180,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-21 18:53:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oZiaUsgSt3CyZvykyGwvHg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-05-15 19:36:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V90AEwut2p/QPLnWIIBUzA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

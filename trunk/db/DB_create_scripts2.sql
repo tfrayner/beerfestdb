@@ -61,7 +61,8 @@ CREATE TABLE festival (
   description TEXT NULL,
   fst_start_date DATE NULL,
   fst_end_date DATE NULL,
-  PRIMARY KEY(festival_id)
+  PRIMARY KEY(festival_id),
+  UNIQUE KEY(name)
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -249,7 +250,7 @@ CREATE TABLE company (
   full_name VARCHAR(255) NULL,
   loc_desc VARCHAR(100) NULL,
   company_region_id INTEGER(6),
-  year_founded YEAR(4) NULL,
+  year_founded INT(4) NULL,  -- otherwise older brewers are out of luck.
   url VARCHAR(255) NULL,
   comment TEXT NULL,
   PRIMARY KEY(company_id),
@@ -689,8 +690,8 @@ CREATE TABLE cask (
   stillage_z_location INTEGER(6) UNSIGNED NULL,
   comment TEXT NULL,
   external_reference VARCHAR(255) NULL,
-  internal_reference VARCHAR(255) NULL,
-  cellar_reference VARCHAR(255) NULL,
+  internal_reference INTEGER(6) NULL,
+  cellar_reference INTEGER(6) NULL,
   is_vented TINYINT(1) NULL,
   is_tapped TINYINT(1) NULL,
   is_ready TINYINT(1) NULL,
@@ -738,30 +739,47 @@ CREATE TABLE cask (
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
+-- Table structure for table `measurement_batch`
+-- Stores the information used to track batches of cask_measurements performed at a given time.
+-- ------------------------------------------------------------
+
+CREATE TABLE measurement_batch (
+  measurement_batch_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NOT NULL,
+  measurement_time DATETIME NOT NULL,
+  description VARCHAR(255) default NULL,  -- people like free-text mnemonics
+  PRIMARY KEY(measurement_batch_id),
+  UNIQUE KEY `festival_measurement_batch` (festival_id, measurement_time),
+  INDEX FK_ORDER_fid(festival_id),
+  FOREIGN KEY FK_MEASURE_fid_FEST_fid(festival_id)
+    REFERENCES festival(festival_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION
+)
+TYPE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ------------------------------------------------------------
 -- Table structure for table `cask_measure`
 -- Complex table to store the volume in a cask at different points in time
 -- along with a comment.
--- All measurments stored as ml converted for representation to users?
--- 'date' is a nominal date for reference such as the date and time that the
--- row was inserted into the table, should be editable
--- 'start_date' and 'end_date' are the date/time that the reading actually 
--- covers, it would normally be that the 'end_date' is the same as the next
--- -- 'start_date' for that cask but that is not guaranteed.
 -- ------------------------------------------------------------
 
 CREATE TABLE cask_measurement (
   cask_measurement_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   cask_id INTEGER(6) NOT NULL,
-  date DATETIME NULL,
-  start_date DATETIME NULL,
-  end_date DATETIME NULL,
+  measurement_batch_id INTEGER(6) NOT NULL,
   volume decimal(5,2) NOT NULL,
   container_measure_id INTEGER(6) NOT NULL,
   comment TEXT NULL,
   PRIMARY KEY(cask_measurement_id),
+  UNIQUE KEY `cask_measurement_batch` (cask_id, measurement_batch_id),
   INDEX IDX_CM_cid(cask_id),
   FOREIGN KEY FK_CSKM_cskid_CSK_cskid(cask_id)
     REFERENCES cask(cask_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSKM_batchid_BATCH_batchid(measurement_batch_id)
+    REFERENCES measurement_batch(measurement_batch_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSKM_cskid_CM_cmid(container_measure_id)
@@ -841,6 +859,30 @@ CREATE TABLE product_order (
 )
 TYPE=InnoDB DEFAULT CHARSET=utf8;
 
+-- A set of views that are often useful.
+CREATE VIEW programme_notes_view AS (
+     SELECT f.name AS festival,
+       pc.description AS category,
+       c.name AS brewer,
+       c.loc_desc AS location,
+       c.year_founded AS year_established,
+       p.name AS beer,
+       p.nominal_abv AS abv,
+       p.description AS tasting_notes,
+       ps.description AS style
+     FROM company c,
+       product p LEFT JOIN product_style ps ON ps.product_style_id=p.product_style_id,
+       product_category pc,
+       product_order po,
+       order_batch ob,
+       festival f
+     WHERE f.festival_id=ob.festival_id
+       AND ob.order_batch_id=po.order_batch_id
+       AND po.product_id=p.product_id
+       AND p.company_id=c.company_id
+       AND pc.product_category_id=p.product_category_id
+     ORDER BY festival, category, brewer, beer);
+
 -- Create some basic triggers to make sure that product_style and
 -- product_characteristic usage is properly constrained to their
 -- respective product_categories. These triggers are perhaps a little
@@ -851,7 +893,6 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 delimiter //
 
 -- Product
-drop trigger if exists `product_insert_trigger`//
 create trigger `product_insert_trigger`
     before insert on product
 for each row
@@ -867,7 +908,6 @@ begin
 end;
 //
 
-drop trigger if exists `product_update_trigger`//
 create trigger `product_update_trigger`
     before update on product
 for each row
@@ -896,7 +936,6 @@ end;
 //
 
 -- Product style
-drop trigger if exists `product_style_update_trigger`//
 create trigger `product_style_update_trigger`
     before update on product_style
 for each row
@@ -912,7 +951,6 @@ end;
 //
 
 -- Product characteristic type
-drop trigger if exists `product_characteristic_type_update_trigger`//
 create trigger `product_characteristic_type_update_trigger`
     before update on product_characteristic_type
 for each row
@@ -928,7 +966,6 @@ end;
 //
 
 -- Product characteristic
-drop trigger if exists `product_characteristic_insert_trigger`//
 create trigger `product_characteristic_insert_trigger`
     before insert on product_characteristic
 for each row
@@ -944,7 +981,6 @@ begin
 end;
 //
 
-drop trigger if exists `product_characteristic_update_trigger`//
 create trigger `product_characteristic_update_trigger`
     before update on product_characteristic
 for each row
@@ -963,8 +999,7 @@ end;
 -- Festival to Product to Cask
 
 -- Check inserts, updates on cask table (note that we also check updates on Gyle below).
-drop trigger if exists `cask_insert_trigger`//
-create trigger `cask_insert_trigger`
+create trigger `cask_fp_insert_trigger`
     before insert on cask
 for each row
 begin
@@ -973,12 +1008,11 @@ begin
             where new.gyle_id=g.gyle_id
             and g.festival_product_id=fp.festival_product_id
             and fp.festival_id=new.festival_id) = 0 ) then
-        call ERROR_CASK_INSERT_TRIGGER();
+        call ERROR_CASK_FP_INSERT_TRIGGER();
     end if;
 end;
 //
 
-drop trigger if exists `cask_update_trigger`//
 create trigger `cask_update_trigger`
     before update on cask
 for each row
@@ -988,58 +1022,91 @@ begin
             where new.gyle_id=g.gyle_id
             and g.festival_product_id=fp.festival_product_id
             and fp.festival_id=new.festival_id) = 0 ) then
-        call ERROR_CASK_UPDATE_TRIGGER();
+        call ERROR_CASK_FP_UPDATE_TRIGGER();
+    end if;
+    if ( new.festival_id != old.festival_id and
+           (select count(cm.cask_id)
+            from cask_measurement cm, measurement_batch mb
+            where old.cask_id=cm.cask_id
+            and cm.measurement_batch_id=mb.measurement_batch_id
+            and mb.festival_id=old.festival_id) != 0 ) then
+        call ERROR_CASK_MB_UPDATE_TRIGGER();
     end if;
 end;
 //
 
--- Maintain our linking table.
-drop trigger if exists `festival_product_delete_trigger`//
-create trigger `festival_product_delete_trigger`
-    before delete on festival_product
-for each row
-begin
-    if ( (select count(festival_id)
-          from cask c, gyle g
-          where c.gyle_id=g.gyle_id
-          and g.festival_product_id=old.festival_product_id
-          and c.festival_id=old.festival_id) != 0 ) then
-        call ERROR_CASK_DELETE_TRIGGER();
-    end if;
-end;
-//
-
--- Product to Gyle (N.B. gyle.company_id is not necessarily expected
--- to agree with product.company_id).
-
-drop trigger if exists `gyle_update_trigger`//
-create trigger `gyle_update_trigger`
+create trigger `gyle_fp_update_trigger`
     before update on gyle
 for each row
 begin
-    -- carried over from the festival_product link above.
-    if ( (select count(fp.festival_id)
-            from festival_product fp, cask c, gyle g
-            where new.gyle_id=c.gyle_id
-            and g.festival_product_id=fp.festival_product_id
-            and fp.festival_id=c.festival_id) = 0 ) then
-        call ERROR_CASK_UPDATE_FP_TRIGGER();
+    if ( new.festival_product_id != old.festival_product_id and
+           (select count(fp.festival_id)
+            from festival_product fp, cask c
+            where old.gyle_id=c.gyle_id
+            and c.festival_id=fp.festival_id
+            and fp.festival_product_id=old.festival_product_id) != 0 ) then
+        call ERROR_GYLE_FP_UPDATE_TRIGGER();
     end if;
 end;
 //
 
--- Maintain our linking table.
-drop trigger if exists `festival_product_delete_trigger`//
-create trigger `festival_product_delete_trigger`
-    before delete on festival_product
+create trigger `fp_cask_update_trigger`
+    before update on festival_product
 for each row
 begin
-    if ( (select count(festival_id)
-          from gyle g, cask c
-          where g.festival_product_id=old.festival_product_id
-          and g.gyle_id=c.gyle_id
-          and c.festival_id=old.festival_id) != 0 ) then
-        call ERROR_GYLE_DELETE_TRIGGER();
+    if (  new.festival_id != old.festival_id and
+         (select count(f.festival_id)
+          from festival f, gyle g, cask c
+          where old.festival_id=c.festival_id
+          and c.gyle_id=g.gyle_id
+          and g.festival_product_id=old.festival_product_id) != 0 ) then
+        call ERROR_FP_CASK_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- FestivalProduct to (Cask and MeasurementBatch) to CaskMeasurement
+
+-- Check inserts, updates on cask_measurement table
+create trigger `cask_measurement_insert_trigger`
+    before insert on cask_measurement
+for each row
+begin
+    if ( (select count(mb.measurement_batch_id)
+            from cask c, measurement_batch mb
+            where new.cask_id=c.cask_id
+            and mb.festival_id=c.festival_id
+            and mb.measurement_batch_id=new.measurement_batch_id) = 0 ) then
+        call ERROR_CASK_MEASUREMENT_INSERT_TRIGGER();
+    end if;
+end;
+//
+
+create trigger `cask_measurement_update_trigger`
+    before update on cask_measurement
+for each row
+begin
+    if ( (select count(mb.measurement_batch_id)
+            from cask c, measurement_batch mb
+            where new.cask_id=c.cask_id
+            and mb.festival_id=c.festival_id
+            and mb.measurement_batch_id=new.measurement_batch_id) = 0 ) then
+        call ERROR_CASK_MEASUREMENT_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+create trigger `measurement_batch_update_trigger`
+    before update on measurement_batch
+for each row
+begin
+    if ( new.festival_id != old.festival_id and
+           (select count(cm.measurement_batch_id)
+            from cask_measurement cm, cask c
+            where old.measurement_batch_id=cm.measurement_batch_id
+            and cm.cask_id=c.cask_id
+            and c.festival_id=old.festival_id) != 0 ) then
+        call ERROR_MEASUREMENT_BATCH_UPDATE_TRIGGER();
     end if;
 end;
 //

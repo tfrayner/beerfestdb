@@ -65,6 +65,61 @@ Ext.onReady(function(){
     });
     order_batch_store.load();
     
+    /* Measurement Batch listing */
+    var measurement_batch_store = new Ext.data.JsonStore({
+        url:        url_measurement_batch_list,
+        root:       'objects',
+        fields:     [{ name: 'measurement_batch_id', type: 'int'    },
+                     { name: 'description',          type: 'string' },
+                     { name: 'measurement_time',     type: 'date', dateFormat: 'Y-m-d H:i:s'}],
+        sortInfo:   {
+            field:     'measurement_time',
+            direction: 'ASC',
+        },
+    });
+    measurement_batch_store.load();
+    
+    var measurementBatchGrid = new MyEditorGrid(
+        {
+            objLabel:           'Measurement Batch',
+            idField:            'measurement_batch_id',
+            autoExpandColumn:   'description',
+            deleteUrl:          url_measurement_batch_delete,
+            submitUrl:          url_measurement_batch_submit,
+            recordChanges:      function (record) {
+                var fields = record.getChanges();
+                fields.measurement_batch_id = record.get( 'measurement_batch_id' );
+                fields.festival_id = festival_id;
+                return(fields);
+            },
+            store:              measurement_batch_store,
+            contentCols: [
+                { id:         'measurement_time',
+                  header:     'Measurement Batch Time',
+                  dataIndex:  'measurement_time',
+                  width:      30,
+                  renderer:   Ext.util.Format.dateRenderer('Y-m-d H:i:s'),
+                  editor:     new Ext.ux.form.DateTime({
+                      allowBlank: false,
+                      format:     'Y-m-d H:i:s',
+                  })},
+                { id:         'description',
+                  header:     'Description (optional)',
+                  dataIndex:  'description',
+                  width:      50,
+                  editor:     new Ext.form.TextField({
+                      allowBlank: true,
+                  })},
+            ],
+            viewLink: function (grid, record, action, row, col) {
+                var t = new Ext.XTemplate('/measurementbatch/view/{measurement_batch_id}');
+                window.location=t.apply({
+                    measurement_batch_id: record.get('measurement_batch_id'),
+                })
+            },
+        }
+    );
+
     var orderBatchGrid = new MyEditorGrid(
         {
             objLabel:           'Order Batch',
@@ -207,12 +262,36 @@ Ext.onReady(function(){
         waitMsg:     'Loading Festival details...',
     });
 
+    var festivalStatus = new MyFormPanel({ // FIXME not entirely appropriate for readOnly.
+
+        title:       'Festival status',
+            
+        items: [
+            { name:       'kils_ordered',
+              fieldLabel: 'Total kils of beer ordered',
+              readOnly:   true, },
+            { name:       'kils_remaining',
+              fieldLabel: 'Total kils of beer remaining',
+              readOnly:   true, },
+            { name:       'num_beers_available',
+              fieldLabel: 'Beers available',
+              readOnly:   true, },
+        ],
+
+        loadUrl:     url_festival_status,
+        idParams:    { festival_id: festival_id },
+        waitMsg:     'Loading Festival status...',
+    });
+
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
             { title: 'Festival Information',
               layout: 'anchor',
               items:  festivalForm, },
+            { title: 'Festival Status',
+              layout: 'anchor',
+              items:  festivalStatus, },
             { title: 'Products Received',
               layout: 'fit',
               items:  receivedGrid, },
@@ -225,6 +304,9 @@ Ext.onReady(function(){
             { title: 'Product Order Batches',
               layout: 'fit',
               items:  orderBatchGrid, },
+            { title: 'Cask Dip Batches',
+              layout: 'fit',
+              items:  measurementBatchGrid, },
         ],
     });
 

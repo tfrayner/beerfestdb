@@ -112,6 +112,22 @@ sub submit : Local {
     my $j = JSON::Any->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
+    eval {
+        $rs->result_source()->schema()->txn_do(
+            sub { $self->_save_records( $c, $rs, $data ); }
+        );
+    };
+    if ( $@ ) {
+        $self->detach_with_txn_failure( $c, $rs, $@ );
+    }
+
+    $c->detach( $c->view( 'JSON' ) );
+}
+
+sub _save_records : Private {
+
+    my ( $self, $c, $rs, $data ) = @_;
+
     # First we check that we haven't been passed records marked as
     # is_received more than once.
     my @received;
@@ -119,8 +135,8 @@ sub submit : Local {
         if ( exists $rec->{ 'is_received' } && $rec->{ 'is_received' } ) {
             if ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) {
                 if ( $po->is_received() ) {
-                    die("Error: Product Order newly marked as is_received"
-                            . " is already is_received in database.");
+                    die("Product Order set as is_received"
+                            . " was already is_received in database.");
                 }
             }
             push @received, $rec;
@@ -131,21 +147,21 @@ sub submit : Local {
     foreach my $rec ( @{ $data } ) {
         $self->build_database_object( $rec, $c, $rs );
     }
-    
+
     # Copy any arrived products into FestivalProduct et al.
     foreach my $rec ( @received ) {
 
         # Failing to find the DB object is now an error (and really should never happen).
         my $po = $rs->find( $rec->{ 'product_order_id' } )
-            or die("Error: unable to retrieve loaded product order");
+            or die("Unable to retrieve loaded product order");
 
         my $default_currency = $c->model('DB::Currency')->find({
             currency_code => $c->config->{'default_currency'},
-        }) or die("Error retrieving default currency; check config settings.");
+        }) or die("Unable to retrieve default currency; check config settings.");
 
         my $default_sale_vol = $c->model('DB::SaleVolume')->find({
             description => $c->config->{'default_sale_volume'},
-        }) or die("Error retrieving default sale volume; check config settings.");
+        }) or die("Unable to retrieve default sale volume; check config settings.");
 
         my $festival_id = $po->order_batch_id()->get_column('festival_id');
         my $product_id  = $po->get_column('product_id');
@@ -171,6 +187,8 @@ sub submit : Local {
         });
 
         my $casksize = $po->get_column('container_size_id');
+
+        # Cellar Cask No., i.e. number of cask within FP.
         my $previous_max = $c->model('DB::Cask')->search(
             {
                 'gyle_id.festival_product_id' => $fp_id,
@@ -181,6 +199,10 @@ sub submit : Local {
                 }
             })->get_column('internal_reference')->max() || 0;            
 
+        # Festival Cask ID., i.e. a unique ID for cask within festival.
+        my $previous_festival_max = $c->model('DB::Cask')->search(
+            { festival_id => $festival_id })->get_column('cellar_reference')->max() || 0;
+
         foreach my $n ( 1..$po->cask_count() ) {
             $c->model('DB::Cask')->create({
                 gyle_id                => $gyle->get_column('gyle_id'),
@@ -189,11 +211,10 @@ sub submit : Local {
                 container_size_id      => $casksize,
                 currency_id            => $currency_id,
                 internal_reference     => $previous_max + $n,
+                cellar_reference       => $previous_festival_max + $n,
             });
         }
     }
-
-    $c->detach( $c->view( 'JSON' ) );
 
     return;
 }
