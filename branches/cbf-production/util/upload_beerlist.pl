@@ -230,7 +230,10 @@ my $tt2 = Template->new(
 )   or die( "Cannot create Template object: " . Template->error() );
 
 my $output;
-$tt2->process(\$template, { brewers => [ values %brewery_info ] }, \$output )
+$tt2->process(\$template,
+	      { brewers   => [ values %brewery_info ],
+		timestamp => gmtime() . " GMT" },
+	      \$output )
     or die( "Template processing error: " . $tt2->error() );
 
 # Do the upload itself.
@@ -287,3 +290,5 @@ __DATA__
   </div>
 [% END -%]
 </div>
+
+<span class="timestamp">Last updated: [% timestamp %]</span>
