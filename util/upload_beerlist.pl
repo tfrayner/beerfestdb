@@ -155,6 +155,28 @@ sub send_update {
     return();
 }
 
+sub get_timestamp {
+
+    my @time = localtime();
+
+    my @daymap = qw(Sun Mon Tues Weds Thurs Fri Sat);
+    my @monmap = qw(Jan Feb Mar Apr May Jun
+                    Jul Aug Sep Oct Nov Dec);
+
+    my $timestamp =
+	sprintf(
+	    "%s %s %d %s %02d:%02d:%02d %s",
+	    $daymap[ $time[6] ],
+	    $monmap[ $time[4] ],
+	    $time[3],
+	    $time[5] + 1900,
+	    $time[2], $time[1], $time[0],
+	    'BST', ## BAD BAD HARDCODING FIXME
+	);
+
+    return $timestamp;
+}
+
 sub parse_args {
 
     my ( $conffile, $want_help );
@@ -232,7 +254,7 @@ my $tt2 = Template->new(
 my $output;
 $tt2->process(\$template,
 	      { brewers   => [ values %brewery_info ],
-		timestamp => gmtime() . " GMT" },
+		timestamp => get_timestamp() },
 	      \$output )
     or die( "Template processing error: " . $tt2->error() );
 
@@ -291,4 +313,4 @@ __DATA__
 [% END -%]
 </div>
 
-<span class="timestamp">Last updated: [% timestamp %]</span>
+<span class="timestamp"><br/>Last updated: [% timestamp %]</span>
