@@ -280,11 +280,11 @@ __DATA__
 [%- FOREACH brewer = brewers.sort('name') %]
   <span class="producer">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded && brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
   <div class="products">[% FOREACH beer = brewer.beers.sort('product') %]
-    [% IF beer.css_status == 'sold_out' %]<span class="product [% beer.css_status %]">[% ELSE %]<span class="product">[% END %]
+    [% IF beer.css_status == 'sold_out' %]<span class="product_[% beer.css_status %]">[% ELSE %]<span class="product">[% END %]
       <span class="productname">[% beer.product | xml %]</span>
       <span class="abv">[% IF beer.abv.defined %][% beer.abv | xml %]%[% END %]</span>
       <span class="tasting">[% beer.description | xml %]</span>
-      <span class="status [% beer.css_status %]">[% beer.status | xml %]</span>
+      <span class="status_[% beer.css_status %]">[% beer.status | xml %]</span>
     </span>
     [%- END %]
   </div>
