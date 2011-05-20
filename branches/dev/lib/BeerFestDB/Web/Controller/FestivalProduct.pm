@@ -306,16 +306,30 @@ sub _derive_status_report : Private {
 
     FP:
     while ( my $fp = $fp_rs->next() ) {
+	my %gyleabv;
+	foreach my $gyle ( $fp->gyles() ) {
+	    $gyleabv{ $gyle->abv }++ if defined $gyle->abv;
+	}
+	my @gyleabvs = keys %gyleabv;
+	
         my $product_id = $fp->get_column('product_id');
         my $product = $fp->product_id();
         my $company = $product->company_id();
         my $year    = $company->year_founded();
+
+	# Gyles having multiple ABVs is a little beyond us here. Not
+	# interested in taking an average. Similarly we fall back to
+	# the nominal ABV if gyle ABV not known/recorded.
+	my $abv = scalar @gyleabvs == 1
+                ? $gyleabvs[0]
+		: $product->nominal_abv();	    
+	
         $festprod{ $product_id } = {
             company      => $company->name(),
             location     => $company->loc_desc(),
             year_founded => $year ? $year : undef,
             product      => $product->name(),
-            abv          => $product->nominal_abv(),
+            abv          => $abv,
             description  => $product->description(),
             status       => 'Arrived',
             css_status   => 'arrived',
