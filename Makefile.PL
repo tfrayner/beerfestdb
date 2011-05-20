@@ -42,6 +42,7 @@ requires 'Moose';
 requires 'Readonly';
 requires 'Text::CSV_XS';
 requires 'Template';
+requires 'DateTime::TimeZone';  # Timestamps for upload to public web site.
 
 recommends 'OpenOffice::OODoc';
 
