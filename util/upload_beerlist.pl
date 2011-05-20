@@ -130,6 +130,8 @@ use Config::YAML;
 use Pod::Usage;
 use Template;
 use Digest::SHA qw (hmac_sha256_hex);
+use DateTime;
+use DateTime::TimeZone;
 
 sub send_update {
 
@@ -157,24 +159,11 @@ sub send_update {
 
 sub get_timestamp {
 
-    my @time = localtime();
+    my $dt = DateTime->now();
+    my $tz = DateTime::TimeZone->new( name => 'local' );
+    $dt->set_time_zone( $tz->name );
 
-    my @daymap = qw(Sun Mon Tues Weds Thurs Fri Sat);
-    my @monmap = qw(Jan Feb Mar Apr May Jun
-                    Jul Aug Sep Oct Nov Dec);
-
-    my $timestamp =
-	sprintf(
-	    "%s %s %d %s %02d:%02d:%02d %s",
-	    $daymap[ $time[6] ],
-	    $monmap[ $time[4] ],
-	    $time[3],
-	    $time[5] + 1900,
-	    $time[2], $time[1], $time[0],
-	    'BST', ## BAD BAD HARDCODING FIXME
-	);
-
-    return $timestamp;
+    return $dt->strftime("%a %b %e %Y %H:%M:%S %Z");
 }
 
 sub parse_args {
