@@ -22,9 +22,9 @@
 [% END %]
 
 [% BLOCK table_header %]
-  \begin{tabular}{ | l | l | l | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.7cm} | [% END %]p{5cm} | }
+  \begin{tabular}{ | l | l | c | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.3cm} | [% END %]p{5cm} | }
     \hline
-  Location & Brewer & Beer & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name %] & [% END %]Notes \\ \hline
+  Brewer & Beer & ID & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name %] & [% END %]Notes \\ \hline
 [% END %]
 
 [% BLOCK table_end %]
@@ -59,9 +59,9 @@
   [% FOREACH cask = casks %]
 
     [% NEXT IF cask.category != 'beer' %]
-    &
     [% cask.brewery | replace( '&', '\\&' ) %] &
     [% cask.product | truncate(40) | replace( '&', '\\&' ) %] &
+    [% cask.festival_id %] &
     [% cask.number %] &
     &  &  &  &
     [% cask.size | format('%d') %] & [% FOREACH batch = dip_batches %][% SET bid = batch.id %] [% cask.dips.$bid | format('%.1f') | replace('\.0$','') %] &[% END %] \\ \hline
