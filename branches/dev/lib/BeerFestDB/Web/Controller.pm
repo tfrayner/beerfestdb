@@ -28,6 +28,8 @@ use Carp;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
+with 'BeerFestDB::DBHashRefValidator';
+
 has 'model_view_map' => ( is  => 'rw',
                           isa => 'HashRef' );
 
@@ -140,6 +142,10 @@ sub build_database_object : Private {
 
     my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
 
+    foreach my $key ( %$rec ) {
+	delete $rec->{$key} unless $self->value_is_acceptable( $rec->{$key} );
+    }
+
     # Passed a JSON record nested hashref, Catalyst context and the
     # appropriate DBIC::ResultSet object, create database objects
     # recursively (depth first).
@@ -244,14 +250,35 @@ sub build_database_object : Private {
         };
         if ($@) {
 
-            # Called within a transaction, we die hard.
-            my $valstr = join(', ', map { $_ . ' => ' . $rec->{$_} } keys %$rec);
-            die(sprintf("Unable to save %s object with values: %s\n",
-                        $rs->result_source->source_name(), $valstr));
+	    my @missing = $self->resultset_missing_requirements( $rec, $rs );
+
+	    my $message;
+	    if ( scalar @missing ) {
+	        my @bad = map { s/_id\z//xms; s/_+/ /g; $_ } @missing;
+	        $message = sprintf("Unable to save %s object (missing values for ",
+				   $rs->result_source->source_name())
+		  . join(", ", @bad) . ").";
+	    }
+	    else {
+
+		my $valstr = join(', ', map { $_ . ' => ' . $rec->{$_} } keys %$rec);
+		$message = sprintf("Unable to save %s object with values: %s",
+				   $rs->result_source->source_name(), $valstr);
+	    }
+         
+  	    # Called within a transaction, we die hard.
+	    die( $message . "\n" );
         }
     }
 
     return( $dbobj );
+}
+
+sub value_is_acceptable : Private {  # Required by DBHashRefValidator
+
+    my ( $self, $value ) = @_;
+
+    return ( defined $value );
 }
 
 =head2 write_to_resultset

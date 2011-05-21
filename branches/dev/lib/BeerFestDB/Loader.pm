@@ -33,6 +33,8 @@ use List::Util qw(first);
 
 use BeerFestDB::ORM;
 
+with 'BeerFestDB::DBHashRefValidator';
+
 has 'database' => ( is       => 'ro',
                     isa      => 'DBIx::Class::Schema',
                     required => 1 );
@@ -114,7 +116,7 @@ sub _get_csv_parser {
     return $csv_parser;
 }
 
-sub _check_not_null {
+sub value_is_acceptable {
 
     my ( $self, $value ) = @_;
 
@@ -128,7 +130,7 @@ sub _load_data {
     # Each of these calls defines the column to be used from the input
     # file.
     my $festival
-	= $self->_check_not_null( $datahash->{$FESTIVAL_YEAR} )
+	= $self->value_is_acceptable( $datahash->{$FESTIVAL_YEAR} )
 	? $self->_load_column_value(
 	    {
 		year        => $datahash->{$FESTIVAL_YEAR},
@@ -139,7 +141,7 @@ sub _load_data {
 	: undef;
 
     my $stillage
-	= $self->_check_not_null( $datahash->{$STILLAGE_LOCATION} )
+	= $self->value_is_acceptable( $datahash->{$STILLAGE_LOCATION} )
 	? $self->_load_column_value(
 	    {
 		description => $datahash->{$STILLAGE_LOCATION},
@@ -149,7 +151,7 @@ sub _load_data {
 	: undef;
 
     my $bar
-	= $self->_check_not_null( $datahash->{$BAR_DESCRIPTION} )
+	= $self->value_is_acceptable( $datahash->{$BAR_DESCRIPTION} )
 	? $self->_load_column_value(
 	    {
 		description => $datahash->{$BAR_DESCRIPTION},
@@ -159,7 +161,7 @@ sub _load_data {
 	: undef;
 
     my $brewer
-	= $self->_check_not_null( $datahash->{$BREWER_NAME} )
+	= $self->value_is_acceptable( $datahash->{$BREWER_NAME} )
 	? $self->_load_column_value(
 	    {
 		name         => $datahash->{$BREWER_NAME},
@@ -181,7 +183,7 @@ sub _load_data {
 
     # FIXME this is a controlled vocab so should die on invalid values.
     my $style
-	= $self->_check_not_null( $datahash->{$PRODUCT_STYLE} )
+	= $self->value_is_acceptable( $datahash->{$PRODUCT_STYLE} )
 	? $self->_load_column_value(
 	    {
                 product_category_id => $category,
@@ -222,7 +224,7 @@ sub _load_data {
     my $nominal_abv = $datahash->{$PRODUCT_ABV};
     $nominal_abv = undef if ( defined $nominal_abv && $nominal_abv eq q{} );
     my $product
-	= $self->_check_not_null( $datahash->{$PRODUCT_NAME} )
+	= $self->value_is_acceptable( $datahash->{$PRODUCT_NAME} )
 	? $self->_load_column_value(
 	    {
 		name             => $datahash->{$PRODUCT_NAME},
@@ -237,7 +239,7 @@ sub _load_data {
 	: undef;
 
     my $distributor
-	= $self->_check_not_null( $datahash->{$DISTRIBUTOR_NAME} )
+	= $self->value_is_acceptable( $datahash->{$DISTRIBUTOR_NAME} )
 	? $self->_load_column_value(
 	    {
 		name         => $datahash->{$DISTRIBUTOR_NAME},
@@ -250,7 +252,7 @@ sub _load_data {
 	: undef;
 
     my $contact_type
-        = $self->_check_not_null( $datahash->{$CONTACT_TYPE} )
+        = $self->value_is_acceptable( $datahash->{$CONTACT_TYPE} )
         ? $self->_load_column_value(
             {
                 description => $datahash->{$CONTACT_TYPE},
@@ -262,7 +264,7 @@ sub _load_data {
     ## want to support all the iso2, iso3, num3 data for a simple
     ## product order load.
     my $country   
-        = $self->_check_not_null( $datahash->{$CONTACT_COUNTRY} )
+        = $self->value_is_acceptable( $datahash->{$CONTACT_COUNTRY} )
         ? $self->_load_column_value(
             {
                 country_code_iso2 => $datahash->{$CONTACT_COUNTRY},
@@ -280,7 +282,7 @@ sub _load_data {
         'ContainerMeasure');
 
     my $cask_size
-        = $self->_check_not_null( $datahash->{$CASK_SIZE} )
+        = $self->value_is_acceptable( $datahash->{$CASK_SIZE} )
         ? $self->_load_column_value(
             {
                 container_volume     => $datahash->{$CASK_SIZE},
@@ -404,7 +406,7 @@ sub _load_data {
             # FIXME at the moment we're assuming that dip measurements use the
             # same volume units as the cask sizes.
             my $cask_measurement
-                = $self->_check_not_null( $datahash->{$CASK_MEASUREMENT_VOLUME} )
+                = $self->value_is_acceptable( $datahash->{$CASK_MEASUREMENT_VOLUME} )
                     ? $self->load_cask_measurement(
                         {
                             cask_id              => $cask,
@@ -440,7 +442,7 @@ sub _load_data {
     }
 
     my $phone_type
-        = $self->_check_not_null( $datahash->{$TELEPHONE_TYPE} )
+        = $self->value_is_acceptable( $datahash->{$TELEPHONE_TYPE} )
         ? $self->_load_column_value(
             {
                 description => $datahash->{$TELEPHONE_TYPE},
@@ -449,7 +451,7 @@ sub _load_data {
         : undef;
 
     my $telephone  ## FIXME ultimately we'll want to split into area+local.
-        = ( $contact && $self->_check_not_null( $datahash->{$CONTACT_TELEPHONE} ) )
+        = ( $contact && $self->value_is_acceptable( $datahash->{$CONTACT_TELEPHONE} ) )
         ? $self->_load_column_value(
             {
                 contact_id   => $contact,
@@ -460,54 +462,6 @@ sub _load_data {
         : undef;
 
     return;
-}
-
-sub _find_required_cols {
-
-    my ( $self, $resultset ) = @_;
-
-    my $source = $resultset->result_source();
-
-    my %is_pk = map { $_ => 1 } $source->primary_columns();
-
-    my @cols = $source->columns();
-
-    my ( @required, @optional );
-    foreach my $col (@cols) {
-
-	# FIXME we should introspect to identify primary
-	# key/autoincrement columns where possible.
-	next if $is_pk{ $col };
-	my $info = $source->column_info($col);
-	if ( $info->{'is_nullable'} ) {
-	    push ( @optional, $col );
-	}
-	else {
-	    push ( @required, $col );
-	}
-    }
-
-    return ( \@required, \@optional );
-}
-
-sub _confirm_required_cols {
-
-    my ( $self, $args, $required ) = @_;
-
-    my $problem;
-    foreach my $col ( @{ $required } ) {
-	unless ( $self->_check_not_null( $args->{$col} ) ) {
-	    warn(qq{Warning: Required column value "$col" not present.\n});
-	    $problem++;
-	}
-    }
-
-    if ( $problem ) {
-	return;
-    }
-    else {
-	return 1;
-    }
 }
 
 sub _retrieve_obj_id {
@@ -537,16 +491,8 @@ sub _load_column_value {
     }
 
     # Validate our arguments against the database.
-    my ( $required, $optional ) = $self->_find_required_cols( $resultset );
-    my @pk = $resultset->result_source()->primary_columns();
-    my %recognised = map { $_ => 1 } @{ $required }, @{ $optional }, @pk;
-    foreach my $key ( keys %{ $args } ) {
-	unless ( $recognised{ $key } ) {
-	    confess(qq{Error: Unrecognised column key "$key".}); 
-	}
-    }
-    $self->_confirm_required_cols( $args, $required )
-	or croak(qq{Error: Incomplete data for "$class" object.});
+    $self->validate_against_resultset( $args, $resultset );
+    my ( $required, $optional ) = $self->resultset_required_columns( $resultset );
 
     # Create an object in the database.
     my $object;
