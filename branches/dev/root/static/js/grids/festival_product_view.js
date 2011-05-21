@@ -49,20 +49,6 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
     });
 
-    /* Product drop-down */
-    var product_store = new Ext.data.JsonStore({
-        url:        url_product_list,
-        root:       'objects',
-        fields:     [{ name: 'product_id', type: 'int' },
-                     { name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-    product_store.load();
-
     /* Sale volume drop-down */
     var volume_store = new Ext.data.JsonStore({
         url:        url_sale_volume_list,
@@ -183,26 +169,14 @@ Ext.onReady(function(){
             
         items: [
 
-            { name:           'company_id',
+            { name:           'company_name',
               fieldLabel:     'Company',
-              triggerAction:  'all',
-              store:          company_store,
-              forceSelection: true,
-              valueField:     'company_id',
-              displayField:   'name',
-              lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'textfield',
               readOnly:       true, },
             
-            { name:           'product_id',
+            { name:           'product_name',
               fieldLabel:     'Product',
-              triggerAction:  'all',
-              store:          product_store,
-              forceSelection: true,
-              valueField:     'product_id',
-              displayField:   'name',
-              lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'textfield',
               readOnly:       true, },
             
             { name:           'sale_price',
