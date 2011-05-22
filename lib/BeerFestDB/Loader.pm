@@ -293,7 +293,7 @@ sub _load_data {
 
     my $count = $datahash->{$CASK_COUNT};
     unless ( defined $count && $count ne q{} ) {
-        $count = 1;
+        $count = 0;
     }
 
     my $contact_hash = {
