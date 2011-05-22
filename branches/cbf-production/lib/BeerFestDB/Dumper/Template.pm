@@ -233,13 +233,9 @@ sub dump {
     elsif ( $self->dump_class eq 'gyle' ) {
         foreach my $product ( @{ $self->festival_products } ) {
 	    my @gyles =
-		$product->search_related('festival_products')
-                        ->search_related('gyles', 
-					 { 'casks.festival_id' => $self->festival->id() },
-					 {
-					     prefetch => { casks => 'festival_id' },
-					     join     => { casks => 'festival_id' },
-					 });
+		$product->search_related('festival_products',
+					 { festival_id => $self->festival->id() })
+                        ->search_related('gyles');
             foreach my $gyle ( @gyles ) {
                 my $gylehash = $self->product_hash( $gyle->festival_product_id()->product_id() );
                 $self->update_gyle_hash( $gylehash, $gyle );
