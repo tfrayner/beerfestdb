@@ -37,7 +37,7 @@
 Cask ID: \textbf{[% IF cask.festival_id.defined %][% cask.festival_id %][% ELSE %]NOT AVAILABLE[% END %]}
 [% cask.brewery | replace( '&', '\\&' ) %]
 [% cask.product | replace( '&', '\\&' )  | truncate(30) %]
-ABV: [% cask.abv %]\%
+ABV: [% cask.abv %]\%~~~([% cask.size | format('%d') %])
 [% END %]
 \end{labels}
 
