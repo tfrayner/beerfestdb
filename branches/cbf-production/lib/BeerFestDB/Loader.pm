@@ -128,7 +128,7 @@ sub _load_data {
     # Each of these calls defines the column to be used from the input
     # file.
     my $festival
-	= $self->_check_not_null( $datahash->{$FESTIVAL_YEAR} )
+	= $self->_check_not_null( $datahash->{$FESTIVAL_NAME} )
 	? $self->_load_column_value(
 	    {
 		year        => $datahash->{$FESTIVAL_YEAR},
@@ -358,7 +358,7 @@ sub _load_data {
         }
 
         my $gyle
-            = $festival_product
+            = $festival_product && $count
             ? $self->_load_column_value(
                 {
                     external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
