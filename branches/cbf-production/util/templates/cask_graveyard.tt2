@@ -1,0 +1,43 @@
+\documentclass[english,a4paper]{article}
+
+\usepackage[absolute]{textpos}
+\usepackage[british]{babel}
+\usepackage{palatino}
+\usepackage{graphicx}
+
+\setlength{\TPHorizModule}{5mm}
+\setlength{\TPVertModule}{\TPHorizModule}
+\textblockorigin{10mm}{10mm} % start everything near the top-left corner
+\setlength{\parindent}{0pt}
+
+\pagestyle{empty}
+\renewcommand\familydefault{\sfdefault} % makes it use sans serif
+
+\begin{document}
+
+[% FOREACH dist = objects %]
+
+\fontsize{86}{94}
+\selectfont
+
+dist.name
+
+\fontsize{40}{94}
+\selectfont
+
+[% SET brewerhash = {} %]
+[% FOR order = dist.orders %]
+  [% SET brewery = order.brewery %]
+  [% SET brewerhash.$brewery = 1 %]
+[% END %]
+
+[% FOR b IN brewerhash %]
+  [% b.key %]
+[% END %]
+
+\null\newpage
+
+[% END %]
+
+\end{document}
+
