@@ -358,7 +358,7 @@ sub _load_data {
         }
 
         my $gyle
-            = $festival_product && $count
+            = $festival_product && ( $count || $datahash->{$GYLE_ABV} )
             ? $self->_load_column_value(
                 {
                     external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
