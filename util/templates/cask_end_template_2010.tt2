@@ -46,6 +46,8 @@
   \fontsize{48}{60}
   \selectfont
 
+[% IF cask.brewery == 'UNKNOWN' %][% SET cask.brewery = '' %][% END %]
+
 [% IF cask.category == 'beer' || cask.category == 'foreign beer' %]
 
   [% IF cask.product.length > 55 %]
@@ -110,9 +112,40 @@
   %\vspace{8mm}
   \end{textblock}
 
+[% ELSIF cask.category == 'mead' %]
+
+  [% IF cask.product.length > 55 %]
+    [% product_font_size = 48 %]
+  [% ELSE %]
+    [% IF cask.product.length > 32 %]
+      [% product_font_size = 64 %]
+    [% ELSE %]
+      [% product_font_size = 86 %]
+    [% END %]
+  [% END %]
+
+  \begin{textblock}{0.6}[0.5,0](0.5,0.05)
+  \begin{center}
+  \textbf{[% cask.brewery | replace( '&', '\\&' ) %]}
+  \end{center}
+  \end{textblock}
+
+  %\vspace{5mm}
+  \begin{textblock}{0.8}[0.5, 0.5](0.5,0.4)
+  \begin{center}
+  \fontsize{[% product_font_size %]}{94}
+  \selectfont
+  \textbf{[% cask.product | replace( '&', '\\&' ) %]}
+  \end{center}
+
+  % \hspace{5mm} 0.0\%
+
+  %\vspace{8mm}
+  \end{textblock}
+
 [% ELSE %]
 
-  [% THROW category "Unrecognised product category (should be beer, cider, perry or apple juice):" %]
+  [% THROW category "Unrecognised product category (should be beer, foreign beer, cider, mead, perry or apple juice):" %]
   
 [% END %]
 
@@ -143,14 +176,16 @@
   \fontsize{48}{60}
   \selectfont
 
-\begin{textblock}{0.4}(0.55,0.70)
-[% IF cask.category == 'foreign beer' %]
+[% IF cask.category == 'mead' %]
 
-  \textbf{\pounds4.00/pint}
-
-  \textbf{\pounds2.00/half pint}
+\begin{textblock}{0.3}(0.60,0.70)
+    \textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
+            [%- cask.price %]~per\\ [% cask.sale_volume %]}
+\end{textblock}
 
 [% ELSE %]
+
+\begin{textblock}{0.4}(0.55,0.70)
   [% IF cask.price == cask.half_price %]
     \textbf{[% cask.price %]}
   [% ELSE %]
@@ -162,8 +197,9 @@
           [%- cask.half_price | format('%.2f') -%]/half [% cask.sale_volume %]}
 
   [% END %]
-[% END %]
 \end{textblock}
+
+[% END %]
 \null\newpage
 [% END %]
 
