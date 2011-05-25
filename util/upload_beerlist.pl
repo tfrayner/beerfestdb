@@ -228,6 +228,17 @@ foreach my $item ( @$statuslist ) {
     $brewery_info{ $brewer }{name}         ||= $brewer;
     $brewery_info{ $brewer }{location}     ||= $item->{location};
     $brewery_info{ $brewer }{year_founded} ||= $item->{year_founded};
+    my ( $amount ) = ( $item->{status} =~ m/(\d+) \w+ Remaining/i );
+    if ( defined $amount ) {
+	$item->{status} = $amount > 18 ? 'Plenty left'
+                        : $amount >  9 ? 'Some beer remaining'
+                        : $amount >  3 ? 'A little remaining'
+                        : 'Nearly finished!';
+	$item->{css_status} = $amount > 18 ? 'plenty_left'
+                            : $amount >  9 ? 'some_beer_remaining'
+                            : $amount >  3 ? 'a_little_remaining'
+                            : 'nearly_finished';
+    }
     push @{ $brewery_info{ $brewer }{beers} },
         { map { $_ => $item->{$_} } qw( product status abv description css_status ) };
 }
@@ -291,7 +302,7 @@ __DATA__
 [%- FOREACH brewer = brewers.sort('name') %]
   <span class="producer">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded && brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
   <div class="products">[% FOREACH beer = brewer.beers.sort('product') %]
-    [% IF beer.css_status == 'sold_out' %]<span class="product_[% beer.css_status %]">[% ELSE %]<span class="product">[% END %]
+    <span class="product">[% IF beer.css_status == 'sold_out' %]<span class="product_[% beer.css_status %]">[% END %]
       <span class="productname">[% beer.product | xml %]</span>
       <span class="abv">[% IF beer.abv.defined %][% beer.abv | xml %]%[% END %]</span>
       <span class="tasting">[% beer.description | xml %]</span>
