@@ -184,6 +184,7 @@ sub _save_records : Private {
 
     my ( $self, $c, $rs, $data ) = @_;
 
+    RECORD:
     foreach my $rec ( @{ $data } ) {
         my $cask  = $c->model( 'DB::Cask' )->find( { cask_id => $rec->{cask_id} } );
         unless ( $cask ) {
@@ -198,6 +199,7 @@ sub _save_records : Private {
 
         # We are assuming all measurement units are the same as the
         # cask size unit (i.e. gallons, for the most part).
+	next RECORD unless defined $rec->{volume} && $rec->{volume} ne q{};
         $rec->{container_measure_id} = $cask->container_size_id()->get_column('container_measure_id');
 
         my $dbobj = $self->build_database_object( $rec, $c, $rs );
