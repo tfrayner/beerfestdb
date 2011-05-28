@@ -182,6 +182,13 @@ sub build_database_object : Private {
                 $dbval = $dbval ? 1 : 0;
             }
 
+	    # Don't try and save empty strings as integers - strict
+	    # MySQL mode complains.
+	    next VIEW_KEY if ( $dbobj->result_source()
+			             ->column_info( $lookup )
+   			             ->{data_type} eq 'integer'
+			       && $dbval eq q{} );
+
             $dbobj->set_column( $lookup, $dbval );
         }
     }
@@ -245,6 +252,7 @@ sub build_database_object : Private {
         if ($@) {
 
             # Called within a transaction, we die hard.
+	    $c->log->error("DB transaction failure: $@");
             my $valstr = join(', ', map { $_ . ' => ' . $rec->{$_} } keys %$rec);
             die(sprintf("Unable to save %s object with values: %s\n",
                         $rs->result_source->source_name(), $valstr));
