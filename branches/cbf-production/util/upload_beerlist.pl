@@ -230,14 +230,22 @@ foreach my $item ( @$statuslist ) {
     $brewery_info{ $brewer }{year_founded} ||= $item->{year_founded};
     my ( $amount ) = ( $item->{status} =~ m/(\d+) \w+ Remaining/i );
     if ( defined $amount ) {
-	$item->{status} = $amount > 18 ? 'Plenty left'
-                        : $amount >  9 ? 'Some beer remaining'
-                        : $amount >  3 ? 'A little remaining'
-                        : 'Nearly finished!';
-	$item->{css_status} = $amount > 18 ? 'plenty_left'
-                            : $amount >  9 ? 'some_beer_remaining'
-                            : $amount >  3 ? 'a_little_remaining'
-                            : 'nearly_finished';
+	if    ( $amount >= 18 ) {
+	    $item->{status}     = 'Plenty left';
+	    $item->{css_status} = 'plenty_left';
+	}
+	elsif ( $amount >= 9 ) {
+	    $item->{status}     = 'Some beer remaining';
+	    $item->{css_status} = 'some_beer_remaining';
+	}
+	elsif ( $amount >= 3 ) {
+	    $item->{status}     = 'A little remaining';
+	    $item->{css_status} = 'a_little_remaining';
+	}
+	else {
+	    $item->{status}     = 'Nearly finished!';
+	    $item->{css_status} = 'nearly_finished';	    
+	}
     }
     push @{ $brewery_info{ $brewer }{beers} },
         { map { $_ => $item->{$_} } qw( product status abv description css_status ) };
