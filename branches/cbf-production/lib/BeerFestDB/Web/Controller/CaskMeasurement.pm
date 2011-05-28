@@ -199,10 +199,24 @@ sub _save_records : Private {
 
         # We are assuming all measurement units are the same as the
         # cask size unit (i.e. gallons, for the most part).
-	next RECORD unless defined $rec->{volume} && $rec->{volume} ne q{};
-        $rec->{container_measure_id} = $cask->container_size_id()->get_column('container_measure_id');
+	next RECORD unless defined $rec->{volume};
 
-        my $dbobj = $self->build_database_object( $rec, $c, $rs );
+	# Allow the UI to pass in an empty string to indicate we
+	# should delete the pre-existing dip.
+	my $to_delete;
+	if ( $rec->{volume} eq q{} ) {
+	    my %attr  = map { $_ => $rec->{$_} } qw( cask_id measurement_batch_id );
+	    if ( my $dbobj = $rs->find(\%attr) ) {
+		$dbobj->delete();
+	    }
+	}
+	else {
+	    $rec->{container_measure_id}
+	        = $cask->container_size_id()
+		       ->get_column('container_measure_id');
+
+	    $self->build_database_object( $rec, $c, $rs );
+	}
     }
 
     return;
