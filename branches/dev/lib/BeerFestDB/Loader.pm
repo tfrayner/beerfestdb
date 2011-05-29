@@ -130,7 +130,7 @@ sub _load_data {
     # Each of these calls defines the column to be used from the input
     # file.
     my $festival
-	= $self->value_is_acceptable( $datahash->{$FESTIVAL_YEAR} )
+	= $self->value_is_acceptable( $datahash->{$FESTIVAL_NAME} )
 	? $self->_load_column_value(
 	    {
 		year        => $datahash->{$FESTIVAL_YEAR},
@@ -360,7 +360,7 @@ sub _load_data {
         }
 
         my $gyle
-            = $festival_product
+            = $festival_product && ( $count || $datahash->{$GYLE_ABV} )
             ? $self->_load_column_value(
                 {
                     external_reference => $datahash->{$GYLE_BREWERY_NUMBER},

@@ -183,10 +183,19 @@ sub build_database_object : Private {
         else {
             my $dbval = $rec->{ $view_key };
 
-            # For some reason these don't want to autoconvert, so we do this manually.
+            # For some reason these don't want to autoconvert, so we
+            # do this manually.
             if ( UNIVERSAL::isa($dbval, 'JSON::PP::Boolean') ) {
                 $dbval = $dbval ? 1 : 0;
             }
+
+	    # Don't try and save empty strings as integers - strict
+	    # MySQL mode complains.
+	    my $dt = $dbobj->result_source()
+		           ->column_info( $lookup )
+			   ->{data_type};
+	    next VIEW_KEY if ( $dbval eq q{} && 
+			       ( $dt eq 'integer' || $dt eq 'tinyint' ) );
 
             $dbobj->set_column( $lookup, $dbval );
         }
@@ -249,6 +258,8 @@ sub build_database_object : Private {
             $dbobj->update_or_insert();
         };
         if ($@) {
+
+	    $c->log->error("DB transaction failure: $@");
 
 	    my @missing = $self->resultset_missing_requirements( $rec, $rs );
 
