@@ -56,7 +56,19 @@
 
   [% SET counter = 0 %]
 
+  [% SET max_batchnum = -1 %]
   [% FOREACH cask = casks %]
+    [% SET local_max = 0 %]
+    [% FOREACH batch = dip_batches %]
+      [%- SET bid = batch.id %][% SET current = cask.dips.$bid -%]
+      [%- IF current.defined && current != '' %][% local_max = local_max + 1 %][% END -%]
+    [% END %]
+    [% IF max_batchnum < local_max %][% SET max_batchnum = local_max %][% END %]
+  [% END %]
+
+  [% FOREACH cask = casks %]
+
+    [% SET latest = cask.size %]
 
     [% NEXT IF cask.category != 'beer' %]
     &
@@ -65,7 +77,17 @@
     [% cask.festival_id %] &
     [% cask.number %] &
     &  &  &  &
-    [% cask.size | format('%d') %] & [% FOREACH batch = dip_batches %][% SET bid = batch.id %] [% cask.dips.$bid | format('%.1f') | replace('\.0$','') %] &[% END %] \\ \hline
+    [% cask.size | format('%d') %] &
+[%- SET batch_counter = 0 -%]
+[%- FOREACH batch = dip_batches -%]
+[%- SET bid = batch.id %][% SET current = cask.dips.$bid -%]
+[%- IF batch_counter <= max_batchnum && ( ( ! current.defined ) || current == '' ) -%]
+[%- current = latest -%]
+[%- END -%]
+ [%- current | format('%.1f') | replace('\.0$','') %] &
+[%- SET latest = current -%]
+[%- SET batch_counter = batch_counter + 1 -%]
+[%- END %] \\ \hline
 
     [% counter = counter + 1 %]
 
