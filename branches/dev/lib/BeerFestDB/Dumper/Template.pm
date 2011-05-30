@@ -197,6 +197,8 @@ sub update_cask_hash {
           ? $cask->container_size_id->container_volume() : q{};
     $caskhash->{dips} = { map { $_->get_column('measurement_batch_id') => $_->volume() }
                               $cask->cask_measurements() };
+    $caskhash->{comment}      = $cask->comment();
+    $caskhash->{is_condemned} = $cask->is_condemned();
 
     return $caskhash;
 }

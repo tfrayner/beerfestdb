@@ -22,9 +22,9 @@
 [% END %]
 
 [% BLOCK table_header %]
-  \begin{tabular}{ | l | l | l | c | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.4cm} | [% END %]p{5cm} | }
+  \begin{tabular}{ | l | l | l | c | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.4cm} | [% END %]p{5cm} | c | }
     \hline
-  Location & Brewer & Beer & ID & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name %] & [% END %]Notes \\ \hline
+  Location & Brewer & Beer & ID & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name %] & [% END %]Notes & C \\ \hline
 [% END %]
 
 [% BLOCK table_end %]
@@ -50,21 +50,24 @@
   \fontsize{10}{12}
   \selectfont
 
-  [% PROCESS table_header %]
+[%- PROCESS table_header;
+    SET casks = stillage.value.sort('brewery', 'product', 'number');
+    SET counter = 0 -%]
 
-  [% SET casks = stillage.value.sort('brewery', 'product', 'number') %]
-
-  [% SET counter = 0 %]
-
-  [% SET max_batchnum = -1 %]
-  [% FOREACH cask = casks %]
-    [% SET local_max = 0 %]
-    [% FOREACH batch = dip_batches %]
-      [%- SET bid = batch.id %][% SET current = cask.dips.$bid -%]
-      [%- IF current.defined && current != '' %][% local_max = local_max + 1 %][% END -%]
-    [% END %]
-    [% IF max_batchnum < local_max %][% SET max_batchnum = local_max %][% END %]
-  [% END %]
+[%- SET max_batchnum = -1;
+    FOREACH cask = casks;
+    SET local_max = 0;
+    FOREACH batch = dip_batches;
+      SET bid = batch.id;
+      SET current = cask.dips.$bid;
+      IF current.defined && current != '';
+         local_max = local_max + 1;
+      END;
+    END;
+    IF max_batchnum < local_max;
+      SET max_batchnum = local_max;
+    END;
+  END -%]
 
   [% FOREACH cask = casks %]
 
@@ -78,22 +81,25 @@
     [% cask.number %] &
     &  &  &  &
     [% cask.size | format('%d') %] &
-[%- SET batch_counter = 0 -%]
-[%- FOREACH batch = dip_batches -%]
-[%- SET bid = batch.id %][% SET current = cask.dips.$bid -%]
-[%- IF batch_counter <= max_batchnum && ( ( ! current.defined ) || current == '' ) -%]
-[%- current = latest -%]
-[%- END -%]
+[%- SET batch_counter = 0;
+    FOREACH batch = dip_batches;
+      SET bid = batch.id;
+      SET current = cask.dips.$bid;
+      IF batch_counter <= max_batchnum && ( ( ! current.defined ) || current == '' );
+        current = latest;
+      END -%]
  [%- current | format('%.1f') | replace('\.0$','') %] &
-[%- SET latest = current -%]
-[%- SET batch_counter = batch_counter + 1 -%]
-[%- END %] \\ \hline
+[%- SET latest = current;
+    SET batch_counter = batch_counter + 1;
+    END -%]
+[%- cask.comment | truncate(30) | replace( '&', '\\&' ) | replace( '%', '\\%' ) %] &
+[%- IF cask.is_condemned -%] X [%- END -%] \\ \hline
 
-    [% counter = counter + 1 %]
+[%- counter = counter + 1 -%]
 
-    [% IF counter > 35 %]
-      [% counter = 0 %]
-      [% PROCESS table_end %]
+[%- IF counter > 35;
+      counter = 0;
+      PROCESS table_end %]
 
       \null\newpage
 
@@ -101,12 +107,10 @@
 
       \vspace{ 5 mm }
 
-      [% PROCESS table_header %]
-    [% END %]
-
-  [% END %]
-
-  [% PROCESS table_end %]
+  [%- PROCESS table_header;
+    END;
+  END;
+  PROCESS table_end -%]
 
   \null\newpage
 
