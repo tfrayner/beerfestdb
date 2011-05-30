@@ -350,6 +350,7 @@ sub delete_from_resultset : Private {
                         $rec->delete() if $rec;
                     };
                     if ($@) {
+                        $c->log->error("DB transaction failure: $@");
                         die(sprintf("Unable to delete %s object with ID=%s\n",
                                     $rs->result_source->source_name(), $id));
                     }
