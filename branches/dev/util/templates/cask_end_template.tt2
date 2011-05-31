@@ -1,5 +1,5 @@
 %
-% $Id$
+% $Id: cask_end_template.tt2 84 2010-05-18 18:13:26Z tfrayner $
 %
 % Example LaTeX template for use with cask_end_signs_latex.pl
 
@@ -17,7 +17,7 @@
 %\hyphenpenalty=10000
 %\exhyphenpenalty=10000
 
-[% FOREACH cask = objects %]
+[% FOREACH cask = objects.sort('category', 'brewery', 'product') %]
 
 \setlength{\TPHorizModule}{\paperwidth}
 \setlength{\TPVertModule}{\paperheight}
@@ -30,8 +30,10 @@
 %\selectfont
 
 % festival logo
+[% SET logo = logos.0 %]
+
 \begin{textblock}{0.01}(0.06,0.04)
-\includegraphics[width=40mm]{[% logos.0 %]}
+\includegraphics[width=40mm]{[% logo %]}
 \end{textblock}
 
 % CAMRA logo (hardcoded)
@@ -44,7 +46,9 @@
   \fontsize{48}{60}
   \selectfont
 
-[% IF cask.category == 'beer' %]
+[% IF cask.brewery == 'UNKNOWN' %][% SET cask.brewery = '' %][% END %]
+
+[% IF cask.category == 'beer' || cask.category == 'foreign beer' %]
 
   [% IF cask.product.length > 55 %]
     [% product_font_size = 48 %]
@@ -108,9 +112,40 @@
   %\vspace{8mm}
   \end{textblock}
 
+[% ELSIF cask.category == 'mead' %]
+
+  [% IF cask.product.length > 55 %]
+    [% product_font_size = 48 %]
+  [% ELSE %]
+    [% IF cask.product.length > 32 %]
+      [% product_font_size = 64 %]
+    [% ELSE %]
+      [% product_font_size = 86 %]
+    [% END %]
+  [% END %]
+
+  \begin{textblock}{0.6}[0.5,0](0.5,0.05)
+  \begin{center}
+  \textbf{[% cask.brewery | replace( '&', '\\&' ) %]}
+  \end{center}
+  \end{textblock}
+
+  %\vspace{5mm}
+  \begin{textblock}{0.8}[0.5, 0.5](0.5,0.4)
+  \begin{center}
+  \fontsize{[% product_font_size %]}{94}
+  \selectfont
+  \textbf{[% cask.product | replace( '&', '\\&' ) %]}
+  \end{center}
+
+  % \hspace{5mm} 0.0\%
+
+  %\vspace{8mm}
+  \end{textblock}
+
 [% ELSE %]
 
-  [% THROW category "Unrecognised product category (should be beer, cider, perry or apple juice)" %]
+  [% THROW category "Unrecognised product category (should be beer, foreign beer, cider, mead, perry or apple juice):" %]
   
 [% END %]
 
@@ -122,30 +157,49 @@
 \textbf{ABV: [% cask.abv | replace( '%', '\%' ) %] \%}
 [% END %]
 
-[% IF cask.category == 'cider' || cask.category == 'perry' %]
-\fontsize{50}{75}
-\selectfont
-\textbf{[% cask.style | titlecase %]}
+[% IF cask.location.defined %]
+  [% IF cask.location.length > 22 %]
+    \fontsize{25}{45}
+  [% ELSE %]
+    [% IF cask.location.length > 14 %]
+      \fontsize{30}{55}
+    [% ELSE %]
+      \fontsize{40}{60}
+    [% END %]
+  [% END %]
 [% END %]
+\selectfont
+\textbf{\emph{[% cask.location %]}}
 
 \end{textblock}
 
   \fontsize{48}{60}
   \selectfont
 
-\begin{textblock}{0.4}(0.55,0.70)
-[% IF cask.price == cask.half_price %]
-\textbf{[% cask.price %]}
+[% IF cask.category == 'mead' %]
+
+\begin{textblock}{0.3}(0.60,0.70)
+    \textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
+            [%- cask.price %]~per\\ [% cask.sale_volume %]}
+\end{textblock}
+
 [% ELSE %]
 
-\textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
-        [%- cask.price      | format('%.2f') -%]/[% cask.sale_volume %]}
+\begin{textblock}{0.4}(0.55,0.70)
+  [% IF cask.price == cask.half_price %]
+    \textbf{[% cask.price %]}
+  [% ELSE %]
 
-\textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
-        [%- cask.half_price | format('%.2f') -%]/half [% cask.sale_volume %]}
+  \textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
+          [%- cask.price      | format('%.2f') -%]/[% cask.sale_volume %]}
+
+  \textbf{[% cask.currency | replace( '£', '\pounds' ) -%]
+          [%- cask.half_price | format('%.2f') -%]/half [% cask.sale_volume %]}
+
+  [% END %]
+\end{textblock}
 
 [% END %]
-\end{textblock}
 \null\newpage
 [% END %]
 
