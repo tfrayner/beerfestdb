@@ -67,7 +67,8 @@
     &  &  &  &
     [% cask.size | format('%d') %] &
 [%- FOREACH batch = dip_batches -%]
- [%- cask.dips.shift | format('%.1f') | replace('\.0$','') %] &
+[%- SET bid = batch.id -%]
+ [%- cask.dips.$bid | format('%.1f') | replace('\.0$','') %] &
 [%- END -%]
 [%- cask.comment | truncate(30) | replace( '&', '\\&' ) | replace( '%', '\\%' ) %] &
 [%- IF cask.is_condemned -%] X [%- END -%] \\ \hline

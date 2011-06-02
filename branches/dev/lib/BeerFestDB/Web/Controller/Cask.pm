@@ -23,7 +23,11 @@ package BeerFestDB::Web::Controller::Cask;
 use Moose;
 use namespace::autoclean;
 
+use JSON::Any;
+
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
+
+with 'BeerFestDB::DipMunger';
 
 =head1 NAME
 
@@ -172,6 +176,36 @@ sub list_by_festival_product : Local {
                }, { join => { gyle_id => 'festival_product_id' } });
 
     $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 list_dips
+
+=cut
+
+sub list_dips : Local {
+
+    my ( $self, $c, $cask_id ) = @_;
+
+    my $cask = $c->model('DB::Cask')->find({ cask_id => $cask_id });
+
+    unless ( $cask ) {
+        $c->stash->{error} = 'Cask not found.';
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
+
+    my $dips;
+    eval {
+        $dips = $self->munge_dips( $cask );
+    };
+    if ( $@ ) {
+        $self->detach_with_txn_failure( $c, $@ );
+    }
+
+    $c->stash->{ 'objects' } = $dips;
+    $c->stash->{ 'success' } = JSON::Any->true();
+
+    $c->detach( $c->view( 'JSON' ) );
 }
 
 =head2 submit

@@ -172,7 +172,7 @@ sub submit : Local {
         );
     };
     if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $rs, $@ );
+        $self->detach_with_txn_failure( $c, $@ );
     }
     
     $c->stash->{success} = JSON::Any->true();

@@ -392,9 +392,9 @@ The sale unit itself.
 
 =item dips
 
-An arrayref of dip measurements, fully filled up to the latest
-measurement batch containing any dip figures. This arrayref is
-populated using the DipMunger role.
+A hashref of dip measurements keyed by measurement batch ID, fully
+filled up to the latest batch containing any dip figures. This
+arrayref is populated using the DipMunger role.
 
 =back
 

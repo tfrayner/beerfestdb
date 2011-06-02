@@ -318,7 +318,7 @@ sub write_to_resultset : Private {
         );
     };
     if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $rs, $@ );
+        $self->detach_with_txn_failure( $c, $@ );
     };
 
     $c->stash->{ 'success' } = JSON::Any->false();
@@ -359,18 +359,16 @@ sub delete_from_resultset : Private {
         );
     };
     if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $rs, $@ );
+        $self->detach_with_txn_failure( $c, $@ );
     };
 
     $c->stash->{ 'success' } = JSON::Any->false();
-    $c->detach( $c->view( 'JSON' ) );
-
     $c->detach( $c->view( 'JSON' ) );
 }
 
 sub detach_with_txn_failure : Private {
 
-    my ( $self, $c, $rs, $error ) = @_;
+    my ( $self, $c, $error ) = @_;
 
     $error =~ s/\A (.*) [\r\n]* \z/$1/xms;
 

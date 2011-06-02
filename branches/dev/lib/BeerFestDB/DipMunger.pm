@@ -23,7 +23,26 @@ package BeerFestDB::DipMunger;
 use Moose::Role;
 use namespace::autoclean;
 
-use Memoize qw(memoize unmemoize);
+=head1 NAME
+
+BeerFestDB::DipMunger - Utility functions for CaskMeasurements.
+
+=head1 DESCRIPTION
+
+This is a Role class providing utility functions for dealing with
+CaskMeasurement data in sparse database format.
+
+=head1 METHODS
+
+=head2 munge_dips
+
+Given a BeerFestDB::ORM::Cask row this method simply returns a list of
+dip measurements up to and including the latest dip for which any
+figures are available within a Festival. This method is used to fill
+in gaps in the record caused by sparse recording of dip figures (e.g.,
+we don't dip when either full or empty).
+
+=cut
 
 sub munge_dips {
 
@@ -49,23 +68,23 @@ sub munge_dips {
               +as      => [ 'time',             'volume',                  ] }
         );
 
-    my @ongoing;
+    my %ongoing;
     my $latest = $cask->container_size_id->container_volume();
 
     DIP:
     foreach my $batch ( @batches ) {
         my $vol = $dip{ $batch->measurement_time() };
         if ( defined $vol ) {
-            push @ongoing, $vol;
+            $ongoing{ $batch->id } = $vol;
             $latest = $vol;
         }
         else {
-            push @ongoing, $latest;
+            $ongoing{ $batch->id } = $latest;
         }
         last DIP if $batch->measurement_batch_id == $latest_batch_id;
     }
 
-    return \@ongoing;
+    return \%ongoing;
 }
 
 sub _latest_dipbatch_with_data {
@@ -84,33 +103,6 @@ sub _latest_dipbatch_with_data {
 
     return $latest ? $latest->measurement_batch_id() : undef;
 }
-
-memoize \&_latest_dipbatch_with_data;
-
-sub forget_latest_dipbatch {
-
-    my ( $self ) = @_;
-
-    unmemoize \&_latest_dipbatch_with_data;
-    memoize \&_latest_dipbatch_with_data;
-
-    return;
-}
-
-=head1 NAME
-
-BeerFestDB::DipMunger - Utility functions for CaskMeasurements.
-
-=head1 DESCRIPTION
-
-This is a Role class providing utility functions for dealing with
-CaskMeasurement data in sparse database format.
-
-=head1 METHODS
-
-=cut
-
-
 
 =head1 COPYRIGHT AND LICENSE
 

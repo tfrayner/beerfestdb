@@ -118,7 +118,7 @@ sub submit : Local {
         );
     };
     if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $rs, $@ );
+        $self->detach_with_txn_failure( $c, $@ );
     }
 
     $c->detach( $c->view( 'JSON' ) );
