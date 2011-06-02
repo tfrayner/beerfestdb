@@ -39,6 +39,8 @@ our $VERSION = '0.01';
 
 extends 'BeerFestDB::Dumper';
 
+with 'BeerFestDB::DipMunger';
+
 has 'template'   => ( is       => 'ro',
                       isa      => 'Str',
                       required => 1 );
@@ -195,8 +197,7 @@ sub update_cask_hash {
     $caskhash->{festival_id} = $cask->cellar_reference();
     $caskhash->{size}        = $cask->container_size_id
           ? $cask->container_size_id->container_volume() : q{};
-    $caskhash->{dips} = { map { $_->get_column('measurement_batch_id') => $_->volume() }
-                              $cask->cask_measurements() };
+    $caskhash->{dips}         = $self->munge_dips( $cask );
     $caskhash->{comment}      = $cask->comment();
     $caskhash->{is_condemned} = $cask->is_condemned();
 
@@ -391,7 +392,9 @@ The sale unit itself.
 
 =item dips
 
-A hashref of dip measurements, keyed by batch ID.
+An arrayref of dip measurements, fully filled up to the latest
+measurement batch containing any dip figures. This arrayref is
+populated using the DipMunger role.
 
 =back
 
@@ -441,7 +444,7 @@ None by default.
 
 =head1 SEE ALSO
 
-L<BeerFestDB::Dumper>, L<BeerFestDB::Dumper::OODoc>
+L<BeerFestDB::Dumper>, L<BeerFestDB::Dumper::OODoc>, L<BeerFestDB::DipMunger>
 
 =head1 COPYRIGHT AND LICENSE
 
