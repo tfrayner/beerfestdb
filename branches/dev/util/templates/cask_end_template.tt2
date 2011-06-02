@@ -135,7 +135,8 @@
   \begin{center}
   \fontsize{[% product_font_size %]}{94}
   \selectfont
-  \textbf{[% cask.product | replace( '&', '\\&' ) %]}
+  \textbf{[% cask.product | replace( '&', '\\&' ) -%]
+[%- IF cask.category == 'apple juice' %] APPLE JUICE[% END %]}
   \end{center}
 
   % \hspace{5mm} 0.0\%
