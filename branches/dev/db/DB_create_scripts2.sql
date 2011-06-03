@@ -74,7 +74,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE container_measure (
   container_measure_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  litre_multiplier FLOAT NOT NULL,
+  litre_multiplier DECIMAL(15,12) NOT NULL,
   description VARCHAR(50) NOT NULL,
   PRIMARY KEY(container_measure_id),
   UNIQUE KEY(description)

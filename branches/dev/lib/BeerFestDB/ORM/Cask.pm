@@ -110,15 +110,13 @@ __PACKAGE__->table("cask");
 
 =head2 internal_reference
 
-  data_type: 'varchar'
+  data_type: 'integer'
   is_nullable: 1
-  size: 255
 
 =head2 cellar_reference
 
-  data_type: 'varchar'
+  data_type: 'integer'
   is_nullable: 1
-  size: 255
 
 =head2 is_vented
 
@@ -174,9 +172,9 @@ __PACKAGE__->add_columns(
   "external_reference",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "internal_reference",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "integer", is_nullable => 1 },
   "cellar_reference",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "integer", is_nullable => 1 },
   "is_vented",
   { data_type => "tinyint", is_nullable => 1 },
   "is_tapped",
@@ -301,8 +299,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-05-15 19:36:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1RtqYbyQFJLEhqrKBZjVpA
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-06-03 09:15:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j/dig5TK3+CDi2ccBSmbRg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
