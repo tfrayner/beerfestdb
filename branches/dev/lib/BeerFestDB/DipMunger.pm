@@ -59,22 +59,33 @@ sub munge_dips {
         { order_by => { -asc => 'measurement_time' }},
     );
 
-    my %dip = map { $_->get_column('time') => $_->get_column('volume') } $festival
-        ->search_related(
+    my %dip = map { $_->get_column('time') => { volume     => $_->get_column('volume'),
+                                                multiplier => $_->get_column('multiplier') } }
+        $festival->search_related(
             'measurement_batches',
             { 'cask_measurements.cask_id' => $cask->id() },
-            { prefetch => 'cask_measurements',
-              +select  => [ 'measurement_time', 'cask_measurements.volume' ],
-              +as      => [ 'time',             'volume',                  ] }
+            { prefetch => { 'cask_measurements' => 'container_measure_id' },
+              +select  => [ 'measurement_time',
+                            'cask_measurements.volume',
+                            'container_measure_id.litre_multiplier', ],
+              +as      => [ 'time',
+                            'volume',
+                            'multiplier', ] }
         );
 
     my %ongoing;
     my $latest = $cask->container_size_id->container_volume();
+    my $denom  = $cask->container_size_id->container_measure_id->litre_multiplier();
 
     DIP:
     foreach my $batch ( @batches ) {
-        my $vol = $dip{ $batch->measurement_time() };
-        if ( defined $vol ) {
+        my $d = $dip{ $batch->measurement_time() };
+        if ( defined $d && defined $d->{'volume'} ) {
+
+            # Convert $vol into the same units used by the cask
+            # container_size (in practice the units are generally
+            # identical in any case). Beware floating point shennanigans here.
+            my $vol = $d->{'volume'} * ( $d->{'multiplier'} / $denom );
             $ongoing{ $batch->id } = $vol;
             $latest = $vol;
         }
