@@ -142,9 +142,12 @@ sub build_database_object : Private {
 
     my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
 
-    foreach my $key ( %$rec ) {
-	delete $rec->{$key} unless $self->value_is_acceptable( $rec->{$key} );
+    my $cleaned = {};
+    foreach my $key ( keys %$rec ) {
+        $cleaned->{$key} = $rec->{$key}
+            if $self->value_is_acceptable( $rec->{$key} );
     }
+    $rec = $cleaned;
 
     # Passed a JSON record nested hashref, Catalyst context and the
     # appropriate DBIC::ResultSet object, create database objects
