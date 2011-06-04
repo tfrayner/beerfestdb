@@ -43,7 +43,7 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
     cask <- queryBFDB(paste(baseuri, 'cask/list',
                             fest[ fest$name==festname, 'festival_id'],
                             cat[cat$description==prodcat, 'product_category_id'], sep='/'),
-                      c('cask_id','product_id','festival_ref'))
+                      c('cask_id','product_id','festival_ref','is_condemned'))
     cask <- as.data.frame(apply(cask, 2, as.integer))
 
     product <- queryBFDB(paste(baseuri, 'product/list', sep='/'),
