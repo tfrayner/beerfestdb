@@ -342,6 +342,7 @@ CREATE TABLE container_size (
   container_measure_id INTEGER(6) NOT NULL,
   description VARCHAR(100) NULL,
   PRIMARY KEY(container_size_id),
+  UNIQUE KEY(container_volume),
   UNIQUE KEY(description),
   FOREIGN KEY FK_CS_cmid_CM_cmid(container_measure_id)
     REFERENCES container_measure(container_measure_id)
