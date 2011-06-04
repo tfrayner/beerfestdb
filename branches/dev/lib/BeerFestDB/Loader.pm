@@ -44,6 +44,11 @@ has 'protected' => ( is       => 'ro',
                      required => 0,
                      default  => sub { [] } );
 
+has 'overwrite' => ( is       => 'ro',
+                     isa      => 'Bool',
+                     required => 1,
+                     default  => 0 );
+
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
 Readonly my $UNKNOWN_COLUMN            => 0;
@@ -95,6 +100,9 @@ Readonly my $BREWER_FULL_NAME          => 45;
 Readonly my $DISTRIBUTOR_FULL_NAME     => 46;
 Readonly my $BREWER_URL                => 47;
 Readonly my $TELEPHONE_TYPE            => 48;
+Readonly my $CASK_CELLAR_ID            => 49;
+Readonly my $CASK_FESTIVAL_ID          => 50;
+Readonly my $BREWER_REGION             => 51;
 
 ########
 # SUBS #
@@ -160,6 +168,15 @@ sub _load_data {
 	    'Bar')
 	: undef;
 
+    my $region
+	= $self->value_is_acceptable( $datahash->{$BREWER_REGION} )
+	? $self->_load_column_value(
+	    {
+		description => $datahash->{$BREWER_REGION},
+	    },
+	    'CompanyRegion')
+	: undef;
+
     my $brewer
 	= $self->value_is_acceptable( $datahash->{$BREWER_NAME} )
 	? $self->_load_column_value(
@@ -167,6 +184,7 @@ sub _load_data {
 		name         => $datahash->{$BREWER_NAME},
 		full_name    => $datahash->{$BREWER_FULL_NAME},
 		loc_desc     => $datahash->{$BREWER_LOC_DESC},
+                company_region_id => $region,
 		year_founded => $datahash->{$BREWER_YEAR_FOUNDED},
 		url          => $datahash->{$BREWER_URL},
 		comment      => $datahash->{$BREWER_COMMENT},
@@ -359,8 +377,12 @@ sub _load_data {
                 'FestivalProduct');
         }
 
+        my $has_cask_identifiers
+            = $self->value_is_acceptable( $datahash->{$CASK_CELLAR_ID} )
+          || $self->value_is_acceptable( $datahash->{$CASK_FESTIVAL_ID} );
+
         my $gyle
-            = $festival_product && ( $count || $datahash->{$GYLE_ABV} )
+            = $festival_product && ( $count || $has_cask_identifiers || $datahash->{$GYLE_ABV} )
             ? $self->_load_column_value(
                 {
                     external_reference => $datahash->{$GYLE_BREWERY_NUMBER},
@@ -382,8 +404,16 @@ sub _load_data {
                 { 'festival_id' => $festival->id })->count();
             $count += $preexist;
         }
+
+        my @wanted_casks = ($preexist+1)..$count;
+        if ( $has_cask_identifiers ) {
+            if ( scalar @wanted_casks ) {
+                die("Simultaneous use of cask_count and cask identifier columns is not supported.");
+            }
+            @wanted_casks = $datahash->{$CASK_CELLAR_ID};
+        }
         
-        foreach my $n ( ($preexist+1)..$count ) {
+        foreach my $n ( @wanted_casks ) {
 
             my $cask
                 = ( $product && $festival )
@@ -399,6 +429,7 @@ sub _load_data {
                             bar_id                 => $bar,
                             comment                => $datahash->{$CASK_COMMENT},
                             internal_reference     => $n,
+                            cellar_reference       => $datahash->{$CASK_FESTIVAL_ID},
                         },
                         'Cask')
                         : undef;
@@ -494,6 +525,15 @@ sub _load_column_value {
     $self->validate_against_resultset( $args, $resultset );
     my ( $required, $optional ) = $self->resultset_required_columns( $resultset );
 
+    # Rather obnoxious special casing of a column which, while
+    # technically optional, still confers identity when it is
+    # present. The altenative seems to be to make this NOT NULL in the
+    # database, which is further than I want to go.
+    if ( $class eq 'Cask' && exists $args->{'cellar_reference'} ) {
+        push @$required, 'cellar_reference';
+        @$optional = grep { $_ ne 'cellar_reference' } @$optional;
+    }
+
     # Create an object in the database.
     my $object;
     my %req = map { $_ => $self->_retrieve_obj_id( $args->{$_} ) } @{ $required };
@@ -539,9 +579,15 @@ sub _load_column_value {
                 $dbval =~ s/(?:\.)? \z/./xms;
                 $value = "$dbval $value";
             }
+
+            next COLUMN;
         }
-        
-        $object->set_column( $col, $value ) if defined $value;
+
+        # Only overwrite old data if we've been given the green light.
+        my $old = $object->get_column( $col );
+        if ( ! defined $old || $old eq q{} || $self->overwrite() ) {
+            $object->set_column( $col, $value ) if defined $value;
+        }
     }
     $object->update();
 
@@ -561,6 +607,7 @@ sub _coerce_headings {
         qr/brewery? [_ -]* name/ixms                   => $BREWER_NAME,
         qr/brewery? [_ -]* full [_ -]* name/ixms       => $BREWER_FULL_NAME,
         qr/brewery? [_ -]* loc [_ -]* desc/ixms        => $BREWER_LOC_DESC,
+        qr/brewery? [_ -]* region/ixms                 => $BREWER_REGION,
         qr/brewery? [_ -]* year [_ -]* founded/ixms    => $BREWER_YEAR_FOUNDED,
         qr/brewery? [_ -]* comment/ixms                => $BREWER_COMMENT,
         qr/brewery? [_ -]* website/ixms                => $BREWER_URL,
@@ -578,7 +625,8 @@ sub _coerce_headings {
         qr/distributor [_ -]* loc [_ -]* desc/ixms     => $DISTRIBUTOR_LOC_DESC,
         qr/distributor [_ -]* year [_ -]* founded/ixms => $DISTRIBUTOR_YEAR_FOUNDED,
         qr/distributor [_ -]* comment/ixms             => $DISTRIBUTOR_COMMENT,
-        qr/cask [_ -]* (?:count|number)/ixms           => $CASK_COUNT,
+        qr/cask [_ -]* cellar [_ -]* id/ixms           => $CASK_CELLAR_ID,
+        qr/cask [_ -]* festival [_ -]* id/ixms         => $CASK_FESTIVAL_ID,
         qr/cask [_ -]* size/ixms                       => $CASK_SIZE,
         qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
         qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,
@@ -606,7 +654,7 @@ sub _coerce_headings {
     my @new_headings;
 
     foreach my $heading (@$headings) {
-        my @matches = grep { $heading =~ $_ } keys %map;
+        my @matches = grep { $heading =~ /\A$_\z/ms } keys %map;
         if ( scalar @matches == 1 ) {
             push @new_headings, $map{ $matches[0] };
         }
@@ -635,6 +683,10 @@ sub load {
 
     # Assume first line is the header, for now:
     my $headings = $self->_coerce_headings( $csv_parser->getline($input_fh) );
+
+    if ( $self->overwrite() ) {
+        warn("Loader running in OVERWRITE mode.\n");
+    }
 
     # Run the whole load in a single transaction.
     my $db = $self->database();
