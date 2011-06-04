@@ -577,7 +577,10 @@ sub _load_column_value {
             if ( defined $dbval && $dbval !~ /\A \s* \z/xms ) {
                 next COLUMN if ( $dbval =~ /\Q$value\E/ );  # Comment already contains the text.
                 $dbval =~ s/(?:\.)? \z/./xms;
-                $value = "$dbval $value";
+                $object->set_column( $col, "$dbval $value" ) if defined $value;
+            }
+            else {
+                $object->set_column( $col, $value ) if defined $value;
             }
 
             next COLUMN;
@@ -585,7 +588,7 @@ sub _load_column_value {
 
         # Only overwrite old data if we've been given the green light.
         my $old = $object->get_column( $col );
-        if ( ! defined $old || $old eq q{} || $self->overwrite() ) {
+        if ( ! defined $old || $old =~ /\A \s* \z/xms || $self->overwrite() ) {
             $object->set_column( $col, $value ) if defined $value;
         }
     }
