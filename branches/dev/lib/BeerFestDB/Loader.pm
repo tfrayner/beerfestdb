@@ -630,6 +630,7 @@ sub _coerce_headings {
         qr/distributor [_ -]* comment/ixms             => $DISTRIBUTOR_COMMENT,
         qr/cask [_ -]* cellar [_ -]* id/ixms           => $CASK_CELLAR_ID,
         qr/cask [_ -]* festival [_ -]* id/ixms         => $CASK_FESTIVAL_ID,
+        qr/cask [_ -]* count/ixms                      => $CASK_COUNT,
         qr/cask [_ -]* size/ixms                       => $CASK_SIZE,
         qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
         qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,
