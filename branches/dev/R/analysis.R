@@ -10,8 +10,12 @@ queryBFDB <- function( uri, columns ) {
     res  <- rjson::fromJSON(res)
     stopifnot( isTRUE(res$success) )
     
-    res <- as.data.frame(do.call('rbind', res$objects))
-    res <- as.data.frame(apply(res, 2, as.character))
+    res <- as.data.frame(do.call('rbind', res$objects), stringsAsFactors=FALSE)
+    suppressWarnings(res <- as.data.frame(apply(res, 2, as.character), stringsAsFactors=FALSE))
+
+    for ( x in colnames(res) )
+        if ( grepl( '_id$', x ) )
+            suppressWarnings(res[, x] <- as.integer( res[, x] ))
 
     if ( ! missing(columns) )
         res <- res[, columns]
@@ -43,14 +47,22 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
     cask <- queryBFDB(paste(baseuri, 'cask/list',
                             fest[ fest$name==festname, 'festival_id'],
                             cat[cat$description==prodcat, 'product_category_id'], sep='/'),
-                      c('cask_id','product_id','festival_ref','is_condemned'))
-    cask <- as.data.frame(apply(cask, 2, as.integer))
+                      c('cask_id','product_id','container_size_id',
+                        'stillage_location_id','festival_ref','is_condemned'))
+    suppressWarnings(cask <- as.data.frame(apply(cask, 2, as.integer)))
+    cask[ is.na(cask$is_condemned), 'is_condemned' ] <- 0
+
+    sizes <- queryBFDB(paste(baseuri, 'containersize/list', sep='/'),
+                       c('container_size_id','volume'))
+    colnames(sizes)[2] <- 'cask_volume'
+
+    cp <- merge(cask, sizes, by='container_size_id')
 
     product <- queryBFDB(paste(baseuri, 'product/list', sep='/'),
                          c('product_id','company_id','nominal_abv','name','product_style_id'))
     colnames(product)[4]<-'product_name'
 
-    cp <- merge(cask, product, by='product_id')
+    cp <- merge(cp, product, by='product_id')
 
     style <- queryBFDB(paste(baseuri, 'productstyle/list', sep='/'),
                        c('product_style_id','description'))
@@ -70,6 +82,14 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
 
     cp <- merge(cp, region, by='company_region_id', all.x=TRUE)
 
+    stillage <- queryBFDB(paste(baseuri, 'stillagelocation/list',
+                                fest[ fest$name==festname, 'festival_id'],
+                                sep='/'),
+                        c('stillage_location_id','description'))
+    colnames(stillage)[2] <- 'stillage'
+
+    cp <- merge(cp, stillage, by='stillage_location_id', all.x=TRUE)
+
     ## Throw out all database ID columns except cask_id.
     cp <- cp[, ! grepl('(?<!cask)_id$', colnames(cp), perl=TRUE)]
 
@@ -85,6 +105,12 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
 
     cp <- merge(cp, dipmat, by.x='cask_id', by.y=0, all.x=TRUE)
 
+    ## Dip figures need to be numeric.
+    w <- grepl('^dip\\.', colnames(cp))
+    cp[,w] <- apply(cp[,w], 2, as.numeric)
+    cp$cask_volume <- as.numeric(cp$cask_volume)
+    cp$nominal_abv <- as.numeric(cp$nominal_abv)
+
     return(cp)
 }
 
@@ -94,3 +120,175 @@ festname <- '38th Cambridge Beer Festival'
 prodcat  <- 'beer'
 
 cp <- getFestivalData(baseuri, festname, prodcat)
+
+aggData <- function( cp, colname ) {
+    dp <- aggregate( cp[ ,w], lapply(colname, function(x) { cp[, x] }), sum)
+
+    rownames(dp) <- apply(dp[,c(1:length(colname)), drop=FALSE], 1, paste, collapse=':')
+    dp <- dp[,-c(1:length(colname))]
+    colnames(dp)[1] <- 'Start'
+
+    return(dp)
+}
+
+plotSalesRate <- function( cp, colname, ... ) {
+    dp <- aggData( cp, colname )
+    cols <- brewer.pal(9, 'Set1')
+    plotFractions( dp / dp[,1], cols=cols, ... )
+}
+
+plotModelCoeffs <- function(cp, colname, drop, ... ) {
+
+    dp <- aggData(cp, colname)
+
+    pred <- aggregate( cp$cask_volume, list(cp[, colname]), sum )[,2] / ncol(dp)
+    pred <- (pred/sum(pred)) * 100
+
+    dp <- dp[, ! colnames(dp) %in% drop ]
+
+    fm <- data.frame(dip=as.numeric(t(dp)),
+                     time=rep(0:(ncol(dp)-1), nrow(dp)),
+                     category=unlist(lapply(rownames(dp), rep, ncol(dp))))
+    l <- lm(dip~0+time+category, data=fm)
+
+    ## FIXME consider also using the std. error estimates to generate error bars.
+
+    x <- summary(l)$coefficients[-1,1]
+    x <- (x/sum(x)) * 100
+    names(x) <- sub('category', '', names(x))
+
+    old.par <- par(mar=c(5,12,2,2))
+    bp <- barplot(rbind(x, pred), beside=TRUE, ylab='', yaxt='n', horiz=TRUE,
+                  xlab='Percent total', legend.text=c('Observed', 'Predicted'),
+                  args.legend=list(x='topright'), col=c('blue','yellow'))
+    text(y=apply(bp, 2, mean), labels=names(x), x=par("usr")[1] - 1.5, adj = 1, xpd = TRUE)
+    par(old.par)
+}
+
+drawPie <- function(cp, colname, cols=1:9, radius=0.8, ...) {
+
+    counts <- aggregate(rep(1, nrow(cp)), list(cp[, colname]), sum)
+
+    w <- counts[,2]/sum(counts[,2]) < 0.01
+    if ( sum(w) > 0 ) {
+        s <- sum(counts[w, 2])
+        counts <- rbind(counts[!w,], c('Other', s))
+    }
+
+    if ( nrow( counts ) > length( cols ) )
+        cols <- colorRampPalette( cols )( nrow( counts ) )
+
+    pie(as.numeric(counts[,2]), labels=counts[,1], radius=radius, col=cols, ...)
+}
+
+plotFractions <- function(data, clusters=rownames(data),
+                          cols=1:9, lty=1:9, ylim=c(0,1),
+                          leg.pos='bottomleft', ylab='Fraction remaining', ...) {
+
+    if ( length( clusters ) > length( cols ) )
+        cols <- colorRampPalette( cols )( length( clusters ) )
+
+    matplot(t(data[clusters,, drop=FALSE]), col=cols,
+            type='l', lwd=2, lty=lty, ylim=ylim, axes=F, xlab='Dip Time', ylab=ylab, ...)
+
+    axis(2)
+
+    axis(1, labels=colnames(data), at=1:ncol(data))
+
+    legend(leg.pos, legend=clusters, fill=cols)
+}
+
+rankProducts <- function( cp, drop ) {
+
+    ## Doesn't work very well since occasionally a cask gets held back.
+#    byprod <- aggData(cp, c('company_name','product_name'))
+#    rates <- as.data.frame(t(apply(byprod, 1, productSaleRate)))
+
+    ## Better approach: once a cask is started, it's not usually held
+    ## back any further. Get sales rates per cask and average
+    ## them. This also works most believably if we drop the last part
+    ## of the festival; note that some beers lose out in this case.
+    x <- cp[,w]
+    x <- x[, ! colnames(x) %in% drop ]
+    x <- cbind(cp[, c('company_name','product_name')], x)
+
+    ## Have to throw out all those beers which never changed in the query period.
+    x <- x[apply(x[,-c(1:2)], 1, function(x) { sum(x != x[1]) }) != 0,]
+
+    z <- as.data.frame(t(apply(x[,-c(1:2)], 1, productSaleRate)))
+    z <- aggregate(z$Estimate, list(x$company_name, x$product_name), mean)
+    z <- z[order(z$x),]
+
+    return(z)
+}
+
+productSaleRate <- function(y) {
+
+    y <- c(y[1], y[ y!=y[1] ])
+
+    if ( y[ length(y) ] == 0 )
+        y <- c( y[ y!=0 ], 0 )
+
+    n <- 1:length(y) - 1
+
+    l <- lm( y~n )
+
+    ## FIXME we could also return the std. error here.
+    r <- summary(l)$coefficients[-1, c(1,2)]
+    return( c(-r[1], r[2] ) )
+}
+
+analyseData <- function(cp) {
+
+    ## Currently a dumping ground for some thoughts.
+    cp <- cp[ cp$is_condemned == 0, ]
+    
+    cp$abv_class <- cut(cp$nominal_abv, breaks=c(2,3.5,4,4.5,5,7,12))
+    levels(cp$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cp$abv_class)))
+    
+    w  <- colnames(cp) == 'cask_volume' | grepl('^dip\\.', colnames(cp))
+    colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])
+
+    stopifnot( colnames(cp)[w][1] eq 'cask_volume' )
+
+    pd <- cp[,w][,-sum(w)] - cp[,w][,-1]
+    colnames(pd) <- colnames(cp)[w][-1]
+    stopifnot( all(pd >= 0 ) )
+
+    d <- apply(pd, 2, sum)
+    plot(d, ylim=c(0, max(d) ),
+         lwd=2, type='l', ylab='Gallons sold', xlab='Day',
+         axes=F, main='Beer sales over time')
+    axis(2)
+    axis(1, labels=colnames(pd), at=1:ncol(pd))
+
+    plotSalesRate( cp, 'region', main='Beer sales by region' )
+    plotSalesRate( cp, 'stillage', main='Beer sales by stillage' )
+    plotSalesRate( cp, 'abv_class', main='Beer sales by ABV' )
+
+    drawPie( cp, 'region', cols=cols, main='Number of beers delivered per region' )
+    drawPie( cp, 'style', cols=cols, main='Number of beers delivered per style')
+
+    dp <- aggData( cp, 'style' )
+    heatmap.2(as.matrix(dp/dp[,1]),
+              dendrogram='row', key=F, margins=c(5,10),
+              main='Clustering of beer styles\n by proportion sold over time',
+              Colv=F, lhei=c(2, 10))
+
+    ## Drop the last part of the festival (1/4 rounded up) since it'll
+    ## usually be non-linear by then.
+    dn <- ceiling((ncol(dp)-1)/4) - 1
+    drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
+
+    plotModelCoeffs(cp, 'style', drop=drop)
+    plotModelCoeffs(cp, 'abv_class', drop=drop)
+    plotModelCoeffs(cp, 'region', drop=drop)
+    plotModelCoeffs(cp, 'stillage', drop=drop)
+
+    ## Probably don't want to publish this until we're happier with
+    ## the algorithm.
+    prodrank <- rankProducts( cp, drop )
+
+    invisible(prodrank)
+}
+
