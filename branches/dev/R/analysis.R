@@ -3,6 +3,9 @@
 ##
 
 library(RCurl)
+library(rjson)
+library(RColorBrewer)
+library(gplots)
 
 queryBFDB <- function( uri, columns ) {
 
@@ -114,14 +117,13 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
     return(cp)
 }
 
-## Ideally these would be set either by config or command-line arguments.
-baseuri  <- 'http://localhost:3000'
-festname <- '38th Cambridge Beer Festival'
-prodcat  <- 'beer'
+plotToFile <- function( file, fn, ... ) {
+    pdf( file=file )
+    fn( ... )
+    dev.off()
+}
 
-cp <- getFestivalData(baseuri, festname, prodcat)
-
-aggData <- function( cp, colname ) {
+aggData <- function( cp, colname, w=TRUE ) {
     dp <- aggregate( cp[ ,w], lapply(colname, function(x) { cp[, x] }), sum)
 
     rownames(dp) <- apply(dp[,c(1:length(colname)), drop=FALSE], 1, paste, collapse=':')
@@ -131,15 +133,15 @@ aggData <- function( cp, colname ) {
     return(dp)
 }
 
-plotSalesRate <- function( cp, colname, ... ) {
-    dp <- aggData( cp, colname )
+plotSalesRate <- function( cp, colname, w=TRUE, ... ) {
+    dp <- aggData( cp, colname, w )
     cols <- brewer.pal(9, 'Set1')
     plotFractions( dp / dp[,1], cols=cols, ... )
 }
 
-plotModelCoeffs <- function(cp, colname, drop, ... ) {
+plotModelCoeffs <- function(cp, colname, drop, w=TRUE, ... ) {
 
-    dp <- aggData(cp, colname)
+    dp <- aggData(cp, colname, w)
 
     pred <- aggregate( cp$cask_volume, list(cp[, colname]), sum )[,2] / ncol(dp)
     pred <- (pred/sum(pred)) * 100
@@ -189,7 +191,7 @@ plotFractions <- function(data, clusters=rownames(data),
         cols <- colorRampPalette( cols )( length( clusters ) )
 
     matplot(t(data[clusters,, drop=FALSE]), col=cols,
-            type='l', lwd=2, lty=lty, ylim=ylim, axes=F, xlab='Dip Time', ylab=ylab, ...)
+            type='l', lwd=2, lty=lty, ylim=ylim, axes=FALSE, xlab='Dip Time', ylab=ylab, ...)
 
     axis(2)
 
@@ -198,7 +200,7 @@ plotFractions <- function(data, clusters=rownames(data),
     legend(leg.pos, legend=clusters, fill=cols)
 }
 
-rankProducts <- function( cp, drop ) {
+rankProducts <- function( cp, drop, w ) {
 
     ## Doesn't work very well since occasionally a cask gets held back.
 #    byprod <- aggData(cp, c('company_name','product_name'))
@@ -238,6 +240,16 @@ productSaleRate <- function(y) {
     return( c(-r[1], r[2] ) )
 }
 
+plotTotalBeerSales <- function( pd ) {
+    d <- apply(pd, 2, sum)
+    
+    plot(d, ylim=c(0, max(d) ),
+         lwd=2, type='l', ylab='Gallons sold', xlab='Day',
+         axes=FALSE, main='Beer sales over time')
+    axis(2)
+    axis(1, labels=colnames(pd), at=1:ncol(pd))
+}
+
 analyseData <- function(cp) {
 
     ## Currently a dumping ground for some thoughts.
@@ -249,46 +261,57 @@ analyseData <- function(cp) {
     w  <- colnames(cp) == 'cask_volume' | grepl('^dip\\.', colnames(cp))
     colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])
 
-    stopifnot( colnames(cp)[w][1] eq 'cask_volume' )
+    stopifnot( colnames(cp)[w][1] == 'cask_volume' )
 
     pd <- cp[,w][,-sum(w)] - cp[,w][,-1]
     colnames(pd) <- colnames(cp)[w][-1]
     stopifnot( all(pd >= 0 ) )
 
-    d <- apply(pd, 2, sum)
-    plot(d, ylim=c(0, max(d) ),
-         lwd=2, type='l', ylab='Gallons sold', xlab='Day',
-         axes=F, main='Beer sales over time')
-    axis(2)
-    axis(1, labels=colnames(pd), at=1:ncol(pd))
+    plotToFile( 'total_beer_sales.pdf', plotTotalBeerSales, pd )
 
-    plotSalesRate( cp, 'region', main='Beer sales by region' )
-    plotSalesRate( cp, 'stillage', main='Beer sales by stillage' )
-    plotSalesRate( cp, 'abv_class', main='Beer sales by ABV' )
+    plotToFile( 'sales_by_stillage.pdf', plotSalesRate, cp, 'region', w=w, main='Beer sales by region' )
+    plotToFile( 'sales_by_region.pdf', plotSalesRate, cp, 'stillage', w=w, main='Beer sales by stillage' )
+    plotToFile( 'sales_by_abv_class.pdf', plotSalesRate, cp, 'abv_class', w=w, main='Beer sales by ABV' )
 
-    drawPie( cp, 'region', cols=cols, main='Number of beers delivered per region' )
-    drawPie( cp, 'style', cols=cols, main='Number of beers delivered per style')
+    cols <- brewer.pal(9, 'Set1')
+    plotToFile( 'beers_per_region.pdf', drawPie,
+               cp, 'region', cols=cols, main='Number of beers delivered per region' )
+    plotToFile( 'beers_per_style.pdf', drawPie,
+               cp, 'style', cols=cols, main='Number of beers delivered per style')
 
-    dp <- aggData( cp, 'style' )
-    heatmap.2(as.matrix(dp/dp[,1]),
-              dendrogram='row', key=F, margins=c(5,10),
-              main='Clustering of beer styles\n by proportion sold over time',
-              Colv=F, lhei=c(2, 10))
+    dp <- aggData( cp, 'style', w )
+    plotToFile( 'clusters_by_style.pdf', heatmap.2, as.matrix(dp/dp[,1]),
+               dendrogram='row', key=FALSE, margins=c(5,10),
+               main='Clustering of beer styles\n by proportion sold over time',
+               Colv=FALSE, lhei=c(2, 10))
 
     ## Drop the last part of the festival (1/4 rounded up) since it'll
     ## usually be non-linear by then.
     dn <- ceiling((ncol(dp)-1)/4) - 1
     drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
 
-    plotModelCoeffs(cp, 'style', drop=drop)
-    plotModelCoeffs(cp, 'abv_class', drop=drop)
-    plotModelCoeffs(cp, 'region', drop=drop)
-    plotModelCoeffs(cp, 'stillage', drop=drop)
+    plotToFile( 'sale_profile_by_style.pdf', plotModelCoeffs, cp, 'style', drop=drop, w=w)
+    plotToFile( 'sale_profile_by_abv_class.pdf', plotModelCoeffs, cp, 'abv_class', drop=drop, w=w)
+    plotToFile( 'sale_profile_by_region.pdf', plotModelCoeffs, cp, 'region', drop=drop, w=w)
+    plotToFile( 'sale_profile_by_stillage.pdf', plotModelCoeffs, cp, 'stillage', drop=drop, w=w)
 
     ## Probably don't want to publish this until we're happier with
     ## the algorithm.
-    prodrank <- rankProducts( cp, drop )
+    prodrank <- rankProducts( cp, drop, w )
+    write.csv(prodrank, file='product_sales_ranking.csv', row.names=FALSE)
 
     invisible(prodrank)
 }
 
+if ( ! interactive() ) {
+
+    ## Ideally these would be set either by config or command-line arguments.
+    baseuri  <- 'http://localhost:3000'
+    festname <- '38th Cambridge Beer Festival'
+    prodcat  <- 'beer'
+
+    cp <- getFestivalData(baseuri, festname, prodcat)
+    write.csv(cp, 'full_dip_dump.csv', row.names=FALSE)
+
+    analyseData(cp)
+}
