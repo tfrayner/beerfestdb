@@ -1,0 +1,138 @@
+\documentclass{article}
+
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{ulem}
+
+\usepackage[a4paper, top=2.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
+\newcommand{\lbkt}{[}
+\newcommand{\rbkt}{]}
+
+\begin{document}
+
+\normalem
+\title{38th Cambridge Beer Festival --- Dip figures}
+\date{\today}
+\maketitle
+
+%\section{Overall sales}
+\begin{center}
+\begin{tabular}{ | l | r | r | r | }
+  \hline \hline
+   & Gallons & Kils & Percent total \\ \hline
+  Main order: &  &  & \% \\ \hline
+  Reorder: &  &  & \% \\ \hline
+  Total: &  &  & 100\% \\ \hline \hline
+  Amount sold: &  &  & \% \\ \hline
+  Amount condemned: &  &  & \% \\ \hline
+%  Amount unbroached or re-sealed: &  &  & \% \\ \hline
+  Amount remaining unsold: &  &  & \% \\ \hline \hline
+\end{tabular}
+\end{center}
+
+\begin{figure}[htp]
+  \begin{center}
+    \includegraphics[width=8cm]{total_beer_sales.pdf}
+  \end{center}
+  \caption{\textbf{Total beer sales}}
+  \label{total_beer_sales}
+\end{figure}
+
+%\subsection{Beer selection}
+
+\begin{figure}[htp]
+  \begin{center}
+    \includegraphics[width=8cm]{beers_per_region.pdf}
+  \end{center}
+  \caption{\textbf{Number of beers received per region}}
+  \label{beers_per_region}
+\end{figure}
+
+%\begin{figure}[htp]
+%  \begin{center}
+%    \includegraphics[width=8cm]{breweries_per_region.pdf}
+%  \end{center}
+%  \caption{\textbf{Number of breweries represented per region}}
+%  \label{breweries_per_region}
+%\end{figure}
+
+%\begin{figure}[htp]
+%  \begin{center}
+%    \includegraphics[width=8cm]{beers_per_brewery_per_region.pdf}
+%  \end{center}
+%  \caption{\textbf{Number of beers received per brewery, split by region}}
+%  \label{beers_per_brewery_per_region}
+%\end{figure}
+
+\begin{figure}[htp]
+  \begin{center}
+    \includegraphics[width=8cm]{beers_per_style.pdf}
+  \end{center}
+  \caption{\textbf{Number of beers received by style}}
+  \label{beers_by_style}
+\end{figure}
+
+%\subsection{Sales by ABV}
+
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+      \includegraphics[width=7cm]{sales_by_abv_class.pdf}
+    }
+    \subfigure[Comparison with received quantities]{
+      \includegraphics[width=7cm]{sale_profile_by_abv_class.pdf}
+    }
+  \end{center}
+  \caption{\textbf{Sales by ABV}}
+  \label{sales_by_abv}
+\end{figure}
+
+%\subsection{Sales by region}
+
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+      \includegraphics[width=7cm]{sales_by_region.pdf}
+    }
+    \subfigure[Comparison with received quantities]{
+      \includegraphics[width=7cm]{sale_profile_by_region.pdf}
+    }
+  \end{center}
+  \caption{\textbf{Sales by geographic region}}
+  \label{sales_by_region}
+\end{figure}
+
+%\subsection{Sales by stillage}
+
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+      \includegraphics[width=7cm]{sales_by_stillage.pdf}
+    }
+    \subfigure[Comparison with received quantities]{
+      \includegraphics[width=7cm]{sale_profile_by_stillage.pdf}
+    }
+  \end{center}
+  \caption{\textbf{Sales by stillage}}
+  \label{sales_by_stillage}
+\end{figure}
+
+%\subsection{Sales by style}
+
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+      \includegraphics[width=7cm]{clusters_by_style.pdf}
+    }
+    \subfigure[Comparison with received quantities]{
+      \includegraphics[width=7cm]{sale_profile_by_style.pdf}
+    }
+  \end{center}
+  \caption{\textbf{Sales by product style}}
+  \label{sales_by_style}
+\end{figure}
+
+\end{document}
