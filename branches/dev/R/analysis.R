@@ -271,8 +271,8 @@ analyseData <- function(cp) {
 
     plotToFile( 'total_beer_sales.pdf', plotTotalBeerSales, pd )
 
-    plotToFile( 'sales_by_stillage.pdf', plotSalesRate, cp, 'region', w=w )
-    plotToFile( 'sales_by_region.pdf', plotSalesRate, cp, 'stillage', w=w )
+    plotToFile( 'sales_by_region.pdf', plotSalesRate, cp, 'region', w=w )
+    plotToFile( 'sales_by_stillage.pdf', plotSalesRate, cp, 'stillage', w=w )
     plotToFile( 'sales_by_abv_class.pdf', plotSalesRate, cp, 'abv_class', w=w )
 
     cols <- brewer.pal(9, 'Set1')
