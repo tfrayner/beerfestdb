@@ -162,8 +162,9 @@ plotModelCoeffs <- function(cp, colname, drop, w=TRUE, ... ) {
     old.par <- par(mar=c(5,12,2,2))
     bp <- barplot(rbind(x, pred), beside=TRUE, ylab='', yaxt='n', horiz=TRUE,
                   xlab='Percent total', legend.text=c('Observed', 'Predicted'),
-                  args.legend=list(x='topright'), col=c('blue','yellow'))
-    text(y=apply(bp, 2, mean), labels=names(x), x=par("usr")[1] - 1.5, adj = 1, xpd = TRUE)
+                  args.legend=list(x='topright', cex=1.2), col=c('blue','yellow'),
+                  cex.axis=1.5, cex.lab=1.5)
+    text(y=apply(bp, 2, mean), labels=names(x), x=par("usr")[1] - 1.5, adj = 1, xpd = TRUE, cex=1.5)
     par(old.par)
 }
 
@@ -191,13 +192,14 @@ plotFractions <- function(data, clusters=rownames(data),
         cols <- colorRampPalette( cols )( length( clusters ) )
 
     matplot(t(data[clusters,, drop=FALSE]), col=cols,
-            type='l', lwd=2, lty=lty, ylim=ylim, axes=FALSE, xlab='Dip Time', ylab=ylab, ...)
+            type='l', lwd=2, lty=lty, ylim=ylim, axes=FALSE,
+            xlab='Dip Time', ylab=ylab, cex.lab=1.5, cex.main=1.5, ...)
 
-    axis(2)
+    axis(2, cex.axis=1.5)
 
-    axis(1, labels=colnames(data), at=1:ncol(data))
+    axis(1, cex.axis=1.5, labels=colnames(data), at=1:ncol(data))
 
-    legend(leg.pos, legend=clusters, fill=cols)
+    legend(leg.pos, legend=clusters, fill=cols, cex=1.3)
 }
 
 rankProducts <- function( cp, drop, w ) {
@@ -240,14 +242,14 @@ productSaleRate <- function(y) {
     return( c(-r[1], r[2] ) )
 }
 
-plotTotalBeerSales <- function( pd ) {
+plotTotalBeerSales <- function( pd, ... ) {
     d <- apply(pd, 2, sum)
     
     plot(d, ylim=c(0, max(d) ),
          lwd=2, type='l', ylab='Gallons sold', xlab='Day',
-         axes=FALSE, main='Beer sales over time')
-    axis(2)
-    axis(1, labels=colnames(pd), at=1:ncol(pd))
+         axes=FALSE, cex.lab=1.5, ...)
+    axis(2, cex.axis=1.5)
+    axis(1, cex.axis=1.5, labels=colnames(pd), at=1:ncol(pd))
 }
 
 analyseData <- function(cp) {
@@ -269,21 +271,20 @@ analyseData <- function(cp) {
 
     plotToFile( 'total_beer_sales.pdf', plotTotalBeerSales, pd )
 
-    plotToFile( 'sales_by_stillage.pdf', plotSalesRate, cp, 'region', w=w, main='Beer sales by region' )
-    plotToFile( 'sales_by_region.pdf', plotSalesRate, cp, 'stillage', w=w, main='Beer sales by stillage' )
-    plotToFile( 'sales_by_abv_class.pdf', plotSalesRate, cp, 'abv_class', w=w, main='Beer sales by ABV' )
+    plotToFile( 'sales_by_stillage.pdf', plotSalesRate, cp, 'region', w=w )
+    plotToFile( 'sales_by_region.pdf', plotSalesRate, cp, 'stillage', w=w )
+    plotToFile( 'sales_by_abv_class.pdf', plotSalesRate, cp, 'abv_class', w=w )
 
     cols <- brewer.pal(9, 'Set1')
     plotToFile( 'beers_per_region.pdf', drawPie,
-               cp, 'region', cols=cols, main='Number of beers delivered per region' )
+               cp, 'region', cols=cols, cex=1.25 )
     plotToFile( 'beers_per_style.pdf', drawPie,
-               cp, 'style', cols=cols, main='Number of beers delivered per style')
+               cp, 'style', cols=cols, cex=1.25 )
 
     dp <- aggData( cp, 'style', w )
     plotToFile( 'clusters_by_style.pdf', heatmap.2, as.matrix(dp/dp[,1]),
-               dendrogram='row', key=FALSE, margins=c(5,10),
-               main='Clustering of beer styles\n by proportion sold over time',
-               Colv=FALSE, lhei=c(2, 10))
+               dendrogram='row', key=FALSE, margins=c(5,12), trace='none',
+               Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
 
     ## Drop the last part of the festival (1/4 rounded up) since it'll
     ## usually be non-linear by then.
