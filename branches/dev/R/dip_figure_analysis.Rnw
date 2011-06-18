@@ -1,0 +1,211 @@
+%
+% This file is part of BeerFestDB, a beer festival product management
+% system.
+% 
+% Copyright (C) 2011 Tim F. Rayner
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+% $Id: Loader.pm 290 2011-06-11 21:01:07Z tfrayner $
+%
+% To use this Sweave document, edit the title and config variables
+% (baseuri, festname, prodcat) and run:
+%
+% SWEAVE_STYLEPATH_DEFAULT=TRUE R CMD Sweave dip_figure_analysis.Rnw
+
+\documentclass{article}
+\SweaveOpts{eps=false}
+
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{ulem}
+
+\usepackage[a4paper, top=2.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
+\begin{document}
+
+\normalem
+
+% Edit this:
+\title{38th Cambridge Beer Festival --- Dip figures}
+\date{\today}
+\maketitle
+
+<<echo=FALSE>>=
+
+# Edit these:
+baseuri  <- 'http://localhost:3000'
+festname <- '38th Cambridge Beer Festival'
+prodcat  <- 'beer'
+
+# End of editable section.
+
+library(RCurl)
+library(rjson)
+library(RColorBrewer)
+library(gplots)
+
+library(BeerFestDB)
+
+cp <- getFestivalData(baseuri, festname, prodcat)
+write.csv(cp, 'full_dip_dump.csv', row.names=FALSE)
+
+cp <- cp[ cp$is_condemned == 0, ]
+    
+cp$abv_class <- cut(cp$nominal_abv, breaks=c(2,3.5,4,4.5,5,7,12))
+levels(cp$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cp$abv_class)))
+    
+w  <- colnames(cp) == 'cask_volume' | grepl('^dip\\.', colnames(cp))
+colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])
+
+stopifnot( colnames(cp)[w][1] == 'cask_volume' )
+
+pd <- cp[,w][,-sum(w)] - cp[,w][,-1]
+colnames(pd) <- colnames(cp)[w][-1]
+stopifnot( all(pd >= 0 ) )
+
+cols <- brewer.pal(9, 'Set1')
+
+dp <- aggData( cp, 'style', w )
+## Drop the last part of the festival (1/4 rounded up) since it'll
+## usually be non-linear by then.
+dn <- ceiling((ncol(dp)-1)/4) - 1
+drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
+
+@ 
+
+%% Main sales graph
+\setkeys{Gin}{width=0.5\textwidth}
+\begin{figure}[htp]
+  \begin{center}
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+    plotTotalBeerSales(pd)
+@ 
+  \end{center}
+  \caption{\textbf{Total beer sales}}
+  \label{total_beer_sales}
+\end{figure}
+
+%% Pie charts
+\begin{figure}[htp]
+  \begin{center}
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+    byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
+    drawPie( byprod, 'region', cols=cols, cex=1.25 )
+@ 
+  \end{center}
+  \caption{\textbf{Number of beers received per region}}
+  \label{beers_per_region}
+\end{figure}
+
+\begin{figure}[htp]
+  \begin{center}
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+    drawPie( byprod, 'style', cols=cols, cex=1.25 )
+@ 
+  \end{center}
+  \caption{\textbf{Number of beers received by style}}
+  \label{beers_by_style}
+\end{figure}
+
+%% Sales by ABV
+\setkeys{Gin}{width=0.4\textwidth}
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotSalesRate( cp, 'abv_class', w=w )
+@ 
+    }
+    \subfigure[Sales rate comparison]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotModelCoeffs( cp, 'abv_class', drop=drop, w=w)
+@ 
+    }
+  \end{center}
+  \caption{\textbf{Sales by ABV}}
+  \label{sales_by_abv}
+\end{figure}
+
+%% Sales by Region
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotSalesRate( cp, 'region', w=w )
+@ 
+    }
+    \subfigure[Sales rate comparison]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotModelCoeffs( cp, 'region', drop=drop, w=w)
+@ 
+    }
+  \end{center}
+  \caption{\textbf{Sales by geographic region}}
+  \label{sales_by_region}
+\end{figure}
+
+%% Sales by Stillage
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotSalesRate( cp, 'stillage', w=w )
+@ 
+    }
+    \subfigure[Sales rate comparison]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotModelCoeffs( cp, 'stillage', drop=drop, w=w)
+@ 
+    }
+  \end{center}
+  \caption{\textbf{Sales by stillage}}
+  \label{sales_by_stillage}
+\end{figure}
+
+%% Sales by Style
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+heatmap.2(as.matrix(dp/dp[,1]),
+          dendrogram='row', key=FALSE, margins=c(5,12), trace='none',
+          Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
+@
+    }
+    \subfigure[Sales rate comparison]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotModelCoeffs( cp, 'style', drop=drop, w=w)
+@
+    }
+  \end{center}
+  \caption{\textbf{Sales by product style}}
+  \label{sales_by_style}
+\end{figure}
+
+\null
+\newpage
+
+\section{Session information}
+
+The version number of R and packages loaded for generating the
+vignette were:
+
+<<echo=FALSE>>=
+sessionInfo()
+@ 
+
+\end{document}
