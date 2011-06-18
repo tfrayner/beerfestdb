@@ -37,12 +37,7 @@
 
 \begin{document}
 
-\normalem
-
-% Edit this:
-\title{38th Cambridge Beer Festival --- Dip figures}
-\date{\today}
-\maketitle
+\fontfamily{ppl}\selectfont  % reselect Palatino font.
 
 <<echo=FALSE>>=
 
@@ -50,9 +45,16 @@
 baseuri  <- 'http://localhost:3000'
 festname <- '38th Cambridge Beer Festival'
 prodcat  <- 'beer'
-
 # End of editable section.
 
+@ 
+
+\normalem
+\title{\Sexpr{festname} --- Dip figure report}
+\date{\today}
+\maketitle
+
+<<echo=FALSE>>=
 library(RCurl)
 library(rjson)
 library(RColorBrewer)
@@ -61,14 +63,47 @@ library(gplots)
 library(BeerFestDB)
 
 cp <- getFestivalData(baseuri, festname, prodcat)
+w  <- colnames(cp) == 'cask_volume' | grepl('^dip\\.', colnames(cp))
 write.csv(cp, 'full_dip_dump.csv', row.names=FALSE)
+vol.total  <- sum(cp$cask_volume)
+vol.condd  <- sum(cp[ cp$is_condemned == 1, w][ , sum(w) ])
+vol.unsold <- sum(cp[ cp$is_condemned == 0, w][ , sum(w) ])
+vol.sold   <- vol.total - (vol.condd + vol.unsold)
+@ 
+
+\begin{center}
+\begin{tabular}{ | l | r | r | r | }
+  \hline \hline
+   & Gallons & Kils & Percent total \\ \hline
+%  Main order: &  &  & \% \\ \hline
+%  Reorder: &  &  & \% \\ \hline
+  Total: 
+    & \Sexpr{sprintf("%.1f", vol.total)}
+    & \Sexpr{sprintf("%.1f", vol.total / 18)}
+    & 100.0\% \\ \hline \hline
+  Amount sold:
+    & \Sexpr{sprintf("%.1f", vol.sold)}
+    & \Sexpr{sprintf("%.1f", vol.sold / 18)} 
+    & \Sexpr{sprintf("%.1f", (vol.sold*100/vol.total))}\% \\ \hline
+  Amount condemned:
+    & \Sexpr{sprintf("%.1f", vol.condd)}
+    & \Sexpr{sprintf("%.1f", vol.condd / 18)} 
+    & \Sexpr{sprintf("%.1f", (vol.condd*100/vol.total))}\% \\ \hline
+%  Amount unbroached or re-sealed: &  &  & \% \\ \hline
+  Amount remaining unsold:
+    & \Sexpr{sprintf("%.1f", vol.unsold)}
+    & \Sexpr{sprintf("%.1f", vol.unsold / 18)} 
+    & \Sexpr{sprintf("%.1f", (vol.unsold*100/vol.total))}\% \\ \hline \hline
+\end{tabular}
+\end{center}
+
+<<echo=FALSE>>=
 
 cp <- cp[ cp$is_condemned == 0, ]
     
 cp$abv_class <- cut(cp$nominal_abv, breaks=c(2,3.5,4,4.5,5,7,12))
 levels(cp$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cp$abv_class)))
     
-w  <- colnames(cp) == 'cask_volume' | grepl('^dip\\.', colnames(cp))
 colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])
 
 stopifnot( colnames(cp)[w][1] == 'cask_volume' )
@@ -102,7 +137,7 @@ drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
 %% Pie charts
 \begin{figure}[htp]
   \begin{center}
-<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+<<echo=FALSE,fig=TRUE,width=8,height=8>>=
     byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
     drawPie( byprod, 'region', cols=cols, cex=1.25 )
 @ 
@@ -113,7 +148,7 @@ drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
 
 \begin{figure}[htp]
   \begin{center}
-<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+<<echo=FALSE,fig=TRUE,width=8,height=8>>=
     drawPie( byprod, 'style', cols=cols, cex=1.25 )
 @ 
   \end{center}
