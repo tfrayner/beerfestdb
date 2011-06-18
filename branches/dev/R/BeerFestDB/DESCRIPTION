@@ -1,0 +1,10 @@
+Package: BeerFestDB
+Type: Package
+Title: Utility functions used to query and analyse dip data from the BeerFestDB database.
+Version: 0.1
+Date: 2011-06-18
+Author: Tim F. Rayner
+Maintainer: Tim F. Rayner <tfrayner@gmail.com>
+Description: This is a package used to help manage the development of code used in generating sales reports and other analyses of the data stored in a BeerFestDB instance.
+License: GPL (>= 3)
+LazyLoad: yes
