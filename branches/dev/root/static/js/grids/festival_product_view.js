@@ -139,6 +139,29 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
     });
 
+    /* Order batch drop-down */
+    var order_batch_store = new Ext.data.JsonStore({
+        url:        url_order_batch_list,
+        root:       'objects',
+        fields:     [{ name: 'order_batch_id', type: 'int' },
+                     { name: 'description',    type: 'string'}],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    order_batch_store.load();
+    var order_batch_combo = new Ext.form.ComboBox({
+        allowBlank:     true,
+        typeAhead:      true,
+        triggerAction:  'all',
+        store:          order_batch_store,
+        valueField:     'order_batch_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
+    });
+
     /* Cask drop-down */
     var cask_store = new Ext.data.JsonStore({
         url:        url_cask_list,
@@ -147,6 +170,7 @@ Ext.onReady(function(){
                      { name: 'festival_id',       type: 'int' },
                      { name: 'gyle_id',           type: 'int' },
                      { name: 'distributor_id',    type: 'int' },
+                     { name: 'order_batch_id',    type: 'int' },
                      { name: 'container_size_id', type: 'int' },
                      { name: 'currency_id',       type: 'int' },
                      { name: 'price',             type: 'int' },
@@ -356,6 +380,12 @@ Ext.onReady(function(){
                   width:      130,
                   renderer:   MyComboRenderer(company_combo),
                   editor:     company_combo, },
+                { id:         'order_batch_id',
+                  header:     'Order Batch',
+                  dataIndex:  'order_batch_id',
+                  width:      130,
+                  renderer:   MyComboRenderer(order_batch_combo),
+                  editor:     order_batch_combo, },
                 { id:        'comment',
                   header:    'Comment',
                   dataIndex: 'comment',

@@ -208,6 +208,7 @@ sub _save_records : Private {
                 gyle_id                => $gyle->get_column('gyle_id'),
                 festival_id            => $festival_id,
                 distributor_company_id => $po->get_column('distributor_company_id'),
+                order_batch_id         => $po->get_column('order_batch_id'),
                 container_size_id      => $casksize,
                 currency_id            => $currency_id,
                 internal_reference     => $previous_max + $n,

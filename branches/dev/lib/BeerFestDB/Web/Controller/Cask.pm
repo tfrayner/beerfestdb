@@ -49,6 +49,7 @@ sub BUILD {
         cask_id           => 'cask_id',
         festival_id       => 'festival_id',
         distributor_id    => 'distributor_company_id',
+        order_batch_id    => 'order_batch_id',
         container_size_id => 'container_size_id',
         bar_id            => 'bar_id',
         stillage_location_id => 'stillage_location_id',
