@@ -680,6 +680,7 @@ CREATE TABLE cask (
   festival_id INTEGER(6) NOT NULL,
   gyle_id INTEGER(6) NOT NULL,
   distributor_company_id INTEGER(6) NULL,
+  order_batch_id INTEGER(6) NULL,
   container_size_id INTEGER(6) NOT NULL,
   bar_id INTEGER(6) NULL,
   currency_id INTEGER(6) NOT NULL,
@@ -702,6 +703,7 @@ CREATE TABLE cask (
   UNIQUE KEY `festival_cellar_ref` (festival_id, cellar_reference),
   INDEX FK_CSK_bbid(gyle_id),
   INDEX FK_CSK_dcid(distributor_company_id),
+  INDEX FK_CSK_obid(order_batch_id),
   INDEX FK_CSK_bid(bar_id),
   INDEX FK_CSK_stid(stillage_location_id),
   INDEX FK_CSK_csid_CS_csid(container_size_id),
@@ -722,6 +724,10 @@ CREATE TABLE cask (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_dcId_COMP_coid(distributor_company_id)
     REFERENCES company(company_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSK_obId_COMP_obid(order_batch_id)
+    REFERENCES order_batch(order_batch_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_curcd_CUR_curcd(currency_id)

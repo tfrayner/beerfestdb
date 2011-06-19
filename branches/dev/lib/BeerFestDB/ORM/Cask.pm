@@ -138,6 +138,12 @@ __PACKAGE__->table("cask");
   data_type: 'tinyint'
   is_nullable: 1
 
+=head2 order_batch_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -183,6 +189,8 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", is_nullable => 1 },
   "is_condemned",
   { data_type => "tinyint", is_nullable => 1 },
+  "order_batch_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("cask_id");
 __PACKAGE__->add_unique_constraint("festival_cellar_ref", ["festival_id", "cellar_reference"]);
@@ -192,6 +200,20 @@ __PACKAGE__->add_unique_constraint(
 );
 
 =head1 RELATIONS
+
+=head2 order_batch_id
+
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::OrderBatch>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "order_batch_id",
+  "BeerFestDB::ORM::OrderBatch",
+  { order_batch_id => "order_batch_id" },
+);
 
 =head2 bar_id
 
@@ -299,8 +321,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-06-03 09:15:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j/dig5TK3+CDi2ccBSmbRg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-06-19 11:31:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w0SLujzskpGDJ+NgCk7LOg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
