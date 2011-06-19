@@ -1010,12 +1010,21 @@ create trigger `cask_fp_insert_trigger`
     before insert on cask
 for each row
 begin
+    -- check that the gyle is valid
     if ( (select count(fp.festival_id)
             from festival_product fp, gyle g
             where new.gyle_id=g.gyle_id
             and g.festival_product_id=fp.festival_product_id
             and fp.festival_id=new.festival_id) = 0 ) then
         call ERROR_CASK_FP_INSERT_TRIGGER();
+    end if;
+    -- check that the order_batch is valid
+    if ( new.order_batch_id is not null
+       and (select count(ob.order_batch_id)
+            from order_batch ob
+            where ob.festival_id=new.festival_id
+            and ob.order_batch_id=new.order_batch_id) = 0 ) then
+        call ERROR_CASK_OB_INSERT_TRIGGER();
     end if;
 end;
 //
@@ -1038,6 +1047,14 @@ begin
             and cm.measurement_batch_id=mb.measurement_batch_id
             and mb.festival_id=old.festival_id) != 0 ) then
         call ERROR_CASK_MB_UPDATE_TRIGGER();
+    end if;
+    -- check that the order_batch is valid
+    if ( new.order_batch_id is not null
+        and (select count(ob.order_batch_id)
+             from order_batch ob
+             where ob.festival_id=new.festival_id
+             and ob.order_batch_id=new.order_batch_id) = 0 ) then
+        call ERROR_CASK_OB_UPDATE_TRIGGER();
     end if;
 end;
 //
@@ -1118,5 +1135,21 @@ begin
 end;
 //
 
+-- Order Batch
+create trigger `order_batch_update_trigger`
+    before update on order_batch
+for each row
+begin
+    -- if we're changing festival association, ensure we haven't already used this batch elsewhere.
+    if ( old.festival_id != new.festival_id
+         and (select count(c.order_batch_id)
+              from cask c
+              where c.order_batch_id=old.order_batch_id) > 0 ) then
+        call ERROR_ORDER_BATCH_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
 -- End of triggers
 delimiter ;
+
