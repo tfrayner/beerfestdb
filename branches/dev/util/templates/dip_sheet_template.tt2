@@ -24,7 +24,7 @@
 [% BLOCK table_header %]
   \begin{tabular}{ | l | l | l | c | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.4cm} | [% END %]p{5cm} | c | }
     \hline
-  Location & Brewer & Beer & ID & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name %] & [% END %]Notes & C \\ \hline
+  Location & Brewer & Beer & ID & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name.substr(0,1) %] & [% END %]Notes & C \\ \hline
 [% END %]
 
 [% BLOCK table_end %]
