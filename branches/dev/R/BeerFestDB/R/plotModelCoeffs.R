@@ -27,15 +27,16 @@ plotModelCoeffs <- function(cp, colname, drop, w=TRUE, ... ) {
     pred <- (pred/sum(pred)) * 100
 
     dp <- dp[, ! colnames(dp) %in% drop ]
+    dp <- dp$Start - dp
 
     fm <- data.frame(dip=as.numeric(t(dp)),
                      time=rep(0:(ncol(dp)-1), nrow(dp)),
                      category=unlist(lapply(rownames(dp), rep, ncol(dp))))
-    l <- lm(dip~0+time+category, data=fm)
+    l <- lm(dip~0+category, data=fm)
 
     ## FIXME consider also using the std. error estimates to generate error bars.
 
-    x <- summary(l)$coefficients[-1,1]
+    x <- summary(l)$coefficients[,1]
     x <- (x/sum(x)) * 100
     names(x) <- sub('category', '', names(x))
 

@@ -33,7 +33,10 @@ queryBFDB <- function( uri, columns ) {
             suppressWarnings(res[, x] <- as.integer( res[, x] ))
 
     if ( ! missing(columns) )
-        res <- res[, columns]
+        if ( nrow(res) > 0 )
+            res <- res[, columns]
+        else
+            res <- as.data.frame(matrix(nrow=0, ncol=length(columns), dimnames=list(NULL, columns)))
 
     return(res)
 }

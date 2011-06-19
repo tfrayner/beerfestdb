@@ -84,6 +84,7 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
     colnames(orderbatch)[2] <- 'order_batch'
 
     cp <- merge(cp, orderbatch, by='order_batch_id', all.x=TRUE)
+    cp[ is.na(cp$order_batch), 'order_batch' ] <- 'Other'
 
     ## Throw out all database ID columns except cask_id.
     cp <- cp[, ! grepl('(?<!cask)_id$', colnames(cp), perl=TRUE)]
