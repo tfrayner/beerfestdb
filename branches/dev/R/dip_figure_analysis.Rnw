@@ -32,12 +32,14 @@
 \usepackage{float}
 \usepackage{subfigure}
 \usepackage{ulem}
+\usepackage{sectsty}
 
-\usepackage[a4paper, top=2.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage[a4paper, top=2.5cm, bottom=2.0cm, left=2.0cm, right=2.0cm]{geometry}
 
 \begin{document}
 
-\fontfamily{ppl}\selectfont  % reselect Palatino font.
+\fontfamily{ppl}\selectfont  % Reselect Palatino font.
+\allsectionsfont{\usefont{OT1}{ppl}{m}{n}\selectfont} % Section headings also.
 
 <<echo=FALSE>>=
 
@@ -45,14 +47,18 @@
 baseuri  <- 'http://localhost:3000'
 festname <- '38th Cambridge Beer Festival'
 prodcat  <- 'beer'
+author   <- ''
 # End of editable section.
 
 @ 
 
 \normalem
 \title{\Sexpr{festname} --- Dip figure report}
+\author{\Sexpr{author}}
 \date{\today}
 \maketitle
+
+%\tableofcontents
 
 <<echo=FALSE>>=
 library(RCurl)
@@ -71,12 +77,28 @@ vol.unsold <- sum(cp[ cp$is_condemned == 0, w][ , sum(w) ])
 vol.sold   <- vol.total - (vol.condd + vol.unsold)
 @ 
 
+\section{Overall Sales Data}
+
 \begin{center}
 \begin{tabular}{ | l | r | r | r | }
   \hline \hline
    & Gallons & Kils & Percent total \\ \hline
-%  Main order: &  &  & \% \\ \hline
-%  Reorder: &  &  & \% \\ \hline
+<<echo=FALSE,results=tex>>=
+ob <- aggregate(cp[,'cask_volume'], list(cp$order_batch), sum)
+if ( nrow(ob) > 1 ) {  ## Don't bother enumerating order batches if there was only one.
+  
+    ## Rearrange so the largest order is first. Reorders will often
+    ## be named in appropriate order so we don't munge the data any further.
+    obm <- which.max(ob[,2])
+    ob  <- rbind( ob[obm,], ob[-obm,] )
+    for ( n in 1:nrow(ob) )
+        cat( ob[n,1],
+            ": & ", sprintf("%.1f", ob[n,2]),
+            " & ",  sprintf("%.1f", ob[n,2] / 18),
+            " & ",  sprintf("%.1f", (ob[n,2]*100/vol.total)),
+            "\\% \\\\ \\hline\n", sep="")
+}
+@ 
   Total: 
     & \Sexpr{sprintf("%.1f", vol.total)}
     & \Sexpr{sprintf("%.1f", vol.total / 18)}
@@ -124,7 +146,7 @@ drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
 
 %% Main sales graph
 \setkeys{Gin}{width=0.5\textwidth}
-\begin{figure}[htp]
+\begin{figure}[H]
   \begin{center}
 <<echo=FALSE,fig=TRUE,width=7,height=7>>=
     plotTotalBeerSales(pd)
@@ -134,8 +156,10 @@ drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
   \label{total_beer_sales}
 \end{figure}
 
+\section{Order Distributions}
+
 %% Pie charts
-\begin{figure}[htp]
+\begin{figure}[H]
   \begin{center}
 <<echo=FALSE,fig=TRUE,width=8,height=8>>=
     byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
@@ -146,7 +170,7 @@ drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
   \label{beers_per_region}
 \end{figure}
 
-\begin{figure}[htp]
+\begin{figure}[H]
   \begin{center}
 <<echo=FALSE,fig=TRUE,width=8,height=8>>=
     drawPie( byprod, 'style', cols=cols, cex=1.25 )
@@ -156,9 +180,13 @@ drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
   \label{beers_by_style}
 \end{figure}
 
+\section{Sales by Category}
+
+\subsection{ABV}
+
 %% Sales by ABV
 \setkeys{Gin}{width=0.4\textwidth}
-\begin{figure}[htp]
+\begin{figure}[H]
   \begin{center}
     \subfigure[Daily sales: fraction remaining]{
 <<echo=FALSE,fig=TRUE,width=7,height=7>>=
@@ -175,8 +203,10 @@ plotModelCoeffs( cp, 'abv_class', drop=drop, w=w)
   \label{sales_by_abv}
 \end{figure}
 
+\subsection{Geographical Region}
+
 %% Sales by Region
-\begin{figure}[htp]
+\begin{figure}[H]
   \begin{center}
     \subfigure[Daily sales: fraction remaining]{
 <<echo=FALSE,fig=TRUE,width=7,height=7>>=
@@ -193,8 +223,10 @@ plotModelCoeffs( cp, 'region', drop=drop, w=w)
   \label{sales_by_region}
 \end{figure}
 
+\subsection{Stillage Location}
+
 %% Sales by Stillage
-\begin{figure}[htp]
+\begin{figure}[H]
   \begin{center}
     \subfigure[Daily sales: fraction remaining]{
 <<echo=FALSE,fig=TRUE,width=7,height=7>>=
@@ -211,8 +243,10 @@ plotModelCoeffs( cp, 'stillage', drop=drop, w=w)
   \label{sales_by_stillage}
 \end{figure}
 
+\subsection{Product Style}
+
 %% Sales by Style
-\begin{figure}[htp]
+\begin{figure}[H]
   \begin{center}
     \subfigure[Daily sales: fraction remaining]{
 <<echo=FALSE,fig=TRUE,width=7,height=7>>=
@@ -234,10 +268,10 @@ plotModelCoeffs( cp, 'style', drop=drop, w=w)
 \null
 \newpage
 
-\section{Session information}
+\section{Technical Information}
 
-The version number of R and packages loaded for generating the
-vignette were:
+The version number of R and packages loaded for generating this
+report were as follows:
 
 <<echo=FALSE>>=
 sessionInfo()
