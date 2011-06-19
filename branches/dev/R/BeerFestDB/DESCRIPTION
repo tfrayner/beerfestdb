@@ -8,3 +8,5 @@ Maintainer: Tim F. Rayner <tfrayner@gmail.com>
 Description: This is a package used to help manage the development of code used in generating sales reports and other analyses of the data stored in a BeerFestDB instance.
 License: GPL (>= 3)
 LazyLoad: yes
+Depends: R (>= 2.10.0), rjson, RCurl, RColorBrewer, gplots
+

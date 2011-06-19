@@ -34,7 +34,7 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
     cask <- queryBFDB(paste(baseuri, 'cask/list',
                             fest[ fest$name==festname, 'festival_id'],
                             cat[cat$description==prodcat, 'product_category_id'], sep='/'),
-                      c('cask_id','product_id','container_size_id',
+                      c('cask_id','product_id','container_size_id','order_batch_id',
                         'stillage_location_id','festival_ref','is_condemned'))
     suppressWarnings(cask <- as.data.frame(apply(cask, 2, as.integer)))
     cask[ is.na(cask$is_condemned), 'is_condemned' ] <- 0
@@ -76,6 +76,14 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
     colnames(stillage)[2] <- 'stillage'
 
     cp <- merge(cp, stillage, by='stillage_location_id', all.x=TRUE)
+
+    orderbatch <- queryBFDB(paste(baseuri, 'orderbatch/list',
+                                  fest[ fest$name==festname, 'festival_id'],
+                                  sep='/'),
+                        c('order_batch_id','description'))
+    colnames(orderbatch)[2] <- 'order_batch'
+
+    cp <- merge(cp, orderbatch, by='order_batch_id', all.x=TRUE)
 
     ## Throw out all database ID columns except cask_id.
     cp <- cp[, ! grepl('(?<!cask)_id$', colnames(cp), perl=TRUE)]

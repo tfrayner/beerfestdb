@@ -21,7 +21,7 @@
 
 queryBFDB <- function( uri, columns ) {
 
-    res <- getURI(uri)
+    res <- RCurl::getURI(uri)
     res  <- rjson::fromJSON(res)
     stopifnot( isTRUE(res$success) )
     
