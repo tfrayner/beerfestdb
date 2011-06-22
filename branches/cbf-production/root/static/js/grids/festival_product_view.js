@@ -49,20 +49,6 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
     });
 
-    /* Product drop-down */
-    var product_store = new Ext.data.JsonStore({
-        url:        url_product_list,
-        root:       'objects',
-        fields:     [{ name: 'product_id', type: 'int' },
-                     { name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-    product_store.load();
-
     /* Sale volume drop-down */
     var volume_store = new Ext.data.JsonStore({
         url:        url_sale_volume_list,
@@ -153,6 +139,29 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
     });
 
+    /* Order batch drop-down */
+    var order_batch_store = new Ext.data.JsonStore({
+        url:        url_order_batch_list,
+        root:       'objects',
+        fields:     [{ name: 'order_batch_id', type: 'int' },
+                     { name: 'description',    type: 'string'}],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    order_batch_store.load();
+    var order_batch_combo = new Ext.form.ComboBox({
+        allowBlank:     true,
+        typeAhead:      true,
+        triggerAction:  'all',
+        store:          order_batch_store,
+        valueField:     'order_batch_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
+    });
+
     /* Cask drop-down */
     var cask_store = new Ext.data.JsonStore({
         url:        url_cask_list,
@@ -161,6 +170,7 @@ Ext.onReady(function(){
                      { name: 'festival_id',       type: 'int' },
                      { name: 'gyle_id',           type: 'int' },
                      { name: 'distributor_id',    type: 'int' },
+                     { name: 'order_batch_id',    type: 'int' },
                      { name: 'container_size_id', type: 'int' },
                      { name: 'currency_id',       type: 'int' },
                      { name: 'price',             type: 'int' },
@@ -183,26 +193,14 @@ Ext.onReady(function(){
             
         items: [
 
-            { name:           'company_id',
+            { name:           'company_name',
               fieldLabel:     'Company',
-              triggerAction:  'all',
-              store:          company_store,
-              forceSelection: true,
-              valueField:     'company_id',
-              displayField:   'name',
-              lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'textfield',
               readOnly:       true, },
             
-            { name:           'product_id',
+            { name:           'product_name',
               fieldLabel:     'Product',
-              triggerAction:  'all',
-              store:          product_store,
-              forceSelection: true,
-              valueField:     'product_id',
-              displayField:   'name',
-              lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'textfield',
               readOnly:       true, },
             
             { name:           'sale_price',
@@ -382,6 +380,12 @@ Ext.onReady(function(){
                   width:      130,
                   renderer:   MyComboRenderer(company_combo),
                   editor:     company_combo, },
+                { id:         'order_batch_id',
+                  header:     'Order Batch',
+                  dataIndex:  'order_batch_id',
+                  width:      130,
+                  renderer:   MyComboRenderer(order_batch_combo),
+                  editor:     order_batch_combo, },
                 { id:        'comment',
                   header:    'Comment',
                   dataIndex: 'comment',

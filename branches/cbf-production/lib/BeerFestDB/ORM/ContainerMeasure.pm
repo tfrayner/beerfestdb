@@ -27,8 +27,9 @@ __PACKAGE__->table("container_measure");
 
 =head2 litre_multiplier
 
-  data_type: 'float'
+  data_type: 'decimal'
   is_nullable: 0
+  size: [15,12]
 
 =head2 description
 
@@ -42,7 +43,7 @@ __PACKAGE__->add_columns(
   "container_measure_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "litre_multiplier",
-  { data_type => "float", is_nullable => 0 },
+  { data_type => "decimal", is_nullable => 0, size => [15, 12] },
   "description",
   { data_type => "varchar", is_nullable => 0, size => 50 },
 );
@@ -97,8 +98,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-09-18 15:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HqqdtCiaW0IEbXUI3ttGLQ
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-06-03 09:21:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hu/p/dXPXh6i0tXu31MeAA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

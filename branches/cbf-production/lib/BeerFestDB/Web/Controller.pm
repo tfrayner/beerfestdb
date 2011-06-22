@@ -28,6 +28,8 @@ use Carp;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
+with 'BeerFestDB::DBHashRefValidator';
+
 has 'model_view_map' => ( is  => 'rw',
                           isa => 'HashRef' );
 
@@ -139,6 +141,11 @@ sub viewhash_from_model : Private {
 sub build_database_object : Private {
 
     my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
+
+    foreach my $key ( keys %$rec ) {
+        delete $rec->{$key}
+            unless $self->value_is_acceptable( $rec->{$key} );
+    }
 
     # Passed a JSON record nested hashref, Catalyst context and the
     # appropriate DBIC::ResultSet object, create database objects
@@ -253,15 +260,37 @@ sub build_database_object : Private {
         };
         if ($@) {
 
-            # Called within a transaction, we die hard.
 	    $c->log->error("DB transaction failure: $@");
-            my $valstr = join(', ', map { $_ . ' => ' . $rec->{$_} } keys %$rec);
-            die(sprintf("Unable to save %s object with values: %s\n",
-                        $rs->result_source->source_name(), $valstr));
+
+	    my @missing = $self->resultset_missing_requirements( $rec, $rs );
+
+	    my $message;
+	    if ( scalar @missing ) {
+	        my @bad = map { s/_id\z//xms; s/_+/ /g; $_ } @missing;
+	        $message = sprintf("Unable to save %s object (missing values for ",
+				   $rs->result_source->source_name())
+		  . join(", ", @bad) . ").";
+	    }
+	    else {
+
+		my $valstr = join(', ', map { $_ . ' => ' . $rec->{$_} } keys %$rec);
+		$message = sprintf("Unable to save %s object with values: %s",
+				   $rs->result_source->source_name(), $valstr);
+	    }
+         
+  	    # Called within a transaction, we die hard.
+	    die( $message . "\n" );
         }
     }
 
     return( $dbobj );
+}
+
+sub value_is_acceptable : Private {  # Required by DBHashRefValidator
+
+    my ( $self, $value ) = @_;
+
+    return ( defined $value );
 }
 
 =head2 write_to_resultset
@@ -290,7 +319,7 @@ sub write_to_resultset : Private {
         );
     };
     if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $rs, $@ );
+        $self->detach_with_txn_failure( $c, $@ );
     };
 
     $c->stash->{ 'success' } = JSON::Any->false();
@@ -322,6 +351,7 @@ sub delete_from_resultset : Private {
                         $rec->delete() if $rec;
                     };
                     if ($@) {
+                        $c->log->error("DB transaction failure: $@");
                         die(sprintf("Unable to delete %s object with ID=%s\n",
                                     $rs->result_source->source_name(), $id));
                     }
@@ -330,18 +360,16 @@ sub delete_from_resultset : Private {
         );
     };
     if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $rs, $@ );
+        $self->detach_with_txn_failure( $c, $@ );
     };
 
     $c->stash->{ 'success' } = JSON::Any->false();
-    $c->detach( $c->view( 'JSON' ) );
-
     $c->detach( $c->view( 'JSON' ) );
 }
 
 sub detach_with_txn_failure : Private {
 
-    my ( $self, $c, $rs, $error ) = @_;
+    my ( $self, $c, $error ) = @_;
 
     $error =~ s/\A (.*) [\r\n]* \z/$1/xms;
 

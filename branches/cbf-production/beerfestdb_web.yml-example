@@ -41,19 +41,24 @@ OODoc:
 # once the core "global" information has been loaded.
 #
 # protected_classes:
-#   - Company
-#   - Product
-#   - ProductStyle
-#   - ProductCategory
-#   - Currency
-#   - CompanyRegion
-#   - ContactType
-#   - ContainerMeasure
-#   - ContainerSize
-#   - Country
-#   - ProductCharacteristicType
-#   - SaleVolume
-#   - TelephoneType
+#  - Company
+#  - Product
+#  - ProductStyle
+#  - ProductCategory
+#  - Currency
+#  - CompanyRegion
+#  - ContactType
+#  - ContainerMeasure
+#  - ContainerSize
+#  - Country
+#  - ProductCharacteristicType
+#  - SaleVolume
+#  - TelephoneType
+#  - Festival
+#  - FestivalProduct
+#  - Cask
+#  - Gyle
+#  - StillageLocation
 
 status_query:
   festival_name:

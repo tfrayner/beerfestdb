@@ -172,7 +172,7 @@ sub submit : Local {
         );
     };
     if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $rs, $@ );
+        $self->detach_with_txn_failure( $c, $@ );
     }
     
     $c->stash->{success} = JSON::Any->true();
@@ -192,8 +192,16 @@ sub _save_records : Private {
         }
 
         # Cask-level editing at the point of dip entry for convenience.
-        foreach my $field ( qw(comment is_vented is_tapped is_ready is_condemned) ) {
-            $cask->set_column($field, delete $rec->{$field}) if defined $field;
+        foreach my $field ( qw(comment) ) {
+
+            # Empty string is allowed.
+            $cask->set_column($field, delete $rec->{$field}) if defined $rec->{$field};
+        }
+        foreach my $field ( qw(is_vented is_tapped is_ready is_condemned) ) {
+
+            # No empty strings allowed for tinyints.
+            $cask->set_column($field, delete $rec->{$field})
+                if ( defined $rec->{$field} && $rec->{$field} ne q{} );
         }
         $cask->update();
 

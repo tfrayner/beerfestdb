@@ -62,7 +62,7 @@ sub index :Path :Args(0) {
     $c->response->body('Matched BeerFestDB::Web::Controller::Gyle in Gyle.');
 }
 
-=head2 list
+=head2 list_by_festival_product
 
 =cut
 
@@ -71,6 +71,22 @@ sub list_by_festival_product : Local {
     my ( $self, $c, $id ) = @_;
 
     my $rs = $c->model( 'DB::Gyle' )->search({ festival_product_id => $id });
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 list_by_festival
+
+=cut
+
+sub list_by_festival : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $rs = $c->model( 'DB::Gyle' )->search(
+        { 'festival_product_id.festival_id' => $id },
+        { join => 'festival_product_id' },
+    );
 
     $self->generate_json_and_detach( $c, $rs );
 }
