@@ -1,0 +1,283 @@
+%
+% This file is part of BeerFestDB, a beer festival product management
+% system.
+% 
+% Copyright (C) 2011 Tim F. Rayner
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+% $Id: Loader.pm 290 2011-06-11 21:01:07Z tfrayner $
+%
+% To use this Sweave document, edit the title and config variables
+% (baseuri, festname, prodcat) and run:
+%
+% SWEAVE_STYLEPATH_DEFAULT=TRUE R CMD Sweave dip_figure_analysis.Rnw
+
+\documentclass{article}
+\SweaveOpts{eps=false}
+
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{ulem}
+\usepackage{sectsty}
+
+\usepackage[a4paper, top=2.5cm, bottom=2.0cm, left=2.0cm, right=2.0cm]{geometry}
+
+\begin{document}
+
+\fontfamily{ppl}\selectfont  % Reselect Palatino font.
+\allsectionsfont{\usefont{OT1}{ppl}{m}{n}\selectfont} % Section headings also.
+
+<<echo=FALSE>>=
+
+# Edit these:
+baseuri  <- 'http://localhost:3000'
+festname <- '38th Cambridge Beer Festival'
+prodcat  <- 'beer'
+author   <- ''
+# End of editable section.
+
+@ 
+
+\normalem
+\title{\Sexpr{festname} --- Dip figure report}
+\author{\Sexpr{author}}
+\date{\today}
+\maketitle
+
+%\tableofcontents
+
+<<echo=FALSE>>=
+library(RCurl)
+library(rjson)
+library(RColorBrewer)
+library(gplots)
+
+library(BeerFestDB)
+
+cp <- getFestivalData(baseuri, festname, prodcat)
+w  <- colnames(cp) == 'cask_volume' | grepl('^dip\\.', colnames(cp))
+write.csv(cp, 'full_dip_dump.csv', row.names=FALSE)
+vol.total  <- sum(cp$cask_volume)
+vol.condd  <- sum(cp[ cp$is_condemned == 1, w][ , sum(w) ])
+vol.unsold <- sum(cp[ cp$is_condemned == 0, w][ , sum(w) ])
+vol.sold   <- vol.total - (vol.condd + vol.unsold)
+@ 
+
+\section{Overall Sales Data}
+
+\begin{center}
+\begin{tabular}{ | l | r | r | r | }
+  \hline \hline
+   & Gallons & Kils & Percent total \\ \hline
+<<echo=FALSE,results=tex>>=
+ob <- aggregate(cp[,'cask_volume'], list(cp$order_batch), sum)
+if ( nrow(ob) > 1 ) {  ## Don't bother enumerating order batches if there was only one.
+  
+    ## Rearrange so the largest order is first. Reorders will often
+    ## be named in appropriate order so we don't munge the data any further.
+    obm <- which.max(ob[,2])
+    ob  <- rbind( ob[obm,], ob[-obm,] )
+    for ( n in 1:nrow(ob) )
+        cat( ob[n,1],
+            ": & ", sprintf("%.1f", ob[n,2]),
+            " & ",  sprintf("%.1f", ob[n,2] / 18),
+            " & ",  sprintf("%.1f", (ob[n,2]*100/vol.total)),
+            "\\% \\\\ \\hline\n", sep="")
+}
+@ 
+  Total: 
+    & \Sexpr{sprintf("%.1f", vol.total)}
+    & \Sexpr{sprintf("%.1f", vol.total / 18)}
+    & 100.0\% \\ \hline \hline
+  Amount sold:
+    & \Sexpr{sprintf("%.1f", vol.sold)}
+    & \Sexpr{sprintf("%.1f", vol.sold / 18)} 
+    & \Sexpr{sprintf("%.1f", (vol.sold*100/vol.total))}\% \\ \hline
+  Amount condemned:
+    & \Sexpr{sprintf("%.1f", vol.condd)}
+    & \Sexpr{sprintf("%.1f", vol.condd / 18)} 
+    & \Sexpr{sprintf("%.1f", (vol.condd*100/vol.total))}\% \\ \hline
+%  Amount unbroached or re-sealed: &  &  & \% \\ \hline
+  Amount remaining unsold:
+    & \Sexpr{sprintf("%.1f", vol.unsold)}
+    & \Sexpr{sprintf("%.1f", vol.unsold / 18)} 
+    & \Sexpr{sprintf("%.1f", (vol.unsold*100/vol.total))}\% \\ \hline \hline
+\end{tabular}
+\end{center}
+
+<<echo=FALSE>>=
+
+cp <- cp[ cp$is_condemned == 0, ]
+
+bad.abv <- is.na(cp$nominal_abv)
+cp[ bad.abv, 'nominal_abv' ] <- cp[ bad.abv, 'gyle_abv' ]
+    
+cp$abv_class <- cut(cp$nominal_abv, breaks=c(2,3.5,4,4.5,5,7,12))
+levels(cp$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cp$abv_class)))
+    
+colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])
+
+stopifnot( colnames(cp)[w][1] == 'cask_volume' )
+
+pd <- cp[,w][,-sum(w)] - cp[,w][,-1]
+colnames(pd) <- colnames(cp)[w][-1]
+stopifnot( all(pd >= 0 ) )
+
+cols <- brewer.pal(9, 'Set1')
+
+dp <- aggData( cp, 'style', w )
+## Drop the last part of the festival (1/4 rounded up) since it'll
+## usually be non-linear by then.
+dn <- ceiling((ncol(dp)-1)/4) - 1
+drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
+
+@ 
+
+%% Main sales graph
+\setkeys{Gin}{width=0.5\textwidth}
+\begin{figure}[H]
+  \begin{center}
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+    plotTotalBeerSales(pd)
+@ 
+  \end{center}
+  \caption{\textbf{Total beer sales}}
+  \label{total_beer_sales}
+\end{figure}
+
+\section{Order Distributions}
+
+%% Pie charts
+\begin{figure}[H]
+  \begin{center}
+<<echo=FALSE,fig=TRUE,width=8,height=8>>=
+    byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
+    drawPie( byprod, 'region', cols=cols, cex=1.25 )
+@ 
+  \end{center}
+  \caption{\textbf{Number of beers received per region}}
+  \label{beers_per_region}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+<<echo=FALSE,fig=TRUE,width=8,height=8>>=
+    drawPie( byprod, 'style', cols=cols, cex=1.25 )
+@ 
+  \end{center}
+  \caption{\textbf{Number of beers received by style}}
+  \label{beers_by_style}
+\end{figure}
+
+\section{Sales by Category}
+
+\subsection{ABV}
+
+%% Sales by ABV
+\setkeys{Gin}{width=0.4\textwidth}
+\begin{figure}[H]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotSalesRate( cp, 'abv_class', w=w )
+@ 
+    }
+    \subfigure[Sales rate comparison]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotModelCoeffs( cp, 'abv_class', drop=drop, w=w)
+@ 
+    }
+  \end{center}
+  \caption{\textbf{Sales by ABV}}
+  \label{sales_by_abv}
+\end{figure}
+
+\subsection{Geographical Region}
+
+%% Sales by Region
+\begin{figure}[H]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotSalesRate( cp, 'region', w=w )
+@ 
+    }
+    \subfigure[Sales rate comparison]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotModelCoeffs( cp, 'region', drop=drop, w=w)
+@ 
+    }
+  \end{center}
+  \caption{\textbf{Sales by geographic region}}
+  \label{sales_by_region}
+\end{figure}
+
+\subsection{Stillage Location}
+
+%% Sales by Stillage
+\begin{figure}[H]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotSalesRate( cp, 'stillage', w=w )
+@ 
+    }
+    \subfigure[Sales rate comparison]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotModelCoeffs( cp, 'stillage', drop=drop, w=w)
+@ 
+    }
+  \end{center}
+  \caption{\textbf{Sales by stillage}}
+  \label{sales_by_stillage}
+\end{figure}
+
+\subsection{Product Style}
+
+%% Sales by Style
+\begin{figure}[H]
+  \begin{center}
+    \subfigure[Daily sales: fraction remaining]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+heatmap.2(as.matrix(dp/dp[,1]),
+          dendrogram='row', key=FALSE, margins=c(5,12), trace='none',
+          Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
+@
+    }
+    \subfigure[Sales rate comparison]{
+<<echo=FALSE,fig=TRUE,width=7,height=7>>=
+plotModelCoeffs( cp, 'style', drop=drop, w=w)
+@
+    }
+  \end{center}
+  \caption{\textbf{Sales by product style}}
+  \label{sales_by_style}
+\end{figure}
+
+\null
+\newpage
+
+\section{Technical Information}
+
+The version number of R and packages loaded for generating this
+report were as follows:
+
+<<echo=FALSE>>=
+sessionInfo()
+@ 
+
+\end{document}

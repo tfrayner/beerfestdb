@@ -39,6 +39,8 @@ our $VERSION = '0.01';
 
 extends 'BeerFestDB::Dumper';
 
+with 'BeerFestDB::DipMunger';
+
 has 'template'   => ( is       => 'ro',
                       isa      => 'Str',
                       required => 1 );
@@ -195,8 +197,9 @@ sub update_cask_hash {
     $caskhash->{festival_id} = $cask->cellar_reference();
     $caskhash->{size}        = $cask->container_size_id
           ? $cask->container_size_id->container_volume() : q{};
-    $caskhash->{dips} = { map { $_->get_column('measurement_batch_id') => $_->volume() }
-                              $cask->cask_measurements() };
+    $caskhash->{dips}         = $self->munge_dips( $cask );
+    $caskhash->{comment}      = $cask->comment();
+    $caskhash->{is_condemned} = $cask->is_condemned();
 
     return $caskhash;
 }
@@ -233,13 +236,9 @@ sub dump {
     elsif ( $self->dump_class eq 'gyle' ) {
         foreach my $product ( @{ $self->festival_products } ) {
 	    my @gyles =
-		$product->search_related('festival_products')
-                        ->search_related('gyles', 
-					 { 'casks.festival_id' => $self->festival->id() },
-					 {
-					     prefetch => { casks => 'festival_id' },
-					     join     => { casks => 'festival_id' },
-					 });
+		$product->search_related('festival_products',
+					 { festival_id => $self->festival->id() })
+                        ->search_related('gyles');
             foreach my $gyle ( @gyles ) {
                 my $gylehash = $self->product_hash( $gyle->festival_product_id()->product_id() );
                 $self->update_gyle_hash( $gylehash, $gyle );
@@ -393,7 +392,9 @@ The sale unit itself.
 
 =item dips
 
-A hashref of dip measurements, keyed by batch ID.
+A hashref of dip measurements keyed by measurement batch ID, fully
+filled up to the latest batch containing any dip figures. This
+arrayref is populated using the DipMunger role.
 
 =back
 
@@ -443,7 +444,7 @@ None by default.
 
 =head1 SEE ALSO
 
-L<BeerFestDB::Dumper>, L<BeerFestDB::Dumper::OODoc>
+L<BeerFestDB::Dumper>, L<BeerFestDB::Dumper::OODoc>, L<BeerFestDB::DipMunger>
 
 =head1 COPYRIGHT AND LICENSE
 

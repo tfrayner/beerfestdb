@@ -74,7 +74,7 @@ TYPE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE container_measure (
   container_measure_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  litre_multiplier FLOAT NOT NULL,
+  litre_multiplier DECIMAL(15,12) NOT NULL,
   description VARCHAR(50) NOT NULL,
   PRIMARY KEY(container_measure_id),
   UNIQUE KEY(description)
@@ -342,6 +342,7 @@ CREATE TABLE container_size (
   container_measure_id INTEGER(6) NOT NULL,
   description VARCHAR(100) NULL,
   PRIMARY KEY(container_size_id),
+  UNIQUE KEY(container_volume),
   UNIQUE KEY(description),
   FOREIGN KEY FK_CS_cmid_CM_cmid(container_measure_id)
     REFERENCES container_measure(container_measure_id)
@@ -679,6 +680,7 @@ CREATE TABLE cask (
   festival_id INTEGER(6) NOT NULL,
   gyle_id INTEGER(6) NOT NULL,
   distributor_company_id INTEGER(6) NULL,
+  order_batch_id INTEGER(6) NULL,
   container_size_id INTEGER(6) NOT NULL,
   bar_id INTEGER(6) NULL,
   currency_id INTEGER(6) NOT NULL,
@@ -701,6 +703,7 @@ CREATE TABLE cask (
   UNIQUE KEY `festival_cellar_ref` (festival_id, cellar_reference),
   INDEX FK_CSK_bbid(gyle_id),
   INDEX FK_CSK_dcid(distributor_company_id),
+  INDEX FK_CSK_obid(order_batch_id),
   INDEX FK_CSK_bid(bar_id),
   INDEX FK_CSK_stid(stillage_location_id),
   INDEX FK_CSK_csid_CS_csid(container_size_id),
@@ -721,6 +724,10 @@ CREATE TABLE cask (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_dcId_COMP_coid(distributor_company_id)
     REFERENCES company(company_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSK_obId_COMP_obid(order_batch_id)
+    REFERENCES order_batch(order_batch_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_curcd_CUR_curcd(currency_id)
@@ -1003,12 +1010,21 @@ create trigger `cask_fp_insert_trigger`
     before insert on cask
 for each row
 begin
+    -- check that the gyle is valid
     if ( (select count(fp.festival_id)
             from festival_product fp, gyle g
             where new.gyle_id=g.gyle_id
             and g.festival_product_id=fp.festival_product_id
             and fp.festival_id=new.festival_id) = 0 ) then
         call ERROR_CASK_FP_INSERT_TRIGGER();
+    end if;
+    -- check that the order_batch is valid
+    if ( new.order_batch_id is not null
+       and (select count(ob.order_batch_id)
+            from order_batch ob
+            where ob.festival_id=new.festival_id
+            and ob.order_batch_id=new.order_batch_id) = 0 ) then
+        call ERROR_CASK_OB_INSERT_TRIGGER();
     end if;
 end;
 //
@@ -1031,6 +1047,14 @@ begin
             and cm.measurement_batch_id=mb.measurement_batch_id
             and mb.festival_id=old.festival_id) != 0 ) then
         call ERROR_CASK_MB_UPDATE_TRIGGER();
+    end if;
+    -- check that the order_batch is valid
+    if ( new.order_batch_id is not null
+        and (select count(ob.order_batch_id)
+             from order_batch ob
+             where ob.festival_id=new.festival_id
+             and ob.order_batch_id=new.order_batch_id) = 0 ) then
+        call ERROR_CASK_OB_UPDATE_TRIGGER();
     end if;
 end;
 //
@@ -1111,5 +1135,21 @@ begin
 end;
 //
 
+-- Order Batch
+create trigger `order_batch_update_trigger`
+    before update on order_batch
+for each row
+begin
+    -- if we're changing festival association, ensure we haven't already used this batch elsewhere.
+    if ( old.festival_id != new.festival_id
+         and (select count(c.order_batch_id)
+              from cask c
+              where c.order_batch_id=old.order_batch_id) > 0 ) then
+        call ERROR_ORDER_BATCH_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
 -- End of triggers
 delimiter ;
+

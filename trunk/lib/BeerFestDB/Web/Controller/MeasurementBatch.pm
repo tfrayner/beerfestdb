@@ -75,7 +75,9 @@ sub list : Local {
             $c->res->redirect( $c->uri_for('/default') );
             $c->detach();
         }
-        $rs = $festival->search_related('measurement_batches')
+        $rs = $festival->search_related('measurement_batches',
+                                        undef,
+                                        { order_by => { -asc => 'measurement_time' } });
     }
     else {
         die("Error: festival_id not defined.");
