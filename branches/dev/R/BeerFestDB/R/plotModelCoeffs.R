@@ -21,24 +21,29 @@
 
 plotModelCoeffs <- function(cp, colname, drop, w=TRUE, ... ) {
 
-    dp <- aggData(cp, colname, w)
 
-    pred <- aggregate( cp$cask_volume, list(cp[, colname]), sum )[,2] / ncol(dp)
+    pred <- aggregate( cp$cask_volume, list(cp[, colname]), sum )[,2]
     pred <- (pred/sum(pred)) * 100
 
+    dp <- aggData(cp, colname, w)
     dp <- dp[, ! colnames(dp) %in% drop ]
     dp <- dp$Start - dp
 
     fm <- data.frame(dip=as.numeric(t(dp)),
                      time=rep(0:(ncol(dp)-1), nrow(dp)),
-                     category=unlist(lapply(rownames(dp), rep, ncol(dp))))
-    l <- lm(dip~0+category, data=fm)
+                     category=factor(unlist(lapply(rownames(dp), rep, ncol(dp)))))
+
+    ## We're looking for the time:category interaction term
+    ## here.
+    l <- lm(dip~time*category, data=fm)
 
     ## FIXME consider also using the std. error estimates to generate error bars.
 
-    x <- summary(l)$coefficients[,1]
+    ncat <- nlevels(fm$category)
+    x <- l$coefficients
+    x <- c(x[2], x[ (ncat + 2):(2 * ncat) ] + x[2] )
     x <- (x/sum(x)) * 100
-    names(x) <- sub('category', '', names(x))
+    names(x) <- levels(fm$category)
 
     old.par <- par(mar=c(5,12,2,2))
     bp <- barplot(rbind(x, pred), beside=TRUE, ylab='', yaxt='n', horiz=TRUE,

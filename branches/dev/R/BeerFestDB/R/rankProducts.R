@@ -37,7 +37,7 @@ rankProducts <- function( cp, drop, w ) {
     x <- x[apply(x[,-c(1:2)], 1, function(x) { sum(x != x[1]) }) != 0,]
 
     z <- as.data.frame(t(apply(x[,-c(1:2)], 1, productSaleRate)))
-    z <- aggregate(z$Estimate, list(x$company_name, x$product_name), mean)
+    z <- aggregate(z$Estimate, list(x$company_name, x$product_name), median)
     z <- z[order(z$x),]
 
     return(z)

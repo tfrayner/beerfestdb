@@ -21,7 +21,6 @@
 
 analyseData <- function(cp) {
 
-    ## Currently a dumping ground for some thoughts.
     cp <- cp[ cp$is_condemned == 0, ]
     
     cp$abv_class <- cut(cp$nominal_abv, breaks=c(2,3.5,4,4.5,5,7,12))
