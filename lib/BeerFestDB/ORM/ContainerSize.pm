@@ -56,6 +56,7 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 100 },
 );
 __PACKAGE__->set_primary_key("container_size_id");
+__PACKAGE__->add_unique_constraint("container_volume", ["container_volume"]);
 __PACKAGE__->add_unique_constraint("description", ["description"]);
 
 =head1 RELATIONS
@@ -105,8 +106,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+LmuszOo1FIhpqrGNiKdCg
+# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-06-04 14:38:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gSdImzk8EPAUPKBDu+BY5w
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

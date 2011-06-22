@@ -94,6 +94,17 @@ sub select_dip_batch {
     return $wanted;
 }
 
+sub value_acceptable {
+
+    my ( $value ) = @_;
+
+    if ( defined $value && $value ne q{} ) {
+        return 1;
+    }
+
+    return;
+}
+
 my ( $input, $config ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
@@ -122,7 +133,8 @@ eval {
         sub {
             MEAS:
             while ( my $line = $csv_parser->getline($fh) ) {
-                next MEAS unless ( defined $line->[0] && defined $line->[1] );
+                next MEAS unless ( value_acceptable( $line->[0] )
+                                && value_acceptable( $line->[1] ));
                 my $cask = $schema->resultset('Cask')->find(
                     { festival_id      => $festival->id(),
                       cellar_reference => $line->[0] })

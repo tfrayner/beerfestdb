@@ -22,9 +22,9 @@
 [% END %]
 
 [% BLOCK table_header %]
-  \begin{tabular}{ | l | l | l | c | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.4cm} | [% END %]p{5cm} | }
+  \begin{tabular}{ | l | l | l | c | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.4cm} | [% END %]p{5cm} | c | }
     \hline
-  Location & Brewer & Beer & ID & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name %] & [% END %]Notes \\ \hline
+  Location & Brewer & Beer & ID & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name.substr(0,1) %] & [% END %]Notes & C \\ \hline
 [% END %]
 
 [% BLOCK table_end %]
@@ -50,13 +50,13 @@
   \fontsize{10}{12}
   \selectfont
 
-  [% PROCESS table_header %]
-
-  [% SET casks = stillage.value.sort('brewery', 'product', 'number') %]
-
-  [% SET counter = 0 %]
+[%- PROCESS table_header;
+    SET casks = stillage.value.sort('brewery', 'product', 'number');
+    SET counter = 0 -%]
 
   [% FOREACH cask = casks %]
+
+    [% SET latest = cask.size %]
 
     [% NEXT IF cask.category != 'beer' %]
     &
@@ -65,13 +65,19 @@
     [% cask.festival_id %] &
     [% cask.number %] &
     &  &  &  &
-    [% cask.size | format('%d') %] & [% FOREACH batch = dip_batches %][% SET bid = batch.id %] [% cask.dips.$bid | format('%.1f') | replace('\.0$','') %] &[% END %] \\ \hline
+    [% cask.size | format('%d') %] &
+[%- FOREACH batch = dip_batches -%]
+[%- SET bid = batch.id -%]
+ [%- cask.dips.$bid | format('%.1f') | replace('\.0$','') %] &
+[%- END -%]
+[%- cask.comment | truncate(30) | replace( '&', '\\&' ) | replace( '%', '\\%' ) %] &
+[%- IF cask.is_condemned -%] X [%- END -%] \\ \hline
 
-    [% counter = counter + 1 %]
+[%- counter = counter + 1 -%]
 
-    [% IF counter > 35 %]
-      [% counter = 0 %]
-      [% PROCESS table_end %]
+[%- IF counter > 35;
+      counter = 0;
+      PROCESS table_end %]
 
       \null\newpage
 
@@ -79,12 +85,10 @@
 
       \vspace{ 5 mm }
 
-      [% PROCESS table_header %]
-    [% END %]
-
-  [% END %]
-
-  [% PROCESS table_end %]
+  [%- PROCESS table_header;
+    END;
+  END;
+  PROCESS table_end -%]
 
   \null\newpage
 
