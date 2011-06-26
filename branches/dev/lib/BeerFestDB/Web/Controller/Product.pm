@@ -46,13 +46,32 @@ sub BUILD {
     $self->model_view_map({
         product_id       => 'product_id',
         company_id       => 'company_id',
+        company_name     => {
+            company_id     => 'name',
+        },
         name             => 'name',
         description      => 'description',
         comment          => 'comment',
         nominal_abv      => 'nominal_abv',
         product_style_id => 'product_style_id',
         product_category_id => 'product_category_id',
+        category_name    => {
+            product_category_id => 'description',
+        },
     });
+}
+
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model('DB::Product');
+
+    $self->form_json_and_detach( $c, $rs, 'product_id' );
 }
 
 =head2 index
@@ -67,6 +86,27 @@ sub index :Path :Args(0) {
     my @categories = $c->model('DB::ProductCategory')->all(); 
 
     $c->stash->{categories} = \@categories;
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::Product')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: Product not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
 }
 
 =head2 list

@@ -123,6 +123,27 @@ sub list : Local {
     $self->generate_json_and_detach( $c, $rs );
 }
 
+=head2 list_by_product
+
+=cut
+
+sub list_by_product : Local {
+
+    my ( $self, $c, $product_id ) = @_;
+
+    my $rs;
+    if ( defined $product_id ) {
+        $rs = $c->model( 'DB::FestivalProduct' )->search_rs( { product_id => $product_id } );
+    }
+    else {
+        $c->stash->{error} = qq{Product ID not supplied.};
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
 =head2 grid
 
 =cut
