@@ -1,0 +1,14 @@
+[% META title = 'Cask Details' %]
+
+<script type="text/javascript">
+   var url_festival_view         = '[% c.uri_for( "/festival/view/$object.festival_id.id" ) %]';
+   var url_festival_product_view = '[% c.uri_for( "/festivalproduct/view/$object.gyle_id.festival_product_id.id" ) %]';
+   var url_stillage_list         = '[% c.uri_for( "/stillagelocation/list/$object.festival_id.id" ) %]';
+   var url_cask_load_form        = '[% c.uri_for( "/cask/load_form" ) %]';
+
+   var cask_id  = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/cask_view.js' ) %]
+
+<div id="datagrid"></div>

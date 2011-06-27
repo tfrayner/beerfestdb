@@ -174,9 +174,9 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/festival/view/{festival_id}');
+                var t = new Ext.XTemplate('/festivalproduct/view/{festival_product_id}');
                 window.location=t.apply({
-                    contact_id: record.get('festival_id'),
+                    festival_product_id: record.get('festival_product_id'),
                 })
             },
         }

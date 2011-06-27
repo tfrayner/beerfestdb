@@ -48,6 +48,9 @@ sub BUILD {
     $self->model_view_map({
         cask_id           => 'cask_id',
         festival_id       => 'festival_id',
+        festival_name     => {
+            festival_id => 'name',
+        },
         distributor_id    => 'distributor_company_id',
         order_batch_id    => 'order_batch_id',
         container_size_id => 'container_size_id',
@@ -61,8 +64,20 @@ sub BUILD {
                 festival_product_id => 'product_id',
             },            
         },
+        product_name      => {
+            gyle_id  => {
+                festival_product_id => {
+                    product_id  => 'name',
+                },
+            },            
+        },
         company_id        => {
             gyle_id  => 'company_id',
+        },
+        company_name        => {
+            gyle_id  => {
+                company_id  => 'name',
+            },
         },
         stillage_bay      => 'stillage_bay',
         stillage_x        => 'stillage_x_location',
@@ -87,6 +102,40 @@ sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
     $c->response->body('Matched BeerFestDB::Web::Controller::Cask in Cask.');
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::Cask')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: Cask not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
+}
+
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model('DB::Cask');
+
+    $self->form_json_and_detach( $c, $rs, 'cask_id' );
 }
 
 =head2 list
