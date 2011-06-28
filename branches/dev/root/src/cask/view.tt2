@@ -5,6 +5,8 @@
    var url_festival_product_view = '[% c.uri_for( "/festivalproduct/view/$object.gyle_id.festival_product_id.id" ) %]';
    var url_stillage_list         = '[% c.uri_for( "/stillagelocation/list/$object.festival_id.id" ) %]';
    var url_cask_load_form        = '[% c.uri_for( "/cask/load_form" ) %]';
+   var url_cask_measurement_list  = '[% c.uri_for( "/caskmeasurement/list_by_cask/$object.id" ) %]';
+   var url_measurement_batch_list = '[% c.uri_for( "/measurementbatch/list/$object.festival_id.id" ) %]';
 
    var cask_id  = '[% object.id %]';
 </script>

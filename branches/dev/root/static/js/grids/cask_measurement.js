@@ -29,6 +29,7 @@ Ext.onReady(function(){
         { name: 'cask_measurement_id',    type: 'int' },
         { name: 'cask_id',                type: 'int' },
         { name: 'measurement_batch_id',   type: 'int' },
+        { name: 'cask_comment',           type: 'string' },
         { name: 'comment',                type: 'string' },
         { name: 'internal_reference',     type: 'string' },
         { name: 'cellar_reference',       type: 'string' },
@@ -123,9 +124,9 @@ Ext.onReady(function(){
           editor:     new Ext.form.TextField({
               readOnly: true,
           })},
-        { id:         'comment',
-          header:     'Comment',
-          dataIndex:  'comment',
+        { id:         'cask_comment',
+          header:     'Cask Comment',
+          dataIndex:  'cask_comment',
           width:      150,
           editor:     new Ext.form.TextField({
               allowBlank:     true,

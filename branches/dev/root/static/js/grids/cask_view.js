@@ -47,15 +47,69 @@ Ext.onReady(function(){
         },
     });
     stillage_store.load();
-    var stillage_combo = new Ext.form.ComboBox({
-        store:          stillage_store,
-        valueField:     'stillage_location_id',
-        displayField:   'description',
-        lazyRender:     true,
-        triggerAction:  'all',
-        forceSelection: true,
-        allowBlank:     true,
+
+    /* Cask size drop-down */
+    var casksize_store = new Ext.data.JsonStore({
+        url:        url_cask_size_list,
+        root:       'objects',
+        fields:     [{ name: 'container_size_id', type: 'int' },
+                     { name: 'description',    type: 'string'}],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    casksize_store.load();
+
+    /* Distributor drop-down */
+    var dist_store = new Ext.data.JsonStore({
+        url:        url_company_list,
+        root:       'objects',
+        fields:     [{ name: 'company_id', type: 'int' },
+                     { name: 'name',       type: 'string'}],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+    });
+    dist_store.load();
+
+    var dip_store = new Ext.data.JsonStore({
+        url:        url_cask_measurement_list,
+        root:       'objects',
+        fields:     [{ name: 'cask_measurement_id',  type: 'int'    },
+                     { name: 'measurement_batch_id', type: 'int'    },
+                     { name: 'comment',              type: 'string' },
+                     { name: 'volume',               type: 'float'  }],
+        sortInfo:   {
+            field:     'measurement_batch_id',
+            direction: 'ASC',
+        },
+    });
+    dip_store.load();
+
+    /* Dip batch drop-down */
+    var dipbatch_store = new Ext.data.JsonStore({
+        url:        url_measurement_batch_list,
+        root:       'objects',
+        fields:     [{ name: 'measurement_batch_id', type: 'int'    },
+                     { name: 'measurement_time',     type: 'string' }],
+        sortInfo:   {
+            field:     'measurement_time',
+            direction: 'ASC',
+        },
+    });
+    dipbatch_store.load();
+    var dipbatch_combo = new Ext.form.ComboBox({
         typeAhead:      true,
+        triggerAction:  'all',
+        allowBlank:     false,
+        forceSelection: true,
+        store:          dipbatch_store,
+        valueField:     'measurement_batch_id',
+        displayField:   'measurement_time',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
     });
 
     /* Cask form */
@@ -83,6 +137,28 @@ Ext.onReady(function(){
               lazyRender:     true,
               xtype:          'textfield',
               allowBlank:     true},
+            
+            { name:           'container_size_id',
+              fieldLabel:     'Cask Size',
+              typeAhead:      true,
+              triggerAction:  'all',
+              store:          casksize_store,
+              valueField:     'container_size_id',
+              displayField:   'description',
+              lazyRender:     true,
+              xtype:          'combo',
+              allowBlank:     false, },
+            
+            { name:           'distributor_id',
+              fieldLabel:     'Distributor',
+              typeAhead:      true,
+              triggerAction:  'all',
+              store:          dist_store,
+              valueField:     'company_id',
+              displayField:   'name',
+              lazyRender:     true,
+              xtype:          'combo',
+              allowBlank:     true, },
             
             { name:           'festival_name',
               fieldLabel:     'Festival',
@@ -125,12 +201,60 @@ Ext.onReady(function(){
         waitMsg:     'Loading Cask details...',
     });
 
+    /* Dip grid */
+    var dipGrid = new MyEditorGrid(
+        {
+            objLabel:           'Cask Measurement',
+            idField:            'cask_measurement_id',
+            autoExpandColumn:   'cask_id',
+            deleteUrl:          url_caskmeasurement_delete,
+            submitUrl:          url_caskmeasurement_submit,
+            recordChanges:      function (record) {
+                var fields = record.getChanges();
+                fields.cask_measurement_id = record.get( 'cask_measurement_id' );
+                fields.cask_id             = cask_id;
+                return(fields);
+            },
+            store:              dip_store,
+            contentCols: [
+                { id:         'measurement_batch_id',
+                  header:     'Dip Time',
+                  dataIndex:  'measurement_batch_id',
+                  renderer:   MyComboRenderer(dipbatch_combo),
+                  editor:     dipbatch_combo, },
+                { id:        'volume',
+                  header:    'Volume',
+                  dataIndex: 'volume',
+                  width:      130,
+                  editor:     new Ext.form.NumberField({
+                      allowBlank: false,
+                  })},
+                { id:        'comment',
+                  header:    'Comment',
+                  dataIndex: 'comment',
+                  width:      130,
+                  editor:     new Ext.form.TextField({
+                      allowBlank: true,
+                  })},
+            ],
+            viewLink: function (grid, record, action, row, col) {
+                var t = new Ext.XTemplate('/caskmeasurement/view/{cask_measurement_id}');
+                window.location=t.apply({
+                    cask_measurement_id: record.get('cask_measurement_id'),
+                })
+            },
+        }
+    );
+
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
             { title: 'Cask Information',
               layout: 'anchor',
               items:  caskForm, },
+            { title: 'Dips',
+              layout: 'fit',
+              items:  dipGrid, },
         ],
     });
 
