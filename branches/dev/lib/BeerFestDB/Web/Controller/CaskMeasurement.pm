@@ -47,20 +47,50 @@ sub BUILD {
         cask_measurement_id    => 'cask_measurement_id',
         cask_id                => 'cask_id',
         measurement_batch_id   => 'measurement_batch_id',
+        measurement_time       => {
+            measurement_batch_id => 'measurement_time',
+        },
+        measurement_batch_name => {
+            measurement_batch_id => 'description',
+        },
         volume                 => 'volume',
         container_measure_id   => 'container_measure_id',
         comment                => 'comment',
     });
 }
 
-=head2 index
+=head2 view
 
 =cut
 
-sub index :Path :Args(0) {
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::CaskMeasurement')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: CaskMeasurement not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
+}
+
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
     my ( $self, $c ) = @_;
 
-    $c->response->body('Matched BeerFestDB::Web::Controller::CaskMeasurement in CaskMeasurement.');
+    my $rs = $c->model('DB::CaskMeasurement');
+
+    $self->form_json_and_detach( $c, $rs, 'cask_measurement_id' );
 }
 
 =head2 list
