@@ -332,8 +332,10 @@ Ext.onReady(function(){
             submitUrl:          url_product_submit,
             recordChanges:      function (record) {
                 var fields = record.getChanges();
-                fields.product_id = record.get( 'product_id' );
-                fields.company_id = company_id;
+                fields.product_id          = record.get( 'product_id' );
+                fields.product_category_id = record.get( 'product_category_id' );
+                fields.name                = record.get( 'name' );
+                fields.company_id          = company_id;
                 return(fields);
             },
             store:              product_store,

@@ -47,20 +47,50 @@ sub BUILD {
         cask_measurement_id    => 'cask_measurement_id',
         cask_id                => 'cask_id',
         measurement_batch_id   => 'measurement_batch_id',
+        measurement_time       => {
+            measurement_batch_id => 'measurement_time',
+        },
+        measurement_batch_name => {
+            measurement_batch_id => 'description',
+        },
         volume                 => 'volume',
         container_measure_id   => 'container_measure_id',
         comment                => 'comment',
     });
 }
 
-=head2 index
+=head2 view
 
 =cut
 
-sub index :Path :Args(0) {
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::CaskMeasurement')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: CaskMeasurement not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
+}
+
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
     my ( $self, $c ) = @_;
 
-    $c->response->body('Matched BeerFestDB::Web::Controller::CaskMeasurement in CaskMeasurement.');
+    my $rs = $c->model('DB::CaskMeasurement');
+
+    $self->form_json_and_detach( $c, $rs, 'cask_measurement_id' );
 }
 
 =head2 list
@@ -105,9 +135,12 @@ sub list : Local {
         # We actually want to use the comment field attached to cask,
         # rather than the one attached to cask_measurement.
         my %cask_info = map { $_ => $cask->get_column($_) }
-            qw( cask_id comment internal_reference cellar_reference
+            qw( cask_id internal_reference cellar_reference
                 is_vented is_tapped is_ready is_condemned );
         $cask_info{ measurement_batch_id } = $batch_id;
+
+        # We distinguish cask comment since there's also a cask_measurement comment.
+        $cask_info{ cask_comment } = $cask->get_column('comment');
 
         # For information only. Will not be edited in the View.
         $cask_info{ container_measure }
@@ -146,6 +179,25 @@ sub list : Local {
     $c->stash->{ 'success' } = JSON::Any->true();
     $c->stash->{ 'objects' } = \@casks;
     $c->detach( $c->view( 'JSON' ) );
+}
+
+=head2 list_by_cask
+
+=cut
+
+sub list_by_cask : Local {
+
+    my ( $self, $c, $cask_id ) = @_;
+
+    my $rs;
+    if ( defined $cask_id ) {
+        $rs = $c->model( 'DB::CaskMeasurement' )->search_rs( { cask_id => $cask_id } );
+    }
+    else {
+        $rs = $c->model( 'DB::CaskMeasurement' );  # FIXME is this actually needed?
+    }
+
+    $self->generate_json_and_detach( $c, $rs );
 }
 
 =head2 submit
@@ -192,10 +244,12 @@ sub _save_records : Private {
         }
 
         # Cask-level editing at the point of dip entry for convenience.
-        foreach my $field ( qw(comment) ) {
+        foreach my $field ( qw(cask_comment) ) {
+
+            my ( $cfield ) = ( $field =~ m/\A cask_(.*)/xms );
 
             # Empty string is allowed.
-            $cask->set_column($field, delete $rec->{$field}) if defined $rec->{$field};
+            $cask->set_column($cfield, delete $rec->{$field}) if defined $rec->{$field};
         }
         foreach my $field ( qw(is_vented is_tapped is_ready is_condemned) ) {
 
@@ -207,12 +261,10 @@ sub _save_records : Private {
 
         # We are assuming all measurement units are the same as the
         # cask size unit (i.e. gallons, for the most part).
-	next RECORD unless defined $rec->{volume};
 
 	# Allow the UI to pass in an empty string to indicate we
 	# should delete the pre-existing dip.
-	my $to_delete;
-	if ( $rec->{volume} eq q{} ) {
+	if ( defined ( $rec->{volume} ) && $rec->{volume} eq q{} ) {
 	    my %attr  = map { $_ => $rec->{$_} } qw( cask_id measurement_batch_id );
 	    if ( my $dbobj = $rs->find(\%attr) ) {
 		$dbobj->delete();
@@ -222,7 +274,6 @@ sub _save_records : Private {
 	    $rec->{container_measure_id}
 	        = $cask->container_size_id()
 		       ->get_column('container_measure_id');
-
 	    $self->build_database_object( $rec, $c, $rs );
 	}
     }
