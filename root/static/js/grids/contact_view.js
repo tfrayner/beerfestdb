@@ -43,9 +43,9 @@ Ext.onReady(function(){
         url:        url_country_list,
         root:       'objects',
         fields:     [{ name: 'country_id',        type: 'int' },
-                     { name: 'country_code_iso3', type: 'string'}],
+                     { name: 'country_name',      type: 'string'}],
         sortInfo:   {
-            field:     'country_code_iso3',
+            field:     'country_name',
             direction: 'ASC',
         },
     });
@@ -138,7 +138,7 @@ Ext.onReady(function(){
               triggerAction:  'all',
               store:          country_store,
               valueField:     'country_id',
-              displayField:   'country_code_iso3',
+              displayField:   'country_name',
               lazyRender:     true,
               xtype:          'combo',
               allowBlank:     true, },

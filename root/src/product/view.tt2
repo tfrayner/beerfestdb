@@ -1,0 +1,16 @@
+[% META title = 'Product Details' %]
+
+<script type="text/javascript">
+   var url_company_grid          = '[% c.uri_for( "/company/grid" ) %]';
+   var url_product_grid          = '[% c.uri_for( "/product/grid" ) %]';
+   var url_product_load_form     = '[% c.uri_for( "/product/load_form" ) %]';
+   var url_festival_product_list = '[% c.uri_for( "/festivalproduct/list_by_product/$object.id" ) %]';
+   var url_company_view          = '[% c.uri_for( "/company/view/$object.company_id.id" ) %]';
+
+   var product_id  = '[% object.id %]';
+   var productname = '[% object.name | xml %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_view.js' ) %]
+
+<div id="datagrid"></div>
