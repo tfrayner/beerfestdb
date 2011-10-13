@@ -425,7 +425,7 @@ Ext.onReady(function(){
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
             { text: 'Festival', handler: function() { window.location = url_festival_view; } },
-            { text: 'Products', handler: function() { window.location = url_fp_grid; } },
+            { text: 'Product', handler: function() { window.location = url_product_view; } },
         ],
     });
     

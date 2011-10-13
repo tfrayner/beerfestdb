@@ -2,7 +2,7 @@
 
 <script type="text/javascript">
    var url_fp_load_form     = '[% c.uri_for( "/festivalproduct/load_form" ) %]';
-   var url_fp_grid          = '[% c.uri_for( "/festivalproduct/grid/$festival.id/$object.product_id.product_category_id.id" ) %]';
+   var url_product_view     = '[% c.uri_for( "/product/view/$object.product_id.id" ) %]';
 
    var url_festival_view    = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var festival_id          = '[% festival.id %]';
