@@ -39,7 +39,11 @@ Ext.onReady(function(){
     var store = new Ext.data.JsonStore({
         url:        url_company_list,
         root:       'objects',
-        fields:     Company
+        fields:     Company,
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
     });
 
     /* Company region drop-down */

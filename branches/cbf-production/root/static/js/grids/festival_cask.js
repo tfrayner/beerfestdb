@@ -27,8 +27,8 @@ Ext.onReady(function(){
     
     var Cask = Ext.data.Record.create([
         { name: 'cask_id',              type: 'int' },
-        { name: 'product_id',           type: 'int' },
-        { name: 'company_id',           type: 'int' },
+        { name: 'product_name',         type: 'string' },
+        { name: 'company_name',         type: 'string' },
         { name: 'stillage_location_id', type: 'int' },
         { name: 'int_reference',        type: 'string' },
         { name: 'festival_ref',         type: 'string' },
@@ -43,44 +43,6 @@ Ext.onReady(function(){
         url:        url_object_list,
         root:       'objects',
         fields:     Cask
-    });
-
-    /* Supplier drop-down */
-    var supplier_store = new Ext.data.JsonStore({
-        url:        url_company_list,
-        root:       'objects',
-        fields:     [{ name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-    supplier_store.load();
-    var brewer_combo = new Ext.form.ComboBox({
-        store:          supplier_store,
-        valueField:     'company_id',
-        displayField:   'name',
-        lazyRender:     true,
-    });
-
-    /* Product drop-down */
-    var product_store = new Ext.data.JsonStore({
-        url:        url_product_list,
-        root:       'objects',
-        fields:     [{ name: 'product_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-    product_store.load();
-    var product_combo = new Ext.form.ComboBox({
-        store:          product_store,
-        valueField:     'product_id',
-        displayField:   'name',
-        lazyRender:     true,
     });
 
     /* Cask size drop-down */
@@ -130,16 +92,20 @@ Ext.onReady(function(){
     });
 
     var content_cols = [
-        { id:         'company_id',
+        { id:         'company_name',
           header:     'Brewer',
-          dataIndex:  'company_id',
+          dataIndex:  'company_name',
           width:      130,
-          renderer:   MyComboRenderer(brewer_combo), },
-        { id:         'product_id',
+          editor:     new Ext.form.TextField({
+              readOnly:  true,
+          })},
+        { id:         'product_name',
           header:     'Product',
-          dataIndex:  'product_id',
+          dataIndex:  'product_name',
           width:      130,
-          renderer:   MyComboRenderer(product_combo), },
+          editor:     new Ext.form.TextField({
+              readOnly:  true,
+          })},
         { id:         'container_size_id',
           header:     'Cask size',
           dataIndex:  'container_size_id',

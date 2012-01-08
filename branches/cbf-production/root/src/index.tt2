@@ -11,9 +11,8 @@
   <p class="textblock">This is the main entry page for the BeerFestDB product management web site. Please use the links below to navigate:</p>
 
   <ul class="linkslist"> 
-    <li><a href="[% c.uri_for('/festival/grid') %]">Festival Information</a></li> 
-    <li><a href="[% c.uri_for('/product') %]">Product Data</a></li> 
-    <li><a href="[% c.uri_for('/company/grid') %]">Supplier List</a></li> 
+    <li><a href="[% c.uri_for('/festival/grid') %]">Festival Records</a></li> 
+    <li><a href="[% c.uri_for('/company/grid') %]">Supplier and Product Listings</a></li> 
   </ul>
 
 </div>
