@@ -102,6 +102,7 @@ function saveGridRecords(btn, event) {
     var reloadable = btn.grid.reloadableStores;
     if ( reloadable ) {
         for ( var n=0; n < reloadable.length; n++) {
+            reloadable[n].clearFilter();
             reloadable[n].reload();
         }
     }

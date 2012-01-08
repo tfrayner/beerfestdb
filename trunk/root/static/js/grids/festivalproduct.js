@@ -83,6 +83,7 @@ Ext.onReady(function(){
         fields:     [{ name: 'product_id', type: 'int' },
                      { name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}],
+        idProperty: 'product_id',
         sortInfo:   {
             field:     'name',
             direction: 'ASC',
@@ -108,6 +109,7 @@ Ext.onReady(function(){
         listeners: {
             beforeQuery: function(query) { 
                 currentRowId = myGrid.getSelectionModel().getSelected().data.company_id;
+                this.store.reload( { params: { company_id: currentRowId }, add: true } );
                 this.store.clearFilter();
                 this.store.filter( { property:   'company_id',
                                      value:      currentRowId,
