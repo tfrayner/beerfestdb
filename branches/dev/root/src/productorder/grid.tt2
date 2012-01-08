@@ -3,6 +3,8 @@
 <script type="text/javascript">
    var url_object_list    = '[% c.uri_for( "/productorder/list/$order_batch.id/$category.id" ) %]';
 
+   var url_product_list   = '[% c.uri_for( "/product/list_by_order_batch/$order_batch.id" ) %]';
+
    var category_id        = '[% category.id %]';
    var categoryname       = '[% category.description %]';
 
