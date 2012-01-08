@@ -168,11 +168,12 @@ sub get_timestamp {
 
 sub parse_args {
 
-    my ( $conffile, $want_help );
+    my ( $conffile, $tfile, $want_help );
 
     GetOptions(
-        "c|config=s" => \$conffile,
-        "h|help"     => \$want_help,
+        "c|config=s"   => \$conffile,
+        "t|template=s" => \$tfile,
+        "h|help"       => \$want_help,
     );
 
     if ($want_help) {
@@ -194,11 +195,20 @@ sub parse_args {
 
     my $config = Config::YAML->new( config => $conffile );
 
-    return( $config->{ status_query }
-                or die("Error: No status_query section in config file.") );
+    my $template;
+    if ( $tfile ) {
+        open( my $fh, '<', $tfile )
+            or die("Unable to open template file $tfile: $!\n");
+        $template = join(q{}, <$fh>);
+    }
+
+    my $st = $config->{ status_query }
+        or die("Error: No status_query section in config file.");
+
+    return( $st, $template );
 }
 
-my ( $config ) = parse_args();
+my ( $config, $template ) = parse_args();
 
 # Check that the appropriate config parameters have been set
 foreach my $item ( qw(festival_name
@@ -252,7 +262,7 @@ foreach my $item ( @$statuslist ) {
 }
 
 # Generate the XML fragment to upload.
-my $template = join('', <DATA>);
+$template ||= join(q{}, <DATA>);
 
 # We define a custom title case filter for convenience.
 my $tt2 = Template->new(
@@ -283,6 +293,16 @@ upload_beerlist.pl
 
 Local CBF-specific script used to upload the current beer list in XML
 form to a public web site.
+
+=head1 OPTIONS
+
+=head2 -c
+
+The path to the main BeerFestDB config file.
+
+=head2 -t
+
+(Optional) A path to an alternate template file. If omitted, a suitable default will be provided.
 
 =head1 AUTHOR
 
