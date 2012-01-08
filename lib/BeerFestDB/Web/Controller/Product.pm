@@ -117,6 +117,12 @@ sub list : Local {
 
     my ( $self, $c, $category_id, $festival_id ) = @_;
 
+    # A little kludgey, might be nicer to do this as a JSON query, but
+    # we're limited by the extJS JSONStore.load() method here.
+    if ( my $company_id = $c->req()->params()->{ company_id } ) {
+        $c->res->redirect( $c->uri_for('list_by_company', $company_id) );
+    }
+
     # This is just a product listing at this stage; one row per
     # product (per supplier). If festival_id is supplied then the list
     # is filtered based on which products are at a given
@@ -162,7 +168,43 @@ sub list_by_company : Local {
         $rs = $c->model( 'DB::Product' )->search_rs( { company_id => $company_id } );
     }
     else {
-        $rs = $c->model( 'DB::Product' );  # FIXME is this actually needed?
+        $c->stash->{error} = 'OrderBatch ID not provided.';
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 list_by_order_batch
+
+=cut
+
+sub list_by_order_batch : Local {
+
+    my ( $self, $c, $batch_id ) = @_;
+
+    # A little kludgey, might be nicer to do this as a JSON query, but
+    # we're limited by the extJS JSONStore.load() method here.
+    if ( my $company_id = $c->req()->params()->{ company_id } ) {
+        $c->res->redirect( $c->uri_for('list_by_company', $company_id) );
+    }
+
+    my $rs;
+    if ( defined $batch_id ) {
+        my $batch = $c->model( 'DB::OrderBatch' )->find($batch_id);
+        unless ( $batch ) {
+            $c->stash->{error} = 'Order Batch not found.';
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();
+        }
+        $rs = $batch->search_related('product_orders')
+                    ->search_related('product_id');
+    }
+    else {
+        $c->stash->{error} = 'OrderBatch ID not provided.';
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
     }
 
     $self->generate_json_and_detach( $c, $rs );
