@@ -52,8 +52,10 @@ Ext.onReady(function(){
             field:     'name',
             direction: 'ASC',
         },
+        idProperty: 'name',
+        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
-
+    brewer_store.load({ params: { brewer_festival_id: festival_id } });
     var brewer_combo = new Ext.form.ComboBox({
         triggerAction:  'all',
         mode:           'local',
@@ -72,7 +74,14 @@ Ext.onReady(function(){
                    We have combo.record available only because we copied it in
                    the beforeEdit event from myGrid */
                 combo.record.set('product_id', null);
-            }
+            },
+            beforeQuery: function() { 
+                if ( this.store.isPartial ) {
+                    this.store.reload({ params: { brewer_order_batch_id: null }});
+                    this.store.sort();
+                }
+                this.store.isPartial = 0;
+            },
         },
     });
 
@@ -215,7 +224,7 @@ Ext.onReady(function(){
     }
 
     var reloadStores = new Array();
-    reloadStores.push( brewer_store, product_store );
+    reloadStores.push( product_store );
 
     var myGrid = new MyEditorGrid(
         {
