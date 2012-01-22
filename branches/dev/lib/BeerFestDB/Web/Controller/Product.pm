@@ -120,7 +120,7 @@ sub list : Local {
     # A little kludgey, might be nicer to do this as a JSON query, but
     # we're limited by the extJS JSONStore.load() method here.
     if ( my $company_id = $c->req()->params()->{ company_id } ) {
-        $c->res->redirect( $c->uri_for('list_by_company', $company_id) );
+        $c->res->redirect( $c->uri_for('list_by_company', $company_id, $category_id) );
     }
 
     # This is just a product listing at this stage; one row per
@@ -161,14 +161,18 @@ sub list_by_company : Local {
     # useful; instead we'll probably just filter on our productStore
     # in the javascript. This has the benefit of pre-filtering by
     # category in the list method.
-    my ( $self, $c, $company_id ) = @_;
+    my ( $self, $c, $company_id, $category_id ) = @_;
 
     my $rs;
     if ( defined $company_id ) {
-        $rs = $c->model( 'DB::Product' )->search_rs( { company_id => $company_id } );
+        my %query = ( company_id => $company_id );
+        if ( defined $category_id ) {
+            $query{ product_category_id } = $category_id;
+        }
+        $rs = $c->model( 'DB::Product' )->search_rs( \%query );
     }
     else {
-        $c->stash->{error} = 'OrderBatch ID not provided.';
+        $c->stash->{error} = 'Company ID not provided.';
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();
     }
@@ -182,12 +186,12 @@ sub list_by_company : Local {
 
 sub list_by_order_batch : Local {
 
-    my ( $self, $c, $batch_id ) = @_;
+    my ( $self, $c, $batch_id, $category_id ) = @_;
 
     # A little kludgey, might be nicer to do this as a JSON query, but
     # we're limited by the extJS JSONStore.load() method here.
     if ( my $company_id = $c->req()->params()->{ company_id } ) {
-        $c->res->redirect( $c->uri_for('list_by_company', $company_id) );
+        $c->res->redirect( $c->uri_for('list_by_company', $company_id, $category_id) );
     }
 
     my $rs;
@@ -199,7 +203,9 @@ sub list_by_order_batch : Local {
             $c->detach();
         }
         $rs = $batch->search_related('product_orders')
-                    ->search_related('product_id');
+                    ->search_related('product_id',
+                                     defined $category_id
+                                         ? { product_category_id => $category_id } : {});
     }
     else {
         $c->stash->{error} = 'OrderBatch ID not provided.';
