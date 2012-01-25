@@ -57,8 +57,10 @@ Ext.onReady(function(){
             field:     'name',
             direction: 'ASC',
         },
+        idProperty: 'name',
+        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
-
+    brewer_store.load({ params: { brewer_order_batch_id: order_batch_id } });
     var brewer_combo = new Ext.form.ComboBox({
         triggerAction:  'all',
         mode:           'local',
@@ -77,7 +79,14 @@ Ext.onReady(function(){
                    the beforeEdit event from myGrid */
                 evt.record.set('product_id', null);
                 evt.render();
-            }
+            },
+            beforeQuery: function() { 
+                if ( this.store.isPartial ) {
+                    this.store.reload({ params: { brewer_order_batch_id: null }});
+                    this.store.sort();
+                }
+                this.store.isPartial = 0;
+            },
         },
     });
 
@@ -133,8 +142,10 @@ Ext.onReady(function(){
             field:     'name',
             direction: 'ASC',
         },
+        idProperty: 'name',
+        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
-    distributor_store.load();
+    distributor_store.load({ params: { supplier_order_batch_id: order_batch_id } });
     var distributor_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -145,6 +156,15 @@ Ext.onReady(function(){
         displayField:   'name',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
+        listeners: {
+            beforeQuery: function() {
+                if ( this.store.isPartial ) {
+                    this.store.reload( { params: { supplier_order_batch_id: null } } );
+                    this.store.sort();
+                }
+                this.store.isPartial = 0;
+            },
+        },
     });
     
     /* Currency drop-down */
@@ -277,7 +297,7 @@ Ext.onReady(function(){
     }
 
     var reloadStores = new Array();
-    reloadStores.push( brewer_store, product_store );
+    reloadStores.push( product_store );
 
     var myGrid = new MyEditorGrid(
         {
