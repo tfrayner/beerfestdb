@@ -145,13 +145,15 @@ sub dump {
 
     my ( %barinfo, %brewerinfo );
     foreach my $cask ( @$casks ) {
-        my $bar    = $cask->bar_id() ? $cask->bar_id()->description() : q{};
+        my $bar = $cask->bar_id() ? $cask->bar_id()->description()
+                : $cask->stillage_location_id() ? $cask->stillage_location_id()->description()
+                : q{};
         my $brewer = $cask->gyle_id->company_id;
         my $beer   = $cask->gyle_id->festival_product_id()->product_id;
         $barinfo{$bar}{$brewer->name}{$beer->name} = {
             abv         => $cask->gyle_id->abv || $beer->nominal_abv,
             style       => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
-            description => $beer->description || q{Unknown at time of press.},
+            description => $beer->description, #q{Tasting notes unavailable at time of press.},
         };
         $brewerinfo{$brewer->name}{'location'} = $brewer->loc_desc || q{Unknown location};
     }
@@ -184,6 +186,12 @@ sub dump {
                     text    => $line,
                     style   => $self->config->{'styles'}{'beer_name'},
                 );
+                if ( $self->config->{'dump_tasting_notes'} && $beerinfo->{'description'} ) {
+                    $self->_content->appendParagraph(
+                        text    => $beerinfo->{'description'},
+                        style   => $self->config->{'styles'}{'beer_notes'},
+                    );
+                }
             }
         }
     }
