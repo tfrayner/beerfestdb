@@ -95,7 +95,52 @@ sub list : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( 'DB::Company' );
+    my $rs;
+
+    my $query_id;
+    if ( $query_id = $c->req()->params()->{ brewer_festival_id } ) {
+
+        # Pull out all the brewers used for a given festival.
+        my $festival = $c->model( 'DB::Festival' )->find({festival_id => $query_id});
+        unless ( $festival ) {
+            $c->stash->{error} = qq{Festival ID "$query_id" not found.};
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();
+        }
+        $rs = $festival->search_related('festival_products')
+                       ->search_related('product_id')
+                       ->search_related('company_id', undef, { distinct => 1 });        
+    }
+    if ( $query_id = $c->req()->params()->{ brewer_order_batch_id } ) {
+
+        # Pull out all the brewers used for a given order batch (product orders).
+        my $batch = $c->model( 'DB::OrderBatch' )->find({order_batch_id => $query_id});
+        unless ( $batch ) {
+            $c->stash->{error} = qq{OrderBatch ID "$query_id" not found.};
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();
+        }
+        $rs = $batch->search_related('product_orders')
+                    ->search_related('product_id')
+                    ->search_related('company_id', undef, { distinct => 1 });        
+    }
+    elsif ( $query_id = $c->req()->params()->{ supplier_order_batch_id } ) {
+
+        # Pull out all the suppliers/distributors used for a given order batch.
+        my $batch = $c->model( 'DB::OrderBatch' )->find({order_batch_id => $query_id});
+        unless ( $batch ) {
+            $c->stash->{error} = qq{OrderBatch ID "$query_id" not found.};
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();
+        }
+        $rs = $batch->search_related('product_orders')
+                    ->search_related('distributor_company_id', undef, { distinct => 1 });
+    }
+    else {
+
+        # The default is to pull out everything. We're trying to cut back though...
+        $rs = $c->model( 'DB::Company' );
+    }
 
     $self->generate_json_and_detach( $c, $rs );
 }

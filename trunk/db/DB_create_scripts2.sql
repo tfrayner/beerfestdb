@@ -43,7 +43,7 @@ CREATE TABLE currency (
   UNIQUE KEY(currency_code),
   INDEX CUR_currencynumber(currency_number)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `festival`
@@ -64,7 +64,7 @@ CREATE TABLE festival (
   PRIMARY KEY(festival_id),
   UNIQUE KEY(name)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `container_measure`
@@ -79,7 +79,7 @@ CREATE TABLE container_measure (
   PRIMARY KEY(container_measure_id),
   UNIQUE KEY(description)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO container_measure (litre_multiplier, description) VALUES(1, 'litre');
@@ -105,7 +105,7 @@ CREATE TABLE country (
   INDEX IDX_CNTRY_countrycode3(country_code_iso3),
   INDEX IDX_CNTRY_countrynum3(country_code_num3)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO country (country_code_iso2, country_code_iso3, country_code_num3, country_name) VALUES ('GB','GBR', '826', 'Great Britain');
@@ -136,7 +136,7 @@ CREATE TABLE stillage_location (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Static Table structure for table `telephone_type`
@@ -150,7 +150,7 @@ CREATE TABLE telephone_type (
   PRIMARY KEY(telephone_type_id),
   UNIQUE KEY(description)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO telephone_type (description) VALUES('landline');
 INSERT INTO telephone_type (description) VALUES('fax');
@@ -170,7 +170,7 @@ CREATE TABLE festival_entry_type (
   PRIMARY KEY(festival_entry_type_id),
   UNIQUE KEY(description)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `product_category`
@@ -184,7 +184,7 @@ CREATE TABLE product_category (
   PRIMARY KEY(product_category_id),
   UNIQUE KEY(description)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO product_category (description) VALUES ('beer');
@@ -208,7 +208,7 @@ CREATE TABLE contact_type (
   PRIMARY KEY(contact_type_id),
   UNIQUE KEY(description)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO contact_type (description) VALUES ('Main');
@@ -226,7 +226,7 @@ CREATE TABLE company_region (
   PRIMARY KEY(company_region_id),
   UNIQUE KEY(description)
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO company_region (description) VALUES ('Wales');
 INSERT INTO company_region (description) VALUES ('Scotland');
@@ -260,7 +260,7 @@ CREATE TABLE company (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `bar`
@@ -290,7 +290,7 @@ CREATE TABLE bar (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Contains a list of characteristics about a particular product category
@@ -307,7 +307,7 @@ CREATE TABLE product_characteristic_type (
       ON DELETE RESTRICT
       ON UPDATE RESTRICT
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `festival_opening`
@@ -328,7 +328,7 @@ CREATE TABLE festival_opening (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `container_size`
@@ -349,7 +349,7 @@ CREATE TABLE container_size (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO container_size (container_volume, container_measure_id, description) VALUES (9,2,'firkin'); 
 INSERT INTO container_size (container_volume, container_measure_id, description) VALUES (18,2,'kilderkin'); 
@@ -376,7 +376,7 @@ CREATE TABLE product_style (
       ON DELETE RESTRICT
       ON UPDATE RESTRICT
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 INSERT INTO product_style (product_category_id,description) VALUES ((SELECT product_category_id FROM product_category WHERE description = 'beer'), 'Mild');
@@ -423,7 +423,7 @@ CREATE TABLE sale_volume (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `contact`
@@ -461,7 +461,7 @@ CREATE TABLE contact (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `telephone`
@@ -489,7 +489,7 @@ CREATE TABLE telephone (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `festival_entry`
@@ -518,7 +518,7 @@ CREATE TABLE festival_entry (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `product`
@@ -553,7 +553,7 @@ CREATE TABLE product (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `festival_product`
@@ -588,7 +588,7 @@ CREATE TABLE festival_product (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;  
+ENGINE=InnoDB DEFAULT CHARSET=utf8;  
 
 -- ------------------------------------------------------------
 -- For each product, there can be multiple characteristics
@@ -608,7 +608,7 @@ CREATE TABLE product_characteristic (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `brew_batch`
@@ -657,7 +657,28 @@ CREATE TABLE gyle (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ------------------------------------------------------------
+-- Table structure for table `order_batch`
+-- Stores the information used to track batches of product orders, so
+-- that we can track primary orders vs. reorders.
+-- ------------------------------------------------------------
+
+CREATE TABLE order_batch (
+  order_batch_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  festival_id INTEGER(6) NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  order_date DATE NULL,
+  PRIMARY KEY(order_batch_id),
+  UNIQUE KEY `festival_order_batch` (festival_id, description),
+  INDEX FK_ORDER_fid(festival_id),
+  FOREIGN KEY FK_ORDER_fid_FEST_fid(festival_id)
+    REFERENCES festival(festival_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION
+)
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `cask`
@@ -743,7 +764,7 @@ CREATE TABLE cask (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `measurement_batch`
@@ -763,7 +784,7 @@ CREATE TABLE measurement_batch (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `cask_measure`
@@ -794,28 +815,7 @@ CREATE TABLE cask_measurement (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
-
--- ------------------------------------------------------------
--- Table structure for table `order_batch`
--- Stores the information used to track batches of product orders, so
--- that we can track primary orders vs. reorders.
--- ------------------------------------------------------------
-
-CREATE TABLE order_batch (
-  order_batch_id INTEGER(6) NOT NULL AUTO_INCREMENT,
-  festival_id INTEGER(6) NOT NULL,
-  description VARCHAR(255) NOT NULL,
-  order_date DATE NULL,
-  PRIMARY KEY(order_batch_id),
-  UNIQUE KEY `festival_order_batch` (festival_id, description),
-  INDEX FK_ORDER_fid(festival_id),
-  FOREIGN KEY FK_ORDER_fid_FEST_fid(festival_id)
-    REFERENCES festival(festival_id)
-      ON DELETE RESTRICT
-      ON UPDATE NO ACTION
-)
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
 -- Table structure for table `product_order`
@@ -864,7 +864,7 @@ CREATE TABLE product_order (
       ON DELETE RESTRICT
       ON UPDATE NO ACTION
 )
-TYPE=InnoDB DEFAULT CHARSET=utf8;
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- A set of views that are often useful.
 CREATE VIEW programme_notes_view AS (
