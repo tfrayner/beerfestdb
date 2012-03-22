@@ -80,6 +80,7 @@ sub BUILD {
             },
         },
         stillage_bay      => 'stillage_bay',
+        bay_position_id   => 'bay_position_id',
         stillage_x        => 'stillage_x_location',
         stillage_y        => 'stillage_y_location',
         stillage_z        => 'stillage_z_location',

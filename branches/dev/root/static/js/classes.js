@@ -416,3 +416,27 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
         MyFormPanel.superclass.onRender.apply(this, arguments);
     }
 });
+
+emptySelect = '-- Select --';
+
+MyComboBox = Ext.extend(Ext.form.ComboBox, {
+    noSelection:null,
+	
+    initComponent : function(){
+		
+	if(this.noSelection && this.store){
+	    var data = {};
+	    data[this.valueField] = null; 
+	    data[this.displayField] = this.noSelection;
+	    
+	    this.store.on('load',function(){
+		if(!this.getById(0)){
+		    this.addSorted(new Ext.data.Record(data,0));
+		}
+	    });																		 
+	    this.store.sort(this.displayField,'asc');
+	}
+    }
+});
+
+Ext.reg('mycombo', MyComboBox);

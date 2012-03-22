@@ -32,6 +32,7 @@ Ext.onReady(function(){
         { name: 'product_name',      type: 'string' },
         { name: 'container_size_id', type: 'int' },
         { name: 'stillage_location_id', type: 'int' },
+        { name: 'bay_position_id',   type: 'int' },
         { name: 'gyle_id',           type: 'int' },
         { name: 'int_reference',     type: 'string' },
         { name: 'ext_reference',     type: 'string' },
@@ -47,6 +48,31 @@ Ext.onReady(function(){
         url:        url_object_list,
         root:       'objects',
         fields:     Cask
+    });
+
+    /* Bay position drop-down */
+    var bay_position_store = new Ext.data.JsonStore({
+        url:        url_bay_position_list,
+        root:       'objects',
+        fields:     [{ name: 'bay_position_id', type: 'int' },
+                     { name: 'description',     type: 'string'}],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    bay_position_store.load();
+    var bay_position_combo = new MyComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        allowBlank:     true,
+        noSelection:    emptySelect,
+        forceSelection: true,
+        store:          bay_position_store,
+        valueField:     'bay_position_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
     });
 
     var content_cols = [
@@ -80,6 +106,13 @@ Ext.onReady(function(){
               allowDecimals:  false,
               allowBlank:     true,
           })},
+        { id:         'bay_position_id',
+          header:     'Bay Position',
+          dataIndex:  'bay_position_id',
+          width:      70,
+          renderer:   MyComboRenderer(bay_position_combo),
+          editor:     bay_position_combo,
+        },
         { id:         'is_vented',
           header:     'Vented',
           dataIndex:  'is_vented',
