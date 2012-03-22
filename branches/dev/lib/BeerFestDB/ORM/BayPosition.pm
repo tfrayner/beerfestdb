@@ -1,12 +1,12 @@
 use utf8;
-package BeerFestDB::ORM::FestivalEntryType;
+package BeerFestDB::ORM::BayPosition;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-BeerFestDB::ORM::FestivalEntryType
+BeerFestDB::ORM::BayPosition
 
 =cut
 
@@ -15,15 +15,15 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<festival_entry_type>
+=head1 TABLE: C<bay_position>
 
 =cut
 
-__PACKAGE__->table("festival_entry_type");
+__PACKAGE__->table("bay_position");
 
 =head1 ACCESSORS
 
-=head2 festival_entry_type_id
+=head2 bay_position_id
 
   data_type: 'integer'
   is_auto_increment: 1
@@ -33,28 +33,28 @@ __PACKAGE__->table("festival_entry_type");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 30
+  size: 50
 
 =cut
 
 __PACKAGE__->add_columns(
-  "festival_entry_type_id",
+  "bay_position_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "description",
-  { data_type => "varchar", is_nullable => 0, size => 30 },
+  { data_type => "varchar", is_nullable => 0, size => 50 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</festival_entry_type_id>
+=item * L</bay_position_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("festival_entry_type_id");
+__PACKAGE__->set_primary_key("bay_position_id");
 
 =head1 UNIQUE CONSTRAINTS
 
@@ -72,27 +72,25 @@ __PACKAGE__->add_unique_constraint("description", ["description"]);
 
 =head1 RELATIONS
 
-=head2 festival_entries
+=head2 casks
 
 Type: has_many
 
-Related object: L<BeerFestDB::ORM::FestivalEntry>
+Related object: L<BeerFestDB::ORM::Cask>
 
 =cut
 
 __PACKAGE__->has_many(
-  "festival_entries",
-  "BeerFestDB::ORM::FestivalEntry",
-  {
-    "foreign.festival_entry_type_id" => "self.festival_entry_type_id",
-  },
+  "casks",
+  "BeerFestDB::ORM::Cask",
+  { "foreign.bay_position_id" => "self.bay_position_id" },
   {},
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cstqLqZIn0j7Ld4lk/AxGA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PO+m7DlgGw6F98xBbZCmKw
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

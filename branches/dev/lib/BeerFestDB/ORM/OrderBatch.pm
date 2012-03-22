@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::OrderBatch;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::OrderBatch
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::OrderBatch
+=head1 TABLE: C<order_batch>
 
 =cut
 
@@ -53,9 +57,35 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "varchar", is_nullable => 0, size => 255 },
   "order_date",
-  { data_type => "date", "datetime_undef_if_invalid" => 1, is_nullable => 1 },
+  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</order_batch_id>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("order_batch_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<festival_order_batch>
+
+=over 4
+
+=item * L</festival_id>
+
+=item * L</description>
+
+=back
+
+=cut
+
 __PACKAGE__->add_unique_constraint("festival_order_batch", ["festival_id", "description"]);
 
 =head1 RELATIONS
@@ -105,8 +135,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-06-19 11:31:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KJK2dr+la/j8CpJQYTfFoQ
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ziSqEHYPrWWmMs+TF2NLeQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

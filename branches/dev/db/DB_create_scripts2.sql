@@ -139,6 +139,38 @@ CREATE TABLE stillage_location (
 ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
+-- Table structure for table `bay_position_id`
+
+-- The description is the position within the bay of a given cask, for
+-- example 'Top Back', 'Bottom Front'.
+-- ------------------------------------------------------------
+
+CREATE TABLE bay_position (
+  bay_position_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  description VARCHAR(50) NOT NULL,
+  PRIMARY KEY(bay_position_id),
+  UNIQUE KEY(description)
+)
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO bay_position (description) VALUES('Top Front');
+INSERT INTO bay_position (description) VALUES('Top Middle');
+INSERT INTO bay_position (description) VALUES('Top Back');
+INSERT INTO bay_position (description) VALUES('Middle Front');
+INSERT INTO bay_position (description) VALUES('Middle Back');
+INSERT INTO bay_position (description) VALUES('Bottom Front');
+INSERT INTO bay_position (description) VALUES('Bottom Middle');
+INSERT INTO bay_position (description) VALUES('Bottom Back');
+INSERT INTO bay_position (description) VALUES('On Floor');
+
+--ALTER TABLE cask ADD COLUMN bay_position_id INT(6) NULL;
+--ALTER TABLE cask ADD INDEX FK_CSK_bpid(bay_position_id);
+--ALTER TABLE cask ADD FOREIGN KEY FK_CSK_locid_BAYPOS_locid(bay_position_id)
+--    REFERENCES bay_position(bay_position_id)
+--      ON DELETE RESTRICT
+--      ON UPDATE NO ACTION;
+
+-- ------------------------------------------------------------
 -- Static Table structure for table `telephone_type`
 -- Simple table that describes different types of telephone that a telephone
 -- is one of e.g. telephone,fax,mobile.
@@ -708,6 +740,7 @@ CREATE TABLE cask (
   price INTEGER(11) UNSIGNED NULL,
   stillage_location_id INTEGER(6) NULL,
   stillage_bay INTEGER(4) UNSIGNED NULL,
+  bay_position_id INTEGER(6) NULL,
   stillage_x_location INTEGER(6) UNSIGNED NULL,
   stillage_y_location INTEGER(6) UNSIGNED NULL,
   stillage_z_location INTEGER(6) UNSIGNED NULL,
@@ -727,6 +760,7 @@ CREATE TABLE cask (
   INDEX FK_CSK_obid(order_batch_id),
   INDEX FK_CSK_bid(bar_id),
   INDEX FK_CSK_stid(stillage_location_id),
+  INDEX FK_CSK_bpid(bay_position_id),
   INDEX FK_CSK_csid_CS_csid(container_size_id),
   INDEX FK_CSK_cc3_CUR_cc3(currency_id),
   INDEX IDX_CSK_exref(external_reference),
@@ -757,6 +791,10 @@ CREATE TABLE cask (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_gyleid_GYLE_gyleid(gyle_id)
     REFERENCES gyle(gyle_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSK_locid_BAYPOS_locid(bay_position_id)
+    REFERENCES bay_position(bay_position_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_locid_STILLOC_locid(stillage_location_id)
