@@ -84,9 +84,10 @@ Ext.onReady(function(){
         },
     });
     country_store.load();
-    var country_combo = new Ext.form.ComboBox({
+    var country_combo = new MyComboBox({
         forceSelection: true,
-        allowBlank:     false,
+        allowBlank:     true,
+        noSelection:    emptySelect,
         typeAhead:      true,
         triggerAction:  'all',
         store:          country_store,
@@ -228,7 +229,8 @@ Ext.onReady(function(){
               valueField:     'company_region_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
               allowBlank:     true, },
             
             { name:           'year_founded',

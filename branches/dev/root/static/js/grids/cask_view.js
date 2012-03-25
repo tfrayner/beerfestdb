@@ -170,7 +170,8 @@ Ext.onReady(function(){
               valueField:     'company_id',
               displayField:   'name',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
               allowBlank:     true, },
             
             { name:           'festival_name',

@@ -151,8 +151,9 @@ Ext.onReady(function(){
         },
     });
     order_batch_store.load();
-    var order_batch_combo = new Ext.form.ComboBox({
+    var order_batch_combo = new MyComboBox({
         allowBlank:     true,
+        noSelection:    emptySelect,
         typeAhead:      true,
         triggerAction:  'all',
         store:          order_batch_store,

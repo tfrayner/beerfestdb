@@ -80,7 +80,7 @@ Ext.onReady(function(){
         },
     });
     stillage_store.load();
-    var stillage_combo = new Ext.form.ComboBox({
+    var stillage_combo = new MyComboBox({
         store:          stillage_store,
         valueField:     'stillage_location_id',
         displayField:   'description',
@@ -88,6 +88,7 @@ Ext.onReady(function(){
         triggerAction:  'all',
         forceSelection: true,
         allowBlank:     true,
+        noSelection:    emptySelect,
         typeAhead:      true,
     });
 
