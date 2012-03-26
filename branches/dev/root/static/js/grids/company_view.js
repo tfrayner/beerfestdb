@@ -163,7 +163,7 @@ Ext.onReady(function(){
         },
     });
     style_store.load();
-    var style_combo = new Ext.form.ComboBox({
+    var style_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         forceSelection: true,
@@ -171,6 +171,8 @@ Ext.onReady(function(){
         valueField:     'product_style_id',
         displayField:   'description',
         lazyRender:     true,
+        allowBlank:     true,
+        noSelection:    emptySelect,
         listClass:      'x-combo-list-small',
     });
 
