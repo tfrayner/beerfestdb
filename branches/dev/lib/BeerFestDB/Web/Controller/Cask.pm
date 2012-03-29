@@ -92,6 +92,7 @@ sub BUILD {
         is_tapped         => 'is_tapped',
         is_ready          => 'is_ready',
         is_condemned      => 'is_condemned',
+        is_sale_or_return => 'is_sale_or_return',
     });
 }
 

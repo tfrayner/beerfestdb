@@ -42,6 +42,7 @@ Ext.onReady(function(){
         { name: 'is_tapped',         type: 'int' },
         { name: 'is_ready',          type: 'int' },
         { name: 'is_condemned',      type: 'int' },
+        { name: 'is_sale_or_return', type: 'int' },
     ]);
 
     var store = new Ext.data.JsonStore({
@@ -140,6 +141,13 @@ Ext.onReady(function(){
           width:      150,
           editor:     new Ext.form.TextField({
               allowBlank:     true,
+          })},
+        { id:         'is_sale_or_return',
+          header:     'SOR',
+          dataIndex:  'is_sale_or_return',
+          width:      40,
+          renderer:   MyCheckboxRenderer(),
+          editor:     new Ext.form.Checkbox({
           })},
         { id:         'is_condemned',
           header:     'Condemned',

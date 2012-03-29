@@ -81,6 +81,11 @@ __PACKAGE__->table("product_order");
   data_type: 'tinyint'
   is_nullable: 1
 
+=head2 is_sale_or_return
+
+  data_type: 'tinyint'
+  is_nullable: 1
+
 =head2 comment
 
   data_type: 'text'
@@ -108,6 +113,8 @@ __PACKAGE__->add_columns(
   "is_final",
   { data_type => "tinyint", is_nullable => 1 },
   "is_received",
+  { data_type => "tinyint", is_nullable => 1 },
+  "is_sale_or_return",
   { data_type => "tinyint", is_nullable => 1 },
   "comment",
   { data_type => "text", is_nullable => 1 },
@@ -141,6 +148,8 @@ __PACKAGE__->set_primary_key("product_order_id");
 
 =item * L</cask_count>
 
+=item * L</is_sale_or_return>
+
 =back
 
 =cut
@@ -153,6 +162,7 @@ __PACKAGE__->add_unique_constraint(
     "distributor_company_id",
     "container_size_id",
     "cask_count",
+    "is_sale_or_return",
   ],
 );
 
@@ -229,8 +239,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:R58UlPlMHvl5QYb+3mGjtg
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-29 20:01:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uC8FIwJcjgpoHd0eRRm0kA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

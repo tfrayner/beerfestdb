@@ -163,13 +163,6 @@ INSERT INTO bay_position (description) VALUES('Bottom Middle');
 INSERT INTO bay_position (description) VALUES('Bottom Back');
 INSERT INTO bay_position (description) VALUES('On Floor');
 
---ALTER TABLE cask ADD COLUMN bay_position_id INT(6) NULL;
---ALTER TABLE cask ADD INDEX FK_CSK_bpid(bay_position_id);
---ALTER TABLE cask ADD FOREIGN KEY FK_CSK_locid_BAYPOS_locid(bay_position_id)
---    REFERENCES bay_position(bay_position_id)
---      ON DELETE RESTRICT
---      ON UPDATE NO ACTION;
-
 -- ------------------------------------------------------------
 -- Static Table structure for table `telephone_type`
 -- Simple table that describes different types of telephone that a telephone
@@ -752,6 +745,7 @@ CREATE TABLE cask (
   is_tapped TINYINT(1) NULL,
   is_ready TINYINT(1) NULL,
   is_condemned TINYINT(1) NULL,
+  is_sale_or_return TINYINT(1) NULL,
   PRIMARY KEY(cask_id),
   UNIQUE KEY `festival_gyle_cask` (festival_id, gyle_id, internal_reference),
   UNIQUE KEY `festival_cellar_ref` (festival_id, cellar_reference),
@@ -872,10 +866,11 @@ CREATE TABLE product_order (
   advertised_price INTEGER UNSIGNED NULL,
   is_final TINYINT(1) NULL,
   is_received TINYINT(1) NULL,
+  is_sale_or_return TINYINT(1) NULL,
   comment TEXT NULL,
   PRIMARY KEY(product_order_id),
   UNIQUE KEY `product_order_batch` (order_batch_id, product_id, distributor_company_id,
-                                       container_size_id, cask_count),
+                                       container_size_id, cask_count, is_sale_or_return),
   INDEX FK_ORDER_fid(order_batch_id),
   INDEX FK_ORDER_pid(product_id),
   INDEX FK_ORDER_dcid(distributor_company_id),

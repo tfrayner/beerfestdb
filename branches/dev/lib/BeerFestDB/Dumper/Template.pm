@@ -124,6 +124,7 @@ sub order_hash {
         distributor => $order->distributor_company_id->name(),
         cask_size   => $order->container_size_id->container_volume(),
         cask_count  => $order->cask_count(),
+        is_sale_or_return => $order->is_sale_or_return(),
     );
 
     my $currency = $order->currency_id();
@@ -200,6 +201,7 @@ sub update_cask_hash {
     $caskhash->{dips}         = $self->munge_dips( $cask );
     $caskhash->{comment}      = $cask->comment();
     $caskhash->{is_condemned} = $cask->is_condemned();
+    $caskhash->{is_sale_or_return} = $cask->is_sale_or_return();
 
     return $caskhash;
 }
@@ -389,6 +391,18 @@ The price per half sale unit.
 =item sale_volume
 
 The sale unit itself.
+
+=item comment
+
+Free-text notes on the cask.
+
+=item is_condemned
+
+A boolean flag indicating whether the cask has been condemned or not.
+
+=item is_sale_or_return
+
+A boolean flag indicating whether the cask or product order is sale-or-return or not.
 
 =item dips
 

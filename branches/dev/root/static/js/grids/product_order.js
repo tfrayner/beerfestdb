@@ -37,6 +37,7 @@ Ext.onReady(function(){
         { name: 'price',                  type: 'int' },
         { name: 'is_final',               type: 'int' },
         { name: 'is_received',            type: 'int' },
+        { name: 'is_sale_or_return',      type: 'int' },
         { name: 'comment',                type: 'string' },
     ]);
 
@@ -266,6 +267,13 @@ Ext.onReady(function(){
           width:      150,
           editor:     new Ext.form.TextField({
               allowBlank:     true,
+          })},
+        { id:         'is_sale_or_return',
+          header:     'SOR',
+          dataIndex:  'is_sale_or_return',
+          width:      40,
+          renderer:   MyCheckboxRenderer(),
+          editor:     new Ext.form.Checkbox({
           })},
         { id:         'is_final',
           header:     'Ordered',

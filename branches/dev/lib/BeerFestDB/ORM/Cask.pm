@@ -47,6 +47,12 @@ __PACKAGE__->table("cask");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 order_batch_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 container_size_id
 
   data_type: 'integer'
@@ -81,6 +87,12 @@ __PACKAGE__->table("cask");
 
   data_type: 'integer'
   extra: {unsigned => 1}
+  is_nullable: 1
+
+=head2 bay_position_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 1
 
 =head2 stillage_x_location
@@ -142,16 +154,9 @@ __PACKAGE__->table("cask");
   data_type: 'tinyint'
   is_nullable: 1
 
-=head2 order_batch_id
+=head2 is_sale_or_return
 
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 bay_position_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
+  data_type: 'tinyint'
   is_nullable: 1
 
 =cut
@@ -165,6 +170,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "distributor_company_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "order_batch_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "container_size_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "bar_id",
@@ -177,6 +184,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "stillage_bay",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
+  "bay_position_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "stillage_x_location",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "stillage_y_location",
@@ -199,10 +208,8 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", is_nullable => 1 },
   "is_condemned",
   { data_type => "tinyint", is_nullable => 1 },
-  "order_batch_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "bay_position_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "is_sale_or_return",
+  { data_type => "tinyint", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -388,8 +395,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JM7EVW+gUYRTIfrXI7hJRw
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-29 20:01:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tIr8vCB9bh6GxfX+rY8UoQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
