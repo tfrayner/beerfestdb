@@ -37,4 +37,3 @@
 
 [% js_link( src = '/static/js/grids/main.js' ) %]
 
-<div id="datagrid"></div>
