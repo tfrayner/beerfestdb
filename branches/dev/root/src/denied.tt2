@@ -1,0 +1,6 @@
+[% META title="Access denied" %]
+
+<div>
+[% IF !error %]You are not allowed to access this resource.[% END %]
+[% IF !c.user %]Please <a href="[% c.uri_for('/login') %]">log in</a> as a user with the appropriate privileges.[% END %]
+</div>

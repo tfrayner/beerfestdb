@@ -53,11 +53,57 @@ sub default : Private {
     $c->stash->{template} = 'not_found.tt2'; 
 } 
 
+=head2 access_denied
+
+The default action called if the user attempts to navigate somewhere
+they're not permitted. This is called by the Authorization::ACL plugin.
+
+=cut
+
+sub access_denied : Private {
+    my ( $self, $c, $action ) = @_;
+    $c->res->status('403');
+    $c->stash->{template} = 'denied.tt2';
+}
+
 =head2 index
 
 =cut
 
 sub index : Private {};
+
+=head2 login
+
+The primary login action, tied into the users/roles table system in
+the underlying database.
+
+=cut
+
+sub login : Global {
+
+    my ( $self, $c ) = @_;
+
+    my $j = JSON::Any->new;
+    my $json_req = $c->request->param( 'data' );
+    use Data::Dumper; warn Dumper $c->request->params;
+
+    return unless $json_req;
+
+    my $data = $j->jsonToObj( $json_req );
+    use Data::Dumper; warn Dumper $data;
+    if ( $c->authenticate({ username => $data->{ 'username' },
+                            password => $data->{ 'password' }, }) ) {
+
+        $c->res->redirect($c->uri_for('/'));  ## FIXME allow pass-through from prior location.
+        $c->stash->{ 'success' } = JSON::Any->true();
+        $c->detach( $c->view( 'JSON' ) );
+    }
+    else {
+        $c->res->status('401');
+        $c->stash->{error} = 'Login failed.';
+        $c->detach( $c->view( 'JSON' ) );
+    }
+}
 
 =head2 end
 

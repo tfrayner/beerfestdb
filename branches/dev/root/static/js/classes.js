@@ -440,3 +440,57 @@ MyComboBox = Ext.extend(Ext.form.ComboBox, {
 });
 
 Ext.reg('mycombo', MyComboBox);
+
+MyLoginPanel = Ext.extend(Ext.form.FormPanel, {
+
+    labelAlign:  'right',
+    labelWidth:  150,
+    frame:       true,
+    bodyStyle:   'padding:5px',
+    width:       500,
+    defaults:    {width: 300}, // field box width
+    defaultType: 'textfield',
+    targetUrl:   "/",  // A reasonable but not universally-applicable default.
+    
+    initComponent: function() {
+
+        // turn on validation errors beside form fields globally
+        Ext.form.Field.prototype.msgTarget = 'side';
+
+        Ext.apply(this, {
+            buttons: [{
+                text:    'Log in',
+                iconCls: 'icon-login',
+                handler: function(b, e) {
+                    var fields = this.getForm().getFieldValues();
+                    Ext.Ajax.request({
+                        url:        this.url,
+                        success:    function() {
+                            Ext.Msg.show({
+                                title:'Success',
+                                msg: 'Successfully logged in',
+                                buttons: { ok: 'Okay' },
+                                scope: this,
+                                fn: function() {
+                                    window.location.href = this.targetUrl;
+                                }});
+                        },
+                        failure:    function(res, opts) {
+                            var stash = Ext.util.JSON.decode(res.responseText);
+                            Ext.Msg.alert('Error', stash.error);
+                        },
+                        params:     { data: Ext.util.JSON.encode( fields ) },
+                        scope: this,
+                    });
+                },
+                scope: this,
+            }],
+        });
+        MyLoginPanel.superclass.initComponent.apply(this, arguments);
+    },
+    
+    onRender: function() {
+        MyLoginPanel.superclass.onRender.apply(this, arguments);
+    }
+});
+

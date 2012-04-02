@@ -899,6 +899,55 @@ CREATE TABLE product_order (
 )
 ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+--
+-- Table structure for table `user`
+--
+
+CREATE TABLE `user` (
+  `user_id` int(11) NOT NULL auto_increment,
+  `username` varchar(255) NOT NULL,
+  `name` varchar(255),
+  `email` varchar(255),
+  `password` varchar(40) NOT NULL,    -- The length of a Digest->hexdigest string.
+--  `date_created` datetime NOT NULL,
+--  `date_modified` datetime,
+--  `date_accessed` datetime,
+  PRIMARY KEY  (`user_id`),
+  UNIQUE KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `role`
+--
+
+CREATE TABLE `role` (
+  `role_id` int(11) NOT NULL auto_increment,
+  `rolename` varchar(255) NOT NULL,
+  PRIMARY KEY  (`role_id`),
+  UNIQUE KEY (`rolename`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `user_role`
+--
+
+CREATE TABLE `user_role` (
+  `user_role_id` int(11) NOT NULL auto_increment,
+  `user_id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  PRIMARY KEY (`user_role_id`),
+  UNIQUE KEY (`user_id`,`role_id`),
+  KEY (`user_id`),
+  KEY (`role_id`),
+  CONSTRAINT `user_role_ibfk_1` FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`user_id`)
+      ON DELETE CASCADE,
+  CONSTRAINT `user_role_ibfk_2` FOREIGN KEY (`role_id`)
+    REFERENCES `role` (`role_id`)
+      ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- A set of views that are often useful.
 CREATE VIEW programme_notes_view AS (
      SELECT f.name AS festival,

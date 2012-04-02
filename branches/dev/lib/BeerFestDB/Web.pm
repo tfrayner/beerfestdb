@@ -41,6 +41,10 @@ use Catalyst qw/ConfigLoader
                 Session
                 Session::State::Cookie
                 Session::Store::FastMmap
+
+                Authentication
+                Authorization::Roles
+                Authorization::ACL
                /;
 our $VERSION = '0.01';
 
@@ -60,11 +64,38 @@ __PACKAGE__->config(
     'View::JSON' => {
         json_driver => 'JSON::DWIW', # Better utf-8 support than JSON(::XS)
     },
+    authentication => {  
+        default_realm => 'beerfestdb',
+        realms => {
+            beerfestdb => {
+                credential => {
+                    class          => 'Password',
+                    password_field => 'password',
+#                    password_type  => 'hashed',  ## FIXME at some point we'll want to uncomment this.
+                },
+                store => {
+                    class         => 'DBIx::Class',
+                    user_class    => 'DB::User',
+                    id_field      => 'user_id',
+                    role_relation => 'roles',
+                    role_field    => 'rolename',
+                }
+            },
+        }
+    },
  );
 
 # Start the application
 __PACKAGE__->setup();
 
+# Access control (FIXME add more here).
+__PACKAGE__->allow_access_if( '/company', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/company' );
+
+# Areas to which access is always granted.
+__PACKAGE__->allow_access( '/default' );
+__PACKAGE__->allow_access( '/index' );
+__PACKAGE__->allow_access( '/login' );
 
 =head1 NAME
 

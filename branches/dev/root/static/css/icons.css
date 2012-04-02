@@ -21,6 +21,9 @@
 .icon-error {
 	background-image:url(/static/images/silk/icons/cross.png) ! important;
 }
+.icon-login {
+	background-image:url(/static/images/silk/icons/key_go.png) ! important;
+}
 
 
 .icon-ob {
