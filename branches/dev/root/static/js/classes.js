@@ -494,3 +494,44 @@ MyLoginPanel = Ext.extend(Ext.form.FormPanel, {
     }
 });
 
+MyMainPanel = Ext.extend(Ext.Panel, {
+
+    logoutUrl:   "/logout",  // A reasonable but not universally-applicable default.
+    rootUrl:     "/",
+    
+    initComponent: function() {
+
+        Ext.apply(this, {
+            tools: [{
+                id: 'logout',
+                qtip: 'Log out from the database',
+                handler: function(event, elem, panel, conf) {
+                    Ext.Ajax.request({
+                        url:        "/logout",// this.logoutUrl, FIXME
+                        success:    function() {
+                            Ext.Msg.show({
+                                title:'Success',
+                                msg: 'Successfully logged out.',
+                                buttons: { ok: 'Okay' },
+                                scope: this,
+                                fn: function() {
+                                    window.location.href = "/";//this.rootUrl;  FIXME
+                                }});
+                        },
+                        failure:    function(res, opts) {
+                            var stash = Ext.util.JSON.decode(res.responseText);
+                            Ext.Msg.alert('Error', stash.error);
+                        },
+                        scope: this,
+                    });
+                },
+            }],
+        });
+        MyMainPanel.superclass.initComponent.apply(this, arguments);
+    },
+    
+    onRender: function() {
+        MyMainPanel.superclass.onRender.apply(this, arguments);
+    }
+});
+

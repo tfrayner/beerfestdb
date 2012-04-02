@@ -169,7 +169,7 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: stillagename + ' cask listing',
         layout: 'fit',
         items: new MyEditorGrid(

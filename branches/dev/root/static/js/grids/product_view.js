@@ -198,7 +198,7 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: productname,            
         layout: 'fit',
         items: tabpanel,

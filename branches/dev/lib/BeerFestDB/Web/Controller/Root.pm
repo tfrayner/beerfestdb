@@ -85,12 +85,11 @@ sub login : Global {
 
     my $j = JSON::Any->new;
     my $json_req = $c->request->param( 'data' );
-    use Data::Dumper; warn Dumper $c->request->params;
 
     return unless $json_req;
 
     my $data = $j->jsonToObj( $json_req );
-    use Data::Dumper; warn Dumper $data;
+
     if ( $c->authenticate({ username => $data->{ 'username' },
                             password => $data->{ 'password' }, }) ) {
 
@@ -103,6 +102,24 @@ sub login : Global {
         $c->stash->{error} = 'Login failed.';
         $c->detach( $c->view( 'JSON' ) );
     }
+}
+
+=head2 logout
+
+Standard logout action.
+
+=cut
+
+sub logout : Global {
+
+    my ( $self, $c ) = @_;
+
+    # Whatever happens we want to log out.
+    $c->logout;
+
+    $c->flash->{ 'message' } = 'Successfully logged out.';
+    $c->stash->{ 'success' } = JSON::Any->true();
+    $c->res->redirect( $c->uri_for('/') );
 }
 
 =head2 end

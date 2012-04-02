@@ -37,9 +37,9 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: 'BeerFestDB Login',
-        items:  login_form,
+        items:  [ login_form ],
     });
     
     var view = new Ext.Viewport({

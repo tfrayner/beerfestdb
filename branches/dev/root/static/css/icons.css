@@ -24,6 +24,9 @@
 .icon-login {
 	background-image:url(/static/images/silk/icons/key_go.png) ! important;
 }
+.x-tool-logout {
+	background-image:url(/static/images/silk/icons/key_delete.png) ! important;
+}
 
 
 .icon-ob {

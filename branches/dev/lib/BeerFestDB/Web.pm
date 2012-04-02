@@ -88,9 +88,48 @@ __PACKAGE__->config(
 # Start the application
 __PACKAGE__->setup();
 
-# Access control (FIXME add more here).
+# Access control.
 __PACKAGE__->allow_access_if( '/company', [ qw( user ) ] );
 __PACKAGE__->deny_access( '/company' );
+
+__PACKAGE__->allow_access_if( '/festival', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/festival' );
+
+__PACKAGE__->allow_access_if( '/product', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/product' );
+
+__PACKAGE__->allow_access_if( '/gyle', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/gyle' );
+
+__PACKAGE__->allow_access_if( '/cask', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/cask' );
+
+__PACKAGE__->allow_access_if( '/festivalproduct', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/festivalproduct' );
+
+__PACKAGE__->allow_access_if( '/caskmeasurement', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/caskmeasurement' );
+
+__PACKAGE__->allow_access_if( '/measurementbatch', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/measurementbatch' );
+
+__PACKAGE__->allow_access_if( '/orderbatch', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/orderbatch' );
+
+__PACKAGE__->allow_access_if( '/productorder', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/productorder' );
+
+__PACKAGE__->allow_access_if( '/contact', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/contact' );
+
+__PACKAGE__->allow_access_if( '/productcategory', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/productcategory' );
+
+__PACKAGE__->allow_access_if( '/stillagelocation', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/stillagelocation' );
+
+__PACKAGE__->allow_access_if( '/productstyle', [ qw( user ) ] );
+__PACKAGE__->deny_access( '/productstyle' );
 
 # Areas to which access is always granted.
 __PACKAGE__->allow_access( '/default' );
