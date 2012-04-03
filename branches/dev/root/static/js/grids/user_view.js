@@ -20,6 +20,11 @@
  * $Id$
  */
 
+// Workaround for odd Ext.ux.form.LovCombo clear-on-blur bug when using ExtJS3.
+Ext.override(Ext.ux.form.LovCombo, {
+    beforeBlur: Ext.emptyFn
+})
+
 Ext.onReady(function(){
 
     // Enable tooltips
@@ -66,11 +71,11 @@ Ext.onReady(function(){
               xtype:          'textfield',
               allowBlank:     true, },
 
-            { name:           'roles',  // FIXME this is almost certainly incorrect; we'll need controller support also.
+            { name:           'roles',  // FIXME this still doesn't pre-check the right boxes.
               fieldLabel:     'Roles',
               store:          role_store,
               triggerAction:  'all',
-              lazyRender:     true,              
+              lazyRender:     true,
               valueField:     'role_id',
               displayField:   'rolename',
               xtype:          'lovcombo',

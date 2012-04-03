@@ -24,6 +24,7 @@ use Moose;
 use namespace::autoclean;
 
 use Digest;
+use List::Util qw(first);
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -49,6 +50,7 @@ sub BUILD {
         password           => 'password',
         name               => 'name',
         email              => 'email',
+        roles              => undef,
     });
 }
 
@@ -120,7 +122,7 @@ sub delete : Local {
 
 sub build_database_object : Private {
 
-    my ( $self, $rec, @other ) = @_;
+    my ( $self, $rec, $c, @other ) = @_;
 
     # FIXME this overridden method needs to hash any $rec->password
     # field before passing it back to the superclass method. Note that
@@ -132,7 +134,29 @@ sub build_database_object : Private {
 #        $rec->{'password'} = ctx->hexdigest();
 #    }
 
-    $self->next::method( $rec, @other );
+    # Our regular build_database_object method doesn't handle many-to-many.
+    my $roles = delete $rec->{'roles'};
+
+    my $obj = $self->next::method( $rec, $c, @other );
+
+    if ( defined $roles && defined $obj ) {
+        my $rs = $c->model( 'DB::UserRole' );
+        my @r = split /,/, $roles;
+        foreach my $existing ($obj->user_roles) {
+
+            # Delete unwanted existing roles.
+            if ( ! first { $existing->get_column('role_id') == $_ } @r ) {
+                $existing->delete;
+            }
+        }
+        foreach my $role_id (@r) {
+
+            # Check that all the wanted roles are set.
+            $rs->find_or_create({ user_id => $obj->user_id(), role_id => $role_id });
+        }
+    }
+
+    return $obj;
 }
 
 =head2 load_form
@@ -176,6 +200,21 @@ sub modify : Local {
 
     # Pass-through to submit action for the moment FIXME?
     $self->submit( $c );
+}
+
+sub viewhash_from_model : Private {
+
+    my ( $self, $view_key, $dbrow, $lookup ) = @_;
+
+    my $rc;
+    if ( $view_key eq 'roles' ) {
+        $rc = join(',', map { $_->get_column('role_id') } $dbrow->roles);
+    }
+    else {
+        $rc = $self->next::method( $view_key, $dbrow, $lookup );
+    }
+
+    return $rc;
 }
 
 =head1 COPYRIGHT AND LICENSE
