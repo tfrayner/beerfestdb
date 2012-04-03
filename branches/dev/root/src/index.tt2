@@ -29,6 +29,7 @@
 
   <ul class="linkslist">
     <li><a href="[% c.uri_for('/productcategory') %]">Product categorisation</a></li>
+    <li><a href="[% c.uri_for('/user') %]">Database users (admin access only)</a></li>
   </ul>
 
 </div>
