@@ -52,6 +52,46 @@ sub BUILD {
     });
 }
 
+=head2 list
+
+=cut
+
+sub list : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( 'DB::User' );
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 grid
+
+=cut
+
+sub grid : Local {}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::User')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: User not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
+}
+
 =head2 submit
 
 =cut

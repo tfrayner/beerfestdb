@@ -1,0 +1,7 @@
+[% META title = 'Database User Listing' %]
+
+<script type="text/javascript">
+   var url_object_list      = '[% c.uri_for( "/user/list" ) %]';
+</script>
+
+[% js_link( src = '/static/js/grids/users.js' ) %]

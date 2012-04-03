@@ -7,12 +7,14 @@
   css_link( href = "/static/ext/resources/css/ext-all.css" );
   css_link( href = "/static/tp_skin/resources/css/xtheme-tp.css" );
   css_link( href = "/static/css/Ext.ux.grid.RowActions.css" );
+  css_link( href = "/static/css/Ext.ux.form.LovCombo.css" );
   css_link( href = "/static/css/icons.css" );
   css_link( href = "/static/css/extras.css" );
 
   js_link( src = "/static/ext/adapter/ext/ext-base.js" );
   js_link( src = "/static/ext/ext-all.js" );
   js_link( src = "/static/js/Ext.ux.grid.RowActions.js" );
+  js_link( src = "/static/js/Ext.ux.form.LovCombo.js" );
   js_link( src = "/static/js/Ext.ux.form.DateTime.js" );
   js_link( src = "/static/js/classes.js" );
 -%]
@@ -39,6 +41,8 @@
    var url_contact_type_list    = '[% c.uri_for( "/contacttype/list" ) %]';
    var url_telephone_type_list  = '[% c.uri_for( "/telephonetype/list" ) %]';
    var url_country_list         = '[% c.uri_for( "/country/list" ) %]';
+   var url_role_list            = '[% c.uri_for( "/role/list" ) %]';
+   var url_user_list            = '[% c.uri_for( "/user/list" ) %]';
 
    var url_cask_delete          = '[% c.uri_for( "/cask/delete" ) %]';
    var url_cask_submit          = '[% c.uri_for( "/cask/submit" ) %]';
@@ -70,6 +74,8 @@
    var url_stillageloc_delete   = '[% c.uri_for( "/stillagelocation/delete" ) %]';
    var url_telephone_submit     = '[% c.uri_for( "/telephone/submit" ) %]';
    var url_telephone_delete     = '[% c.uri_for( "/telephone/delete" ) %]';
+   var url_user_submit          = '[% c.uri_for( "/user/submit" ) %]';
+   var url_user_delete          = '[% c.uri_for( "/user/delete" ) %]';
 
    var url_product_index        = '[% c.uri_for( "/product" ) %]';
 
