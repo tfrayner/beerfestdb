@@ -29,6 +29,12 @@ requires 'Catalyst::Runtime' => '5.7015';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::Static::Simple';
 requires 'Catalyst::Plugin::Session::Store::FastMmap';
+requires 'Catalyst::Plugin::Authentication'               => '0.10007';
+requires 'Catalyst::Plugin::Authorization::ACL'           => '0.08';    # NOT 0.09!
+requires 'Catalyst::Plugin::Authorization::Roles'         => '0.05';
+requires 'Catalyst::Authentication::Store::DBIx::Class'   => '0.104';
+requires 'Digest::SHA1'                                   => '2.11';
+requires 'Crypt::SaltedHash'                              => '0.06';
 requires 'Catalyst::Engine::HTTP::Restarter';
 requires 'Catalyst::Action::RenderView';
 requires 'parent';

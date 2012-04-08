@@ -71,7 +71,8 @@ __PACKAGE__->config(
                 credential => {
                     class          => 'Password',
                     password_field => 'password',
-#                    password_type  => 'hashed',  ## FIXME at some point we'll want to uncomment this.
+                    password_type  => 'salted_hash',
+                    password_salt_len => 4,
                 },
                 store => {
                     class         => 'DBIx::Class',
