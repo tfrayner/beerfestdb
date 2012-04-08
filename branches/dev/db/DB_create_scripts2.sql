@@ -861,12 +861,12 @@ CREATE TABLE product_order (
   product_id INTEGER(6) NOT NULL,
   distributor_company_id INTEGER(6) NOT NULL,
   container_size_id INTEGER(6) NOT NULL,
-  cask_count INTEGER UNSIGNED NULL,
+  cask_count INTEGER UNSIGNED NOT NULL,
   currency_id INTEGER(6) NOT NULL,
   advertised_price INTEGER UNSIGNED NULL,
   is_final TINYINT(1) NULL,
   is_received TINYINT(1) NULL,
-  is_sale_or_return TINYINT(1) NULL,
+  is_sale_or_return TINYINT(1) NOT NULL DEFAULT 0,
   comment TEXT NULL,
   PRIMARY KEY(product_order_id),
   UNIQUE KEY `product_order_batch` (order_batch_id, product_id, distributor_company_id,
@@ -909,13 +909,15 @@ CREATE TABLE `user` (
   `username` varchar(255) NOT NULL,
   `name` varchar(255),
   `email` varchar(255),
-  `password` varchar(40) NOT NULL,    -- The length of a Digest->hexdigest string.
+  `password` varchar(40) NOT NULL,    -- The length of a Digest->hexdigest string. Also fits a Crypt::SaltedHash 39-char base64 string.
 --  `date_created` datetime NOT NULL,
 --  `date_modified` datetime,
 --  `date_accessed` datetime,
   PRIMARY KEY  (`user_id`),
   UNIQUE KEY (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO user (user_id, username, password) VALUES(1, 'admin', '{SSHA1}OdySmKa+BHu7Nr4FttQ02JXQvmrigao2');
 
 --
 -- Table structure for table `role`
@@ -927,6 +929,9 @@ CREATE TABLE `role` (
   PRIMARY KEY  (`role_id`),
   UNIQUE KEY (`rolename`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO role (role_id, rolename) VALUES(1, 'admin');
+INSERT INTO role (role_id, rolename) VALUES(2, 'user');
 
 --
 -- Table structure for table `user_role`
@@ -947,6 +952,9 @@ CREATE TABLE `user_role` (
     REFERENCES `role` (`role_id`)
       ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO user_role (user_id, role_id) VALUES(1, 1);
+INSERT INTO user_role (user_id, role_id) VALUES(1, 2);
 
 -- A set of views that are often useful.
 CREATE VIEW programme_notes_view AS (

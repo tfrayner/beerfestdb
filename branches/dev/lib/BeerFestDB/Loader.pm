@@ -350,7 +350,7 @@ sub _load_data {
                 is_final               => $datahash->{$ORDER_FINALISED},
                 is_received            => $datahash->{$ORDER_RECEIVED},
                 comment                => $datahash->{$ORDER_COMMENT},
-                is_sale_or_return      => $datahash->{$ORDER_SALE_OR_RETURN},
+                is_sale_or_return      => $datahash->{$ORDER_SALE_OR_RETURN} || 0, # Part of a DB key
             },
             'ProductOrder',
         );

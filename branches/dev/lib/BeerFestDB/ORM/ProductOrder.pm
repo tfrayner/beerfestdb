@@ -57,7 +57,7 @@ __PACKAGE__->table("product_order");
 
   data_type: 'integer'
   extra: {unsigned => 1}
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 currency_id
 
@@ -84,7 +84,8 @@ __PACKAGE__->table("product_order");
 =head2 is_sale_or_return
 
   data_type: 'tinyint'
-  is_nullable: 1
+  default_value: 0
+  is_nullable: 0
 
 =head2 comment
 
@@ -105,7 +106,7 @@ __PACKAGE__->add_columns(
   "container_size_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "cask_count",
-  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
   "currency_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "advertised_price",
@@ -115,7 +116,7 @@ __PACKAGE__->add_columns(
   "is_received",
   { data_type => "tinyint", is_nullable => 1 },
   "is_sale_or_return",
-  { data_type => "tinyint", is_nullable => 1 },
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "comment",
   { data_type => "text", is_nullable => 1 },
 );
@@ -239,8 +240,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-29 20:01:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uC8FIwJcjgpoHd0eRRm0kA
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-04-08 19:48:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:C533jFfISrFfOPKehrNvrA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
