@@ -29,11 +29,11 @@
 [% FOREACH dist = objects %]
 
 \begin{textblock}{5}(2,1)
-\includegraphics[width=2.5cm]{images/camra_logo.png}
+\includegraphics[width=2.5cm]{images/camra_candd.png}
 \end{textblock}
 
 \begin{textblock}{5}(33,1)
-\includegraphics[width=2.5cm]{images/festival_logo.png}
+\includegraphics[width=2.5cm]{images/steps.png}
 \end{textblock}
 
 
@@ -76,12 +76,27 @@ Contact phone (voice mail): 01223 967808\\
 \begin{textblock}{35}(2,19)
 \textbf{Please supply for delivery on Wednesday 16 May 2012:}
 
+[% BLOCK order_row %][% order.cask_count %] x [% order.cask_size | format('%i') %]s [% IF order.is_sale_or_return %](sale or return)[% END %][% END %]
+
 \emph{Delivery will not be accepted on any other date unless prior arrangements have been made.}
 \end{textblock}
 \begin{textblock}{34}(3,21)
 % stuff goes here
-[% FOR order = dist.orders %]
-  [% IF dist.name != order.brewery %] [% order.brewery | replace( '&', '\\&' ) %]: [% END %] [% order.product | replace( '&', '\\&' ) %] [% order.cask_count %] x [% order.cask_size | format('%i') %]s [% IF order.is_sale_or_return %](sale or return)[% END %]
+[% FOREACH company IN dist.orders %]
+  [% FOREACH product IN company.value %]
+    [% IF dist.name != company.key %]
+      [% FOREACH order IN product.value.sort('is_sale_or_return') %]
+        \textbf{[% company.key | replace( '&', '\\&' ) -%]:~~
+        [%- product.key | replace( '&', '\\&' ) -%]}~~
+        [%- PROCESS order_row %]
+      [% END %]
+    [%- ELSE -%]
+      \textbf{[% product.key | replace( '&', '\\&' ) %]}
+      [% FOREACH order IN product.value.sort('is_sale_or_return') %]
+        \hspace{3em}[% PROCESS order_row %]
+      [% END %]
+    [% END %]
+  [% END %]
 [% END %]
 
 \vspace{5mm}
@@ -108,11 +123,11 @@ Contact phone (voice mail): 01223 967808\\
 \null\newpage
 
 \begin{textblock}{5}(2,1)
-\includegraphics[width=2.5cm]{images/camra_logo.png}
+\includegraphics[width=2.5cm]{images/camra_candd.png}
 \end{textblock}
 
 \begin{textblock}{5}(33,1)
-\includegraphics[width=2.5cm]{images/frank.png}
+\includegraphics[width=2.5cm]{images/steps.png}
 \end{textblock}
 
 

@@ -163,11 +163,13 @@ sub distributor_hash {
                                 { order_batch_id => $orderbatch->id(),
                                   is_final       => 1 });
     
-    my @orderlist;
+    my %orderhashlist;
     while ( my $order = $order_rs->next() ) {
-        push @orderlist, $self->order_hash( $order );
+        my $product = $order->product_id->name();
+        my $brewery = $order->product_id->company_id->name();
+        push @{ $orderhashlist{$brewery}{$product} }, $self->order_hash( $order );
     }
-    $disthash{'orders'} = \@orderlist;
+    $disthash{'orders'} = \%orderhashlist;
 
     return \%disthash;
 }
