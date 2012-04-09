@@ -293,13 +293,78 @@ sub dump {
 
     # We define a custom title case filter for convenience.
     my $template = Template->new(
-	FILTERS => {titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) }}
+	FILTERS => {
+            titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) },
+            latexify  => \&filter_to_latex,
+        }
     )   or die( "Cannot create Template object: " . Template->error() );
 
     $template->process($self->template(), $vars, $self->filehandle() )
         or die( "Template processing error: " . $template->error() );
 
     return;
+}
+
+sub filter_to_latex {
+
+    # This is the core method used by the latexify filter to encode
+    # LaTeX control characters and more esoteric characters into
+    # something that can be processed by LaTeX.
+
+    my ( $text ) = @_;
+
+    # Common characters.
+    $text =~ s/ \{  /\\{/gxms;
+    $text =~ s/ \}  /\\}/gxms;
+    $text =~ s/ \&  /\\&/gxms;
+    $text =~ s/ \%  /\\%/gxms;
+    $text =~ s/ \#  /\\#/gxms;
+    $text =~ s/ [_] /\\_/gxms;
+    $text =~ s/ \$  /\\\$/gxms;
+    $text =~ s/ \n  /\\\\/gxms;
+
+    # In the following we try to support both Latin-1 and UTF-8
+    # encodings. Note that the UTF-8 substitution requires
+    # mysql_enable_utf8 => 1 in the DBD::mysql connection options (see
+    # beerfestdb_web.yml).
+
+    # N.B. we're not covering capitals yet FIXME?
+
+    # Grave accents.
+    $text =~ s/ (?: à | \x{e0} ) /\\`{a}/gxms;
+    $text =~ s/ (?: è | \x{e8} ) /\\`{e}/gxms;
+    $text =~ s/ (?: ì | \x{ec} ) /\\`{\\i}/gxms;
+    $text =~ s/ (?: ò | \x{f2} ) /\\`{o}/gxms;
+    $text =~ s/ (?: ù | \x{f9} ) /\\`{u}/gxms;
+
+    # Acute accents.
+    $text =~ s/ (?: á | \x{e1} ) /\\'{a}/gxms;
+    $text =~ s/ (?: é | \x{e9} ) /\\'{e}/gxms;
+    $text =~ s/ (?: í | \x{ed} ) /\\'{\\i}/gxms;
+    $text =~ s/ (?: ó | \x{f3} ) /\\'{o}/gxms;
+    $text =~ s/ (?: ú | \x{fa} ) /\\'{u}/gxms;
+
+    # Circumflex accents.
+    $text =~ s/ (?: â | \x{e2} ) /\\^{a}/gxms;
+    $text =~ s/ (?: ê | \x{ea} ) /\\^{e}/gxms;
+    $text =~ s/ (?: î | \x{ee} ) /\\^{\\i}/gxms;
+    $text =~ s/ (?: ô | \x{f4} ) /\\^{o}/gxms;
+    $text =~ s/ (?: û | \x{fb} ) /\\^{u}/gxms;
+
+    # Umlauts.
+    $text =~ s/ (?: ä | \x{e4} ) /\\"{a}/gxms;
+    $text =~ s/ (?: ë | \x{eb} ) /\\"{e}/gxms;
+    $text =~ s/ (?: ï | \x{ef} ) /\\"{\\i}/gxms;
+    $text =~ s/ (?: ö | \x{f6} ) /\\"{o}/gxms;
+    $text =~ s/ (?: ü | \x{fc} ) /\\"{u}/gxms;
+
+    # Misc.
+    $text =~ s/ (?: \£ | \x{a3} ) /\\pounds/gxms;
+    $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
+    $text =~ s/ (?: ß  | \x{df} ) /\\ss/gxms;
+    $text =~ s/ (?: ø  | \x{f8} ) /\\o/gxms;
+
+    return $text;
 }
 
 1;

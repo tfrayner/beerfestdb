@@ -36,6 +36,7 @@ use Catalyst::Runtime '5.70';
 
 use parent qw/Catalyst/;
 use Catalyst qw/ConfigLoader
+                Unicode::Encoding
                 Static::Simple
 
                 Session
@@ -59,6 +60,7 @@ our $VERSION = '0.01';
 
 __PACKAGE__->config(
     name    => 'BeerFestDB::Web',
+    encoding => 'UTF-8',
     session => { flash_to_stash => 1,
                  expires        => 3600, },
     'View::JSON' => {

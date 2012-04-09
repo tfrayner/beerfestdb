@@ -33,6 +33,7 @@ __PACKAGE__->config({
     WRAPPER      => 'site/wrapper',
     ERROR        => 'error.tt2',
     TIMER        => 0,
+    ENCODING     => 'utf-8',
     TEMPLATE_EXTENSION => '.tt2',
 });
 

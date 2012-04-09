@@ -8,7 +8,7 @@
 \usepackage[a4paper, portrait]{geometry}
 
 \usepackage[absolute]{textpos}
-\usepackage{babel}
+\usepackage[british]{babel}
 \usepackage{times}
 \usepackage{graphicx}
 \usepackage{fix-cm}
@@ -18,7 +18,7 @@
 %\exhyphenpenalty=10000
 
 [% BLOCK stillage_name %]
-  \textbf{[% sname | replace('&', '\\&') %]}
+  \textbf{[% sname | latexify %]}
 [% END %]
 
 [% BLOCK table_header %]
@@ -61,13 +61,13 @@
 
   [% FOREACH product = products %]
 
-    [% product.brewery | replace( '&', '\\&' ) %] &
-    [% product.product | truncate(40) | replace( '&', '\\&' ) %] &
+    [% product.brewery | latexify %] &
+    [% product.product | truncate(40) | latexify %] &
     [% product.abv %] &
-    [%- product.currency | replace( '£', '\pounds' ) -%]
+    [%- product.currency | latexify -%]
     [%- product.price    | format('%.2f') -%]&
 
-    [%- product.currency | replace( '£', '\pounds' ) -%]
+    [%- product.currency | latexify -%]
     [%- product.half_price | format('%.2f') -%] \\
 
     [% counter = counter + 1 %]

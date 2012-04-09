@@ -2,6 +2,7 @@
 <html>
  <head>
   <title>[% template.title or site.title %]</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 [% IF ! generate_bare_html -%]
 [%-
   css_link( href = "/static/ext/resources/css/ext-all.css" );
