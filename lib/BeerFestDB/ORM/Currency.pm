@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::Currency;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::Currency
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::Currency
+=head1 TABLE: C<currency>
 
 =cut
 
@@ -70,7 +74,31 @@ __PACKAGE__->add_columns(
   "currency_symbol",
   { data_type => "varchar", is_nullable => 0, size => 10 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</currency_id>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("currency_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<currency_code>
+
+=over 4
+
+=item * L</currency_code>
+
+=back
+
+=cut
+
 __PACKAGE__->add_unique_constraint("currency_code", ["currency_code"]);
 
 =head1 RELATIONS
@@ -136,8 +164,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-04 17:32:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oL1YAbHe4JjgoBjVHJhh0A
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kSQw+eOVsSV++z8NayTHug
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

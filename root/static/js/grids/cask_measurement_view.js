@@ -76,7 +76,7 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: 'Cask Measurement Details',            
         layout: 'fit',
         items: tabpanel,

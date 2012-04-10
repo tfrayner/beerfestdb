@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::Contact;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::Contact
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::Contact
+=head1 TABLE: C<contact>
 
 =cut
 
@@ -101,7 +105,33 @@ __PACKAGE__->add_columns(
   "comment",
   { data_type => "text", is_nullable => 1 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</contact_id>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("contact_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<company_id>
+
+=over 4
+
+=item * L</company_id>
+
+=item * L</contact_type_id>
+
+=back
+
+=cut
+
 __PACKAGE__->add_unique_constraint("company_id", ["company_id", "contact_type_id"]);
 
 =head1 RELATIONS
@@ -164,8 +194,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-04-12 10:01:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8zMciiQEy2IsagkDXETS1g
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JxRRmtSZo8WZztOqUz7GrA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

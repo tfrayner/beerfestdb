@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::Bar;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::Bar
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::Bar
+=head1 TABLE: C<bar>
 
 =cut
 
@@ -54,24 +58,34 @@ __PACKAGE__->add_columns(
   "is_private",
   { data_type => "tinyint", is_nullable => 1 },
 );
-__PACKAGE__->set_primary_key("bar_id");
-__PACKAGE__->add_unique_constraint("description", ["description"]);
 
-=head1 RELATIONS
+=head1 PRIMARY KEY
 
-=head2 festival_id
+=over 4
 
-Type: belongs_to
+=item * L</bar_id>
 
-Related object: L<BeerFestDB::ORM::Festival>
+=back
 
 =cut
 
-__PACKAGE__->belongs_to(
-  "festival_id",
-  "BeerFestDB::ORM::Festival",
-  { festival_id => "festival_id" },
-);
+__PACKAGE__->set_primary_key("bar_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<description>
+
+=over 4
+
+=item * L</description>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("description", ["description"]);
+
+=head1 RELATIONS
 
 =head2 casks
 
@@ -88,9 +102,23 @@ __PACKAGE__->has_many(
   {},
 );
 
+=head2 festival_id
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kbePx+d5/8S0KfxRW7ibtw
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::Festival>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "festival_id",
+  "BeerFestDB::ORM::Festival",
+  { festival_id => "festival_id" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7sa8OB+H4zgZLEFkw30UWg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

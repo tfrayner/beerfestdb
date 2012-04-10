@@ -144,7 +144,7 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: festivalname + ' product listing: ' + categoryname,
         layout: 'fit',
         items: new MyEditorGrid(

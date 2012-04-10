@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::ProgrammeNotesView;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::ProgrammeNotesView - VIEW
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::ProgrammeNotesView
+=head1 TABLE: C<programme_notes_view>
 
 =cut
 
@@ -95,8 +99,8 @@ __PACKAGE__->add_columns(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-05-08 17:17:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:P5Ju8MIYspAndcyGZbViCw
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/M7WPKZFf2ZHLfhzvFSWJw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

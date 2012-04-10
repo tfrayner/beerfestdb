@@ -36,11 +36,16 @@ use Catalyst::Runtime '5.70';
 
 use parent qw/Catalyst/;
 use Catalyst qw/ConfigLoader
+                Unicode::Encoding
                 Static::Simple
 
                 Session
                 Session::State::Cookie
                 Session::Store::FastMmap
+
+                Authentication
+                Authorization::Roles
+                Authorization::ACL
                /;
 our $VERSION = '0.01';
 
@@ -55,16 +60,59 @@ our $VERSION = '0.01';
 
 __PACKAGE__->config(
     name    => 'BeerFestDB::Web',
+    encoding => 'UTF-8',
     session => { flash_to_stash => 1,
                  expires        => 3600, },
     'View::JSON' => {
         json_driver => 'JSON::DWIW', # Better utf-8 support than JSON(::XS)
+    },
+    authentication => {  
+        default_realm => 'beerfestdb',
+        realms => {
+            beerfestdb => {
+                credential => {
+                    class          => 'Password',
+                    password_field => 'password',
+                    password_type  => 'salted_hash',
+                    password_salt_len => 4,
+                },
+                store => {
+                    class         => 'DBIx::Class',
+                    user_class    => 'DB::User',
+                    id_field      => 'user_id',
+                    role_relation => 'roles',
+                    role_field    => 'rolename',
+                }
+            },
+        }
     },
  );
 
 # Start the application
 __PACKAGE__->setup();
 
+# Access control.
+foreach my $path ( qw(bar bayposition caskmeasurement cask company companyregion
+                      contact contacttype containersize country currency festival
+                      festivalproduct gyle measurementbatch orderbatch productcategory
+                      productorder product productstyle salevolume stillagelocation
+                      telephone telephonetype) ) {
+    __PACKAGE__->allow_access_if( '/' . $path, [ qw( user ) ] );
+    __PACKAGE__->deny_access( '/' . $path );
+}
+
+__PACKAGE__->allow_access_if( '/user', [ qw( user ) ] );   # FIXME admin
+__PACKAGE__->allow_access( '/user/modify' );    # User-level account modification.
+__PACKAGE__->allow_access( '/user/load_form' ); # Maintains its own access config.
+__PACKAGE__->deny_access( '/user' );
+
+__PACKAGE__->allow_access_if( '/role', [ qw( user ) ] );  # FIXME admin
+__PACKAGE__->deny_access( '/role' );
+
+# Areas to which access is always granted.
+__PACKAGE__->allow_access( '/default' );
+__PACKAGE__->allow_access( '/index' );
+__PACKAGE__->allow_access( '/login' );
 
 =head1 NAME
 

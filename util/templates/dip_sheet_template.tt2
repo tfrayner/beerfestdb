@@ -8,7 +8,7 @@
 \usepackage[a4paper, landscape, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
 
 \usepackage[absolute]{textpos}
-\usepackage{babel}
+\usepackage[british]{babel}
 \usepackage{times}
 \usepackage{graphicx}
 \usepackage{fix-cm}
@@ -18,7 +18,7 @@
 %\exhyphenpenalty=10000
 
 [% BLOCK stillage_name %]
-  [% sname | replace('&', '\\&') %]
+  [% sname | latexify %]
 [% END %]
 
 [% BLOCK table_header %]
@@ -60,8 +60,8 @@
 
     [% NEXT IF cask.category != 'beer' %]
     &
-    [% cask.brewery | replace( '&', '\\&' ) %] &
-    [% cask.product | truncate(25) | replace( '&', '\\&' ) %] &
+    [% cask.brewery | latexify %] &
+    [% cask.product | truncate(25) | latexify %] &
     [% cask.festival_id %] &
     [% cask.number %] &
     &  &  &  &
@@ -70,7 +70,7 @@
 [%- SET bid = batch.id -%]
  [%- cask.dips.$bid | format('%.1f') | replace('\.0$','') %] &
 [%- END -%]
-[%- cask.comment | truncate(30) | replace( '&', '\\&' ) | replace( '%', '\\%' ) %] &
+[%- cask.comment | truncate(30) | latexify %] &
 [%- IF cask.is_condemned -%] X [%- END -%] \\ \hline
 
 [%- counter = counter + 1 -%]

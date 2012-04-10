@@ -63,9 +63,10 @@ Ext.onReady(function(){
         },
     });
     phone_type_store.load();
-    var phone_type_combo = new Ext.form.ComboBox({
+    var phone_type_combo = new MyComboBox({
         forceSelection: true,
-        allowBlank:     false,
+        allowBlank:     true,
+        noSelection:    emptySelect,
         typeAhead:      true,
         triggerAction:  'all',
         store:          phone_type_store,
@@ -109,7 +110,8 @@ Ext.onReady(function(){
               valueField:     'contact_type_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
               allowBlank:     true, },
 
             { name:           'last_name',
@@ -140,7 +142,8 @@ Ext.onReady(function(){
               valueField:     'country_id',
               displayField:   'country_name',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
               allowBlank:     true, },
             
             { name:           'email',
@@ -236,7 +239,7 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title:  'Contact Details',            
         layout: 'fit',
         items: tabpanel,

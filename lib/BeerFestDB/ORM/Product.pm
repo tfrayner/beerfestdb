@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::Product;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::Product
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::Product
+=head1 TABLE: C<product>
 
 =cut
 
@@ -85,10 +89,50 @@ __PACKAGE__->add_columns(
   "comment",
   { data_type => "text", is_nullable => 1 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</product_id>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("product_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<company_id>
+
+=over 4
+
+=item * L</company_id>
+
+=item * L</name>
+
+=back
+
+=cut
+
 __PACKAGE__->add_unique_constraint("company_id", ["company_id", "name"]);
 
 =head1 RELATIONS
+
+=head2 company_id
+
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::Company>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "company_id",
+  "BeerFestDB::ORM::Company",
+  { company_id => "company_id" },
+);
 
 =head2 festival_products
 
@@ -105,20 +149,6 @@ __PACKAGE__->has_many(
   {},
 );
 
-=head2 company_id
-
-Type: belongs_to
-
-Related object: L<BeerFestDB::ORM::Company>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "company_id",
-  "BeerFestDB::ORM::Company",
-  { company_id => "company_id" },
-);
-
 =head2 product_category_id
 
 Type: belongs_to
@@ -131,20 +161,6 @@ __PACKAGE__->belongs_to(
   "product_category_id",
   "BeerFestDB::ORM::ProductCategory",
   { product_category_id => "product_category_id" },
-);
-
-=head2 product_style_id
-
-Type: belongs_to
-
-Related object: L<BeerFestDB::ORM::ProductStyle>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "product_style_id",
-  "BeerFestDB::ORM::ProductStyle",
-  { product_style_id => "product_style_id" },
 );
 
 =head2 product_characteristics
@@ -177,9 +193,23 @@ __PACKAGE__->has_many(
   {},
 );
 
+=head2 product_style_id
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2011-01-08 17:45:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FJ10lHpIz+Km8kDEVI7b4g
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::ProductStyle>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "product_style_id",
+  "BeerFestDB::ORM::ProductStyle",
+  { product_style_id => "product_style_id" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sKxoVjs5HPgWcOPUZMayag
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

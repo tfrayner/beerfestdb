@@ -146,7 +146,7 @@ sub build_database_object : Private {
         delete $rec->{$key}
             unless $self->value_is_acceptable( $rec->{$key} );
     }
-
+    
     # Passed a JSON record nested hashref, Catalyst context and the
     # appropriate DBIC::ResultSet object, create database objects
     # recursively (depth first).
@@ -165,7 +165,7 @@ sub build_database_object : Private {
     my $dbobj = $rs->find_or_new( \%dbobj_info );
 
     my @hashrefs;
-
+    
     # Secondly, deal with simple table-based attributes.
     VIEW_KEY:
     foreach my $view_key (keys %$rec) {
@@ -177,7 +177,7 @@ sub build_database_object : Private {
         # recursion into this one here; to fix this, we have to manage
         # the $mv_map hashref as part of that recursion.
         my $lookup ||= $mv_map->{ $view_key } || $view_key;
-
+        
         if ( ref $lookup eq 'HASH' ) {
             push @hashrefs, $view_key;
         }
@@ -195,9 +195,9 @@ sub build_database_object : Private {
 	    my $dt = $dbobj->result_source()
 		           ->column_info( $lookup )
 			   ->{data_type};
-	    next VIEW_KEY if ( $dbval eq q{} && 
+	    next VIEW_KEY if ( defined $dbval && $dbval eq q{} && 
 			       ( $dt eq 'integer' || $dt eq 'tinyint' ) );
-
+            
             $dbobj->set_column( $lookup, $dbval );
         }
     }
@@ -290,7 +290,7 @@ sub value_is_acceptable : Private {  # Required by DBHashRefValidator
 
     my ( $self, $value ) = @_;
 
-    return ( defined $value );
+    return 1;  # Undef values must be allowed if we want to break relationships.
 }
 
 =head2 write_to_resultset
@@ -322,7 +322,7 @@ sub write_to_resultset : Private {
         $self->detach_with_txn_failure( $c, $@ );
     };
 
-    $c->stash->{ 'success' } = JSON::Any->false();
+    $c->stash->{ 'success' } = JSON::Any->true();
     $c->detach( $c->view( 'JSON' ) );
 
     return;

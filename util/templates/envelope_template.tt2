@@ -2,7 +2,7 @@
 
 \usepackage[absolute]{textpos}
 \usepackage[paperheight=110mm,paperwidth=220mm]{geometry}
-\usepackage{babel}
+\usepackage[british]{babel}
 \usepackage{palatino}
 \usepackage{graphicx}
 
@@ -27,8 +27,8 @@
 \begin{textblock}{30}(12,8)
 \large
 
-[% IF dist.full_name %][% dist.full_name | replace( '&', '\\&' ) %][% ELSE %][% dist.name | replace( '&', '\\&' ) %][% END %],\\
-[% dist.address | replace( '&', '\\&' ) | replace( '\n', '\\\\' ) %]\\
+[% IF dist.full_name %][% dist.full_name | latexify %][% ELSE %][% dist.name | latexify %][% END %],\\
+[% dist.address | latexify %]\\
 [% dist.postcode %]
 
 \end{textblock}
