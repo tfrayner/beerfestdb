@@ -101,12 +101,12 @@ foreach my $path ( qw(bar bayposition caskmeasurement cask company companyregion
     __PACKAGE__->deny_access( '/' . $path );
 }
 
-__PACKAGE__->allow_access_if( '/user', [ qw( user ) ] );   # FIXME admin
+__PACKAGE__->allow_access_if( '/user', [ qw( admin ) ] );
 __PACKAGE__->allow_access( '/user/modify' );    # User-level account modification.
 __PACKAGE__->allow_access( '/user/load_form' ); # Maintains its own access config.
 __PACKAGE__->deny_access( '/user' );
 
-__PACKAGE__->allow_access_if( '/role', [ qw( user ) ] );  # FIXME admin
+__PACKAGE__->allow_access_if( '/role', [ qw( admin ) ] );
 __PACKAGE__->deny_access( '/role' );
 
 # Areas to which access is always granted.
