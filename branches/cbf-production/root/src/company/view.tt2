@@ -5,6 +5,7 @@
    var url_company_load_form  = '[% c.uri_for( "/company/load_form" ) %]';
    var url_contact_list       = '[% c.uri_for( "/contact/list_by_company/$object.id" ) %]';
    var url_product_list       = '[% c.uri_for( "/product/list_by_company/$object.id" ) %]';
+   var url_festival_product_list = '[% c.uri_for( "/festivalproduct/list_by_company/$object.id" ) %]';
 
    var company_id  = '[% object.id %]';
    var companyname = '[% object.name | xml %]';

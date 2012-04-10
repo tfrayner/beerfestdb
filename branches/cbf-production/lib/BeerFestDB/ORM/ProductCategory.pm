@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::ProductCategory;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::ProductCategory
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::ProductCategory
+=head1 TABLE: C<product_category>
 
 =cut
 
@@ -39,25 +43,34 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "varchar", is_nullable => 0, size => 100 },
 );
-__PACKAGE__->set_primary_key("product_category_id");
-__PACKAGE__->add_unique_constraint("description", ["description"]);
 
-=head1 RELATIONS
+=head1 PRIMARY KEY
 
-=head2 products
+=over 4
 
-Type: has_many
+=item * L</product_category_id>
 
-Related object: L<BeerFestDB::ORM::Product>
+=back
 
 =cut
 
-__PACKAGE__->has_many(
-  "products",
-  "BeerFestDB::ORM::Product",
-  { "foreign.product_category_id" => "self.product_category_id" },
-  {},
-);
+__PACKAGE__->set_primary_key("product_category_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<description>
+
+=over 4
+
+=item * L</description>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("description", ["description"]);
+
+=head1 RELATIONS
 
 =head2 product_characteristic_types
 
@@ -89,9 +102,24 @@ __PACKAGE__->has_many(
   {},
 );
 
+=head2 products
 
-# Created by DBIx::Class::Schema::Loader v0.06001 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/i5oSHLq8WTk7j0jbQde+w
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::Product>
+
+=cut
+
+__PACKAGE__->has_many(
+  "products",
+  "BeerFestDB::ORM::Product",
+  { "foreign.product_category_id" => "self.product_category_id" },
+  {},
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wgBatICkStjQAlv/TraYMw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -103,6 +103,7 @@ Readonly my $TELEPHONE_TYPE            => 48;
 Readonly my $CASK_CELLAR_ID            => 49;
 Readonly my $CASK_FESTIVAL_ID          => 50;
 Readonly my $BREWER_REGION             => 51;
+Readonly my $ORDER_SALE_OR_RETURN      => 52;
 
 ########
 # SUBS #
@@ -349,6 +350,7 @@ sub _load_data {
                 is_final               => $datahash->{$ORDER_FINALISED},
                 is_received            => $datahash->{$ORDER_RECEIVED},
                 comment                => $datahash->{$ORDER_COMMENT},
+                is_sale_or_return      => $datahash->{$ORDER_SALE_OR_RETURN} || 0, # Part of a DB key
             },
             'ProductOrder',
         );
@@ -643,6 +645,7 @@ sub _coerce_headings {
         qr/order [_ -]* finali[sz]ed/ixms              => $ORDER_FINALISED,
         qr/order [_ -]* received/ixms                  => $ORDER_RECEIVED,
         qr/order [_ -]* comment/ixms                   => $ORDER_COMMENT,
+        qr/order [_ -]* (?:sor|sale [_ -]* or [_ -]* return)/ixms  => $ORDER_SALE_OR_RETURN,
         qr/contact [_ -]* type/ixms                    => $CONTACT_TYPE,
         qr/contact [_ -]* first [_ -]* name/ixms       => $CONTACT_FIRST_NAME,
         qr/contact [_ -]* last [_ -]* name/ixms        => $CONTACT_LAST_NAME,

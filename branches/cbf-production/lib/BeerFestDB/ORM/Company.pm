@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::Company;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::Company
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::Company
+=head1 TABLE: C<company>
 
 =cut
 
@@ -85,7 +89,31 @@ __PACKAGE__->add_columns(
   "comment",
   { data_type => "text", is_nullable => 1 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</company_id>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("company_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<name>
+
+=over 4
+
+=item * L</name>
+
+=back
+
+=cut
+
 __PACKAGE__->add_unique_constraint("name", ["name"]);
 
 =head1 RELATIONS
@@ -149,21 +177,6 @@ __PACKAGE__->has_many(
   {},
 );
 
-=head2 products
-
-Type: has_many
-
-Related object: L<BeerFestDB::ORM::Product>
-
-=cut
-
-__PACKAGE__->has_many(
-  "products",
-  "BeerFestDB::ORM::Product",
-  { "foreign.company_id" => "self.company_id" },
-  {},
-);
-
 =head2 product_orders
 
 Type: has_many
@@ -179,9 +192,24 @@ __PACKAGE__->has_many(
   {},
 );
 
+=head2 products
 
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-05-04 19:02:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lFetQ2vT8RW0UBh7AXYBuQ
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::Product>
+
+=cut
+
+__PACKAGE__->has_many(
+  "products",
+  "BeerFestDB::ORM::Product",
+  { "foreign.company_id" => "self.company_id" },
+  {},
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2Aro/0WiR7IfUezh3QvRXg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -57,7 +57,7 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: 'All Product Categories',
         layout: 'fit',
         items: new MyEditorGrid(

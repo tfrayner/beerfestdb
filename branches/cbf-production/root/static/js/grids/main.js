@@ -22,6 +22,8 @@
 
 Ext.onReady(function(){
 
+    Ext.QuickTips.init();
+
     var mainMenu = new Ext.Panel({
         title: 'Main Menu',
         layout: 'fit',
@@ -41,7 +43,7 @@ Ext.onReady(function(){
         activeTab: 0
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: 'BeerFestDB Main Page',
         items: [ tabPanel ],
         layout: 'fit',

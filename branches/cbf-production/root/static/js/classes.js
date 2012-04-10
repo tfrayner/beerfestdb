@@ -416,3 +416,122 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
         MyFormPanel.superclass.onRender.apply(this, arguments);
     }
 });
+
+emptySelect = '-- Select --';
+
+MyComboBox = Ext.extend(Ext.form.ComboBox, {
+    noSelection:null,
+	
+    initComponent : function(){
+		
+	if(this.noSelection && this.store){
+	    var data = {};
+	    data[this.valueField] = null; 
+	    data[this.displayField] = this.noSelection;
+	    
+	    this.store.on('load',function(){
+		if(!this.getById(0)){
+		    this.addSorted(new Ext.data.Record(data,0));
+		}
+	    });																		 
+	    this.store.sort(this.displayField,'asc');
+	}
+    }
+});
+
+Ext.reg('mycombo', MyComboBox);
+
+MyLoginPanel = Ext.extend(Ext.form.FormPanel, {
+
+    labelAlign:  'right',
+    labelWidth:  150,
+    frame:       true,
+    bodyStyle:   'padding:5px',
+    width:       500,
+    defaults:    {width: 300}, // field box width
+    defaultType: 'textfield',
+    targetUrl:   "/",  // A reasonable but not universally-applicable default.
+    
+    initComponent: function() {
+
+        // turn on validation errors beside form fields globally
+        Ext.form.Field.prototype.msgTarget = 'side';
+
+        Ext.apply(this, {
+            buttons: [{
+                text:    'Log in',
+                iconCls: 'icon-login',
+                handler: function(b, e) {
+                    var fields = this.getForm().getFieldValues();
+                    Ext.Ajax.request({
+                        url:        this.url,
+                        success:    function() {
+                            Ext.Msg.show({
+                                title:'Success',
+                                msg: 'Successfully logged in',
+                                buttons: { ok: 'Okay' },
+                                scope: this,
+                                fn: function() {
+                                    window.location.href = this.targetUrl;
+                                }});
+                        },
+                        failure:    function(res, opts) {
+                            var stash = Ext.util.JSON.decode(res.responseText);
+                            Ext.Msg.alert('Error', stash.error);
+                        },
+                        params:     { data: Ext.util.JSON.encode( fields ) },
+                        scope: this,
+                    });
+                },
+                scope: this,
+            }],
+        });
+        MyLoginPanel.superclass.initComponent.apply(this, arguments);
+    },
+    
+    onRender: function() {
+        MyLoginPanel.superclass.onRender.apply(this, arguments);
+    }
+});
+
+MyMainPanel = Ext.extend(Ext.Panel, {
+
+    logoutUrl:   "/logout",  // A reasonable but not universally-applicable default.
+    rootUrl:     "/",
+    
+    initComponent: function() {
+
+        Ext.apply(this, {
+            tools: [{
+                id: 'logout',
+                qtip: 'Log out from the database',
+                handler: function(event, elem, panel, conf) {
+                    Ext.Ajax.request({
+                        url:        "/logout",// this.logoutUrl, FIXME
+                        success:    function() {
+                            Ext.Msg.show({
+                                title:'Success',
+                                msg: 'Successfully logged out.',
+                                buttons: { ok: 'Okay' },
+                                scope: this,
+                                fn: function() {
+                                    window.location.href = "/";//this.rootUrl;  FIXME
+                                }});
+                        },
+                        failure:    function(res, opts) {
+                            var stash = Ext.util.JSON.decode(res.responseText);
+                            Ext.Msg.alert('Error', stash.error);
+                        },
+                        scope: this,
+                    });
+                },
+            }],
+        });
+        MyMainPanel.superclass.initComponent.apply(this, arguments);
+    },
+    
+    onRender: function() {
+        MyMainPanel.superclass.onRender.apply(this, arguments);
+    }
+});
+

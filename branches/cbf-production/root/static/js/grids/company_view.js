@@ -84,9 +84,10 @@ Ext.onReady(function(){
         },
     });
     country_store.load();
-    var country_combo = new Ext.form.ComboBox({
+    var country_combo = new MyComboBox({
         forceSelection: true,
-        allowBlank:     false,
+        allowBlank:     true,
+        noSelection:    emptySelect,
         typeAhead:      true,
         triggerAction:  'all',
         store:          country_store,
@@ -135,6 +136,21 @@ Ext.onReady(function(){
     });
     product_store.load();
 
+    var festprod_store = new Ext.data.JsonStore({
+        url:        url_festival_product_list,
+        root:       'objects',
+        fields:     [{ name: 'festival_product_id', type: 'int' },
+                     { name: 'product_name',        type: 'string' },
+                     { name: 'festival_name',       type: 'string' },
+                     { name: 'festival_year',       type: 'string' },
+                     { name: 'comment',             type: 'string' }],
+        sortInfo:   {
+            field:     'festival_year',
+            direction: 'ASC',
+        },
+    });
+    festprod_store.load();
+
     /* Product Style drop-down */
     var style_store = new Ext.data.JsonStore({
         url:        url_product_style_list,
@@ -147,7 +163,7 @@ Ext.onReady(function(){
         },
     });
     style_store.load();
-    var style_combo = new Ext.form.ComboBox({
+    var style_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         forceSelection: true,
@@ -155,6 +171,8 @@ Ext.onReady(function(){
         valueField:     'product_style_id',
         displayField:   'description',
         lazyRender:     true,
+        allowBlank:     true,
+        noSelection:    emptySelect,
         listClass:      'x-combo-list-small',
     });
 
@@ -213,7 +231,8 @@ Ext.onReady(function(){
               valueField:     'company_region_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
               allowBlank:     true, },
             
             { name:           'year_founded',
@@ -392,6 +411,38 @@ Ext.onReady(function(){
         }
     );
 
+    /* Festival Product grid */
+    var festprodGrid = new MyViewGrid(
+        {
+            objLabel:           'Festival Product',
+            store:              festprod_store,
+            columns: [
+                { id:        'festival_name',
+                  header:    'Festival Name',
+                  width:     80,
+                  dataIndex: 'festival_name' },
+                { id:        'festival_year',
+                  header:    'Year',
+                  width:     20,
+                  dataIndex: 'festival_year' },
+                { id:        'product_name',
+                  header:    'Product',
+                  width:     80,
+                  dataIndex: 'product_name' },
+                { id:        'comment',
+                  header:    'Comments',
+                  dataIndex: 'comment' },
+            ],
+            viewLink: function (grid, record, action, row, col) {
+                var t = new Ext.XTemplate('/festivalproduct/view/{festival_product_id}');
+                window.location=t.apply({
+                        festival_product_id: record.get('festival_product_id'),
+                    })
+            },
+            objLabel: 'festival products in this category',
+        }
+    );
+
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
@@ -404,10 +455,13 @@ Ext.onReady(function(){
             { title: 'Products',
               layout: 'fit',
               items:  productGrid, },
+            { title: 'Festivals',
+              layout: 'fit',
+              items:  festprodGrid, },
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: companyname,            
         layout: 'fit',
         items: tabpanel,

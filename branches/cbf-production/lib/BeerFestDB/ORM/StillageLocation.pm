@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::StillageLocation;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::StillageLocation
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::StillageLocation
+=head1 TABLE: C<stillage_location>
 
 =cut
 
@@ -47,7 +51,33 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "varchar", is_nullable => 0, size => 50 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</stillage_location_id>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("stillage_location_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<festival_id>
+
+=over 4
+
+=item * L</festival_id>
+
+=item * L</description>
+
+=back
+
+=cut
+
 __PACKAGE__->add_unique_constraint("festival_id", ["festival_id", "description"]);
 
 =head1 RELATIONS
@@ -82,8 +112,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07000 @ 2010-12-28 18:10:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oiIJPkmELOFV4/4e8mmoqQ
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lJ89jiykvBd2cbgPzykuFw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

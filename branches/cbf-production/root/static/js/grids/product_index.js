@@ -56,7 +56,7 @@ Ext.onReady(function(){
         }
     );
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: 'Product categories',            
         layout: 'fit',
         items: categoryGrid,

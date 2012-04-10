@@ -51,6 +51,12 @@ sub BUILD {
 	    product_id          => 'name',
 	},
         festival_id         => 'festival_id',
+        festival_name       => {
+            festival_id         => 'name',
+        },
+        festival_year       => {
+            festival_id         => 'year',
+        },
         sale_price          => 'sale_price',
         sale_currency_id    => 'sale_currency_id',
         sale_volume_id      => 'sale_volume_id',
@@ -137,6 +143,29 @@ sub list_by_product : Local {
     }
     else {
         $c->stash->{error} = qq{Product ID not supplied.};
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 list_by_company
+
+=cut
+
+sub list_by_company : Local {
+
+    my ( $self, $c, $company_id ) = @_;
+
+    my $rs;
+    if ( defined $company_id ) {
+        $rs = $c->model( 'DB::FestivalProduct' )
+            ->search_rs( { 'product_id.company_id' => $company_id },
+                         { join => 'product_id' } );
+    }
+    else {
+        $c->stash->{error} = qq{Company ID not supplied.};
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();        
     }

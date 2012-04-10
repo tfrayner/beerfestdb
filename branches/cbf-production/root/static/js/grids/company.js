@@ -122,7 +122,7 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title:  'Company listing',
         layout: 'fit',
         items: new MyEditorGrid(

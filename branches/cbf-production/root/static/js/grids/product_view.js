@@ -119,7 +119,8 @@ Ext.onReady(function(){
               valueField:     'product_style_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
               allowBlank:     true, },
 
             { name:           'nominal_abv',
@@ -197,7 +198,7 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: productname,            
         layout: 'fit',
         items: tabpanel,

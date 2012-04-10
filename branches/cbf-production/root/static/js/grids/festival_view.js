@@ -311,7 +311,7 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: festivalname,            
         layout: 'fit',
         items: tabpanel,
