@@ -1,7 +1,7 @@
 \documentclass[english,a4paper]{article}
 
 \usepackage[absolute]{textpos}
-\usepackage[paperheight=110mm,paperwidth=220mm]{geometry}
+\usepackage[c5paper,landscape]{geometry}
 \usepackage[british]{babel}
 \usepackage{palatino}
 \usepackage{graphicx}
@@ -24,11 +24,11 @@
 \small{Cambridge CB1 2AY}\\
 \end{textblock}
 
-\begin{textblock}{30}(12,8)
-\large
+\begin{textblock}{40}(14,11)
+\LARGE
 
-[% IF dist.full_name %][% dist.full_name | latexify %][% ELSE %][% dist.name | latexify %][% END %],\\
-[% dist.address | latexify %]\\
+[% IF dist.full_name %][% dist.full_name | latexify %][% ELSE %][% dist.name | latexify %][% END %]\\
+[% dist.address | replace(',\n', "\n") | latexify %]\\
 [% dist.postcode %]
 
 \end{textblock}
