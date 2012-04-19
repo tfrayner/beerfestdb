@@ -195,9 +195,13 @@ sub build_database_object : Private {
 	    my $dt = $dbobj->result_source()
 		           ->column_info( $lookup )
 			   ->{data_type};
-	    if ( defined $dbval && $dbval eq q{} && 
-                     ( $dt eq 'integer' || $dt eq 'tinyint' ) ) {
-                $dbval = 0;
+	    if ( defined $dbval && $dbval eq q{} ) {
+                if ( $dt eq 'integer' || $dt eq 'tinyint' ) {
+                    $dbval = 0;
+                }
+                elsif ( $dt eq 'decimal' ) {
+                    $dbval = undef;
+                }
             }
             
             $dbobj->set_column( $lookup, $dbval );

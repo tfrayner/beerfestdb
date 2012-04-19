@@ -28,7 +28,7 @@
 \large
 
 [% IF dist.full_name %][% dist.full_name | latexify %][% ELSE %][% dist.name | latexify %][% END %]\\
-[% dist.address | replace(',\n', "\n") | replace('\n+$', "") | latexify %]\\
+[% dist.address | replace(',\n', "\n") | replace('[\n\s]+$', "") | latexify %]\\
 [% dist.postcode %]
 
 \end{textblock}
