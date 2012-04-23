@@ -33,7 +33,7 @@
 \end{textblock}
 
 \begin{textblock}{5}(33,1)
-\includegraphics[width=2.5cm]{images/steps.png}
+\includegraphics[width=2.3cm]{images/steps.png}
 \end{textblock}
 
 
@@ -82,18 +82,23 @@ Contact phone (voice mail): 01223 967808\\
 \end{textblock}
 \begin{textblock}{34}(3,21)
 % stuff goes here
+[% SET distributor = dist.name %]
+[% IF dist.orders.defined(distributor) %][% SET company = dist.orders.$distributor %]
+  [% FOREACH product IN company %]
+    \textbf{[% product.key | latexify %]}
+    [% FOREACH order IN product.value.sort('is_sale_or_return') %]
+      \hspace{3em}[% PROCESS order_row %]
+    [% END %]
+  [%- END -%]\\
+[% END %]
+
 [% FOREACH company IN dist.orders %]
   [% FOREACH product IN company.value %]
     [% IF dist.name != company.key %]
       [% FOREACH order IN product.value.sort('is_sale_or_return') %]
         \textbf{[% company.key | latexify -%]:~~
         [%- product.key | latexify -%]}~~
-        [%- PROCESS order_row %]
-      [% END %]
-    [%- ELSE -%]
-      \textbf{[% product.key | latexify %]}
-      [% FOREACH order IN product.value.sort('is_sale_or_return') %]
-        \hspace{3em}[% PROCESS order_row %]
+        [%- PROCESS order_row -%]
       [% END %]
     [% END %]
   [% END %]

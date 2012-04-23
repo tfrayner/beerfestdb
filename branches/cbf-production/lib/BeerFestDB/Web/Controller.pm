@@ -146,7 +146,7 @@ sub build_database_object : Private {
         delete $rec->{$key}
             unless $self->value_is_acceptable( $rec->{$key} );
     }
-    
+
     # Passed a JSON record nested hashref, Catalyst context and the
     # appropriate DBIC::ResultSet object, create database objects
     # recursively (depth first).
@@ -195,8 +195,14 @@ sub build_database_object : Private {
 	    my $dt = $dbobj->result_source()
 		           ->column_info( $lookup )
 			   ->{data_type};
-	    next VIEW_KEY if ( defined $dbval && $dbval eq q{} && 
-			       ( $dt eq 'integer' || $dt eq 'tinyint' ) );
+	    if ( defined $dbval && $dbval eq q{} ) {
+                if ( $dt eq 'integer' || $dt eq 'tinyint' ) {
+                    $dbval = 0;
+                }
+                elsif ( $dt eq 'decimal' ) {
+                    $dbval = undef;
+                }
+            }
             
             $dbobj->set_column( $lookup, $dbval );
         }
