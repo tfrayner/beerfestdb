@@ -108,7 +108,7 @@ sub _data_from_uri {
     my $res = $ua->get($uri);
 
     if ( ! $res->is_success() ) {
-        die("Error: Unable to connect to BeerFestDB web site: " . $res->status_line() );
+        die("Error: Unable to connect to BeerFestDB web site: " . $res->status_line() . " (" . $uri . ")");
     }
 
     my $json = $res->decoded_content();
@@ -132,6 +132,7 @@ use Template;
 use Digest::SHA qw (hmac_sha256_hex);
 use DateTime;
 use DateTime::TimeZone;
+use JSON::DWIW;
 
 sub send_update {
 
@@ -168,11 +169,12 @@ sub get_timestamp {
 
 sub parse_args {
 
-    my ( $conffile, $tfile, $want_help );
+    my ( $conffile, $tfile, $json, $want_help );
 
     GetOptions(
         "c|config=s"   => \$conffile,
         "t|template=s" => \$tfile,
+        "j|json"       => \$json,
         "h|help"       => \$want_help,
     );
 
@@ -205,10 +207,10 @@ sub parse_args {
     my $st = $config->{ status_query }
         or die("Error: No status_query section in config file.");
 
-    return( $st, $template );
+    return( $st, $template, $json );
 }
 
-my ( $config, $template ) = parse_args();
+my ( $config, $template, $use_json ) = parse_args();
 
 # Check that the appropriate config parameters have been set
 foreach my $item ( qw(festival_name
@@ -233,11 +235,21 @@ my $statuslist = $qobj->query_status_list();
 
 # Reorganise the status list by brewery.
 my %brewery_info;
+my %infomap = (  # Map internal tags to those used by beerengine etc.
+    id          => 'id',
+    product     => 'name',
+    status      => 'status_text',
+    abv         => 'abv',
+    style       => 'style',
+    description => 'notes',
+    css_status  => 'css_status',
+);
 foreach my $item ( @$statuslist ) {
-    my $brewer = $item->{company};
-    $brewery_info{ $brewer }{name}         ||= $brewer;
-    $brewery_info{ $brewer }{location}     ||= $item->{location};
-    $brewery_info{ $brewer }{year_founded} ||= $item->{year_founded};
+    my $id = $item->{id};
+    $brewery_info{ $id }{id}           ||= $item->{id};
+    $brewery_info{ $id }{name}         ||= $item->{company};
+    $brewery_info{ $id }{location}     ||= $item->{location};
+    $brewery_info{ $id }{year_founded} ||= $item->{year_founded};
     my ( $amount ) = ( $item->{status} =~ m/(\d+) \w+ Remaining/i );
     if ( defined $amount ) {
 	if    ( $amount >= 18 ) {
@@ -257,24 +269,34 @@ foreach my $item ( @$statuslist ) {
 	    $item->{css_status} = 'nearly_finished';	    
 	}
     }
-    push @{ $brewery_info{ $brewer }{beers} },
-        { map { $_ => $item->{$_} } qw( product status abv description css_status ) };
+    push @{ $brewery_info{ $id }{products} },
+        { map { $infomap{$_} => $item->{ $_ } } keys %infomap };
 }
 
-# Generate the XML fragment to upload.
-$template ||= join(q{}, <DATA>);
-
-# We define a custom title case filter for convenience.
-my $tt2 = Template->new(
-    FILTERS => { titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) } }
-)   or die( "Cannot create Template object: " . Template->error() );
-
 my $output;
-$tt2->process(\$template,
-	      { brewers   => [ values %brewery_info ],
-		timestamp => get_timestamp() },
-	      \$output )
-    or die( "Template processing error: " . $tt2->error() );
+if ( $use_json ) {
+
+    # New version: generate a JSON-encoded string for upload.
+    my $jwriter = JSON::DWIW->new();
+    $output = $jwriter->to_json( { producers => [ values %brewery_info ],
+                                   timestamp => get_timestamp() } );
+}
+else {
+
+    # Generate the HTML fragment to upload.
+    $template ||= join(q{}, <DATA>);
+    
+    # We define a custom title case filter for convenience.
+    my $tt2 = Template->new(
+        FILTERS => { titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) } }
+    )   or die( "Cannot create Template object: " . Template->error() );
+    
+    $tt2->process(\$template,
+                  { brewers   => [ values %brewery_info ],
+                    timestamp => get_timestamp() },
+                  \$output )
+        or die( "Template processing error: " . $tt2->error() );
+}
 
 # Do the upload itself.
 send_update($output,
@@ -329,12 +351,12 @@ __DATA__
 <div class="beerlist">
 [%- FOREACH brewer = brewers.sort('name') %]
   <span class="producer">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded && brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
-  <div class="products">[% FOREACH beer = brewer.beers.sort('product') %]
+  <div class="products">[% FOREACH beer = brewer.products.sort('product') %]
     <span class="product">[% IF beer.css_status == 'sold_out' %]<span class="product_[% beer.css_status %]">[% END %]
-      <span class="productname">[% beer.product | xml %]</span>
+      <span class="productname">[% beer.name | xml %]</span>
       <span class="abv">[% IF beer.abv.defined %][% beer.abv | xml %]%[% END %]</span>
-      <span class="tasting">[% beer.description | xml %]</span>
-      <span class="status_[% beer.css_status %]">[% beer.status | xml %]</span>
+      <span class="tasting">[% beer.notes | xml %]</span>
+      <span class="status_[% beer.css_status %]">[% beer.status_text | xml %]</span>
     </span>
     [%- END %]
   </div>
