@@ -245,8 +245,8 @@ my %infomap = (  # Map internal tags to those used by beerengine etc.
     css_status  => 'css_status',
 );
 foreach my $item ( @$statuslist ) {
-    my $id = $item->{id};
-    $brewery_info{ $id }{id}           ||= $item->{id};
+    my $id = $item->{company_id};
+    $brewery_info{ $id }{id}           ||= $item->{company_id};
     $brewery_info{ $id }{name}         ||= $item->{company};
     $brewery_info{ $id }{location}     ||= $item->{location};
     $brewery_info{ $id }{year_founded} ||= $item->{year_founded};
