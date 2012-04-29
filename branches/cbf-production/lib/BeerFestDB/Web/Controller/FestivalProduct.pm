@@ -24,6 +24,7 @@ use Moose;
 use namespace::autoclean;
 
 use List::Util qw( min );
+use Digest::SHA1 qw( sha1_hex );
 use Carp;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
@@ -305,6 +306,41 @@ sub html_status_list : Local {
     return;
 }
 
+sub _sha1_hash : Private {
+
+    my ( $self, $content ) = @_;
+
+    my $sha1 = Digest::SHA1->new;
+    $sha1->add($content);
+
+    return $sha1->hexdigest();
+}
+
+sub _build_product_data : Private {
+
+    my ( $self, $product ) = @_;
+
+    my $company = $product->company_id();
+    my $year    = $company->year_founded();
+    my $style   = $product->product_style_id();
+
+    # I'm a little allergic to exposing internal database IDs to the
+    # public.
+    my $data = {
+        id           => $self->_sha1_hash( $product->product_id() ),
+        company      => $company->name(),
+        company_id   => $self->_sha1_hash( $company->company_id() ),
+        location     => $company->loc_desc(),
+        year_founded => $year ? $year : undef,
+        product      => $product->name(),
+        abv          => $product->nominal_abv(),
+        style        => $style ? $style->description() : undef,
+        description  => $product->description(),
+    };
+
+    return( $data );
+}
+
 sub _derive_status_report : Private {
 
     my ( $self, $c, $festival_id, $category_id ) = @_;
@@ -346,19 +382,11 @@ sub _derive_status_report : Private {
     # Don't check the order table once we're open.
     if ( ! $festival_open ) {
         while ( my $po = $po_rs->next() ) {
-            my $product = $po->product_id();
-            my $company = $product->company_id();
-            my $year    = $company->year_founded();
-            $festprod{ $po->get_column('product_id') } = {
-                company      => $company->name(),
-                location     => $company->loc_desc(),
-                year_founded => $year ? $year : undef,
-                product      => $product->name(),
-                abv          => $product->nominal_abv(),
-                description  => $product->description(),
-                status       => 'Ordered',
-                css_status   => 'ordered',
-            };
+            my $product  = $po->product_id();
+            my $prodhash = $self->_build_product_data( $product );
+            $prodhash->{'status'}     = 'Ordered';
+            $prodhash->{'css_status'} = 'ordered';
+            $festprod{ $po->get_column('product_id') } = $prodhash;
         }
     }
 
@@ -372,8 +400,6 @@ sub _derive_status_report : Private {
 	
         my $product_id = $fp->get_column('product_id');
         my $product = $fp->product_id();
-        my $company = $product->company_id();
-        my $year    = $company->year_founded();
 
 	# Gyles having multiple ABVs is a little beyond us here. Not
 	# interested in taking an average. Similarly we fall back to
@@ -381,17 +407,12 @@ sub _derive_status_report : Private {
 	my $abv = scalar @gyleabvs == 1
                 ? $gyleabvs[0]
 		: $product->nominal_abv();	    
-	
-        $festprod{ $product_id } = {
-            company      => $company->name(),
-            location     => $company->loc_desc(),
-            year_founded => $year ? $year : undef,
-            product      => $product->name(),
-            abv          => $abv,
-            description  => $product->description(),
-            status       => 'Arrived',
-            css_status   => 'arrived',
-        };
+
+        my $prodhash = $self->_build_product_data( $product );
+        $prodhash->{'abv'}        = $abv;
+        $prodhash->{'status'}     = 'Arrived';
+        $prodhash->{'css_status'} = 'arrived';
+        $festprod{ $product_id } = $prodhash;
 
         # Prior to opening, "Arrived" is all we really want.
         next FP unless $festival_open;
