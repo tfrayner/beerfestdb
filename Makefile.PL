@@ -50,6 +50,11 @@ requires 'Text::CSV_XS';
 requires 'Template';
 requires 'DateTime::TimeZone';  # Timestamps for upload to public web site.
 
+requires 'LWP';
+requires 'HTTP::Cookies';
+requires 'Term::ReadLine';
+requires 'Term::ReadKey';
+
 recommends 'OpenOffice::OODoc';
 
 catalyst;
