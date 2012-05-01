@@ -99,7 +99,8 @@ sub login : Global {
     }
     else {
         $c->res->status('401');
-        $c->stash->{error} = 'Login failed.';
+        $c->stash->{ 'message' } = 'Login failed.';
+        $c->stash->{ 'success' } = JSON::Any->false();
         $c->detach( $c->view( 'JSON' ) );
     }
 }
