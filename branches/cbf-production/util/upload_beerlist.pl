@@ -27,7 +27,10 @@ package MyQueryClass;
 use Moose;
 
 use LWP;
+use HTTP::Cookies;
 use JSON::DWIW;
+use Term::ReadKey;
+use Term::ReadLine;
 
 has 'uri'              => ( is       => 'ro',
                             isa      => 'Str',
@@ -44,17 +47,28 @@ has 'product_category' => ( is       => 'ro',
 has 'useragent'        => ( is       => 'ro',
                             isa      => 'LWP::UserAgent',
                             required => 1,
-                            default  => sub { LWP::UserAgent->new() } );
+                            default  => sub {
+                                my $ua = LWP::UserAgent->new();
+                                $ua->cookie_jar({});
+                                return $ua;
+                            } );
 
 has 'json_parser'      => ( is       => 'ro',
                             isa      => 'JSON::DWIW',
                             required => 1,
                             default  => sub { JSON::DWIW->new() } );
 
+has 'debug'            => ( is       => 'ro',
+                            isa      => 'Bool',
+                            required => 1,
+                            default  => 0 );
+
 sub _find_festival_id {
 
     # FIXME it would be much quicker to run this search on the server.
     my ( $self ) = @_;
+
+    $self->debug && warn("Retrieving festival list...\n");
 
     my $fest_name = $self->festival_name();
     my $fest_list = $self->_data_from_uri( $self->uri() . '/festival/list' );
@@ -74,6 +88,8 @@ sub _find_category_id {
     # FIXME it would be much quicker to run this search on the server.
     my ( $self ) = @_;
 
+    $self->debug && warn("Retrieving category list...\n");
+
     my $prod_cat = $self->product_category();
     my $cat_list = $self->_data_from_uri( $self->uri() . '/productcategory/list' );
 
@@ -91,6 +107,8 @@ sub query_status_list {
 
     my ( $self ) = @_;
 
+    $self->debug && warn("Retrieving status list...\n");
+
     my $fid = $self->_find_festival_id();
     my $cid = $self->_find_category_id();
 
@@ -98,6 +116,42 @@ sub query_status_list {
         sprintf('%s/festivalproduct/list_status/%s/%s', $self->uri(), $fid, $cid) );
 
     return $status_list;
+}
+
+sub _attempt_login {
+
+    my ( $self ) = @_;
+
+    $self->debug && warn("Attempting login...\n");
+
+    print STDERR ("BeerFestDB username: ");
+    chomp( my $username = <STDIN> );
+
+    ReadMode 2;
+    print STDERR ("BeerFestDB password: ");
+    chomp( my $password = <STDIN> );
+    ReadMode 0;
+    print STDERR ("\n");
+
+    my $ua   = $self->useragent();
+    my $json = $self->json_parser()->to_json({
+        username => $username,
+        password => $password,
+    });
+    my $res = $ua->post( sprintf('%s/login', $self->uri()),
+                         { data => $json });
+
+    if ( $res->is_error() ) {  # Allows redirects.
+        die("Error: Unable to login to BeerFestDB web site: "
+                . $res->status_line() . " (" . $self->uri() . ")\n");
+    }
+    my $login = $self->json_parser->from_json( $res->decoded_content() );
+    unless ( $login->{success} ) {
+        die("Error: Unable to login to BeerFestDB web site: "
+                . $res->status_line() . " (" . $self->uri() . ")\n");                
+    }
+
+    return;
 }
 
 sub _data_from_uri {
@@ -108,7 +162,22 @@ sub _data_from_uri {
     my $res = $ua->get($uri);
 
     if ( ! $res->is_success() ) {
-        die("Error: Unable to connect to BeerFestDB web site: " . $res->status_line() . " (" . $uri . ")");
+        if ( $res->code() == 403 ) {
+
+            # Try logging in once only.
+            $self->_attempt_login();
+
+            # Retry the original query.
+            $res = $ua->get($uri);
+            if ( ! $res->is_success() ) {
+                die("Error: Logged in user unable to access requested URI: "
+                        . $res->status_line() . " (" . $uri . ")\n");
+            }
+        }
+        else {
+            die("Error: Unable to connect to BeerFestDB web site: "
+                    . $res->status_line() . " (" . $uri . ")\n");
+        }
     }
 
     my $json = $res->decoded_content();
@@ -136,8 +205,10 @@ use JSON::DWIW;
 
 sub send_update {
 
-    my ( $content, $uri, $clientid, $key ) = @_;
-
+    my ( $content, $debug, $uri, $clientid, $key ) = @_;
+    
+    $debug && warn("Uploading content...\n");
+    
     $content     =~ s/[\r\n]//g;  # workaround for server bug
     my $counter  = time;
     my $mac      = hmac_sha256_hex($clientid . $counter . $content, $key);
@@ -169,12 +240,13 @@ sub get_timestamp {
 
 sub parse_args {
 
-    my ( $conffile, $tfile, $json, $want_help );
+    my ( $conffile, $tfile, $json, $debug, $want_help );
 
     GetOptions(
         "c|config=s"   => \$conffile,
         "t|template=s" => \$tfile,
         "j|json"       => \$json,
+        "d|debug"      => \$debug,
         "h|help"       => \$want_help,
     );
 
@@ -207,10 +279,10 @@ sub parse_args {
     my $st = $config->{ status_query }
         or die("Error: No status_query section in config file.");
 
-    return( $st, $template, $json );
+    return( $st, $template, $json, $debug );
 }
 
-my ( $config, $template, $use_json ) = parse_args();
+my ( $config, $template, $use_json, $debug ) = parse_args();
 
 # Check that the appropriate config parameters have been set
 foreach my $item ( qw(festival_name
@@ -228,6 +300,7 @@ my $qobj = MyQueryClass->new(
     festival_name    => $config->{festival_name},
     product_category => $config->{product_category},
     uri              => $config->{beerfestdb_uri},
+    debug            => $debug,
 );
 
 # Query the JSON API for latest status list.
@@ -299,7 +372,7 @@ else {
 }
 
 # Do the upload itself.
-send_update($output,
+send_update($output, $debug,
             map { $config->{$_} }
                 qw(public_site_upload_uri public_site_clientid public_site_key));
 
