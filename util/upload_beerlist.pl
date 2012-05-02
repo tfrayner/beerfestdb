@@ -321,6 +321,10 @@ foreach my $item ( @$statuslist ) {
     my $id = $item->{company_id};
     $brewery_info{ $id }{id}           ||= $item->{company_id};
     $brewery_info{ $id }{name}         ||= $item->{company};
+    my $notes = $item->{location};
+    $notes .= ' ' if ( defined $notes && $notes ne q{} );
+    $notes .= "est. $item->{year_founded}" if defined $item->{year_founded};
+    $brewery_info{ $id }{notes}        ||= $notes;
     $brewery_info{ $id }{location}     ||= $item->{location};
     $brewery_info{ $id }{year_founded} ||= $item->{year_founded};
     my ( $amount ) = ( $item->{status} =~ m/(\d+) \w+ Remaining/i );
