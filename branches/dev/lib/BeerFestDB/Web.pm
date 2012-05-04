@@ -59,8 +59,9 @@ our $VERSION = '0.01';
 # local deployment.
 
 __PACKAGE__->config(
-    name    => 'BeerFestDB::Web',
-    encoding => 'UTF-8',
+    name         => 'BeerFestDB::Web',
+    default_view => 'HTML',
+    encoding     => 'UTF-8',
     session => { flash_to_stash => 1,
                  expires        => 3600, },
     'View::JSON' => {
@@ -86,6 +87,8 @@ __PACKAGE__->config(
             },
         }
     },
+    default_currency    => 'GBP',
+    default_sale_volume => 'pint',
  );
 
 # Start the application

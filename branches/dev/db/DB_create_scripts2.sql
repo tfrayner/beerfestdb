@@ -958,7 +958,7 @@ INSERT INTO user_role (user_id, role_id) VALUES(1, 2);
 
 -- A set of views that are often useful.
 CREATE VIEW programme_notes_view AS (
-     SELECT f.name AS festival,
+     SELECT distinct f.name AS festival,
        pc.description AS category,
        c.name AS brewer,
        c.loc_desc AS location,
@@ -978,6 +978,7 @@ CREATE VIEW programme_notes_view AS (
        AND po.product_id=p.product_id
        AND p.company_id=c.company_id
        AND pc.product_category_id=p.product_category_id
+       AND po.is_final=1
      ORDER BY festival, category, brewer, beer);
 
 -- Create some basic triggers to make sure that product_style and
