@@ -205,7 +205,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
-            { text: 'Products', handler: function() { window.location = url_product_grid; } },
+            { text: 'Companies', handler: function() { window.location = url_company_grid; } },
             { text: 'Company', handler: function() { window.location = url_company_view; } },
         ],
     });
