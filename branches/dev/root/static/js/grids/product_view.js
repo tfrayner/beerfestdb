@@ -77,6 +77,7 @@ Ext.onReady(function(){
     var festival_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         allowBlank:     false,
         forceSelection: true,
         store:          festival_store,
@@ -115,6 +116,7 @@ Ext.onReady(function(){
               fieldLabel:     'Style',
               typeAhead:      true,
               triggerAction:  'all',
+              mode:           'local',
               store:          style_store,
               valueField:     'product_style_id',
               displayField:   'description',
