@@ -279,6 +279,9 @@ sub parse_args {
     my $st = $config->{ status_query }
         or die("Error: No status_query section in config file.");
 
+    # We don't really want to set this twice.
+    $st->{ festival_name } ||= $config->{ current_festival };
+
     return( $st, $template, $json, $debug );
 }
 
