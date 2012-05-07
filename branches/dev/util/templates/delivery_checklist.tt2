@@ -1,0 +1,80 @@
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, portrait, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
+\usepackage[british]{babel}
+\usepackage{palatino}
+
+\pagestyle{empty}
+\renewcommand\familydefault{\sfdefault} % makes it use sans serif
+
+\begin{document}
+
+[% BLOCK table_header -%]
+
+  \fontsize{16}{24}
+  \selectfont
+
+  \begin{center}\textbf{Beer Delivery Checklist}\end{center}
+
+  \fontsize{10}{12}
+  \selectfont
+
+  \begin{tabular}{ | l l l r r r | }
+  \textbf{Distributor} & \textbf{Brewery} & \textbf{Beer} & \textbf{ABV} & \textbf{Qty} & \textbf{Cask Size} \\ \hline
+[%- END %]
+
+[% BLOCK table_end -%]
+  \end{tabular}
+[%- END %]
+
+[% BLOCK distributor -%]
+  [%- dist.name -%]
+ [%# deactivated %][% IF 0 %][%- IF dist.full_name -%]
+  [%- IF ! ( dist.full_name.match( dist.name ) ) %] ([% dist.full_name %]) [% END %][% END -%]  [% END %]
+[%- END %]
+
+[% PROCESS table_header %]
+
+[% SET counter = 0 %]
+
+[% FOREACH dist = objects.sort('name') %]
+  [% FOREACH company IN dist.orders %]
+    [% FOREACH product IN company.value %]
+      [%- SET agg = {} -%]
+      [%- SET abv = 'N/A' -%]
+      [%- FOREACH order IN product.value -%]
+        [%- SET cs = order.cask_size -%]
+        [%- IF ! agg.$cs.defined %][% agg.$cs = 0 %][% END -%]
+        [%- agg.$cs = agg.$cs + order.cask_count -%]
+        [%- abv = order.nominal_abv -%]
+      [%- END -%]
+      [% FOREACH cs IN agg -%]
+        [% counter = counter + 1 %]
+        [% PROCESS distributor | truncate(30) | latexify %] &
+        [% company.key | latexify %] &
+        [% product.key | truncate(25) | latexify %] &
+        [% abv    | format('%.1f') %] &
+        [% cs.value | latexify %] &
+        [% cs.key | format('%i') %] \\
+      [%- END %]
+      [% IF counter > 55 %]
+        [% counter = 0 %]
+        \hline
+        [% PROCESS table_end %]
+
+        \null\newpage
+
+        [% PROCESS table_header %]
+
+      [% END %]
+    [% END %]
+  [% END %] \hline
+[% END %]
+
+[% PROCESS table_end %]
+
+\null\newpage
+
+\end{document}
+
