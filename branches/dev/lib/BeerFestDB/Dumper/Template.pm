@@ -125,6 +125,7 @@ sub order_hash {
         cask_size   => $order->container_size_id->container_volume(),
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
+        nominal_abv => $order->product_id->nominal_abv(),
     );
 
     my $currency = $order->currency_id();
