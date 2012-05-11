@@ -202,6 +202,7 @@ use Digest::SHA qw (hmac_sha256_hex);
 use DateTime;
 use DateTime::TimeZone;
 use JSON::DWIW;
+use List::Util qw (first);
 
 sub send_update {
 
@@ -348,6 +349,10 @@ foreach my $item ( @$statuslist ) {
 	    $item->{status}     = 'Nearly finished!';
 	    $item->{css_status} = 'nearly_finished';	    
 	}
+    }
+    if ( first { $_ eq lc $config->{product_category} }
+             ('cider', 'perry', 'apple juice', 'mead') ) {
+        $item->{status} = '';
     }
     push @{ $brewery_info{ $id }{products} },
         { map { $infomap{$_} => $item->{ $_ } } keys %infomap };
