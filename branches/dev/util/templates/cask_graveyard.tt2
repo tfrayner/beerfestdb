@@ -1,4 +1,7 @@
-[% IF dump_class != 'distributor' %][% THROW bad_dump_class "Use the distributor dump class." %][% END %]
+%
+% $Id$
+%
+[% IF dump_class != 'distributor' %][% THROW bad_dump_class "Use the distributor dump class.\n" %][% END %]
 
 \documentclass[english,a4paper]{article}
 

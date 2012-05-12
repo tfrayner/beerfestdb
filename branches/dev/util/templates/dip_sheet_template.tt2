@@ -1,9 +1,9 @@
 %
-% $Id: cask_end_template.tt2 54 2010-01-20 18:30:33Z tfrayner $
+% $Id$
 %
 % Example LaTeX template for use with cask_end_signs_latex.pl
 
-[% IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class." %][% END %]
+[% IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class.\n" %][% END %]
 
 \documentclass[english,a4paper]{article}
 
