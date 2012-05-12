@@ -1,43 +1,72 @@
 \documentclass[english,a4paper]{article}
 
-\usepackage[absolute]{textpos}
+\usepackage[a4paper, portrait, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
 \usepackage[british]{babel}
 \usepackage{palatino}
-\usepackage{graphicx}
-
-\setlength{\TPHorizModule}{5mm}
-\setlength{\TPVertModule}{\TPHorizModule}
-\textblockorigin{10mm}{10mm} % start everything near the top-left corner
-\setlength{\parindent}{0pt}
+\usepackage{multicol}
 
 \pagestyle{empty}
 \renewcommand\familydefault{\sfdefault} % makes it use sans serif
 
 \begin{document}
 
+[%# FIXME Technically it would be better to dump at the cask level and work from their distributors %]
+
+[% SET nondistrib = {} %]
+
 [% FOREACH dist = objects %]
 
-\fontsize{86}{94}
-\selectfont
-
-dist.name
-
-\fontsize{40}{94}
-\selectfont
-
 [% SET brewerhash = {} %]
-[% FOR order = dist.orders %]
-  [% SET brewery = order.brewery %]
-  [% SET brewerhash.$brewery = 1 %]
+[% FOREACH company IN dist.orders %]
+  [% IF company.key != dist.name %]
+    [% SET brewery = company.key %]
+    [% SET brewerhash.$brewery = 1 %]
+  [% END %]
 [% END %]
+
+[% IF brewerhash.keys.size == 0 %]
+  [% SET brewery = dist.name %]
+  [% SET nondistrib.$brewery = 1 %]
+  [% NEXT %]
+[% END %]
+
+\fontsize{86}{102}
+\selectfont
+
+\begin{center}\textbf{[% dist.name | latexify %]}\end{center}
+
+\vspace{10 mm}
+
+%\begin{multicols}{2}
+
+\fontsize{36}{44}
+\selectfont
 
 [% FOR b IN brewerhash %]
   [% b.key | latexify %]
 [% END %]
 
+%\end{multicols}
+
 \null\newpage
 
 [% END %]
+
+[%# And now for the companies delivering only their own beer... %]
+
+\begin{multicols}{2}
+
+\fontsize{32}{40}
+\selectfont
+
+[% FOR b IN nondistrib %]
+  [% b.key | latexify %]
+[% END %]
+
+\end{multicols}
+
+\null\newpage
 
 \end{document}
 
