@@ -3,6 +3,8 @@
 %
 % Example LaTeX template for use with cask_end_signs_latex.pl
 
+[% IF dump_class != 'gyle' %][% THROW bad_dump_class "Use the gyle dump class." %][% END %]
+
 \documentclass[english,a4paper]{article}
 
 \usepackage[a4paper, portrait]{geometry}

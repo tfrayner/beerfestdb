@@ -1,3 +1,5 @@
+[% IF dump_class != 'distributor' %][% THROW bad_dump_class "Use the distributor dump class." %][% END %]
+
 \documentclass[english,a4paper]{article}
 
 \usepackage[absolute]{textpos}

@@ -290,6 +290,7 @@ sub dump {
         objects    => \@template_data,
         stillages  => \%stillage,
         dip_batches => \@dip_batches,
+        dump_class => $self->dump_class(),
     };
 
     # We define a custom title case filter for convenience.

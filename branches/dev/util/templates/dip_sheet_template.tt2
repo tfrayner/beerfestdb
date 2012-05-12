@@ -3,6 +3,8 @@
 %
 % Example LaTeX template for use with cask_end_signs_latex.pl
 
+[% IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class." %][% END %]
+
 \documentclass[english,a4paper]{article}
 
 \usepackage[a4paper, landscape, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
