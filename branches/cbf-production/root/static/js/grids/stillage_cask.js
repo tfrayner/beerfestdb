@@ -66,6 +66,7 @@ Ext.onReady(function(){
     var bay_position_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         allowBlank:     true,
         noSelection:    emptySelect,
         forceSelection: true,

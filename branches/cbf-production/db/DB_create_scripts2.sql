@@ -958,7 +958,7 @@ INSERT INTO user_role (user_id, role_id) VALUES(1, 2);
 
 -- A set of views that are often useful.
 CREATE VIEW programme_notes_view AS (
-     SELECT f.name AS festival,
+     SELECT distinct f.name AS festival,
        pc.description AS category,
        c.name AS brewer,
        c.loc_desc AS location,
@@ -978,7 +978,33 @@ CREATE VIEW programme_notes_view AS (
        AND po.product_id=p.product_id
        AND p.company_id=c.company_id
        AND pc.product_category_id=p.product_category_id
+       AND po.is_final=1
      ORDER BY festival, category, brewer, beer);
+
+CREATE VIEW order_summary_view AS (
+     SELECT f.name AS festival,
+       pc.description AS category,
+       c.name AS brewery,
+       p.name AS beer,
+       st.description AS style,
+       IF(po.is_sale_or_return=1, 'Yes', 'No') AS sale_or_return,
+       p.nominal_abv AS abv,
+       ROUND(SUM(po.cask_count * cs.container_volume / 18), 1) AS kils
+     FROM company c,
+       product_category pc,
+       product p LEFT JOIN product_style st ON p.product_style_id=st.product_style_id,
+       product_order po,
+       order_batch ob,
+       container_size cs,
+       festival f
+     WHERE f.festival_id=ob.festival_id
+       AND ob.order_batch_id=po.order_batch_id
+       AND p.product_id=po.product_id
+       AND p.company_id=c.company_id
+       AND po.container_size_id=cs.container_size_id
+       AND p.product_category_id=pc.product_category_id
+       AND po.is_final=1
+     GROUP BY festival, brewery, beer, sale_or_return);
 
 -- Create some basic triggers to make sure that product_style and
 -- product_characteristic usage is properly constrained to their

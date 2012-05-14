@@ -116,6 +116,7 @@ Ext.onReady(function(){
     var dipbatch_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         allowBlank:     false,
         forceSelection: true,
         store:          dipbatch_store,

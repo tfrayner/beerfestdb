@@ -477,7 +477,7 @@ MyLoginPanel = Ext.extend(Ext.form.FormPanel, {
                         },
                         failure:    function(res, opts) {
                             var stash = Ext.util.JSON.decode(res.responseText);
-                            Ext.Msg.alert('Error', stash.error);
+                            Ext.Msg.alert('Error', stash.message);
                         },
                         params:     { data: Ext.util.JSON.encode( fields ) },
                         scope: this,

@@ -77,6 +77,7 @@ Ext.onReady(function(){
     var festival_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         allowBlank:     false,
         forceSelection: true,
         store:          festival_store,
@@ -115,6 +116,7 @@ Ext.onReady(function(){
               fieldLabel:     'Style',
               typeAhead:      true,
               triggerAction:  'all',
+              mode:           'local',
               store:          style_store,
               valueField:     'product_style_id',
               displayField:   'description',
@@ -205,7 +207,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = '/'; } },
-            { text: 'Products', handler: function() { window.location = url_product_grid; } },
+            { text: 'Companies', handler: function() { window.location = url_company_grid; } },
             { text: 'Company', handler: function() { window.location = url_company_view; } },
         ],
     });

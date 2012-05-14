@@ -125,6 +125,7 @@ sub order_hash {
         cask_size   => $order->container_size_id->container_volume(),
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
+        nominal_abv => $order->product_id->nominal_abv(),
     );
 
     my $currency = $order->currency_id();
@@ -289,6 +290,7 @@ sub dump {
         objects    => \@template_data,
         stillages  => \%stillage,
         dip_batches => \@dip_batches,
+        dump_class => $self->dump_class(),
     };
 
     # We define a custom title case filter for convenience.

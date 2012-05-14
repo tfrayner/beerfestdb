@@ -1,7 +1,9 @@
 %
-% $Id: cask_end_template.tt2 84 2010-05-18 18:13:26Z tfrayner $
+% $Id$
 %
 % Example LaTeX template for use with cask_end_signs_latex.pl
+
+[% IF dump_class != 'gyle' %][% THROW bad_dump_class "Use the gyle dump class.\n" %][% END %]
 
 \documentclass[english,a4paper]{article}
 
