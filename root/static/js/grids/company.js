@@ -61,6 +61,7 @@ Ext.onReady(function(){
     var region_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          region_store,
         forceSelection: true,
         valueField:     'company_region_id',

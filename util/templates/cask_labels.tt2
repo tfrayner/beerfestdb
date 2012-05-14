@@ -2,6 +2,8 @@
 % $Id$
 %
 
+[% IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class.\n" %][% END %]
+
 \documentclass[a4paper,12pt]{article} 
 \usepackage[newdimens]{labels}
 %\usepackage{palatino}

@@ -75,6 +75,7 @@ Ext.onReady(function(){
               fieldLabel:     'Roles',
               store:          role_store,
               triggerAction:  'all',
+              mode:           'local',
               lazyRender:     true,
               valueField:     'role_id',
               displayField:   'rolename',
