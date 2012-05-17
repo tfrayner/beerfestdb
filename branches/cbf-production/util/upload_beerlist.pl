@@ -241,12 +241,12 @@ sub get_timestamp {
 
 sub parse_args {
 
-    my ( $conffile, $tfile, $json, $debug, $want_help );
+    my ( $conffile, $tfile, $html, $debug, $want_help );
 
     GetOptions(
         "c|config=s"   => \$conffile,
         "t|template=s" => \$tfile,
-        "j|json"       => \$json,
+        "html"         => \$html,
         "d|debug"      => \$debug,
         "h|help"       => \$want_help,
     );
@@ -283,10 +283,10 @@ sub parse_args {
     # We don't really want to set this twice.
     $st->{ festival_name } ||= $config->{ current_festival };
 
-    return( $st, $template, $json, $debug );
+    return( $st, $template, $html, $debug );
 }
 
-my ( $config, $template, $use_json, $debug ) = parse_args();
+my ( $config, $template, $use_html, $debug ) = parse_args();
 
 # Check that the appropriate config parameters have been set
 foreach my $item ( qw(festival_name
@@ -359,16 +359,16 @@ foreach my $item ( @$statuslist ) {
 }
 
 my $output;
-if ( $use_json ) {
+if ( ! $use_html ) {
 
-    # New version: generate a JSON-encoded string for upload.
+    # Default version: generate a JSON-encoded string for upload.
     my $jwriter = JSON::DWIW->new();
     $output = $jwriter->to_json( { producers => [ values %brewery_info ],
                                    timestamp => get_timestamp() } );
 }
 else {
 
-    # Generate the HTML fragment to upload.
+    # Old version: Generate the HTML fragment to upload.
     $template ||= join(q{}, <DATA>);
     
     # We define a custom title case filter for convenience.
