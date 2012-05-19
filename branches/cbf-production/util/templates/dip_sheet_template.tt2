@@ -24,9 +24,9 @@
 [% END %]
 
 [% BLOCK table_header %]
-  \begin{tabular}{ | l | l | l | c | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.4cm} | [% END %]p{5cm} | c | }
+  \begin{tabular}{ | l | l | l | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.4cm} | [% END %]p{5cm} | c | }
     \hline
-  Location & Brewer & Beer & ID & No.& Stillaged & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name.substr(0,1) %] & [% END %]Notes & C \\ \hline
+  Location & Brewer & Beer & ID & No. & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name.substr(0,1) %] & [% END %]Notes & C \\ \hline
 [% END %]
 
 [% BLOCK table_end %]
@@ -53,7 +53,7 @@
   \selectfont
 
 [%- PROCESS table_header;
-    SET casks = stillage.value.sort('brewery', 'product', 'number');
+    SET casks = stillage.value.sort('stillage_bay', 'bay_position', 'brewery', 'product', 'number');
     SET counter = 0 -%]
 
   [% FOREACH cask = casks %]
@@ -61,12 +61,12 @@
     [% SET latest = cask.size %]
 
     [% NEXT IF cask.category != 'beer' %]
-    &
+    [% cask.stillage_bay | latexify %] [% cask.bay_position | truncate(12) | latexify %] &
     [% cask.brewery | latexify %] &
     [% cask.product | truncate(25) | latexify %] &
     [% cask.festival_id %] &
     [% cask.number %] &
-    &  &  &  &
+    &  &  &
     [% cask.size | format('%d') %] &
 [%- FOREACH batch = dip_batches -%]
 [%- SET bid = batch.id -%]
