@@ -132,6 +132,30 @@ eval {
   		    or die(qq{Error: Cask with cellar_reference "$cfid" }
 			   . qq{not found for festival "$festname".\n});
 
+		# First deal with stillage location. This is required
+		# to prevent one well-meaning cellar person from
+		# inadvertently screwing with another stillage's info.
+		my $loc = $row{ 'stillage_location' };
+		if ( ! defined $loc ) {
+		    die("Error: stillage_location not defined.");
+		}
+		my $stillage = $schema->resultset('StillageLocation')
+		    ->find({ festival_id => $festival->id(),
+			     description => $loc })
+		    or die(qq{Error: Stillage location "$loc" }.
+			   qq{not found for festival "$festname".\n});
+		my $caskloc = $cask->get_column('stillage_location_id');
+		if ( ! defined $caskloc || $caskloc != $stillage->stillage_location_id ) {
+		    if ( $allow_stillage_move ) { # Initial stillage assignment only.
+			$cask->set_column('stillage_location_id',
+					  $stillage->stillage_location_id());
+		    }
+		    else {
+			push @accumulated_errors, "Error: Attempting to move cask $cfid between stillages.";
+		    }
+		}
+
+		# Cellar id ("internal_reference").
 		if ( my $id = $row{ 'cask_cellar_id' } ) {
 		    if ( defined $id ) {
 		        if ( ! looks_like_number( $id ) ) {
@@ -153,25 +177,7 @@ eval {
 		    }
 		}
 
-		if ( my $loc = $row{ 'stillage_location' } ) {
-		    my $stillage = $schema->resultset('StillageLocation')
- 		                          ->find({ festival_id => $festival->id(),
-						   description => $loc })
-					    or die(qq{Error: Stillage location "$loc" }.
-						   qq{not found for festival "$festname".\n});
-
-		    my $caskloc = $cask->get_column('stillage_location_id');
-		    if ( ! defined $caskloc || $caskloc != $stillage->stillage_location_id ) {
-			if ( $allow_stillage_move ) {
-			    $cask->set_column('stillage_location_id',
-					      $stillage->stillage_location_id());
-			}
-			else {
-			    push @accumulated_errors, "Error: Attempting to move cask $cfid between stillages.";
-			}
-		    }
-		}
-
+		# Stillage bay.
 		if ( my $bay = $row{ 'stillage_bay' } ) {
 		    if ( defined $bay ) {
 		        if ( ! looks_like_number( $bay ) ) {
@@ -181,6 +187,7 @@ eval {
 		    }
 		}
 
+		# Bay position.
 		if ( my $baypos = $row{ 'bay_position' } ) {
 		    my $pos = $schema->resultset('BayPosition')
  		                     ->find({ description => $baypos })
@@ -192,6 +199,7 @@ eval {
 		$cask->update();
             }
 
+	    # Useful for reporting discrepancies back to cellar managers.
 	    if ( scalar @accumulated_errors ) {
 		die("The following errors were encountered:\n"
 		    . join("\n", @accumulated_errors) );
