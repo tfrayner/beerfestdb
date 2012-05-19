@@ -211,6 +211,12 @@ Ext.onReady(function(){
               noSelection:    emptySelect,
               allowBlank:     true, },
 
+            { name:           'stillage_bay',
+              fieldLabel:     'Bay No.',
+              lazyRender:     true,
+              xtype:          'numberfield',
+              allowBlank:     true},
+            
             { name:           'bay_position_id',
               fieldLabel:     'Bay position',
               typeAhead:      true,
