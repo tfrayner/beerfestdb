@@ -205,6 +205,9 @@ sub update_cask_hash {
     $caskhash->{comment}      = $cask->comment();
     $caskhash->{is_condemned} = $cask->is_condemned();
     $caskhash->{is_sale_or_return} = $cask->is_sale_or_return();
+    $caskhash->{stillage_bay} = $cask->stillage_bay();
+    $caskhash->{bay_position} = $cask->bay_position_id
+	  ? $cask->bay_position_id->description() : q{};
 
     return $caskhash;
 }
