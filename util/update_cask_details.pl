@@ -33,11 +33,12 @@ use BeerFestDB::ORM;
 
 sub parse_args {
 
-    my ( $conffile, $datafile, $want_help );
+    my ( $conffile, $datafile, $allow_stillage_move, $want_help );
 
     GetOptions(
         "c|config=s"   => \$conffile,
 	"f|file=s"     => \$datafile,
+	"a|allow"      => \$allow_stillage_move,
         "h|help"       => \$want_help,
     );
 
@@ -60,10 +61,10 @@ sub parse_args {
 
     my $config = Config::YAML->new( config => $conffile );
 
-    return( $config, $datafile );
+    return( $config, $datafile, $allow_stillage_move );
 }
 
-my ( $config, $datafile ) = parse_args();
+my ( $config, $datafile, $allow_stillage_move ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
@@ -112,6 +113,8 @@ foreach my $col ( @header ) {
 eval {
     $schema->txn_do(
         sub {
+	    my @accumulated_errors;
+
             CASK:
             while ( my $line = $csv_parser->getline($fh) ) {
 	        my $lstr = join('', @$line);
@@ -156,8 +159,17 @@ eval {
 						   description => $loc })
 					    or die(qq{Error: Stillage location "$loc" }.
 						   qq{not found for festival "$festname".\n});
-		    $cask->set_column('stillage_location_id',
-				      $stillage->stillage_location_id());
+
+		    my $caskloc = $cask->get_column('stillage_location_id');
+		    if ( ! defined $caskloc || $caskloc != $stillage->stillage_location_id ) {
+			if ( $allow_stillage_move ) {
+			    $cask->set_column('stillage_location_id',
+					      $stillage->stillage_location_id());
+			}
+			else {
+			    push @accumulated_errors, "Error: Attempting to move cask $cfid between stillages.";
+			}
+		    }
 		}
 
 		if ( my $bay = $row{ 'stillage_bay' } ) {
@@ -179,6 +191,11 @@ eval {
 
 		$cask->update();
             }
+
+	    if ( scalar @accumulated_errors ) {
+		die("The following errors were encountered:\n"
+		    . join("\n", @accumulated_errors) );
+	    }
         }
     );
 };
@@ -219,6 +236,11 @@ location, bay number and position once stillaging is complete.
 =head2 -c
 
 The path to the main BeerFestDB config file.
+
+=head2 -a
+
+A flag indicating whether or not to allow casks to be automatically
+moved between stillages (default: no).
 
 =head2 -f
 
