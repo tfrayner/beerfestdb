@@ -120,10 +120,13 @@ eval {
 		my %row;
 		@row{ @header } = @$line;
 
+		my $cfid = $row{ 'cask_festival_id' };
+		next CASK unless defined $cfid; # FIXME warn here 
+
                 my $cask = $schema->resultset('Cask')
 		                  ->find({ festival_id      => $festival->id(),
-					   cellar_reference => $row{ 'cask_festival_id' } })
-  		    or die(qq{Error: Cask with cellar_reference "$row{cask_festival_id}" }
+					   cellar_reference => $cfid })
+  		    or die(qq{Error: Cask with cellar_reference "$cfid" }
 			   . qq{not found for festival "$festname".\n});
 
 		if ( my $id = $row{ 'cask_cellar_id' } ) {
@@ -138,7 +141,7 @@ eval {
 			  -> find({ festival_id => $festival->id(),
 				    gyle_id     => $cask->get_column('gyle_id'),
 				    internal_reference => $id });
-			if ( $altcask ) {
+			if ( $altcask && $altcask->cellar_reference != $cfid ) {
 			    $altcask->set_column('internal_reference', undef);
 			    $altcask->update();
 			}
