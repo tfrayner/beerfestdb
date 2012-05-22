@@ -193,6 +193,12 @@ Ext.onReady(function(){
               xtype:          'numberfield',
               allowBlank:     true},
             
+            { name:           'is_sale_or_return',
+	      fieldLabel:     'Is SOR',
+	      lazyRender:     true,
+	      xtype:          'checkbox',
+	      allowBlank:     true },
+
             { name:           'stillage_location_id',
               fieldLabel:     'Stillage',
               typeAhead:      true,
@@ -205,6 +211,12 @@ Ext.onReady(function(){
               noSelection:    emptySelect,
               allowBlank:     true, },
 
+            { name:           'stillage_bay',
+              fieldLabel:     'Bay No.',
+              lazyRender:     true,
+              xtype:          'numberfield',
+              allowBlank:     true},
+            
             { name:           'bay_position_id',
               fieldLabel:     'Bay position',
               typeAhead:      true,

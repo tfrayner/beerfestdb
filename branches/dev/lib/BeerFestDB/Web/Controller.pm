@@ -196,10 +196,10 @@ sub build_database_object : Private {
 		           ->column_info( $lookup )
 			   ->{data_type};
 	    if ( defined $dbval && $dbval eq q{} ) {
-                if ( $dt eq 'integer' || $dt eq 'tinyint' ) {
+                if ( $dt eq 'tinyint' ) {
                     $dbval = 0;
                 }
-                elsif ( $dt eq 'decimal' ) {
+                elsif ( $dt eq 'integer' || $dt eq 'decimal' ) {  # int so we can delete cask.stillage_bay
                     $dbval = undef;
                 }
             }

@@ -713,6 +713,16 @@ sub load {
         die(qq{Errors encountered during load:\n\n$@});
     }
     else {
+
+	# Check that parsing completed successfully.
+	my ( $error, $mess ) = $csv_parser->error_diag();
+	unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
+	    die(sprintf(
+		    "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
+		    $mess,
+		    $csv_parser->error_input()));
+	}
+
         warn("All data successfully loaded.\n");
     }
 }

@@ -7,7 +7,7 @@
 
 \documentclass[english,a4paper]{article}
 
-\usepackage[a4paper, portrait]{geometry}
+\usepackage[a4paper, portrait, top=1.0cm, bottom=1.0cm, left=2.5cm, right=2.5cm]{geometry}
 
 \usepackage[absolute]{textpos}
 \usepackage[british]{babel}
@@ -52,7 +52,7 @@
 
   \vspace{ 5 mm }
 
-  \fontsize{10}{12}
+  \fontsize{12}{14}
   \selectfont
 
   [% PROCESS table_header %]
@@ -64,7 +64,7 @@
   [% FOREACH product = products %]
 
     [% product.brewery | latexify %] &
-    [% product.product | truncate(40) | latexify %] &
+    [% product.product | truncate(25) | latexify %] &
     [% product.abv %] &
     [%- product.currency | latexify -%]
     [%- product.price    | format('%.2f') -%]&

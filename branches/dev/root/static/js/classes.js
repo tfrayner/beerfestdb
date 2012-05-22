@@ -362,6 +362,10 @@ MyCheckboxRenderer = function() {
     return function(value) { return value ? 'yes' : 'no' }
 }
 
+MyNumberRenderer = function() {
+    return function(value) { return undefined != value ? value : '' }
+}
+
 MyFormPanel = Ext.extend(Ext.form.FormPanel, {
 
     labelAlign:  'right',

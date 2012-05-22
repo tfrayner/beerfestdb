@@ -32,6 +32,7 @@ Ext.onReady(function(){
         { name: 'product_name',      type: 'string' },
         { name: 'container_size_id', type: 'int' },
         { name: 'stillage_location_id', type: 'int' },
+        { name: 'stillage_bay',      type: 'string' }, // allows undef to be displayed correctly.
         { name: 'bay_position_id',   type: 'int' },
         { name: 'gyle_id',           type: 'int' },
         { name: 'int_reference',     type: 'string' },
@@ -104,6 +105,15 @@ Ext.onReady(function(){
           header:     'Cellar Cask No.',
           dataIndex:  'int_reference',
           width:      50,
+          editor:     new Ext.form.NumberField({
+              allowDecimals:  false,
+              allowBlank:     true,
+          })},
+        { id:         'stillage_bay',
+          header:     'Bay No.',
+          dataIndex:  'stillage_bay',
+          width:      50,
+	  renderer:   MyNumberRenderer(),
           editor:     new Ext.form.NumberField({
               allowDecimals:  false,
               allowBlank:     true,
