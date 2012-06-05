@@ -45,7 +45,7 @@
 
 # Edit these:
 baseuri  <- 'http://localhost:3000'
-festname <- '38th Cambridge Beer Festival'
+festname <- '39th Cambridge Beer Festival'
 prodcat  <- 'beer'
 author   <- ''
 # End of editable section.
@@ -75,6 +75,10 @@ vol.total  <- sum(cp$cask_volume)
 vol.condd  <- sum(cp[ cp$is_condemned == 1, w][ , sum(w) ])
 vol.unsold <- sum(cp[ cp$is_condemned == 0, w][ , sum(w) ])
 vol.sold   <- vol.total - (vol.condd + vol.unsold)
+sor.total  <- sum(cp[ cp$is_sale_or_return == 1, 'cask_volume' ])
+sor.unsold <- sum(cp[ cp$is_sale_or_return == 1 & cp$is_condemned == 0, w][ , sum(w) ])
+sor.condd  <- sum(cp[ cp$is_sale_or_return == 1 & cp$is_condemned == 1, w][ , sum(w) ])
+sor.sold   <- sor.total - (sor.condd + sor.unsold)
 @ 
 
 \section{Overall Sales Data}
@@ -116,6 +120,19 @@ if ( nrow(ob) > 1 ) {  ## Don't bother enumerating order batches if there was on
     & \Sexpr{sprintf("%.1f", vol.unsold)}
     & \Sexpr{sprintf("%.1f", vol.unsold / 18)} 
     & \Sexpr{sprintf("%.1f", (vol.unsold*100/vol.total))}\% \\ \hline \hline
+  SOR sold:
+    & \Sexpr{sprintf("%.1f", sor.sold)}
+    & \Sexpr{sprintf("%.1f", sor.sold / 18)}
+    & \Sexpr{sprintf("%.1f", (sor.sold*100/sor.total))}\% \\ \hline
+  SOR condemned:
+    & \Sexpr{sprintf("%.1f", sor.condd)}
+    & \Sexpr{sprintf("%.1f", sor.condd / 18)} 
+    & \Sexpr{sprintf("%.1f", (sor.condd*100/sor.total))}\% \\ \hline
+  SOR remaining unsold:
+    & \Sexpr{sprintf("%.1f", sor.unsold)}
+    & \Sexpr{sprintf("%.1f", sor.unsold / 18)} 
+    & \Sexpr{sprintf("%.1f", (sor.unsold*100/sor.total))}\% \\ \hline \hline
+   
 \end{tabular}
 \end{center}
 
