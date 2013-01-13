@@ -89,6 +89,7 @@ __PACKAGE__->config(
     },
     default_currency    => 'GBP',
     default_sale_volume => 'pint',
+    default_product_category => 'beer',
  );
 
 # Start the application

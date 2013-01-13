@@ -135,6 +135,7 @@ Ext.onReady(function(){
             field:     'name',
             direction: 'ASC',
         },
+        defaultData: { product_category_id: default_product_category },
     });
     product_store.load();
 

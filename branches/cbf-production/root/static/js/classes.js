@@ -51,6 +51,16 @@ function deleteProducts( data, url, store ) {
     });
 }
 
+/* Very simple object cloning function; only works one level deep! */
+function simpleClone(obj) {
+    if (null == obj || "object" != typeof obj) return obj;
+    var copy = obj.constructor();
+    for (var attr in obj) {
+        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+    }
+    return copy;
+}
+
 NewButton = Ext.extend(Ext.Button, {
 
     text:    'New Row',
@@ -61,7 +71,7 @@ NewButton = Ext.extend(Ext.Button, {
         Ext.apply(this,
                   {               
                       handler: function() {
-                          var d = this.grid.store.defaultData;
+                          var d = simpleClone(this.grid.store.defaultData);
                           var p = new this.grid.store.recordType(d);
                           this.grid.stopEditing();
                           this.grid.store.insert( 0, p );

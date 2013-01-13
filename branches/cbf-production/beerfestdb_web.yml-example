@@ -10,6 +10,15 @@ Model::DB:
 #  at a time we can designate the current festival:
 current_festival: 39th Cambridge Beer Festival
 
+# Default currency and sale volume measures. These values must also be
+# entered into the currency.currency_code,
+# sale_volume.sale_volume_description and
+# product_category.description database columns.
+#
+#default_currency:    GBP
+#default_sale_volume: pint
+#default_product_category: beer
+
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:
 
