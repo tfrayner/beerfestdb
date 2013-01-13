@@ -143,7 +143,9 @@ sub dump {
         $casks = $self->unique_casks();
     }
 
-    my ( %barinfo, %brewerinfo );
+    my ( %barinfo, %brewerinfo, %product_stillaged );
+
+    # Handle all stillaged casks.
     foreach my $cask ( @$casks ) {
         my $bar = $cask->bar_id() ? $cask->bar_id()->description()
                 : $cask->stillage_location_id() ? $cask->stillage_location_id()->description()
@@ -156,6 +158,22 @@ sub dump {
             description => $beer->description, #q{Tasting notes unavailable at time of press.},
         };
         $brewerinfo{$brewer->name}{'location'} = $brewer->loc_desc || q{Unknown location};
+        $product_stillaged{ $beer->get_column('product_id') }++;
+    }
+
+    # Handle all products not yet assigned a stillage.
+    foreach my $fp ( @{ $self->festival_products } ) {
+        my $beer = $fp->festival_product_id();
+        unless ( $product_stillaged{ $beer->get_column('product_id') } ) {
+            my $beer   = $fp->product_id;
+            my $brewer = $beer->company_id;
+            $barinfo{'Other Bars'}{$brewer->name}{$beer->name} = {
+                abv      => $beer->nominal_abv,
+                style    => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
+                description => $beer->description,
+            };
+            $brewerinfo{$brewer->name}{'location'} = $brewer->loc_desc || q{Unknown location};
+        }
     }
 
     while ( my ( $bar, $caskinfo ) = each %barinfo ) {
