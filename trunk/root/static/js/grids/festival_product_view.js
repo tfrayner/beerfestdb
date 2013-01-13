@@ -42,6 +42,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          company_store,
         valueField:     'company_id',
         displayField:   'name',
@@ -79,6 +80,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          currency_store,
         valueField:     'currency_id',
         displayField:   'currency_code',
@@ -103,6 +105,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          casksize_store,
         valueField:     'container_size_id',
         displayField:   'description',
@@ -132,6 +135,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          gyle_store,
         valueField:     'gyle_id',
         displayField:   'int_reference',
@@ -151,10 +155,12 @@ Ext.onReady(function(){
         },
     });
     order_batch_store.load();
-    var order_batch_combo = new Ext.form.ComboBox({
+    var order_batch_combo = new MyComboBox({
         allowBlank:     true,
+        noSelection:    emptySelect,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          order_batch_store,
         valueField:     'order_batch_id',
         displayField:   'description',
@@ -177,6 +183,7 @@ Ext.onReady(function(){
                      { name: 'int_reference',     type: 'string' },
                      { name: 'ext_reference',     type: 'string' },
                      { name: 'festival_ref',      type: 'string' },
+                     { name: 'is_sale_or_return', type: 'int' },
                      { name: 'comment',           type: 'string' }],
         sortInfo:   {
             field:     'int_reference',
@@ -212,6 +219,7 @@ Ext.onReady(function(){
               fieldLabel:     'Sale Currency',
               typeAhead:      true,
               triggerAction:  'all',
+              mode:           'local',
               store:          currency_store,
               forceSelection: true,
               valueField:     'currency_id',
@@ -224,6 +232,7 @@ Ext.onReady(function(){
               fieldLabel:     'Sale Volume',
               typeAhead:      true,
               triggerAction:  'all',
+              mode:           'local',
               store:          volume_store,
               forceSelection: true,
               valueField:     'sale_volume_id',
@@ -380,6 +389,13 @@ Ext.onReady(function(){
                   width:      130,
                   renderer:   MyComboRenderer(company_combo),
                   editor:     company_combo, },
+                { id:         'is_sale_or_return',
+		  header:     'SOR',
+		  dataIndex:  'is_sale_or_return',
+		  width:      40,
+		  renderer:   MyCheckboxRenderer(),
+		  editor:     new Ext.form.Checkbox()
+		},
                 { id:         'order_batch_id',
                   header:     'Order Batch',
                   dataIndex:  'order_batch_id',
@@ -417,7 +433,7 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: fpname,            
         layout: 'fit',
         items: tabpanel,

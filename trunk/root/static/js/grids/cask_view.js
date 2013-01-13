@@ -48,6 +48,19 @@ Ext.onReady(function(){
     });
     stillage_store.load();
 
+    /* Bay position drop-down */
+    var bay_position_store = new Ext.data.JsonStore({
+        url:        url_bay_position_list,
+        root:       'objects',
+        fields:     [{ name: 'bay_position_id', type: 'int' },
+                     { name: 'description',     type: 'string'}],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    bay_position_store.load();
+
     /* Cask size drop-down */
     var casksize_store = new Ext.data.JsonStore({
         url:        url_cask_size_list,
@@ -103,6 +116,7 @@ Ext.onReady(function(){
     var dipbatch_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         allowBlank:     false,
         forceSelection: true,
         store:          dipbatch_store,
@@ -157,7 +171,8 @@ Ext.onReady(function(){
               valueField:     'company_id',
               displayField:   'name',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
               allowBlank:     true, },
             
             { name:           'festival_name',
@@ -178,6 +193,12 @@ Ext.onReady(function(){
               xtype:          'numberfield',
               allowBlank:     true},
             
+            { name:           'is_sale_or_return',
+	      fieldLabel:     'Is SOR',
+	      lazyRender:     true,
+	      xtype:          'checkbox',
+	      allowBlank:     true },
+
             { name:           'stillage_location_id',
               fieldLabel:     'Stillage',
               typeAhead:      true,
@@ -186,7 +207,26 @@ Ext.onReady(function(){
               valueField:     'stillage_location_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
+              allowBlank:     true, },
+
+            { name:           'stillage_bay',
+              fieldLabel:     'Bay No.',
+              lazyRender:     true,
+              xtype:          'numberfield',
+              allowBlank:     true},
+            
+            { name:           'bay_position_id',
+              fieldLabel:     'Bay position',
+              typeAhead:      true,
+              triggerAction:  'all',
+              store:          bay_position_store,
+              valueField:     'bay_position_id',
+              displayField:   'description',
+              lazyRender:     true,
+              xtype:          'mycombo',
+              noSelection:    emptySelect,
               allowBlank:     true, },
 
             { name:           'comment',
@@ -258,7 +298,7 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: 'Cask Details',            
         layout: 'fit',
         items: tabpanel,

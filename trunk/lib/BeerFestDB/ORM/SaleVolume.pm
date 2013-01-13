@@ -1,17 +1,21 @@
+use utf8;
 package BeerFestDB::ORM::SaleVolume;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+BeerFestDB::ORM::SaleVolume
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-
-=head1 NAME
-
-BeerFestDB::ORM::SaleVolume
+=head1 TABLE: C<sale_volume>
 
 =cut
 
@@ -55,10 +59,48 @@ __PACKAGE__->add_columns(
   "volume",
   { data_type => "decimal", is_nullable => 1, size => [4, 2] },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</sale_volume_id>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("sale_volume_id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<description>
+
+=over 4
+
+=item * L</description>
+
+=back
+
+=cut
+
 __PACKAGE__->add_unique_constraint("description", ["description"]);
 
 =head1 RELATIONS
+
+=head2 container_measure_id
+
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::ContainerMeasure>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "container_measure_id",
+  "BeerFestDB::ORM::ContainerMeasure",
+  { container_measure_id => "container_measure_id" },
+);
 
 =head2 festival_products
 
@@ -75,23 +117,9 @@ __PACKAGE__->has_many(
   {},
 );
 
-=head2 container_measure_id
 
-Type: belongs_to
-
-Related object: L<BeerFestDB::ORM::ContainerMeasure>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "container_measure_id",
-  "BeerFestDB::ORM::ContainerMeasure",
-  { container_measure_id => "container_measure_id" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07010 @ 2011-03-26 18:58:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M0/oW/XEx+voyOmBkw0hnw
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1CwKb7EQGVjV9AuKjFyrwg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

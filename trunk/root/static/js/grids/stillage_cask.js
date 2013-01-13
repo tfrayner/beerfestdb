@@ -32,6 +32,8 @@ Ext.onReady(function(){
         { name: 'product_name',      type: 'string' },
         { name: 'container_size_id', type: 'int' },
         { name: 'stillage_location_id', type: 'int' },
+        { name: 'stillage_bay',      type: 'string' }, // allows undef to be displayed correctly.
+        { name: 'bay_position_id',   type: 'int' },
         { name: 'gyle_id',           type: 'int' },
         { name: 'int_reference',     type: 'string' },
         { name: 'ext_reference',     type: 'string' },
@@ -41,12 +43,39 @@ Ext.onReady(function(){
         { name: 'is_tapped',         type: 'int' },
         { name: 'is_ready',          type: 'int' },
         { name: 'is_condemned',      type: 'int' },
+        { name: 'is_sale_or_return', type: 'int' },
     ]);
 
     var store = new Ext.data.JsonStore({
         url:        url_object_list,
         root:       'objects',
         fields:     Cask
+    });
+
+    /* Bay position drop-down */
+    var bay_position_store = new Ext.data.JsonStore({
+        url:        url_bay_position_list,
+        root:       'objects',
+        fields:     [{ name: 'bay_position_id', type: 'int' },
+                     { name: 'description',     type: 'string'}],
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    bay_position_store.load();
+    var bay_position_combo = new MyComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        mode:           'local',
+        allowBlank:     true,
+        noSelection:    emptySelect,
+        forceSelection: true,
+        store:          bay_position_store,
+        valueField:     'bay_position_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
     });
 
     var content_cols = [
@@ -80,6 +109,22 @@ Ext.onReady(function(){
               allowDecimals:  false,
               allowBlank:     true,
           })},
+        { id:         'stillage_bay',
+          header:     'Bay No.',
+          dataIndex:  'stillage_bay',
+          width:      50,
+	  renderer:   MyNumberRenderer(),
+          editor:     new Ext.form.NumberField({
+              allowDecimals:  false,
+              allowBlank:     true,
+          })},
+        { id:         'bay_position_id',
+          header:     'Bay Position',
+          dataIndex:  'bay_position_id',
+          width:      70,
+          renderer:   MyComboRenderer(bay_position_combo),
+          editor:     bay_position_combo,
+        },
         { id:         'is_vented',
           header:     'Vented',
           dataIndex:  'is_vented',
@@ -108,6 +153,13 @@ Ext.onReady(function(){
           editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
+        { id:         'is_sale_or_return',
+          header:     'SOR',
+          dataIndex:  'is_sale_or_return',
+          width:      40,
+          renderer:   MyCheckboxRenderer(),
+          editor:     new Ext.form.Checkbox({
+          })},
         { id:         'is_condemned',
           header:     'Condemned',
           dataIndex:  'is_condemned',
@@ -128,7 +180,7 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: stillagename + ' cask listing',
         layout: 'fit',
         items: new MyEditorGrid(

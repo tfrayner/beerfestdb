@@ -58,6 +58,7 @@ sub BUILD {
         price             => 'advertised_price',
         is_final          => 'is_final',
         is_received       => 'is_received',
+        is_sale_or_return => 'is_sale_or_return',
         comment           => 'comment',
     });
 }
@@ -121,6 +122,7 @@ sub submit : Local {
         $self->detach_with_txn_failure( $c, $@ );
     }
 
+    $c->stash->{ 'success' } = JSON::Any->true();
     $c->detach( $c->view( 'JSON' ) );
 }
 
@@ -213,6 +215,7 @@ sub _save_records : Private {
                 currency_id            => $currency_id,
                 internal_reference     => $previous_max + $n,
                 cellar_reference       => $previous_festival_max + $n,
+                is_sale_or_return      => $po->get_column('is_sale_or_return'),
             });
         }
     }

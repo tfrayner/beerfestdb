@@ -53,11 +53,75 @@ sub default : Private {
     $c->stash->{template} = 'not_found.tt2'; 
 } 
 
+=head2 access_denied
+
+The default action called if the user attempts to navigate somewhere
+they're not permitted. This is called by the Authorization::ACL plugin.
+
+=cut
+
+sub access_denied : Private {
+    my ( $self, $c, $action ) = @_;
+    $c->res->status('403');
+    $c->stash->{template} = 'denied.tt2';
+}
+
 =head2 index
 
 =cut
 
 sub index : Private {};
+
+=head2 login
+
+The primary login action, tied into the users/roles table system in
+the underlying database.
+
+=cut
+
+sub login : Global {
+
+    my ( $self, $c ) = @_;
+
+    my $j = JSON::Any->new;
+    my $json_req = $c->request->param( 'data' );
+
+    return unless $json_req;
+
+    my $data = $j->jsonToObj( $json_req );
+
+    if ( $c->authenticate({ username => $data->{ 'username' },
+                            password => $data->{ 'password' }, }) ) {
+
+        $c->res->redirect($c->uri_for('/'));  ## FIXME allow pass-through from prior location.
+        $c->stash->{ 'success' } = JSON::Any->true();
+        $c->detach( $c->view( 'JSON' ) );
+    }
+    else {
+        $c->res->status('401');
+        $c->stash->{ 'message' } = 'Login failed.';
+        $c->stash->{ 'success' } = JSON::Any->false();
+        $c->detach( $c->view( 'JSON' ) );
+    }
+}
+
+=head2 logout
+
+Standard logout action.
+
+=cut
+
+sub logout : Global {
+
+    my ( $self, $c ) = @_;
+
+    # Whatever happens we want to log out.
+    $c->logout;
+
+    $c->flash->{ 'message' } = 'Successfully logged out.';
+    $c->stash->{ 'success' } = JSON::Any->true();
+    $c->res->redirect( $c->uri_for('/') );
+}
 
 =head2 end
 

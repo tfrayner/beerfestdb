@@ -2,9 +2,16 @@
 % $Id$
 %
 
+[% IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class.\n" %][% END %]
+
 \documentclass[a4paper,12pt]{article} 
 \usepackage[newdimens]{labels}
 %\usepackage{palatino}
+
+%% For the QR codes.
+\usepackage{pst-barcode}
+\usepackage{auto-pst-pdf}
+\usepackage{multirow}
 
 \LabelCols=3 % Number of columns of labels per page
 \LabelRows=7 % Number of rows of labels per page
@@ -34,10 +41,19 @@
 
 \begin{labels}
 [% FOREACH cask = objects %]
-Cask ID: \textbf{[% IF cask.festival_id.defined %][% cask.festival_id %][% ELSE %]NOT AVAILABLE[% END %]}
-[% cask.brewery | replace( '&', '\\&' ) %]
-[% cask.product | replace( '&', '\\&' )  | truncate(30) %]
-ABV: [% cask.abv %]\%~~~([% cask.size | format('%d') %])
+\begin{tabular}{ l l }
+\multirow{5}{*}{
+[% IF cask.festival_id.defined -%]
+   \begin{pspicture}(0.5in, 0.5in)
+     \psbarcode{[% cask.festival_id %]}{includetext width=0.5 height=0.3}{code128}
+   \end{pspicture}
+[%- END %]
+} & Cask ID: \textbf{[% IF cask.festival_id.defined %][% cask.festival_id %][% ELSE %]NOT AVAILABLE[% END %]} \\
+& [% cask.brewery | truncate(20) | latexify %] \\
+& [% cask.product | truncate(20) | latexify %] \\
+& ABV: [% cask.abv %]\%~~~([% cask.size | format('%d') %]) \\
+& [% IF cask.is_sale_or_return %]SALE OR RETURN[% END %] \\
+\end{tabular}
 [% END %]
 \end{labels}
 

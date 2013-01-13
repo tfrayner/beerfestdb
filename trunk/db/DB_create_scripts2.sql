@@ -139,6 +139,31 @@ CREATE TABLE stillage_location (
 ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ------------------------------------------------------------
+-- Table structure for table `bay_position_id`
+
+-- The description is the position within the bay of a given cask, for
+-- example 'Top Back', 'Bottom Front'.
+-- ------------------------------------------------------------
+
+CREATE TABLE bay_position (
+  bay_position_id INTEGER(6) NOT NULL AUTO_INCREMENT,
+  description VARCHAR(50) NOT NULL,
+  PRIMARY KEY(bay_position_id),
+  UNIQUE KEY(description)
+)
+ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO bay_position (description) VALUES('Top Front');
+INSERT INTO bay_position (description) VALUES('Top Middle');
+INSERT INTO bay_position (description) VALUES('Top Back');
+INSERT INTO bay_position (description) VALUES('Middle Front');
+INSERT INTO bay_position (description) VALUES('Middle Back');
+INSERT INTO bay_position (description) VALUES('Bottom Front');
+INSERT INTO bay_position (description) VALUES('Bottom Middle');
+INSERT INTO bay_position (description) VALUES('Bottom Back');
+INSERT INTO bay_position (description) VALUES('On Floor');
+
+-- ------------------------------------------------------------
 -- Static Table structure for table `telephone_type`
 -- Simple table that describes different types of telephone that a telephone
 -- is one of e.g. telephone,fax,mobile.
@@ -708,6 +733,7 @@ CREATE TABLE cask (
   price INTEGER(11) UNSIGNED NULL,
   stillage_location_id INTEGER(6) NULL,
   stillage_bay INTEGER(4) UNSIGNED NULL,
+  bay_position_id INTEGER(6) NULL,
   stillage_x_location INTEGER(6) UNSIGNED NULL,
   stillage_y_location INTEGER(6) UNSIGNED NULL,
   stillage_z_location INTEGER(6) UNSIGNED NULL,
@@ -719,6 +745,7 @@ CREATE TABLE cask (
   is_tapped TINYINT(1) NULL,
   is_ready TINYINT(1) NULL,
   is_condemned TINYINT(1) NULL,
+  is_sale_or_return TINYINT(1) NULL,
   PRIMARY KEY(cask_id),
   UNIQUE KEY `festival_gyle_cask` (festival_id, gyle_id, internal_reference),
   UNIQUE KEY `festival_cellar_ref` (festival_id, cellar_reference),
@@ -727,6 +754,7 @@ CREATE TABLE cask (
   INDEX FK_CSK_obid(order_batch_id),
   INDEX FK_CSK_bid(bar_id),
   INDEX FK_CSK_stid(stillage_location_id),
+  INDEX FK_CSK_bpid(bay_position_id),
   INDEX FK_CSK_csid_CS_csid(container_size_id),
   INDEX FK_CSK_cc3_CUR_cc3(currency_id),
   INDEX IDX_CSK_exref(external_reference),
@@ -757,6 +785,10 @@ CREATE TABLE cask (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_gyleid_GYLE_gyleid(gyle_id)
     REFERENCES gyle(gyle_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSK_locid_BAYPOS_locid(bay_position_id)
+    REFERENCES bay_position(bay_position_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSK_locid_STILLOC_locid(stillage_location_id)
@@ -829,15 +861,16 @@ CREATE TABLE product_order (
   product_id INTEGER(6) NOT NULL,
   distributor_company_id INTEGER(6) NOT NULL,
   container_size_id INTEGER(6) NOT NULL,
-  cask_count INTEGER UNSIGNED NULL,
+  cask_count INTEGER UNSIGNED NOT NULL,
   currency_id INTEGER(6) NOT NULL,
   advertised_price INTEGER UNSIGNED NULL,
   is_final TINYINT(1) NULL,
   is_received TINYINT(1) NULL,
+  is_sale_or_return TINYINT(1) NOT NULL DEFAULT 0,
   comment TEXT NULL,
   PRIMARY KEY(product_order_id),
   UNIQUE KEY `product_order_batch` (order_batch_id, product_id, distributor_company_id,
-                                       container_size_id, cask_count),
+                                       container_size_id, cask_count, is_sale_or_return),
   INDEX FK_ORDER_fid(order_batch_id),
   INDEX FK_ORDER_pid(product_id),
   INDEX FK_ORDER_dcid(distributor_company_id),
@@ -866,9 +899,66 @@ CREATE TABLE product_order (
 )
 ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+--
+-- Table structure for table `user`
+--
+
+CREATE TABLE `user` (
+  `user_id` int(11) NOT NULL auto_increment,
+  `username` varchar(255) NOT NULL,
+  `name` varchar(255),
+  `email` varchar(255),
+  `password` varchar(40) NOT NULL,    -- The length of a Digest->hexdigest string. Also fits a Crypt::SaltedHash 39-char base64 string.
+--  `date_created` datetime NOT NULL,
+--  `date_modified` datetime,
+--  `date_accessed` datetime,
+  PRIMARY KEY  (`user_id`),
+  UNIQUE KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO user (user_id, username, password) VALUES(1, 'admin', '{SSHA1}OdySmKa+BHu7Nr4FttQ02JXQvmrigao2');
+
+--
+-- Table structure for table `role`
+--
+
+CREATE TABLE `role` (
+  `role_id` int(11) NOT NULL auto_increment,
+  `rolename` varchar(255) NOT NULL,
+  PRIMARY KEY  (`role_id`),
+  UNIQUE KEY (`rolename`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO role (role_id, rolename) VALUES(1, 'admin');
+INSERT INTO role (role_id, rolename) VALUES(2, 'user');
+
+--
+-- Table structure for table `user_role`
+--
+
+CREATE TABLE `user_role` (
+  `user_role_id` int(11) NOT NULL auto_increment,
+  `user_id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  PRIMARY KEY (`user_role_id`),
+  UNIQUE KEY (`user_id`,`role_id`),
+  KEY (`user_id`),
+  KEY (`role_id`),
+  CONSTRAINT `user_role_ibfk_1` FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`user_id`)
+      ON DELETE CASCADE,
+  CONSTRAINT `user_role_ibfk_2` FOREIGN KEY (`role_id`)
+    REFERENCES `role` (`role_id`)
+      ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO user_role (user_id, role_id) VALUES(1, 1);
+INSERT INTO user_role (user_id, role_id) VALUES(1, 2);
+
 -- A set of views that are often useful.
 CREATE VIEW programme_notes_view AS (
-     SELECT f.name AS festival,
+     SELECT distinct f.name AS festival,
        pc.description AS category,
        c.name AS brewer,
        c.loc_desc AS location,
@@ -888,7 +978,33 @@ CREATE VIEW programme_notes_view AS (
        AND po.product_id=p.product_id
        AND p.company_id=c.company_id
        AND pc.product_category_id=p.product_category_id
+       AND po.is_final=1
      ORDER BY festival, category, brewer, beer);
+
+CREATE VIEW order_summary_view AS (
+     SELECT f.name AS festival,
+       pc.description AS category,
+       c.name AS brewery,
+       p.name AS beer,
+       st.description AS style,
+       IF(po.is_sale_or_return=1, 'Yes', 'No') AS sale_or_return,
+       p.nominal_abv AS abv,
+       ROUND(SUM(po.cask_count * cs.container_volume / 18), 1) AS kils
+     FROM company c,
+       product_category pc,
+       product p LEFT JOIN product_style st ON p.product_style_id=st.product_style_id,
+       product_order po,
+       order_batch ob,
+       container_size cs,
+       festival f
+     WHERE f.festival_id=ob.festival_id
+       AND ob.order_batch_id=po.order_batch_id
+       AND p.product_id=po.product_id
+       AND p.company_id=c.company_id
+       AND po.container_size_id=cs.container_size_id
+       AND p.product_category_id=pc.product_category_id
+       AND po.is_final=1
+     GROUP BY festival, brewery, beer, sale_or_return);
 
 -- Create some basic triggers to make sure that product_style and
 -- product_characteristic usage is properly constrained to their

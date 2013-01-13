@@ -113,7 +113,7 @@ Ext.onReady(function(){
           header:     'Latest',
           dataIndex:  'volume',
           width:      30,
-          renderer:   function(value) { return undefined != value ? value : '' },
+          renderer:   MyNumberRenderer(),
           editor:     new Ext.form.NumberField({
               decimalPrecision: 1,
           })},
@@ -167,7 +167,7 @@ Ext.onReady(function(){
         }
     );
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: stillagename + ': ' + batchtime,
         layout: 'fit',
         items: myGrid,

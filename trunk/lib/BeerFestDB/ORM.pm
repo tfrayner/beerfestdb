@@ -1,3 +1,4 @@
+use utf8;
 package BeerFestDB::ORM;
 
 # Created by DBIx::Class::Schema::Loader
@@ -11,8 +12,8 @@ use base 'DBIx::Class::Schema';
 __PACKAGE__->load_classes;
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2010-05-23 15:30:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tviyq5MCINndqZDYN4TQhg
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2012-03-22 16:57:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:alpOhErLAN1OUKLGB/tyXA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

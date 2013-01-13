@@ -1,27 +1,23 @@
 # rename this file to BeerFestDB::Web.yml and put a : in front of "name" if
 # you want to use yaml like in old versions of Catalyst
 
-name: BeerFestDB::Web
-
-default_view: HTML
-
 # Main database configuration.
 Model::DB:
-
-  # Database connection parameters.
   connect_info:
     - DBI:mysql:test:localhost:3306
-    - 
-    -
-    - RaiseError: 1
-      AutoCommit: 1
-      on_connect_call: set_strict_mode
+
+# A somewhat CBF-specific config item: since we only ever run a single festival
+# at a time, we can designate the current festival:
+current_festival: 39th Cambridge Beer Festival
 
 # Default currency and sale volume measures. These values must also be
-# entered into the currency.currency_code and
-# sale_volume.description database columns.
-default_currency:    GBP
-default_sale_volume: pint
+# entered into the currency.currency_code,
+# sale_volume.sale_volume_description and
+# product_category.description database columns.
+#
+#default_currency:    GBP
+#default_sale_volume: pint
+#default_product_category: beer
 
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:
@@ -55,3 +51,4 @@ OODoc:
 #  - Cask
 #  - Gyle
 #  - StillageLocation
+#  - BayPosition

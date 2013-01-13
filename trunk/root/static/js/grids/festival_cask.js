@@ -63,6 +63,7 @@ Ext.onReady(function(){
         displayField:   'description',
         lazyRender:     true,
         triggerAction:  'all',
+        mode:           'local',
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -80,14 +81,16 @@ Ext.onReady(function(){
         },
     });
     stillage_store.load();
-    var stillage_combo = new Ext.form.ComboBox({
+    var stillage_combo = new MyComboBox({
         store:          stillage_store,
         valueField:     'stillage_location_id',
         displayField:   'description',
         lazyRender:     true,
         triggerAction:  'all',
+        mode:           'local',
         forceSelection: true,
         allowBlank:     true,
+        noSelection:    emptySelect,
         typeAhead:      true,
     });
 
@@ -178,7 +181,7 @@ Ext.onReady(function(){
         }
     );
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: festivalname + ' cask listing: ' + categoryname,
         layout: 'fit',
         items: myGrid,

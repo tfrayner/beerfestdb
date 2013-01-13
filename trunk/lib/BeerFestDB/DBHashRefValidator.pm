@@ -71,6 +71,13 @@ sub resultset_required_columns {
 
     my $source = $resultset->result_source();
 
+    return $self->resultsource_required_columns($source);
+}
+
+sub resultsource_required_columns {
+
+    my ( $self, $source ) = @_;
+
     my %is_pk = map { $_ => 1 } $source->primary_columns();
 
     my @cols = $source->columns();

@@ -124,6 +124,8 @@ sub order_hash {
         distributor => $order->distributor_company_id->name(),
         cask_size   => $order->container_size_id->container_volume(),
         cask_count  => $order->cask_count(),
+        is_sale_or_return => $order->is_sale_or_return(),
+        nominal_abv => $order->product_id->nominal_abv(),
     );
 
     my $currency = $order->currency_id();
@@ -135,6 +137,19 @@ sub order_hash {
     return \%orderhash;
 }
 
+sub _retrieve_sales_contact {
+
+    my ( $self, $dist ) = @_;
+
+    my $ct = $self->database()->resultset('ContactType')->find({ description => 'Sales' })
+        or croak(qq{Cannot find 'Sales' ContactType in database.});
+
+    my $contact = $dist->search_related('contacts', {contact_type_id => $ct->id})->first()
+        or croak(sprintf(qq{Cannot find 'Sales' contact for '%s'.}, $dist->name()));
+
+    return $contact;
+}
+
 sub distributor_hash {
 
     my ( $self, $dist ) = @_;
@@ -142,31 +157,37 @@ sub distributor_hash {
     my $fest       = $self->festival();
     my $orderbatch = $self->order_batch();
 
-    my $ct = $self->database()->resultset('ContactType')->find({ description => 'Sales' })
-        or croak(qq{Cannot find 'Sales' ContactType in database.});
-
-    my $contact = $dist->search_related('contacts', {contact_type_id => $ct->id})->first()
-        or croak(sprintf(qq{Cannot find 'Sales' contact for '%s'.}, $dist->name()));
-    
     my %disthash = (
         id         => $dist->id(),
         name       => $dist->name(),
         full_name  => $dist->full_name(),
-        address    => $contact->street_address(),
-        postcode   => $contact->postcode(),
         batch_id   => $orderbatch->id(),
     );
+
+    # Some distributor-level template dumps have no need for sales
+    # contact data (e.g. delivery checklists) so we only warn here.
+    my $contact;
+    eval { $contact = $self->_retrieve_sales_contact( $dist ) };
+    if ( $@ ) {
+        warn( $@ );
+    }
+    else {
+        $disthash{'address'}  = $contact->street_address();
+        $disthash{'postcode'} = $contact->postcode();
+    }
 
     my $order_rs
         = $dist->search_related('product_orders',
                                 { order_batch_id => $orderbatch->id(),
                                   is_final       => 1 });
     
-    my @orderlist;
+    my %orderhashlist;
     while ( my $order = $order_rs->next() ) {
-        push @orderlist, $self->order_hash( $order );
+        my $product = $order->product_id->name();
+        my $brewery = $order->product_id->company_id->name();
+        push @{ $orderhashlist{$brewery}{$product} }, $self->order_hash( $order );
     }
-    $disthash{'orders'} = \@orderlist;
+    $disthash{'orders'} = \%orderhashlist;
 
     return \%disthash;
 }
@@ -200,6 +221,10 @@ sub update_cask_hash {
     $caskhash->{dips}         = $self->munge_dips( $cask );
     $caskhash->{comment}      = $cask->comment();
     $caskhash->{is_condemned} = $cask->is_condemned();
+    $caskhash->{is_sale_or_return} = $cask->is_sale_or_return();
+    $caskhash->{stillage_bay} = $cask->stillage_bay();
+    $caskhash->{bay_position} = $cask->bay_position_id
+	  ? $cask->bay_position_id->description() : q{};
 
     return $caskhash;
 }
@@ -285,17 +310,83 @@ sub dump {
         objects    => \@template_data,
         stillages  => \%stillage,
         dip_batches => \@dip_batches,
+        dump_class => $self->dump_class(),
     };
 
     # We define a custom title case filter for convenience.
     my $template = Template->new(
-	FILTERS => {titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) }}
+	FILTERS => {
+            titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) },
+            latexify  => \&filter_to_latex,
+        }
     )   or die( "Cannot create Template object: " . Template->error() );
 
     $template->process($self->template(), $vars, $self->filehandle() )
         or die( "Template processing error: " . $template->error() );
 
     return;
+}
+
+sub filter_to_latex {
+
+    # This is the core method used by the latexify filter to encode
+    # LaTeX control characters and more esoteric characters into
+    # something that can be processed by LaTeX.
+
+    my ( $text ) = @_;
+
+    # Common characters.
+    $text =~ s/ \{  /\\{/gxms;
+    $text =~ s/ \}  /\\}/gxms;
+    $text =~ s/ \&  /\\&/gxms;
+    $text =~ s/ \%  /\\%/gxms;
+    $text =~ s/ \#  /\\#/gxms;
+    $text =~ s/ [_] /\\_/gxms;
+    $text =~ s/ \$  /\\\$/gxms;
+    $text =~ s/ \n  /\\\\/gxms;
+
+    # In the following we try to support both Latin-1 and UTF-8
+    # encodings. Note that the UTF-8 substitution requires
+    # mysql_enable_utf8 => 1 in the DBD::mysql connection options (see
+    # beerfestdb_web.yml).
+
+    # N.B. we're not covering capitals yet FIXME?
+
+    # Grave accents.
+    $text =~ s/ (?: à | \x{e0} ) /\\`{a}/gxms;
+    $text =~ s/ (?: è | \x{e8} ) /\\`{e}/gxms;
+    $text =~ s/ (?: ì | \x{ec} ) /\\`{\\i}/gxms;
+    $text =~ s/ (?: ò | \x{f2} ) /\\`{o}/gxms;
+    $text =~ s/ (?: ù | \x{f9} ) /\\`{u}/gxms;
+
+    # Acute accents.
+    $text =~ s/ (?: á | \x{e1} ) /\\'{a}/gxms;
+    $text =~ s/ (?: é | \x{e9} ) /\\'{e}/gxms;
+    $text =~ s/ (?: í | \x{ed} ) /\\'{\\i}/gxms;
+    $text =~ s/ (?: ó | \x{f3} ) /\\'{o}/gxms;
+    $text =~ s/ (?: ú | \x{fa} ) /\\'{u}/gxms;
+
+    # Circumflex accents.
+    $text =~ s/ (?: â | \x{e2} ) /\\^{a}/gxms;
+    $text =~ s/ (?: ê | \x{ea} ) /\\^{e}/gxms;
+    $text =~ s/ (?: î | \x{ee} ) /\\^{\\i}/gxms;
+    $text =~ s/ (?: ô | \x{f4} ) /\\^{o}/gxms;
+    $text =~ s/ (?: û | \x{fb} ) /\\^{u}/gxms;
+
+    # Umlauts.
+    $text =~ s/ (?: ä | \x{e4} ) /\\"{a}/gxms;
+    $text =~ s/ (?: ë | \x{eb} ) /\\"{e}/gxms;
+    $text =~ s/ (?: ï | \x{ef} ) /\\"{\\i}/gxms;
+    $text =~ s/ (?: ö | \x{f6} ) /\\"{o}/gxms;
+    $text =~ s/ (?: ü | \x{fc} ) /\\"{u}/gxms;
+
+    # Misc.
+    $text =~ s/ (?: \£ | \x{a3} ) /\\pounds/gxms;
+    $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
+    $text =~ s/ (?: ß  | \x{df} ) /\\ss/gxms;
+    $text =~ s/ (?: ø  | \x{f8} ) /\\o/gxms;
+
+    return $text;
 }
 
 1;
@@ -389,6 +480,18 @@ The price per half sale unit.
 =item sale_volume
 
 The sale unit itself.
+
+=item comment
+
+Free-text notes on the cask.
+
+=item is_condemned
+
+A boolean flag indicating whether the cask has been condemned or not.
+
+=item is_sale_or_return
+
+A boolean flag indicating whether the cask or product order is sale-or-return or not.
 
 =item dips
 

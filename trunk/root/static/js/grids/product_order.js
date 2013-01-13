@@ -37,6 +37,7 @@ Ext.onReady(function(){
         { name: 'price',                  type: 'int' },
         { name: 'is_final',               type: 'int' },
         { name: 'is_received',            type: 'int' },
+        { name: 'is_sale_or_return',      type: 'int' },
         { name: 'comment',                type: 'string' },
     ]);
 
@@ -114,7 +115,6 @@ Ext.onReady(function(){
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      false, // bypasses the filter; FIXME in future?
-        triggerAction:  'all',
         store:          product_store,
         valueField:     'product_id',
         displayField:   'name',
@@ -151,6 +151,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          distributor_store,
         valueField:     'company_id',
         displayField:   'name',
@@ -184,6 +185,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          currency_store,
         valueField:     'currency_id',
         displayField:   'currency_code',
@@ -208,6 +210,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          cask_size_store,
         valueField:     'container_size_id',
         displayField:   'description',
@@ -267,6 +270,13 @@ Ext.onReady(function(){
           editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
+        { id:         'is_sale_or_return',
+          header:     'SOR',
+          dataIndex:  'is_sale_or_return',
+          width:      40,
+          renderer:   MyCheckboxRenderer(),
+          editor:     new Ext.form.Checkbox({
+          })},
         { id:         'is_final',
           header:     'Ordered',
           dataIndex:  'is_final',
@@ -284,8 +294,8 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate('/productorder/view/{product_order_id}');
-        window.location=t.apply({product_order_id: record.get('product_order_id')});
+        var t = new Ext.XTemplate('/product/view/{product_id}');
+        window.location=t.apply({product_id: record.get('product_id')});
     };
 
     function recordChanges (record) {
@@ -361,7 +371,7 @@ Ext.onReady(function(){
         },
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: orderbatchname + ': ' + categoryname,
         layout: 'fit',
         items: myGrid,

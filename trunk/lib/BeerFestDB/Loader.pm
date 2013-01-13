@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2013 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,6 +48,16 @@ has 'overwrite' => ( is       => 'ro',
                      isa      => 'Bool',
                      required => 1,
                      default  => 0 );
+
+has '_error_report' => ( is       => 'rw',
+                         isa      => 'Str',
+                         required => 1,
+                         default  => q{} );
+
+has '_error_count' => ( is       => 'rw',
+                        isa      => 'Int',
+                        required => 1,
+                        default  => 0 );
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -103,6 +113,9 @@ Readonly my $TELEPHONE_TYPE            => 48;
 Readonly my $CASK_CELLAR_ID            => 49;
 Readonly my $CASK_FESTIVAL_ID          => 50;
 Readonly my $BREWER_REGION             => 51;
+Readonly my $ORDER_SALE_OR_RETURN      => 52;
+Readonly my $BAY_NUMBER                => 53;
+Readonly my $BAY_POSITION              => 54;
 
 ########
 # SUBS #
@@ -131,6 +144,46 @@ sub value_is_acceptable {
     return ( defined $value && $value ne q{} && $value !~ m/\A \?+ \z/xms );
 }
 
+sub _add_error_report_string {
+
+    my ( $self, $str ) = @_;
+
+    $self->_error_report( $self->_error_report . "" . $str );
+
+    return;
+}
+
+sub add_protection_error {
+
+    my ( $self, $req_vals, $class ) = @_;
+
+    my $resultset = $self->database()->resultset($class)
+	or confess(qq{Error: No result set returned from DB for class "$class".});
+
+    my $source = $resultset->result_source();
+
+    # FIXME this wants foreign keys to generate a useful string.
+    my $err = qq{Protection error ($class):\n};
+    foreach my $key ( keys %$req_vals ) {
+        if ( $source->has_relationship( $key ) ) {
+            my $relsource   = $source->related_source( $key );
+            my $rel         = $relsource->resultset->find({
+                $key => $req_vals->{$key}
+            });
+            my $related_rqd = $self->resultsource_required_columns($relsource);
+            my $relstr = join(";", map { $rel->get_column($_) } @$related_rqd);
+            $key  =~ s/_id\z//xms;
+            $err .= qq{        $key : $relstr\n};
+        }
+        else {
+            $err .= qq{        $key : $req_vals->{$key}\n};
+        }
+    }
+    $err .= "\n";
+    $self->_add_error_report_string($err);
+    $self->_error_count( $self->_error_count + 1 );
+}
+
 sub _load_data {
 
     my ( $self, $datahash ) = @_;
@@ -156,6 +209,15 @@ sub _load_data {
                 festival_id => $festival->id,
 	    },
 	    'StillageLocation')
+	: undef;
+
+    my $bay_position
+	= $self->value_is_acceptable( $datahash->{$BAY_POSITION} )
+	? $self->_load_column_value(
+	    {
+		description => $datahash->{$BAY_POSITION},
+	    },
+	    'BayPosition')
 	: undef;
 
     my $bar
@@ -349,6 +411,7 @@ sub _load_data {
                 is_final               => $datahash->{$ORDER_FINALISED},
                 is_received            => $datahash->{$ORDER_RECEIVED},
                 comment                => $datahash->{$ORDER_COMMENT},
+                is_sale_or_return      => $datahash->{$ORDER_SALE_OR_RETURN} || 0, # Part of a DB key
             },
             'ProductOrder',
         );
@@ -426,6 +489,8 @@ sub _load_data {
                             currency_id            => $currency,
                             price                  => $cask_price,
                             stillage_location_id   => $stillage,
+                            stillage_bay           => $datahash->{$BAY_NUMBER},
+                            bay_position_id        => $bay_position,
                             bar_id                 => $bar,
                             comment                => $datahash->{$CASK_COMMENT},
                             internal_reference     => $n,
@@ -546,11 +611,13 @@ sub _load_column_value {
             $object = $objects[0];
         }
         elsif ( scalar @objects == 0 ) {
-            use Data::Dumper;
-            $Data::Dumper::Maxdepth = 3;
-            croak(qq{Error: Object from protected class "$class" not found in}
-                      . qq{ database; will not autocreate. Query dump follows: }
-                          . Dumper \%req);
+
+            # Add an error, but create the object anyway *within the
+            # transaction which will be rolled back*. This is a cheap
+            # way of testloading and generating a full report on all
+            # errors.
+            $self->add_protection_error( \%req, $class );
+            $object = $resultset->find_or_create(\%req);
         }
         else {  # This is bad - it indicates a class which is not
                 # uniquely defined by its required attributes.
@@ -569,7 +636,8 @@ sub _load_column_value {
     COLUMN:
     while ( my ( $col, $value ) = each %opt ) {
 
-        next COLUMN unless defined $value;
+        # Don't overwrite good data with empty values, even in overwrite mode.
+        next COLUMN unless ( defined $value && $value !~ /\A \s* \z/xms );
 
         # Special-case for comment fields - append new text rather than replacing the old.
         if ( $col eq 'comment' ) {
@@ -607,6 +675,8 @@ sub _coerce_headings {
         qr/festival [_ -]* description/ixms            => $FESTIVAL_DESCRIPTION,
         qr/bar [_ -]* description/ixms                 => $BAR_DESCRIPTION,
         qr/stillage [_ -]* loc (?:ation)?/ixms         => $STILLAGE_LOCATION,
+        qr/bay [_ -]* number/ixms                      => $BAY_NUMBER,
+        qr/bay [_ -]* position/ixms                    => $BAY_POSITION,
         qr/brewery? [_ -]* name/ixms                   => $BREWER_NAME,
         qr/brewery? [_ -]* full [_ -]* name/ixms       => $BREWER_FULL_NAME,
         qr/brewery? [_ -]* loc [_ -]* desc/ixms        => $BREWER_LOC_DESC,
@@ -638,11 +708,12 @@ sub _coerce_headings {
         qr/cask [_ -]* measurement [_ -]* volume/ixms  => $CASK_MEASUREMENT_VOLUME,
         qr/cask [_ -]* measurement [_ -]* comment/ixms => $CASK_MEASUREMENT_COMMENT,
         qr/product [_ -]* category/ixms                => $PRODUCT_CATEGORY,
-        qr/order [_ -]* batch/ixms                     => $ORDER_BATCH_NAME,
+        qr/order [_ -]* batch (?:[_ -]* name)?/ixms    => $ORDER_BATCH_NAME,
         qr/order [_ -]* batch [_ -]* date/ixms         => $ORDER_BATCH_DATE,
         qr/order [_ -]* finali[sz]ed/ixms              => $ORDER_FINALISED,
         qr/order [_ -]* received/ixms                  => $ORDER_RECEIVED,
         qr/order [_ -]* comment/ixms                   => $ORDER_COMMENT,
+        qr/order [_ -]* (?:sor|sale [_ -]* or [_ -]* return)/ixms  => $ORDER_SALE_OR_RETURN,
         qr/contact [_ -]* type/ixms                    => $CONTACT_TYPE,
         qr/contact [_ -]* first [_ -]* name/ixms       => $CONTACT_FIRST_NAME,
         qr/contact [_ -]* last [_ -]* name/ixms        => $CONTACT_LAST_NAME,
@@ -703,6 +774,11 @@ sub load {
                     @datahash{ @$headings } = @$rowlist;
                     $self->_load_data( \%datahash );
                 }
+
+                # Any errors mean we need to roll back the transaction.
+                if ( $self->_error_count > 0 ) {
+                    croak("Errors found:\n\n" . $self->_error_report());
+                }
             }
         );
     };
@@ -710,6 +786,16 @@ sub load {
         die(qq{Errors encountered during load:\n\n$@});
     }
     else {
+
+	# Check that parsing completed successfully.
+	my ( $error, $mess ) = $csv_parser->error_diag();
+	unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
+	    die(sprintf(
+		    "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
+		    $mess,
+		    $csv_parser->error_input()));
+	}
+
         warn("All data successfully loaded.\n");
     }
 }

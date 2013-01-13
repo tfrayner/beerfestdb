@@ -1,14 +1,16 @@
 %
-% $Id: cask_end_template.tt2 84 2010-05-18 18:13:26Z tfrayner $
+% $Id$
 %
 % Example LaTeX template for use with cask_end_signs_latex.pl
 
+[% IF dump_class != 'gyle' %][% THROW bad_dump_class "Use the gyle dump class.\n" %][% END %]
+
 \documentclass[english,a4paper]{article}
 
-\usepackage[a4paper, portrait]{geometry}
+\usepackage[a4paper, portrait, top=1.0cm, bottom=1.0cm, left=2.5cm, right=2.5cm]{geometry}
 
 \usepackage[absolute]{textpos}
-\usepackage{babel}
+\usepackage[british]{babel}
 \usepackage{times}
 \usepackage{graphicx}
 \usepackage{fix-cm}
@@ -18,7 +20,7 @@
 %\exhyphenpenalty=10000
 
 [% BLOCK stillage_name %]
-  \textbf{[% sname | replace('&', '\\&') %]}
+  \textbf{[% sname | latexify %]}
 [% END %]
 
 [% BLOCK table_header %]
@@ -50,7 +52,7 @@
 
   \vspace{ 5 mm }
 
-  \fontsize{10}{12}
+  \fontsize{12}{14}
   \selectfont
 
   [% PROCESS table_header %]
@@ -61,13 +63,13 @@
 
   [% FOREACH product = products %]
 
-    [% product.brewery | replace( '&', '\\&' ) %] &
-    [% product.product | truncate(40) | replace( '&', '\\&' ) %] &
+    [% product.brewery | latexify %] &
+    [% product.product | truncate(25) | latexify %] &
     [% product.abv %] &
-    [%- product.currency | replace( '£', '\pounds' ) -%]
+    [%- product.currency | latexify -%]
     [%- product.price    | format('%.2f') -%]&
 
-    [%- product.currency | replace( '£', '\pounds' ) -%]
+    [%- product.currency | latexify -%]
     [%- product.half_price | format('%.2f') -%] \\
 
     [% counter = counter + 1 %]

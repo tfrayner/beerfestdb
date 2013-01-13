@@ -271,6 +271,9 @@ Ext.onReady(function(){
             { name:       'kils_ordered',
               fieldLabel: 'Total kils of beer ordered',
               readOnly:   true, },
+            { name:       'kils_sale_or_return',
+              fieldLabel: 'Total SOR kils',
+              readOnly:   true, },
             { name:       'kils_remaining',
               fieldLabel: 'Total kils of beer remaining',
               readOnly:   true, },
@@ -311,7 +314,7 @@ Ext.onReady(function(){
         ],
     });
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: festivalname,            
         layout: 'fit',
         items: tabpanel,

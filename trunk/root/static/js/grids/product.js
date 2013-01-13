@@ -58,6 +58,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          supplier_store,
         valueField:     'company_id',
         displayField:   'name',
@@ -80,6 +81,7 @@ Ext.onReady(function(){
     var style_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         forceSelection: true,
         store:          style_store,
         valueField:     'product_style_id',
@@ -144,7 +146,7 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: festivalname + ' product listing: ' + categoryname,
         layout: 'fit',
         items: new MyEditorGrid(

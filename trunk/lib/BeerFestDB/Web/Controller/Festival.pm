@@ -183,8 +183,13 @@ sub status : Local {
                                              'is_final'                       => 1 },
                                            { join => 'product_id' } );
     my $order_tot = 0;
+    my $sor_order_tot = 0;
     while ( my $order = $orders->next() ) {
-        $order_tot += $order->container_size_id()->container_volume() * $order->cask_count();
+        my $vol = $order->container_size_id()->container_volume() * $order->cask_count();
+        $order_tot += $vol;
+        if ( $order->is_sale_or_return() ) {
+            $sor_order_tot += $vol;
+        }
     }
 
     # kils_remaining and num_beers_available
@@ -222,11 +227,14 @@ sub status : Local {
             $product_available{ $cask->gyle_id->get_column('festival_product_id') }++;
         }
     }
-    my $ko = $order_tot     / $kilsize->container_volume();
-    my $kr = $remaining_tot / $kilsize->container_volume();
+    my $kilvol = $kilsize->container_volume();
+    my $ko = $order_tot     / $kilvol;
+    my $ks = $sor_order_tot / $kilvol;
+    my $kr = $remaining_tot / $kilvol;
     my $pc = $ko != 0 ? sprintf("%.1f%%", ($kr/$ko) * 100) : q{};
     my %obj_hash = (
         kils_ordered   => sprintf('%.1f', $ko),
+        kils_sale_or_return => sprintf('%.1f', $ks),
         kils_remaining => sprintf('%.1f %s', $kr, $pc),
         num_beers_available => scalar( grep { defined $_ } values %product_available ),
     );

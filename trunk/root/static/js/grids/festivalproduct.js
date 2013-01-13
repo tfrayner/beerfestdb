@@ -32,6 +32,7 @@ Ext.onReady(function(){
         { name: 'sale_price',          type: 'float' },
         { name: 'sale_volume_id',      type: 'int' },
         { name: 'sale_currency_id',    type: 'int' },
+        { name: 'comment',             type: 'string' },
     ]);
 
     var store = new Ext.data.JsonStore({
@@ -62,7 +63,6 @@ Ext.onReady(function(){
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
-        triggerAction:  'all',
         store:          brewer_store,
         valueField:     'company_id',
         displayField:   'name',
@@ -143,6 +143,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         forceSelection: true,
         store:          volume_store,
         valueField:     'sale_volume_id',
@@ -167,6 +168,7 @@ Ext.onReady(function(){
         allowBlank:     false,
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         forceSelection: true,
         store:          currency_store,
         valueField:     'currency_id',
@@ -179,13 +181,13 @@ Ext.onReady(function(){
         { id:         'company_id',
           header:     'Brewer',
           dataIndex:  'company_id',
-          width:      130,
+          width:      100,
           renderer:   MyComboRenderer(brewer_combo),
           editor:     brewer_combo, },
         { id:         'product_id',
           header:     'Product',
           dataIndex:  'product_id',
-          width:      130,
+          width:      100,
           renderer:   MyComboRenderer(product_combo),
           editor:     product_combo, },
         { id:         'sale_price',
@@ -207,6 +209,13 @@ Ext.onReady(function(){
           width:      40,
           renderer:   MyComboRenderer(volume_combo),
           editor:     volume_combo },
+        { id:         'comment',
+          header:     'Comment',
+          dataIndex:  'comment',
+          width:      100,
+          editor:     new Ext.form.TextField({
+              allowBlank:     true,
+          })},
     ];
 
     function viewLink (grid, record, action, row, col) {
@@ -251,7 +260,7 @@ Ext.onReady(function(){
         }
     );
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title: festivalname + ' product listing: ' + categoryname,
         layout: 'fit',
         items: myGrid,

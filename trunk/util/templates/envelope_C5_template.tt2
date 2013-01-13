@@ -1,8 +1,13 @@
+%
+% $Id$
+%
+[% IF dump_class != 'distributor' %][% THROW bad_dump_class "Use the distributor dump class.\n" %][% END %]
+
 \documentclass[english,a4paper]{article}
 
 \usepackage[absolute]{textpos}
-\usepackage[paperheight=110mm,paperwidth=220mm]{geometry}
-\usepackage{babel}
+\usepackage[c5paper,landscape]{geometry}
+\usepackage[british]{babel}
 \usepackage{palatino}
 \usepackage{graphicx}
 
@@ -24,11 +29,11 @@
 \small{Cambridge CB1 2AY}\\
 \end{textblock}
 
-\begin{textblock}{30}(12,8)
-\large
+\begin{textblock}{40}(14,11)
+\LARGE
 
-[% IF dist.full_name %][% dist.full_name | replace( '&', '\\&' ) %][% ELSE %][% dist.name | replace( '&', '\\&' ) %][% END %],\\
-[% dist.address | replace( '&', '\\&' ) | replace( '\n', '\\\\' ) %]\\
+[% IF dist.full_name %][% dist.full_name | latexify %][% ELSE %][% dist.name | latexify %][% END %]\\
+[% dist.address | replace(',\n', "\n") | replace('[\n\s]+$', "") | latexify %]\\
 [% dist.postcode %]
 
 \end{textblock}

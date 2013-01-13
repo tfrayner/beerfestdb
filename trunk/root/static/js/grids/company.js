@@ -61,6 +61,7 @@ Ext.onReady(function(){
     var region_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
+        mode:           'local',
         store:          region_store,
         forceSelection: true,
         valueField:     'company_region_id',
@@ -122,7 +123,7 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var panel = new Ext.Panel({
+    var panel = new MyMainPanel({
         title:  'Company listing',
         layout: 'fit',
         items: new MyEditorGrid(

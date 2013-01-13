@@ -80,6 +80,7 @@ sub BUILD {
             },
         },
         stillage_bay      => 'stillage_bay',
+        bay_position_id   => 'bay_position_id',
         stillage_x        => 'stillage_x_location',
         stillage_y        => 'stillage_y_location',
         stillage_z        => 'stillage_z_location',
@@ -91,6 +92,7 @@ sub BUILD {
         is_tapped         => 'is_tapped',
         is_ready          => 'is_ready',
         is_condemned      => 'is_condemned',
+        is_sale_or_return => 'is_sale_or_return',
     });
 }
 
