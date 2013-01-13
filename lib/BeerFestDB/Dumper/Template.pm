@@ -137,6 +137,19 @@ sub order_hash {
     return \%orderhash;
 }
 
+sub _retrieve_sales_contact {
+
+    my ( $self, $dist ) = @_;
+
+    my $ct = $self->database()->resultset('ContactType')->find({ description => 'Sales' })
+        or croak(qq{Cannot find 'Sales' ContactType in database.});
+
+    my $contact = $dist->search_related('contacts', {contact_type_id => $ct->id})->first()
+        or croak(sprintf(qq{Cannot find 'Sales' contact for '%s'.}, $dist->name()));
+
+    return $contact;
+}
+
 sub distributor_hash {
 
     my ( $self, $dist ) = @_;
@@ -144,20 +157,24 @@ sub distributor_hash {
     my $fest       = $self->festival();
     my $orderbatch = $self->order_batch();
 
-    my $ct = $self->database()->resultset('ContactType')->find({ description => 'Sales' })
-        or croak(qq{Cannot find 'Sales' ContactType in database.});
-
-    my $contact = $dist->search_related('contacts', {contact_type_id => $ct->id})->first()
-        or croak(sprintf(qq{Cannot find 'Sales' contact for '%s'.}, $dist->name()));
-    
     my %disthash = (
         id         => $dist->id(),
         name       => $dist->name(),
         full_name  => $dist->full_name(),
-        address    => $contact->street_address(),
-        postcode   => $contact->postcode(),
         batch_id   => $orderbatch->id(),
     );
+
+    # Some distributor-level template dumps have no need for sales
+    # contact data (e.g. delivery checklists) so we only warn here.
+    my $contact;
+    eval { $contact = $self->_retrieve_sales_contact( $dist ) };
+    if ( $@ ) {
+        warn( $@ );
+    }
+    else {
+        $disthash{'address'}  = $contact->street_address();
+        $disthash{'postcode'} = $contact->postcode();
+    }
 
     my $order_rs
         = $dist->search_related('product_orders',
