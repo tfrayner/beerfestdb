@@ -40,6 +40,8 @@ rankProducts <- function( cp, drop, w ) {
     z <- aggregate(z$Estimate, list(x$company_name, x$product_name), median)
     z <- z[order(z$x),]
 
+    colnames(z) <- c('company_name','product_name','gallons_per_session')
+
     return(z)
 }
 
