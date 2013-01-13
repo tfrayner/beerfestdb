@@ -145,7 +145,7 @@ sub dump {
 
     my ( %barinfo, %brewerinfo, %product_stillaged );
 
-    # Handle all stillaged casks.
+    # All beers present in casks on a stillage are handled here.
     foreach my $cask ( @$casks ) {
         my $bar = $cask->bar_id() ? $cask->bar_id()->description()
                 : $cask->stillage_location_id() ? $cask->stillage_location_id()->description()
@@ -161,21 +161,21 @@ sub dump {
         $product_stillaged{ $beer->get_column('product_id') }++;
     }
 
-    # Handle all products not yet assigned a stillage.
-    foreach my $fp ( @{ $self->festival_products } ) {
-        my $beer = $fp->festival_product_id();
+    # Deal with beers not stillaged (e.g. if we're dealing with them
+    # only at the FestivalProduct level).
+    foreach my $beer ( @{ $self->festival_products } ) {
         unless ( $product_stillaged{ $beer->get_column('product_id') } ) {
-            my $beer   = $fp->product_id;
             my $brewer = $beer->company_id;
             $barinfo{'Other Bars'}{$brewer->name}{$beer->name} = {
-                abv      => $beer->nominal_abv,
-                style    => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
+                abv         => $beer->nominal_abv,
+                style       => $beer->product_style_id ? $beer->product_style_id->description : q{N/A},
                 description => $beer->description,
             };
             $brewerinfo{$brewer->name}{'location'} = $brewer->loc_desc || q{Unknown location};
         }
     }
 
+    # Write out the data to the template document.
     while ( my ( $bar, $caskinfo ) = each %barinfo ) {
         warn("Printing bar info: $bar\n");
         if ( $bar ) {

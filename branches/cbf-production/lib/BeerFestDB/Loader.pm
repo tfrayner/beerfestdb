@@ -114,6 +114,8 @@ Readonly my $CASK_CELLAR_ID            => 49;
 Readonly my $CASK_FESTIVAL_ID          => 50;
 Readonly my $BREWER_REGION             => 51;
 Readonly my $ORDER_SALE_OR_RETURN      => 52;
+Readonly my $BAY_NUMBER                => 53;
+Readonly my $BAY_POSITION              => 54;
 
 ########
 # SUBS #
@@ -207,6 +209,15 @@ sub _load_data {
                 festival_id => $festival->id,
 	    },
 	    'StillageLocation')
+	: undef;
+
+    my $bay_position
+	= $self->value_is_acceptable( $datahash->{$BAY_POSITION} )
+	? $self->_load_column_value(
+	    {
+		description => $datahash->{$BAY_POSITION},
+	    },
+	    'BayPosition')
 	: undef;
 
     my $bar
@@ -478,6 +489,8 @@ sub _load_data {
                             currency_id            => $currency,
                             price                  => $cask_price,
                             stillage_location_id   => $stillage,
+                            stillage_bay           => $datahash->{$BAY_NUMBER},
+                            bay_position_id        => $bay_position,
                             bar_id                 => $bar,
                             comment                => $datahash->{$CASK_COMMENT},
                             internal_reference     => $n,
@@ -662,6 +675,8 @@ sub _coerce_headings {
         qr/festival [_ -]* description/ixms            => $FESTIVAL_DESCRIPTION,
         qr/bar [_ -]* description/ixms                 => $BAR_DESCRIPTION,
         qr/stillage [_ -]* loc (?:ation)?/ixms         => $STILLAGE_LOCATION,
+        qr/bay [_ -]* number/ixms                      => $BAY_NUMBER,
+        qr/bay [_ -]* position/ixms                    => $BAY_POSITION,
         qr/brewery? [_ -]* name/ixms                   => $BREWER_NAME,
         qr/brewery? [_ -]* full [_ -]* name/ixms       => $BREWER_FULL_NAME,
         qr/brewery? [_ -]* loc [_ -]* desc/ixms        => $BREWER_LOC_DESC,
