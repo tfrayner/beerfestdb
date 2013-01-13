@@ -51,6 +51,7 @@ OODoc:
 #  - Cask
 #  - Gyle
 #  - StillageLocation
+#  - BayPosition
 
 status_query:
   festival_name:
