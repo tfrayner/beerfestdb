@@ -1,5 +1,0 @@
-[% META title = 'Product Category listing' %]
-
-[% js_link( src = '/static/js/grids/product_categories.js' ) %]
-
-<div id="datagrid"></div>
