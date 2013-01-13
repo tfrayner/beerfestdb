@@ -84,6 +84,8 @@ sub view : Local {
 
     $c->stash->{object}     = $object;
 
+    $self->get_default_product_category( $c );
+
     return;
 }
 

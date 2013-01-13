@@ -423,6 +423,23 @@ sub get_default_sale_volume : Private {
     return;
 }
 
+=head2 get_default_product_category
+
+=cut
+
+sub get_default_product_category : Private {
+
+    my ( $self, $c ) = @_;
+
+    my $def = $c->model('DB::ProductCategory')->find({
+        description => $c->config->{'default_product_category'},
+    }) or die("Error retrieving default product_category; check config settings.");
+
+    $c->stash->{ 'default_product_category' } = $def->product_category_id();
+
+    return;
+}
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2010 by Tim F. Rayner

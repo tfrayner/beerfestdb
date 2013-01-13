@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2013 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,6 +48,16 @@ has 'overwrite' => ( is       => 'ro',
                      isa      => 'Bool',
                      required => 1,
                      default  => 0 );
+
+has '_error_report' => ( is       => 'rw',
+                         isa      => 'Str',
+                         required => 1,
+                         default  => q{} );
+
+has '_error_count' => ( is       => 'rw',
+                        isa      => 'Int',
+                        required => 1,
+                        default  => 0 );
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -130,6 +140,46 @@ sub value_is_acceptable {
     my ( $self, $value ) = @_;
 
     return ( defined $value && $value ne q{} && $value !~ m/\A \?+ \z/xms );
+}
+
+sub _add_error_report_string {
+
+    my ( $self, $str ) = @_;
+
+    $self->_error_report( $self->_error_report . "" . $str );
+
+    return;
+}
+
+sub add_protection_error {
+
+    my ( $self, $req_vals, $class ) = @_;
+
+    my $resultset = $self->database()->resultset($class)
+	or confess(qq{Error: No result set returned from DB for class "$class".});
+
+    my $source = $resultset->result_source();
+
+    # FIXME this wants foreign keys to generate a useful string.
+    my $err = qq{Protection error ($class):\n};
+    foreach my $key ( keys %$req_vals ) {
+        if ( $source->has_relationship( $key ) ) {
+            my $relsource   = $source->related_source( $key );
+            my $rel         = $relsource->resultset->find({
+                $key => $req_vals->{$key}
+            });
+            my $related_rqd = $self->resultsource_required_columns($relsource);
+            my $relstr = join(";", map { $rel->get_column($_) } @$related_rqd);
+            $key  =~ s/_id\z//xms;
+            $err .= qq{        $key : $relstr\n};
+        }
+        else {
+            $err .= qq{        $key : $req_vals->{$key}\n};
+        }
+    }
+    $err .= "\n";
+    $self->_add_error_report_string($err);
+    $self->_error_count( $self->_error_count + 1 );
 }
 
 sub _load_data {
@@ -548,11 +598,13 @@ sub _load_column_value {
             $object = $objects[0];
         }
         elsif ( scalar @objects == 0 ) {
-            use Data::Dumper;
-            $Data::Dumper::Maxdepth = 3;
-            croak(qq{Error: Object from protected class "$class" not found in}
-                      . qq{ database; will not autocreate. Query dump follows: }
-                          . Dumper \%req);
+
+            # Add an error, but create the object anyway *within the
+            # transaction which will be rolled back*. This is a cheap
+            # way of testloading and generating a full report on all
+            # errors.
+            $self->add_protection_error( \%req, $class );
+            $object = $resultset->find_or_create(\%req);
         }
         else {  # This is bad - it indicates a class which is not
                 # uniquely defined by its required attributes.
@@ -571,7 +623,8 @@ sub _load_column_value {
     COLUMN:
     while ( my ( $col, $value ) = each %opt ) {
 
-        next COLUMN unless defined $value;
+        # Don't overwrite good data with empty values, even in overwrite mode.
+        next COLUMN unless ( defined $value && $value !~ /\A \s* \z/xms );
 
         # Special-case for comment fields - append new text rather than replacing the old.
         if ( $col eq 'comment' ) {
@@ -640,7 +693,7 @@ sub _coerce_headings {
         qr/cask [_ -]* measurement [_ -]* volume/ixms  => $CASK_MEASUREMENT_VOLUME,
         qr/cask [_ -]* measurement [_ -]* comment/ixms => $CASK_MEASUREMENT_COMMENT,
         qr/product [_ -]* category/ixms                => $PRODUCT_CATEGORY,
-        qr/order [_ -]* batch/ixms                     => $ORDER_BATCH_NAME,
+        qr/order [_ -]* batch (?:[_ -]* name)?/ixms    => $ORDER_BATCH_NAME,
         qr/order [_ -]* batch [_ -]* date/ixms         => $ORDER_BATCH_DATE,
         qr/order [_ -]* finali[sz]ed/ixms              => $ORDER_FINALISED,
         qr/order [_ -]* received/ixms                  => $ORDER_RECEIVED,
@@ -705,6 +758,11 @@ sub load {
                     my %datahash;
                     @datahash{ @$headings } = @$rowlist;
                     $self->_load_data( \%datahash );
+                }
+
+                # Any errors mean we need to roll back the transaction.
+                if ( $self->_error_count > 0 ) {
+                    croak("Errors found:\n\n" . $self->_error_report());
                 }
             }
         );
