@@ -122,6 +122,7 @@ sub submit : Local {
         $self->detach_with_txn_failure( $c, $@ );
     }
 
+    $c->stash->{ 'success' } = JSON::Any->true();
     $c->detach( $c->view( 'JSON' ) );
 }
 
