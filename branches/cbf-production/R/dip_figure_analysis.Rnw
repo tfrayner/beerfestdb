@@ -45,7 +45,7 @@
 
 # Edit these:
 baseuri  <- 'http://localhost:3000'
-festname <- '39th Cambridge Beer Festival'
+festname <- '17th Cambridge Winter Ale Festival'
 prodcat  <- 'beer'
 author   <- ''
 # End of editable section.
@@ -152,7 +152,9 @@ stopifnot( colnames(cp)[w][1] == 'cask_volume' )
 
 pd <- cp[,w][,-sum(w)] - cp[,w][,-1]
 colnames(pd) <- colnames(cp)[w][-1]
-stopifnot( all(pd >= 0 ) )
+if ( ! all(pd >= 0) ) {
+    stop("Negative per diem dips found: probable dip data error in the database.")
+}
 
 cols <- brewer.pal(9, 'Set1')
 

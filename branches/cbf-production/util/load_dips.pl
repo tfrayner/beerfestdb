@@ -133,7 +133,8 @@ eval {
         sub {
             MEAS:
             while ( my $line = $csv_parser->getline($fh) ) {
-                next MEAS unless ( value_acceptable( $line->[0] )
+                next MEAS unless ( scalar @$line > 1
+                                && value_acceptable( $line->[0] )
                                 && value_acceptable( $line->[1] ));
                 my $cask = $schema->resultset('Cask')->find(
                     { festival_id      => $festival->id(),

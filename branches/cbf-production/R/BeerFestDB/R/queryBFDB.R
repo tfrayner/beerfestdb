@@ -26,7 +26,7 @@ queryBFDB <- function( uri, columns ) {
     stopifnot( isTRUE(res$success) )
     
     res <- as.data.frame(do.call('rbind', res$objects), stringsAsFactors=FALSE)
-    suppressWarnings(res <- as.data.frame(apply(res, 2, as.character), stringsAsFactors=FALSE))
+    for (n in 1:ncol(res)) res[,n] <- as.character(res[,n])
 
     for ( x in colnames(res) )
         if ( grepl( '_id$', x ) )
