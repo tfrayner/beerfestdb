@@ -1,8 +1,0 @@
-[% META title = "Welcome to BeerFestDB" %] 
-<p>This web site is currently under development.</p> 
-<p>From here, you can: 
-<ul> 
-<li><a href="[% c.uri_for('/festival/list') %]">Look at all festivals</a></li> 
-<li><a href="[% c.uri_for('/festival/add') %]">Add a new festival</a></li> 
-</ul> 
-</p>
