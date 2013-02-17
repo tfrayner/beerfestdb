@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+ <head>
+  <title>[% template.title or site.title %]</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+[% IF ! generate_bare_html -%]
+[%-
+  css_link( href = "/static/ext/resources/css/ext-all.css" );
+  css_link( href = "/static/tp_skin/resources/css/xtheme-tp.css" );
+  css_link( href = "/static/css/Ext.ux.grid.RowActions.css" );
+  css_link( href = "/static/css/Ext.ux.form.LovCombo.css" );
+  css_link( href = "/static/css/icons.css" );
+  css_link( href = "/static/css/extras.css" );
+
+  js_link( src = "/static/ext/adapter/ext/ext-base.js" );
+  js_link( src = "/static/ext/ext-all.js" );
+  js_link( src = "/static/js/Ext.ux.grid.RowActions.js" );
+  js_link( src = "/static/js/Ext.ux.form.LovCombo.js" );
+  js_link( src = "/static/js/Ext.ux.form.DateTime.js" );
+  js_link( src = "/static/js/classes.js" );
+-%]
+  <style type="text/css">
+[%- PROCESS ttsite.css -%]
+  </style>
+[%- END %]
+ </head>
+ <body>
+[%- IF ! generate_bare_html -%]
+   <!-- These variables may be overridden in the content section. -->
+ <script type="text/javascript">
+
+   var url_cask_size_list       = '[% c.uri_for( "/containersize/list" ) %]';
+   var url_category_list        = '[% c.uri_for( "/productcategory/list" ) %]';
+   var url_company_list         = '[% c.uri_for( "/company/list" ) %]';
+   var url_company_region_list  = '[% c.uri_for( "/companyregion/list" ) %]';
+   var url_currency_list        = '[% c.uri_for( "/currency/list" ) %]';
+   var url_festival_list        = '[% c.uri_for( "/festival/list" ) %]';
+   var url_product_list         = '[% c.uri_for( "/product/list" ) %]';
+   var url_product_style_list   = '[% c.uri_for( "/productstyle/list" ) %]';
+   var url_sale_volume_list     = '[% c.uri_for( "/salevolume/list" ) %]';
+   var url_bay_position_list    = '[% c.uri_for( "/bayposition/list" ) %]';
+   var url_contact_type_list    = '[% c.uri_for( "/contacttype/list" ) %]';
+   var url_telephone_type_list  = '[% c.uri_for( "/telephonetype/list" ) %]';
+   var url_country_list         = '[% c.uri_for( "/country/list" ) %]';
+   var url_role_list            = '[% c.uri_for( "/role/list" ) %]';
+   var url_user_list            = '[% c.uri_for( "/user/list" ) %]';
+
+   var url_cask_delete          = '[% c.uri_for( "/cask/delete" ) %]';
+   var url_cask_submit          = '[% c.uri_for( "/cask/submit" ) %]';
+   var url_caskmeasurement_delete = '[% c.uri_for( "/caskmeasurement/delete" ) %]';
+   var url_caskmeasurement_submit = '[% c.uri_for( "/caskmeasurement/submit" ) %]';
+   var url_category_submit      = '[% c.uri_for( "/productcategory/submit" ) %]';
+   var url_category_delete      = '[% c.uri_for( "/productcategory/delete" ) %]';
+   var url_contact_delete       = '[% c.uri_for( "/contact/delete" ) %]';
+   var url_contact_submit       = '[% c.uri_for( "/contact/submit" ) %]';
+   var url_company_delete       = '[% c.uri_for( "/company/delete" ) %]';
+   var url_company_submit       = '[% c.uri_for( "/company/submit" ) %]';
+   var url_festival_delete      = '[% c.uri_for( "/festival/delete" ) %]';
+   var url_festival_submit      = '[% c.uri_for( "/festival/submit" ) %]';
+   var url_festivalproduct_delete = '[% c.uri_for( "/festivalproduct/delete" ) %]';
+   var url_festivalproduct_submit = '[% c.uri_for( "/festivalproduct/submit" ) %]';
+   var url_gyle_delete          = '[% c.uri_for( "/gyle/delete" ) %]';
+   var url_gyle_submit          = '[% c.uri_for( "/gyle/submit" ) %]';
+   var url_order_batch_submit   = '[% c.uri_for( "/orderbatch/submit" ) %]';
+   var url_order_batch_delete   = '[% c.uri_for( "/orderbatch/delete" ) %]';
+   var url_measurement_batch_submit = '[% c.uri_for( "/measurementbatch/submit" ) %]';
+   var url_measurement_batch_delete = '[% c.uri_for( "/measurementbatch/delete" ) %]';
+   var url_product_submit       = '[% c.uri_for( "/product/submit" ) %]';
+   var url_product_delete       = '[% c.uri_for( "/product/delete" ) %]';
+   var url_productorder_delete  = '[% c.uri_for( "/productorder/delete" ) %]';
+   var url_productorder_submit  = '[% c.uri_for( "/productorder/submit" ) %]';
+   var url_productstyle_submit  = '[% c.uri_for( "/productstyle/submit" ) %]';
+   var url_productstyle_delete  = '[% c.uri_for( "/productstyle/delete" ) %]';
+   var url_stillageloc_submit   = '[% c.uri_for( "/stillagelocation/submit" ) %]';
+   var url_stillageloc_delete   = '[% c.uri_for( "/stillagelocation/delete" ) %]';
+   var url_telephone_submit     = '[% c.uri_for( "/telephone/submit" ) %]';
+   var url_telephone_delete     = '[% c.uri_for( "/telephone/delete" ) %]';
+   var url_user_submit          = '[% c.uri_for( "/user/submit" ) %]';
+   var url_user_delete          = '[% c.uri_for( "/user/delete" ) %]';
+
+   var url_product_index        = '[% c.uri_for( "/product" ) %]';
+
+</script>
+[%- END %]
+[% content %] 
+ </body>
+</html>

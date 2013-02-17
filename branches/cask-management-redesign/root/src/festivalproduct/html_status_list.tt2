@@ -1,0 +1,34 @@
+[%- META title = 'Festival Product Status' -%]
+<?php
+require_once ('header.php');
+require_once ('form.inc.php');
+require_once ('core.inc.php');
+output_set_type ('html');
+Output::set_title ('Cambridge Beer Festival Beer List');
+Output::set_description ('Cambridge Beer Festival Beer List');
+include("summer/lists/beer/header.html");?>
+[% IF objects && objects.size > 0 -%]
+    <table>
+    <thead>
+      <tr>
+        <td>Brewer</td>
+        <td>Beer</td>
+        <td>ABV</td>
+        <td>Status</td>
+      </tr>
+    </thead>
+    <tbody>
+    [% FOREACH fp = objects.sort('company','product') %] 
+      <tr> 
+        <td> [% fp.company        | html %] </td>
+        <td> [% fp.product        | html %] </td>
+        <td> [% fp.abv            | html %] </td>
+        <td> [% fp.status         | html %] </td>
+      </tr>
+    [%- END %]
+    </tbody>
+    </table>
+[%- ELSE -%] 
+  <p>Error: No festival products found for festival.</p> 
+[%- END %] 
+<?php include("summer/lists/beer/footer.html");?>

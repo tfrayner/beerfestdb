@@ -1,0 +1,15 @@
+[% META title = 'Cask Measurement Details' %]
+
+<script type="text/javascript">
+   var url_festival_view         = '[% c.uri_for( "/festival/view/$object.cask_id.festival_id.id" ) %]';
+   var url_measurement_batch_view = '[% c.uri_for( "/measurementbatch/view/$object.measurement_batch_id.id" ) %]';
+   var url_cask_view = '[% c.uri_for( "/cask/view/$object.cask_id.id" ) %]';
+
+   var url_cask_measurement_load_form = '[% c.uri_for( "/caskmeasurement/load_form" ) %]';
+
+   var cask_measurement_id  = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/cask_measurement_view.js' ) %]
+
+<div id="datagrid"></div>
