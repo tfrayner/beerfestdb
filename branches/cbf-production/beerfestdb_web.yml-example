@@ -28,7 +28,10 @@ OODoc:
     beer_name:        'Beer'
     brewery_name:     'Brewery'
     brewery_location: 'Brewery Location'
+    beer_notes:       'Tasting Notes'
 
+  dump_tasting_notes: 1
+  
 # Uncomment and customise as needed to protect classes from modification
 # once the core "global" information has been loaded.
 #
