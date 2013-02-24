@@ -122,6 +122,9 @@ alter table cask drop INDEX IDX_CSK_exref;
 
 alter table cask drop column festival_id;
 alter table cask drop column distributor_company_id;
+-- This loses data, but it's data we've never used, and in it's place
+-- we get a more granular record of differences between order and
+-- delivery.
 alter table cask drop column order_batch_id;
 alter table cask drop column container_size_id;
 alter table cask drop column bar_id;
@@ -135,3 +138,204 @@ alter table cask drop column stillage_y_location;
 alter table cask drop column stillage_z_location;
 alter table cask drop column internal_reference;
 alter table cask drop column cellar_reference;
+
+
+delimiter //
+
+-- Festival to Product to Cask
+-- Check inserts, updates on cask table (note that we also check updates on Gyle below).
+drop trigger if exists `cask_fp_insert_trigger`
+//
+create trigger `cask_fp_insert_trigger`
+    before insert on cask
+for each row
+begin
+    -- check that the gyle is valid
+    if ( (select count(fp.festival_id)
+            from festival_product fp, gyle g, cask_management cg
+            where new.gyle_id=g.gyle_id
+            and g.festival_product_id=fp.festival_product_id
+            and fp.festival_id=cg.festival_id
+            and cg.cask_management_id=new.cask_management_id) = 0 ) then
+        call ERROR_CASK_FP_INSERT_TRIGGER();
+    end if;
+    -- check that the order_batch is valid
+    if (  -- the linked cask_management has a product_order_id
+         (select count(cg.cask_management_id)
+            from cask_management cg
+            where cg.cask_management_id=new.cask_management_id
+            and cg.product_order_id is not null) = 1
+       and -- the product_order_id belongs to the right festival.
+         (select count(ob.order_batch_id)
+            from cask_management cg, product_order po, order_batch ob
+            where ob.festival_id=cg.festival_id
+            and cg.cask_management_id=new.cask_management_id
+            and po.order_batch_id=ob.order_batch_id
+            and cg.product_order_id=po.product_order_id) = 0 ) then
+        call ERROR_CASK_OB_INSERT_TRIGGER();
+    end if;
+end;
+//
+
+drop trigger if exists `cask_update_trigger`
+//
+create trigger `cask_update_trigger`
+    before update on cask
+for each row
+begin
+    if ( (select count(fp.festival_id)
+            from festival_product fp, gyle g, cask_management cg
+            where new.gyle_id=g.gyle_id
+            and g.festival_product_id=fp.festival_product_id
+            and fp.festival_id=cg.festival_id
+            and cg.cask_management_id=new.cask_management_id) = 0 ) then
+        call ERROR_CASK_FP_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+drop trigger if exists `gyle_fp_update_trigger`
+//
+create trigger `gyle_fp_update_trigger`
+    before update on gyle
+for each row
+begin
+    if ( new.festival_product_id != old.festival_product_id and
+           (select count(fp.festival_id)
+            from festival_product fp, cask c, cask_management cg
+            where old.gyle_id=c.gyle_id
+            and c.cask_management_id=cg.cask_management_id
+            and cg.festival_id=fp.festival_id
+            and fp.festival_product_id=old.festival_product_id) != 0 ) then
+        call ERROR_GYLE_FP_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+drop trigger if exists `fp_cask_update_trigger`
+//
+create trigger `fp_cask_update_trigger`
+    before update on festival_product
+for each row
+begin
+    if (  new.festival_id != old.festival_id and
+         (select count(f.festival_id)
+          from festival f, gyle g, cask c, cask_management cg
+          where old.festival_id=cg.festival_id
+          and cg.cask_management_id=c.cask_management_id
+          and c.gyle_id=g.gyle_id
+          and g.festival_product_id=old.festival_product_id) != 0 ) then
+        call ERROR_FP_CASK_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- We need cask_management update triggers (insert creates no cycles,
+-- and delete breaks the cycles, so a trigger is not needed in either
+-- of these cases).
+create trigger `cask_management_update_trigger`
+    before update on cask_management
+for each row
+begin
+    -- check that the product_order is valid
+    if ( new.product_order_id is not null
+        and new.product_order_id != old.product_order_id
+        and (select count(ob.order_batch_id)
+             from product_order po, order_batch ob, cask c
+             where new.cask_management_id=c.cask_management_id
+             and new.product_order_id=po.product_order_id
+             and po.order_batch_id=ob.order_batch_id
+             and ob.festival_id=c.festival_id) = 0 ) then
+        call ERROR_CASKMAN_OB_UPDATE_TRIGGER();
+    end if;
+    if ( new.festival_id != old.festival_id and
+           (select count(cm.cask_id)
+            from cask c, cask_measurement cm, measurement_batch mb, cask_management cg
+            where old.festival_id=mb.festival_id
+            and cm.measurement_batch_id=mb.measurement_batch_id
+            and c.cask_id=cm.cask_id
+            and c.cask_management_id=old.cask_management_id) != 0 ) then
+        call ERROR_CASKMAN_MB_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- FestivalProduct to (Cask and MeasurementBatch) to CaskMeasurement
+
+-- Check inserts, updates on cask_measurement table
+drop trigger if exists `cask_measurement_insert_trigger`
+//
+create trigger `cask_measurement_insert_trigger`
+    before insert on cask_measurement
+for each row
+begin
+    if ( (select count(mb.measurement_batch_id)
+            from cask c, measurement_batch mb, cask_management cg
+            where new.cask_id=c.cask_id
+            and c.cask_management_id=cg.cask_management_id
+            and mb.festival_id=cg.festival_id
+            and mb.measurement_batch_id=new.measurement_batch_id) = 0 ) then
+        call ERROR_CASK_MEASUREMENT_INSERT_TRIGGER();
+    end if;
+end;
+//
+
+drop trigger if exists `cask_measurement_update_trigger`
+//
+create trigger `cask_measurement_update_trigger`
+    before update on cask_measurement
+for each row
+begin
+    if ( (select count(mb.measurement_batch_id)
+            from cask c, measurement_batch mb, cask_management cg
+            where new.cask_id=c.cask_id
+            and c.cask_management_id=cg.cask_management_id
+            and mb.festival_id=cg.festival_id
+            and mb.measurement_batch_id=new.measurement_batch_id) = 0 ) then
+        call ERROR_CASK_MEASUREMENT_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+drop trigger if exists `measurement_batch_update_trigger`
+//
+create trigger `measurement_batch_update_trigger`
+    before update on measurement_batch
+for each row
+begin
+    if ( new.festival_id != old.festival_id and
+           (select count(cm.measurement_batch_id)
+            from cask_measurement cm, cask c, cask_management cg
+            where old.measurement_batch_id=cm.measurement_batch_id
+            and cm.cask_id=c.cask_id
+            and cg.cask_manegement_id=c.cask_management_id
+            and cg.festival_id=old.festival_id) != 0 ) then
+        call ERROR_MEASUREMENT_BATCH_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- Order Batch
+drop trigger if exists `order_batch_update_trigger`
+//
+create trigger `order_batch_update_trigger`
+    before update on order_batch
+for each row
+begin
+    -- if we're changing festival association, ensure we haven't
+    -- already used this batch elsewhere.
+    if ( old.festival_id != new.festival_id
+         and (select count(c.order_batch_id)
+              from cask c, cask_management cg, product_order po
+              where c.cask_management_id=cg.cask_management_id
+              and cg.product_order_id=po.product_order_id
+              and po.order_batch_id=old.order_batch_id
+              ) > 0 ) then
+        call ERROR_ORDER_BATCH_UPDATE_TRIGGER();
+    end if;
+end;
+//
+
+-- End of triggers
+delimiter ;
+
