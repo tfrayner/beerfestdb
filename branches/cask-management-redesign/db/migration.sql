@@ -17,6 +17,7 @@ create table cask_management (
   stillage_z_location INTEGER(6) UNSIGNED NULL,
   internal_reference INTEGER(6) NULL,
   cellar_reference INTEGER(6) NULL,
+  is_sale_or_return TINYINT(1) NULL,
   PRIMARY KEY(cask_management_id),
 --  UNIQUE KEY `festival_gyle_cask` (festival_id, gyle_id, internal_reference),
   UNIQUE KEY `festival_cellar_ref` (festival_id, cellar_reference),
@@ -72,7 +73,8 @@ insert into cask_management (
   `stillage_y_location`,
   `stillage_z_location`,
   `internal_reference`,
-  `cellar_reference`
+  `cellar_reference`,
+  `is_sale_or_return`
 ) select
   cask_id,
   festival_id,
@@ -87,7 +89,8 @@ insert into cask_management (
   stillage_y_location,
   stillage_z_location,
   internal_reference,
-  cellar_reference from cask;
+  cellar_reference,
+  is_sale_or_return from cask;
 
 alter table cask add column cask_management_id integer(6);
 update cask set cask_management_id=cask_id;
@@ -138,6 +141,7 @@ alter table cask drop column stillage_y_location;
 alter table cask drop column stillage_z_location;
 alter table cask drop column internal_reference;
 alter table cask drop column cellar_reference;
+alter table cask drop column is_sale_or_return;
 
 
 delimiter //

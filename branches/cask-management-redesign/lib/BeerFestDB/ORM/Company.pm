@@ -118,21 +118,6 @@ __PACKAGE__->add_unique_constraint("name", ["name"]);
 
 =head1 RELATIONS
 
-=head2 casks
-
-Type: has_many
-
-Related object: L<BeerFestDB::ORM::Cask>
-
-=cut
-
-__PACKAGE__->has_many(
-  "casks",
-  "BeerFestDB::ORM::Cask",
-  { "foreign.distributor_company_id" => "self.company_id" },
-  {},
-);
-
 =head2 company_region_id
 
 Type: belongs_to
@@ -208,8 +193,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2Aro/0WiR7IfUezh3QvRXg
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6LhSLOdCYR0a+bdJppQ2Kw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
