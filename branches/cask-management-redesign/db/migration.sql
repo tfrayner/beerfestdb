@@ -2,7 +2,7 @@ drop table if exists cask_management;
 create table cask_management (
   cask_management_id INTEGER(6) NOT NULL AUTO_INCREMENT,
   festival_id INTEGER(6) NOT NULL,
---  distributor_company_id INTEGER(6) NULL,
+  distributor_company_id INTEGER(6) NULL,
 --  order_batch_id INTEGER(6) NULL,
   product_order_id INTEGER(6) NULL,
   container_size_id INTEGER(6) NOT NULL,
@@ -21,6 +21,7 @@ create table cask_management (
   PRIMARY KEY(cask_management_id),
 --  UNIQUE KEY `festival_gyle_cask` (festival_id, gyle_id, internal_reference),
   UNIQUE KEY `festival_cellar_ref` (festival_id, cellar_reference),
+  INDEX IDX_CSKMAN_dfid(distributor_company_id),
   INDEX IDX_CSKMAN_poid(product_order_id),
   INDEX IDX_CSKMAN_bid(bar_id),
   INDEX IDX_CSKMAN_stid(stillage_location_id),
@@ -38,6 +39,10 @@ create table cask_management (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSKMAN_fstId_FST_fstid(festival_id)
     REFERENCES festival(festival_id)
+      ON DELETE RESTRICT
+      ON UPDATE NO ACTION,
+  FOREIGN KEY FK_CSKMAN_dcId_COMP_compid(distributor_company_id)
+    REFERENCES company(company_id)
       ON DELETE RESTRICT
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSKMAN_poId_COMP_poid(product_order_id)
@@ -62,6 +67,7 @@ ENGINE=InnoDB DEFAULT CHARSET=utf8;
 insert into cask_management (
   `cask_management_id`,
   `festival_id`,
+  `distributor_company_id`,
   `container_size_id`,
   `bar_id`,
   `currency_id`,
@@ -78,6 +84,7 @@ insert into cask_management (
 ) select
   cask_id,
   festival_id,
+  distributor_company_id,
   container_size_id,
   bar_id,
   currency_id,
@@ -237,6 +244,8 @@ end;
 -- We need cask_management update triggers (insert creates no cycles,
 -- and delete breaks the cycles, so a trigger is not needed in either
 -- of these cases).
+drop trigger if exists `cask_management_update_trigger`
+//
 create trigger `cask_management_update_trigger`
     before update on cask_management
 for each row
@@ -245,11 +254,10 @@ begin
     if ( new.product_order_id is not null
         and new.product_order_id != old.product_order_id
         and (select count(ob.order_batch_id)
-             from product_order po, order_batch ob, cask c
-             where new.cask_management_id=c.cask_management_id
-             and new.product_order_id=po.product_order_id
+             from product_order po, order_batch ob
+             where new.product_order_id=po.product_order_id
              and po.order_batch_id=ob.order_batch_id
-             and ob.festival_id=c.festival_id) = 0 ) then
+             and ob.festival_id=new.festival_id) = 0 ) then
         call ERROR_CASKMAN_OB_UPDATE_TRIGGER();
     end if;
     if ( new.festival_id != old.festival_id and

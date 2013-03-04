@@ -35,6 +35,12 @@ __PACKAGE__->table("cask_management");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 distributor_company_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 product_order_id
 
   data_type: 'integer'
@@ -123,6 +129,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "festival_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "distributor_company_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "product_order_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "container_size_id",
@@ -250,6 +258,20 @@ __PACKAGE__->belongs_to(
   { currency_id => "currency_id" },
 );
 
+=head2 distributor_company_id
+
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::Company>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "distributor_company_id",
+  "BeerFestDB::ORM::Company",
+  { company_id => "distributor_company_id" },
+);
+
 =head2 festival_id
 
 Type: belongs_to
@@ -293,8 +315,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uTI6nexTqcF95C75eo/hxg
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-03-03 22:25:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xcsVwXLh+HCPXp1CV+s8pQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
