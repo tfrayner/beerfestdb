@@ -99,14 +99,12 @@ sub product_hash {
     my $format   = $currency->currency_format();
     $prodhash{currency} = $currency->currency_symbol();
 
-    $prodhash{price}   = $self->format_price( $fp->sale_price(), $format );
-    if ( looks_like_number( $prodhash{price} ) ) {
-        $prodhash{half_price}
-            = $self->format_price( ceil($fp->sale_price() / 2), $format );
-    }
-    else {
-        $prodhash{half_price} = $prodhash{price};
-    }
+    # The formatted_price option is great if you just want to display
+    # the price in the local format. However, if you need to do any
+    # calculations then use price and the price_format filter
+    # below. This reduces the risk of floating-point errors.
+    $prodhash{formatted_price} = $self->format_price( $fp->sale_price(), $format );
+    $prodhash{price} = $fp->sale_price(); # typically in pennies (GBP).
 
     return \%prodhash;
 }
@@ -318,6 +316,7 @@ sub dump {
 	FILTERS => {
             titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) },
             latexify  => \&filter_to_latex,
+            price_format => [ \&rounded_fraction_factory, 1 ],
         }
     )   or die( "Cannot create Template object: " . Template->error() );
 
@@ -325,6 +324,39 @@ sub dump {
         or die( "Template processing error: " . $template->error() );
 
     return;
+}
+
+sub rounded_fraction_factory {
+
+    # Custom filter to take a fraction of a given price and round it
+    # to the nearest 1dp. This is a rather arbitrary threshold but
+    # works well for GBP. Note that this may well need fixing to
+    # support the full range of currency formats.
+
+    my ( $context, $by, $denom, $dp ) = @_;
+
+    # Price is typically given in pennies, we may want it in
+    # pounds. Using $denom=100 would work in such a case.
+
+    $denom ||= 1;
+    $dp    ||= 1;
+
+    my $divisor = 10**(2-$dp);
+
+    return sub {
+
+        my ( $text ) = @_;
+
+        my $rounded;
+        if ( looks_like_number($text) ) {
+            $rounded = ceil($text / ( $by * $divisor )) / ( $denom / $divisor );
+        }
+        else {
+            return $text # pass-through text values.
+        }
+
+        return $rounded
+    }
 }
 
 sub filter_to_latex {

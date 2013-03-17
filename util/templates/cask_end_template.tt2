@@ -194,18 +194,17 @@
 
 [% ELSE %]
 
-\begin{textblock}{0.4}(0.55,0.70)
-  [% IF cask.price == cask.half_price %]
-    \textbf{[% cask.price %]}
-  [% ELSE %]
+\begin{textblock}{0.4}(0.55,0.63)
 
   \textbf{[% cask.currency | latexify -%]
-          [%- cask.price      | format('%.2f') -%]/[% cask.sale_volume %]}
+          [%- cask.price | price_format(1, 100) | format('%.2f') -%]/[% cask.sale_volume %]}
 
   \textbf{[% cask.currency | latexify -%]
-          [%- cask.half_price | format('%.2f') -%]/half [% cask.sale_volume %]}
+          [%- cask.price | price_format(2, 100) | format('%.2f') -%]/half [% cask.sale_volume %]}
 
-  [% END %]
+  \textbf{[% cask.currency | latexify -%]
+          [%- cask.price | price_format(3, 100) | format('%.2f') -%]/third [% cask.sale_volume %]}
+
 \end{textblock}
 
 [% END %]
