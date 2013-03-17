@@ -338,7 +338,9 @@ sub rounded_fraction_factory {
     # Price is typically given in pennies, we may want it in
     # pounds. Using $denom=100 would work in such a case.
 
-    $denom ||= 1;
+    # Default settings just formats the price from pennies to pounds.
+    $by    ||= 1;
+    $denom ||= 100;
     $dp    ||= 1;
 
     my $divisor = 10**(2-$dp);

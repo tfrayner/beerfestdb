@@ -67,13 +67,13 @@
     [% product.product | truncate(25) | latexify %] &
     [% product.abv %] &
     [%- product.currency | latexify -%]
-    [%- product.price | price_format(1, 100) | format('%.2f') -%]&
+    [%- product.price | price_format | format('%.2f') -%]&
 
     [%- product.currency | latexify -%]
-    [%- product.price | price_format(2, 100) | format('%.2f') -%]&
+    [%- product.price | price_format(2) | format('%.2f') -%]&
 
     [%- product.currency | latexify -%]
-    [%- product.price | price_format(3, 100) | format('%.2f') -%] \\
+    [%- product.price | price_format(3) | format('%.2f') -%] \\
 
     [% counter = counter + 1 %]
 
