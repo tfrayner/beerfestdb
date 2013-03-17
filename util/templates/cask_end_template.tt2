@@ -197,13 +197,13 @@
 \begin{textblock}{0.4}(0.55,0.63)
 
   \textbf{[% cask.currency | latexify -%]
-          [%- cask.price | price_format(1, 100) | format('%.2f') -%]/[% cask.sale_volume %]}
+          [%- cask.price | price_format | format('%.2f') -%]/[% cask.sale_volume %]}
 
   \textbf{[% cask.currency | latexify -%]
-          [%- cask.price | price_format(2, 100) | format('%.2f') -%]/half [% cask.sale_volume %]}
+          [%- cask.price | price_format(2) | format('%.2f') -%]/half [% cask.sale_volume %]}
 
   \textbf{[% cask.currency | latexify -%]
-          [%- cask.price | price_format(3, 100) | format('%.2f') -%]/third [% cask.sale_volume %]}
+          [%- cask.price | price_format(3) | format('%.2f') -%]/third [% cask.sale_volume %]}
 
 \end{textblock}
 
