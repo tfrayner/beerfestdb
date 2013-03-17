@@ -333,15 +333,15 @@ sub rounded_fraction_factory {
     # works well for GBP. Note that this may well need fixing to
     # support the full range of currency formats.
 
-    my ( $context, $by, $denom, $dp ) = @_;
+    my ( $context, $by, $dp, $denom ) = @_;
 
     # Price is typically given in pennies, we may want it in
     # pounds. Using $denom=100 would work in such a case.
 
     # Default settings just formats the price from pennies to pounds.
     $by    ||= 1;
-    $denom ||= 100;
-    $dp    ||= 1;
+    $denom ||= 100; # Good for GBP, USD and similar.
+    if ( ! defined $dp ) { $dp  = 1; } # can be zero
 
     my $divisor = 10**(2-$dp);
 
