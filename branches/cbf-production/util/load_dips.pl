@@ -25,7 +25,6 @@ use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
-use Config::YAML;
 use Text::CSV_XS;
 use Scalar::Util qw(looks_like_number);
 use BeerFestDB::ORM;
@@ -34,11 +33,10 @@ use Data::Dumper;
 
 sub parse_args {
 
-    my ( $input, $conffile, $want_help );
+    my ( $input, $want_help );
 
     GetOptions(
 	"i|input=s"  => \$input,
-        "c|config=s" => \$conffile,        
         "h|help"     => \$want_help,
     );
 
@@ -50,9 +48,7 @@ sub parse_args {
         );
     }
 
-    $conffile ||= 'beerfestdb_web.yml';
-
-    unless ( $input && $conffile ) {
+    unless ( $input ) {
         pod2usage(
             -message => qq{Please see "$0 -h" for further help notes.},
             -exitval => 255,
@@ -61,7 +57,7 @@ sub parse_args {
         );
     }
 
-    my $config = Config::YAML->new( config => $conffile );
+    my $config = BeerFestDB::Web->config();
 
     return( $input, $config );
 }
@@ -177,7 +173,7 @@ load_dips.pl
 
 =head1 SYNOPSIS
 
- load_dips.pl -i <list of dip figures> -c <config file>
+ load_dips.pl -i <list of dip figures>
 
 =head1 DESCRIPTION
 

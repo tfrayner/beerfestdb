@@ -24,18 +24,17 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Config::YAML;
 use Pod::Usage;
 
 use BeerFestDB::ORM;
 use BeerFestDB::Dumper::Template;
+use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $conffile, $templatefile, $logofile, $objectlevel, $want_help );
+    my ( $templatefile, $logofile, $objectlevel, $want_help );
 
     GetOptions(
-        "c|config=s"   => \$conffile,
         "t|template=s" => \$templatefile,
         "l|logo=s"     => \$logofile,
         "o|objects=s"  => \$objectlevel,
@@ -50,10 +49,9 @@ sub parse_args {
         );
     }
 
-    $conffile ||= 'beerfestdb_web.yml';
     $objectlevel ||= 'cask';
 
-    unless ( $conffile && $templatefile ) {
+    unless ( $templatefile ) {
         pod2usage(
             -message => qq{Please see "$0 -h" for further help notes.},
             -exitval => 255,
@@ -62,7 +60,7 @@ sub parse_args {
         );
     }
 
-    my $config = Config::YAML->new( config => $conffile );
+    my $config = BeerFestDB::Web->config();
 
     return( $templatefile, $logofile, $config, $objectlevel );
 }
@@ -92,7 +90,7 @@ dump_to_template.pl
 
 =head1 SYNOPSIS
 
- dump_to_template.pl -c <config file> -t <template file> -l <logo file>
+ dump_to_template.pl -t <template file> -l <logo file>
 
 =head1 DESCRIPTION
 
@@ -106,10 +104,6 @@ passed into the template.
 =head2 OPTIONS
 
 =over 2
-
-=item -c
-
-The main BeerFestDB web config file.
 
 =item -t
 

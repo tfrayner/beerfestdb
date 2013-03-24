@@ -25,9 +25,9 @@ use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
-use Config::YAML;
 
 use BeerFestDB::Loader;
+use BeerFestDB::Web;
 
 ########
 # SUBS #
@@ -35,11 +35,10 @@ use BeerFestDB::Loader;
 
 sub parse_args {
 
-    my ( $input, $conffile, $want_version, $want_help );
+    my ( $input, $want_version, $want_help );
 
     GetOptions(
 	"i|input=s"  => \$input,
-        "c|config=s" => \$conffile,
         "h|help"     => \$want_help,
     );
 
@@ -51,9 +50,7 @@ sub parse_args {
         );
     }
 
-    $conffile ||= 'beerfestdb_web.yml';
-
-    unless ( $input && $conffile ) {
+    unless ( $input ) {
         pod2usage(
             -message => qq{Please see "$0 -h" for further help notes.},
             -exitval => 255,
@@ -62,7 +59,7 @@ sub parse_args {
         );
     }
 
-    my $config = Config::YAML->new( config => $conffile );
+    my $config = BeerFestDB::Web->config();
 
     return( $input, $config );
 }
@@ -90,7 +87,7 @@ load_data.pl
 
 =head1 SYNOPSIS
 
- load_data.pl -i <input tab-delimited text file> -c <config file>
+ load_data.pl -i <input tab-delimited text file>
 
 =head1 DESCRIPTION
 
@@ -104,10 +101,6 @@ into the database. See L<BeerFestDB::Loader> for more information.
 =item -i
 
 The tab-delimited file to import.
-
-=item -c
-
-The main BeerFestDB web config file.
 
 =back
 
