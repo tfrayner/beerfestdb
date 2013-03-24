@@ -24,18 +24,17 @@ use strict;
 use warnings;
 
 use Getopt::Long;
-use Config::YAML;
 use Pod::Usage;
 
 use BeerFestDB::ORM;
 use BeerFestDB::Dumper::OODoc;
+use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $conffile, $outfile, $template, $want_help );
+    my ( $outfile, $template, $want_help );
 
     GetOptions(
-        "c|config=s"   => \$conffile,
         "f|filename=s" => \$outfile,
         "t|template=s" => \$template,
         "h|help"       => \$want_help,
@@ -49,7 +48,7 @@ sub parse_args {
         );
     }
 
-    unless ( $conffile && $outfile && $template ) {
+    unless ( $outfile && $template ) {
         pod2usage(
             -message => qq{Please see "$0 -h" for further help notes.},
             -exitval => 255,
@@ -58,7 +57,7 @@ sub parse_args {
         );
     }
 
-    my $config = Config::YAML->new( config => $conffile );
+    my $config = BeerFestDB::Web->config();
 
     return( $outfile, $config, $template );
 }
@@ -88,7 +87,7 @@ dump_to_oodoc.pl
 
 =head1 SYNOPSIS
 
- dump_to_oodoc.pl -c <config file> -f <output file> -t <template file>
+ dump_to_oodoc.pl -f <output file> -t <template file>
 
 =head1 DESCRIPTION
 
@@ -107,10 +106,6 @@ information will be appended to it.
 =item -t
 
 A template ODT file containing the requisite style information.
-
-=item -c
-
-The main BeerFestDB web config file.
 
 =back
 

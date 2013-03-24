@@ -195,7 +195,6 @@ package main;
 
 use Data::Dumper;
 use Getopt::Long;
-use Config::YAML;
 use Pod::Usage;
 use Template;
 use Digest::SHA qw (hmac_sha256_hex);
@@ -203,6 +202,7 @@ use DateTime;
 use DateTime::TimeZone;
 use JSON::DWIW;
 use List::Util qw (first);
+use BeerFestDB::Web;
 
 sub send_update {
 
@@ -241,10 +241,9 @@ sub get_timestamp {
 
 sub parse_args {
 
-    my ( $conffile, $tfile, $html, $debug, $want_help );
+    my ( $tfile, $html, $debug, $want_help );
 
     GetOptions(
-        "c|config=s"   => \$conffile,
         "t|template=s" => \$tfile,
         "html"         => \$html,
         "d|debug"      => \$debug,
@@ -259,16 +258,7 @@ sub parse_args {
         );
     }
 
-    unless ( $conffile ) {
-        pod2usage(
-            -message => qq{Please see "$0 -h" for further help notes.},
-            -exitval => 255,
-            -output  => \*STDERR,
-            -verbose => 0,
-        );
-    }
-
-    my $config = Config::YAML->new( config => $conffile );
+    my $config = BeerFestDB::Web->config();
 
     my $template;
     if ( $tfile ) {
@@ -394,7 +384,7 @@ upload_beerlist.pl
 
 =head1 SYNOPSIS
 
- upload_beerlist.pl -c beerfest_web.yml
+ upload_beerlist.pl
 
 =head1 DESCRIPTION
 
@@ -402,10 +392,6 @@ Local CBF-specific script used to upload the current beer list in XML
 form to a public web site.
 
 =head1 OPTIONS
-
-=head2 -c
-
-The path to the main BeerFestDB config file.
 
 =head2 -t
 

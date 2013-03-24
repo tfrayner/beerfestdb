@@ -7,45 +7,10 @@ use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
-use Config::YAML;
 use BeerFestDB::ORM;
+use BeerFestDB::Web;
 
-use Data::Dumper;
-
-sub parse_args {
-
-    my ( $conffile, $want_help );
-
-    GetOptions(
-        "c|config=s"   => \$conffile,
-        "h|help"       => \$want_help,
-    );
-
-    if ($want_help) {
-        pod2usage(
-            -exitval => 255,
-            -output  => \*STDERR,
-            -verbose => 1,
-        );
-    }
-
-    $conffile ||= 'beerfestdb_web.yml';
-
-    unless ( $conffile ) {  # Fairly pointless, but that's the boilerplate.
-        pod2usage(
-            -message => qq{Please see "$0 -h" for further help notes.},
-            -exitval => 255,
-            -output  => \*STDERR,
-            -verbose => 0,
-        );
-    }
-
-    my $config = Config::YAML->new( config => $conffile );
-
-    return( $config );
-}
-
-my ( $config ) = parse_args();
+my $config = BeerFestDB::Web->config();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
@@ -75,7 +40,7 @@ rewrite_db_addresses.pl
 
 =head1 SYNOPSIS
 
- rewrite_db_addresses.pl -c <config file>
+ rewrite_db_addresses.pl
 
 =head1 DESCRIPTION
 

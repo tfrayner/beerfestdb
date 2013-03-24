@@ -25,18 +25,17 @@ use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
-use Config::YAML;
 use Text::CSV_XS;
 use List::Util qw(first);
 use Scalar::Util qw(looks_like_number);
 use BeerFestDB::ORM;
+use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $conffile, $datafile, $allow_stillage_move, $want_help );
+    my ( $datafile, $allow_stillage_move, $want_help );
 
     GetOptions(
-        "c|config=s"   => \$conffile,
 	"f|file=s"     => \$datafile,
 	"a|allow"      => \$allow_stillage_move,
         "h|help"       => \$want_help,
@@ -50,7 +49,7 @@ sub parse_args {
         );
     }
 
-    unless ( $conffile ) {
+    unless ( $datafile ) {
         pod2usage(
             -message => qq{Please see "$0 -h" for further help notes.},
             -exitval => 255,
@@ -59,7 +58,7 @@ sub parse_args {
         );
     }
 
-    my $config = Config::YAML->new( config => $conffile );
+    my $config = BeerFestDB::Web->config();
 
     return( $config, $datafile, $allow_stillage_move );
 }
@@ -232,7 +231,7 @@ update_cask_details.pl
 
 =head1 SYNOPSIS
 
- update_cask_details.pl -c beerfest_web.yml -f tab_delimited_file.csv
+ update_cask_details.pl -f tab_delimited_file.csv
 
 =head1 DESCRIPTION
 
@@ -240,10 +239,6 @@ Local CBF-specific script used to update cask cellar ID, stillage
 location, bay number and position once stillaging is complete.
 
 =head1 OPTIONS
-
-=head2 -c
-
-The path to the main BeerFestDB config file.
 
 =head2 -a
 
