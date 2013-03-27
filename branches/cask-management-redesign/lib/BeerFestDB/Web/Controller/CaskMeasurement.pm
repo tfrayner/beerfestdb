@@ -114,7 +114,7 @@ sub list : Local {
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();
     }
-    my $rs = $stillage->search_related('casks');
+    my $rs = $stillage->search_related('cask_managements')->search_related('casks');
 
     my $batch = $c->model( 'DB::MeasurementBatch' )
                   ->find({measurement_batch_id => $batch_id});
@@ -135,8 +135,11 @@ sub list : Local {
         # We actually want to use the comment field attached to cask,
         # rather than the one attached to cask_measurement.
         my %cask_info = map { $_ => $cask->get_column($_) }
-            qw( cask_id internal_reference cellar_reference
-                is_vented is_tapped is_ready is_condemned );
+            qw( cask_id is_vented is_tapped is_ready is_condemned );
+        foreach my $col (qw(internal_reference cellar_reference)) {
+            $cask_info{$col} = $cask->cask_management_id()->get_column($col);
+        }
+
         $cask_info{ measurement_batch_id } = $batch_id;
 
         # We distinguish cask comment since there's also a cask_measurement comment.
@@ -144,7 +147,8 @@ sub list : Local {
 
         # For information only. Will not be edited in the View.
         $cask_info{ container_measure }
-            = $cask->container_size_id()->container_measure_id()->description();
+            = $cask->cask_management_id()->container_size_id()
+                   ->container_measure_id()->description();
         $cask_info{ brewer }
             = $cask->gyle_id()->company_id()->name();
         $cask_info{ product }
@@ -171,7 +175,9 @@ sub list : Local {
         my $previous = $older[0];
         $cask_info{ previous_volume } = defined $previous
                                       ? $previous->volume()
-                                      : $cask->container_size_id->container_volume();
+                                      : $cask->cask_management_id()
+                                             ->container_size_id()
+                                             ->container_volume();
         
         push @casks, \%cask_info;
     }
@@ -272,7 +278,8 @@ sub _save_records : Private {
 	}
 	else {
 	    $rec->{container_measure_id}
-	        = $cask->container_size_id()
+	        = $cask->cask_management_id()
+                       ->container_size_id()
 		       ->get_column('container_measure_id');
 	    $self->build_database_object( $rec, $c, $rs );
 	}

@@ -52,40 +52,16 @@ Ext.onReady(function(){
         url:        url_festival_product_list,
         root:       'objects',
         fields:     [{ name: 'festival_product_id', type: 'int'    },
+                     { name: 'festival_name',       type: 'string' },
                      { name: 'product_id',          type: 'int' },
                      { name: 'festival_id',         type: 'int' },
                      { name: 'comment',             type: 'string' }],
         sortInfo:   {
-            field:     'festival_id',
+            field:     'festival_name',
             direction: 'ASC',
         },
     });
     festival_product_store.load();
-
-    /* Festival drop-down */
-    var festival_store = new Ext.data.JsonStore({
-        url:        url_festival_list,
-        root:       'objects',
-        fields:     [{ name: 'festival_id', type: 'int'    },
-                     { name: 'name',        type: 'string' }],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-    festival_store.load();
-    var festival_combo = new Ext.form.ComboBox({
-        typeAhead:      true,
-        triggerAction:  'all',
-        mode:           'local',
-        allowBlank:     false,
-        forceSelection: true,
-        store:          festival_store,
-        valueField:     'festival_id',
-        displayField:   'name',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-    });
 
     /* Product form */
     var prodForm = new MyFormPanel({
@@ -163,11 +139,12 @@ Ext.onReady(function(){
             },
             store:              festival_product_store,
             contentCols: [
-                { id:         'festival_id',
+                { id:         'festival_name',
                   header:     'Festival',
-                  dataIndex:  'festival_id',
-                  renderer:   MyComboRenderer(festival_combo),
-                  editor:     festival_combo, },
+                  dataIndex:  'festival_name',
+                  editor:     new Ext.form.TextField({
+                      readOnly: true,
+                  })},
                 { id:        'comment',
                   header:    'Comment',
                   dataIndex: 'comment',

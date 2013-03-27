@@ -95,9 +95,21 @@ sub festival_casks {
 
     my $fest = $self->festival();
 
-    my @casks = $fest->search_related('casks')->all();
+    my @casks = $fest->search_related('cask_managements')
+                     ->search_related('casks')->all();
 
     return \@casks;
+}
+
+sub festival_cask_managements {
+
+    my ( $self ) = @_;
+
+    my $fest = $self->festival();
+
+    my @caskmans = $fest->search_related('cask_managements')->all();
+
+    return \@caskmans
 }
 
 sub festival_products {

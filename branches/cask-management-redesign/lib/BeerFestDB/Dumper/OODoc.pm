@@ -128,7 +128,8 @@ sub unique_casks {
         
     foreach my $cask ( @$casks ) {
         my $gyle = $cask->gyle_id();
-        my $key = join(':', $gyle->company_id, $gyle->festival_product_id, $cask->bar_id || q{});
+        my $key = join(':', $gyle->company_id, $gyle->festival_product_id,
+                       $cask->cask_management_id->bar_id || q{});
         $unique{ $key } = $cask;
     }
 
@@ -147,8 +148,9 @@ sub dump {
 
     # All beers present in casks on a stillage are handled here.
     foreach my $cask ( @$casks ) {
-        my $bar = $cask->bar_id() ? $cask->bar_id()->description()
-                : $cask->stillage_location_id() ? $cask->stillage_location_id()->description()
+        my $caskman = $cask->cask_management_id;
+        my $bar = $caskman->bar_id() ? $caskman->bar_id()->description()
+                : $caskman->stillage_location_id() ? $caskman->stillage_location_id()->description()
                 : q{};
         my $brewer = $cask->gyle_id->company_id;
         my $beer   = $cask->gyle_id->festival_product_id()->product_id;

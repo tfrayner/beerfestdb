@@ -53,18 +53,32 @@ sub generate_json_and_detach : Private {
 
     my ( $self, $c, $rs ) = @_;
 
-    # Maps View onto Model columns.
-    my %mv_map = %{ $self->model_view_map() };
-
     my @objects;
     while ( my $obj = $rs->next ) {
-        my %obj_info = map { $_ => $self->viewhash_from_model($_, $obj) } keys %mv_map;
-        push @objects, \%obj_info;
+        push @objects, $self->generate_object_viewhash($obj);
     }
 
     $c->stash->{ 'success' } = JSON::Any->true();
     $c->stash->{ 'objects' } = \@objects;
     $c->detach( $c->view( 'JSON' ) );
+}
+
+sub generate_object_viewhash : Private {
+
+    my ( $self, $obj ) = @_;
+
+    # Maps View onto Model columns.
+    my %mv_map = %{ $self->model_view_map() };
+
+    my %obj_info;
+    foreach my $key ( keys %mv_map ) {
+        my $value = $self->viewhash_from_model($key, $obj);
+        if ( defined $value ) {
+            $obj_info{ $key } = $value;
+        }
+    }
+
+    return \%obj_info;
 }
 
 =head2 form_json_and_detach
@@ -81,11 +95,7 @@ sub form_json_and_detach : Private {
         my $obj = $rs->find({ $pk => $id });
 
         if ( $obj ) {
-            my %mv_map = %{ $self->model_view_map() };
-
-            my %obj_hash = map { $_ => $self->viewhash_from_model($_, $obj) } keys %mv_map;
-
-            $c->stash->{ 'data' } = \%obj_hash;
+            $c->stash->{ 'data' } = $self->generate_object_viewhash( $obj );
             $c->stash->{ 'success' } = JSON::Any->true();
         }
         else {
@@ -110,6 +120,10 @@ sub viewhash_from_model : Private {
     # from a DBIx::Class::Row object.
     my ( $self, $view_key, $dbrow, $lookup ) = @_;
 
+    unless ( defined $dbrow ) {
+        return;
+    }
+
     $lookup ||= $self->model_view_map()->{ $view_key } || $view_key;
 
     if ( ref $lookup eq 'HASH' ) {
@@ -129,7 +143,7 @@ sub viewhash_from_model : Private {
                         . " relationships are not supported.");
         }
         elsif ( scalar @children < 1 ) {
-            confess("Error: model_view_map contains empty hashrefs.");
+            return;
         }
         return $children[0];
     }
@@ -250,8 +264,11 @@ sub build_database_object : Private {
         }
         
         # Database updates are not done below here, for the sake of
-        # interface consistency.
-        my $value = $self->build_database_object( $next_rec, $c, $next_rs, $next_map, 1 );
+        # interface consistency. (FIXME we're currently reviewing
+        # this, hence 0 on next line; it may be that we need recursive
+        # updates for e.g. cask->cask_management and the interface is
+        # better controlled by using read-only fields).
+        my $value = $self->build_database_object( $next_rec, $c, $next_rs, $next_map, 0 );
         my @pks = $next_rs->result_source()->primary_columns();
         if ( scalar @pks != 1 ) {
             confess("Error: Unable to update relationship with table not having only one primary column.");

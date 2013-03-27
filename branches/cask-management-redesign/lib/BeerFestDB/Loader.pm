@@ -464,7 +464,8 @@ sub _load_data {
         if ( $gyle && $festival ) { 
             $preexist = $gyle->search_related(
                 'casks',
-                { 'festival_id' => $festival->id })->count();
+                { 'cask_management_id.festival_id' => $festival->id },
+                { join => 'cask_management_id'} )->count();
             $count += $preexist;
         }
 
@@ -478,11 +479,10 @@ sub _load_data {
         
         foreach my $n ( @wanted_casks ) {
 
-            my $cask
+            my $cask_man
                 = ( $product && $festival )
                     ? $self->_load_column_value(
                         {
-                            gyle_id                => $gyle,
                             distributor_company_id => $distributor,
                             festival_id            => $festival,
                             container_size_id      => $cask_size,
@@ -492,9 +492,19 @@ sub _load_data {
                             stillage_bay           => $datahash->{$BAY_NUMBER},
                             bay_position_id        => $bay_position,
                             bar_id                 => $bar,
-                            comment                => $datahash->{$CASK_COMMENT},
                             internal_reference     => $n,
                             cellar_reference       => $datahash->{$CASK_FESTIVAL_ID},
+                        },
+                        'CaskManagement')
+                        : undef;
+
+            my $cask
+                = ( $cask_man )
+                    ? $self->_load_column_value(
+                        {
+                            cask_management_id     => $cask_man,
+                            gyle_id                => $gyle,
+                            comment                => $datahash->{$CASK_COMMENT},
                         },
                         'Cask')
                         : undef;
@@ -594,7 +604,7 @@ sub _load_column_value {
     # technically optional, still confers identity when it is
     # present. The altenative seems to be to make this NOT NULL in the
     # database, which is further than I want to go.
-    if ( $class eq 'Cask' && exists $args->{'cellar_reference'} ) {
+    if ( $class eq 'CaskManagement' && exists $args->{'cellar_reference'} ) {
         push @$required, 'cellar_reference';
         @$optional = grep { $_ ne 'cellar_reference' } @$optional;
     }
