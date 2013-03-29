@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2013 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@ use Carp;
 use Scalar::Util qw(looks_like_number);
 use List::Util qw(first);
 use Storable qw(dclone);
+use Cwd;
+use File::Spec::Functions qw(catfile);
 use Template;
 use POSIX qw(ceil);
 
@@ -60,6 +62,16 @@ has 'dump_class'  => ( is       => 'ro',
                        required => 1,
                        default  => 'product' );
 
+has 'split_output' => ( is       => 'ro',
+                        isa      => 'Bool',
+                        required => 1,
+                        default  => 0 );
+
+has 'output_dir'  => ( is       => 'ro',
+                       isa      => 'Str',
+                       required => 1,
+                       default  => getcwd );
+
 sub BUILD {
 
     my ( $self, $params ) = @_;
@@ -71,7 +83,29 @@ sub BUILD {
         }
     }
 
+    my $outdir = $params->{'output_dir'};
+    if ( defined $params->{'filehandle'} && defined $params->{'split_output'} ) {
+
+        warn(q{Warning: filehandle attribute used in conjunction with split_output;} .
+             q{ this does not make sense. Script will ignore the filehandle.\n});
+    }
+
+    if ( defined $outdir && ! -e $outdir ) {
+        mkdir $outdir;
+    }
+
     return;
+}
+
+sub _sanitise_filename {
+
+    my ( $self, $tag ) = @_;
+
+    $tag =~ s/['"]//g;
+    $tag =~ s/\&/and/g;
+    $tag =~ s/[^[:alnum:]]+/_/g;
+
+    return $tag;
 }
 
 sub product_hash {
@@ -81,6 +115,10 @@ sub product_hash {
     my $fest = $self->festival();
     my $fp   = $product->search_related('festival_products',
 					{ festival_id => $fest->festival_id })->first();
+
+    my $tag = $self->_sanitise_filename(sprintf("%s %s",
+                                                $product->company_id->name(),
+                                                $product->name()));
 
     # N.B. Changes here need to be documented in the POD.
     my %prodhash = (
@@ -93,6 +131,7 @@ sub product_hash {
         abv      => $product->nominal_abv(),
         sale_volume => $fp->sale_volume_id()->description(),
         notes    => $product->description(),
+        _split_export_tag => $tag,
     );
 
     my $currency = $fp->sale_currency_id();
@@ -124,6 +163,7 @@ sub order_hash {
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
         nominal_abv => $order->product_id->nominal_abv(),
+        _split_export_tag => $order->product_order_id(),
     );
 
     my $currency = $order->currency_id();
@@ -155,11 +195,14 @@ sub distributor_hash {
     my $fest       = $self->festival();
     my $orderbatch = $self->order_batch();
 
+    my $tag = $self->_sanitise_filename(sprintf("%s %s", $orderbatch->description(), $dist->name()));
+
     my %disthash = (
         id         => $dist->id(),
         name       => $dist->name(),
         full_name  => $dist->full_name(),
         batch_id   => $orderbatch->id(),
+        _split_export_tag => $tag,
     );
 
     # Some distributor-level template dumps have no need for sales
@@ -196,6 +239,7 @@ sub update_gyle_hash {
 
     # N.B. Changes here need to be documented in the POD.
     $gylehash ||= {};
+    $gylehash->{_split_export_tag} = $gyle->gyle_id();
 
     # This potentially overwrites the "nominal" ABV from the product
     # table with the *actual* gyle ABV.
@@ -212,6 +256,7 @@ sub update_cask_hash {
 
     # N.B. Changes here need to be documented in the POD.
     $caskhash ||= {};
+    $caskhash->{_split_export_tag} = $cask->cask_id();
     $caskhash->{number}      = $cask->internal_reference();
     $caskhash->{festival_id} = $cask->cellar_reference();
     $caskhash->{size}        = $cask->container_size_id
@@ -294,7 +339,7 @@ sub dump {
         }
     }
     elsif ( $self->dump_class eq 'distributor' ) {
-        foreach my $dist ( @{ $self->festival_distributors() } ) {
+        foreach my $dist ( @{ $self->order_batch_distributors() } ) {
             my $disthash = $self->distributor_hash( $dist );
             push @template_data, $disthash;
         }
@@ -303,15 +348,7 @@ sub dump {
         confess(sprintf(qq{Attempt to dump data from unsupported class "%s"}, $self->dump_class));
     }
     
-    my $vars = {
-        logos      => $self->logos(),
-        objects    => \@template_data,
-        stillages  => \%stillage,
-        dip_batches => \@dip_batches,
-        dump_class => $self->dump_class(),
-    };
-
-    # We define a custom title case filter for convenience.
+    # We define some custom filters for convenience.
     my $template = Template->new(
 	FILTERS => {
             titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) },
@@ -320,8 +357,32 @@ sub dump {
         }
     )   or die( "Cannot create Template object: " . Template->error() );
 
-    $template->process($self->template(), $vars, $self->filehandle() )
-        or die( "Template processing error: " . $template->error() );
+    my $vars = {
+        logos      => $self->logos(),
+        stillages  => \%stillage,
+        dip_batches => \@dip_batches,
+        dump_class => $self->dump_class(),
+    };
+
+    if ( $self->split_output() ) {
+        foreach my $item ( @template_data ) {
+            warn(sprintf("Creating output file for %s: %s\n",
+                         $self->dump_class(), $item->{_split_export_tag}));
+            my $export_filename = catfile($self->output_dir,
+                                          $item->{_split_export_tag} . ".tex");
+            open(my $export_fh, '>', $export_filename)
+                or die("Error: unable to open output file $export_filename.");
+            $vars->{'objects'} = [ $item ];
+            $template->process($self->template(), $vars, $export_fh )
+                or die( "Template processing error: " . $template->error() );
+            close($export_fh) or die("$!");
+        }
+    }
+    else {
+        $vars->{'objects'} = \@template_data,
+        $template->process($self->template(), $vars, $self->filehandle() )
+            or die( "Template processing error: " . $template->error() );
+    }
 
     return;
 }

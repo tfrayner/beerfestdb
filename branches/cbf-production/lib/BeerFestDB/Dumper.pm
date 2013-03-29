@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2013 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -181,6 +181,19 @@ sub festival_distributors {
                             ->search_related('distributor_company_id', undef, { distinct => 1})
                             ->all();
     
+    return \@distributors;
+}
+
+sub order_batch_distributors {
+
+    my ( $self ) = @_;
+
+    my $batch = $self->order_batch();
+
+    my @distributors = $batch->search_related('product_orders', { is_final => 1 })
+                             ->search_related('distributor_company_id', undef, { distinct => 1 })
+                             ->all();
+
     return \@distributors;
 }
 

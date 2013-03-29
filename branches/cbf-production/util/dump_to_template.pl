@@ -3,7 +3,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2013 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
+use Cwd;
 
 use BeerFestDB::ORM;
 use BeerFestDB::Dumper::Template;
@@ -32,13 +33,15 @@ use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $templatefile, $logofile, $objectlevel, $want_help );
+    my ( $templatefile, $logofile, $objectlevel, $split, $outdir, $want_help );
 
     GetOptions(
         "t|template=s" => \$templatefile,
         "l|logo=s"     => \$logofile,
         "o|objects=s"  => \$objectlevel,
         "h|help"       => \$want_help,
+        "s|split-output" => \$split,
+        "d|output-dir=s" => \$outdir,
     );
 
     if ($want_help) {
@@ -50,6 +53,7 @@ sub parse_args {
     }
 
     $objectlevel ||= 'cask';
+    $outdir      ||= getcwd;
 
     unless ( $templatefile ) {
         pod2usage(
@@ -62,14 +66,14 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    return( $templatefile, $logofile, $config, $objectlevel );
+    return( $templatefile, $logofile, $config, $objectlevel, $outdir, $split );
 }
 
 ########
 # MAIN #
 ########
 
-my ( $templatefile, $logofile, $config, $objectlevel ) = parse_args();
+my ( $templatefile, $logofile, $config, $objectlevel, $outdir, $split ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
@@ -78,6 +82,8 @@ my $dumper = BeerFestDB::Dumper::Template->new(
     template => $templatefile,
     logos    => [ $logofile ],
     dump_class => $objectlevel,
+    split_output => $split,
+    output_dir   => $outdir,
 );
 
 $dumper->dump();
@@ -119,6 +125,14 @@ template file as the first element of the "logos" array.
 Indicate the database class to use for dumping. See
 L<BeerFestDB::Dumper::Template> for a list of acceptable options. The
 default is 'cask'.
+
+=item -d
+
+The output directory into which to write files.
+
+=item -s
+
+Generate output latex files split by the object level used for dumping (-o, above).
 
 =back
 
