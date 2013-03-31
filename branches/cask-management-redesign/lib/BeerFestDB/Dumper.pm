@@ -29,7 +29,6 @@ use warnings;
 use Moose;
 
 use Carp;
-use Scalar::Util qw(looks_like_number);
 
 our $VERSION = '0.01';
 
@@ -42,6 +41,8 @@ has '_festival' => ( is       => 'rw',
 
 has '_order_batch' => ( is       => 'rw',
                         isa      => 'BeerFestDB::ORM::OrderBatch' );
+
+with 'BeerFestDB::MenuSelector';
 
 sub festival {
 
@@ -61,32 +62,6 @@ sub festival {
     $self->_festival($fest);
 
     return $fest;
-}
-
-sub select_festival {
-
-    my ( $self ) = @_;
-
-    # Just retrieve the casks for the festival in question. We need an
-    # interactive menu here.
-    my @festivals = $self->database->resultset('Festival')->all();
-
-    my $wanted;
-
-    SELECT:
-    {
-        warn("Please select the beer festival of interest:\n\n");
-        foreach my $n ( 1..@festivals ) {
-            my $fest = $festivals[$n-1];
-            warn(sprintf("  %d: %d %s\n", $n, $fest->year, $fest->name));
-        }
-        warn("\n");
-        chomp(my $select = <STDIN>);
-        redo SELECT unless ( looks_like_number( $select )
-                                 && ($wanted = $festivals[ $select-1 ]) );
-    }
-
-    return $wanted;
 }
 
 sub festival_casks {
@@ -137,37 +112,11 @@ sub order_batch {
         return $batch;
     }
 
-    $batch = $self->select_order_batch();
+    $batch = $self->select_order_batch( $self->festival );
 
     $self->_order_batch($batch);
 
     return $batch;
-}
-
-sub select_order_batch {
-
-    my ( $self ) = @_;
-
-    # Just retrieve the casks for the festival in question. We need an
-    # interactive menu here.
-    my @batches = $self->festival->order_batches();
-
-    my $wanted;
-
-    SELECT:
-    {
-        warn("Please select the order batch:\n\n");
-        foreach my $n ( 1..@batches ) {
-            my $batch = $batches[$n-1];
-            warn(sprintf("  %d: %s %s\n", $n, $batch->description, $batch->order_date || q{}));
-        }
-        warn("\n");
-        chomp(my $select = <STDIN>);
-        redo SELECT unless ( looks_like_number( $select )
-                                 && ($wanted = $batches[ $select-1 ]) );
-    }
-
-    return $wanted;
 }
 
 sub festival_orders {

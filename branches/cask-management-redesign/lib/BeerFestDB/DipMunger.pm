@@ -126,4 +126,6 @@ License (GPL).
 
 =cut
 
+no Moose::Role;
+
 1;
