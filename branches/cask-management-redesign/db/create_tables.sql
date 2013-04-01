@@ -180,7 +180,7 @@ CREATE TABLE `cask_management` (
   CONSTRAINT `cask_management_ibfk_1` FOREIGN KEY (`bar_id`) REFERENCES `bar` (`bar_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_management_ibfk_2` FOREIGN KEY (`container_size_id`) REFERENCES `container_size` (`container_size_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_management_ibfk_3` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`festival_id`) ON UPDATE NO ACTION,
-  CONSTRAINT `cask_management_ibfk_4` FOREIGN KEY (`product_order_id`) REFERENCES `product_order` (`product_order_id`) ON UPDATE NO ACTION,
+  CONSTRAINT `cask_management_ibfk_4` FOREIGN KEY (`product_order_id`) REFERENCES `product_order` (`product_order_id`) ON UPDATE NO ACTION ON DELETE CASCADE,  -- prevents inadvertent cask_management orphanage.
   CONSTRAINT `cask_management_ibfk_5` FOREIGN KEY (`currency_id`) REFERENCES `currency` (`currency_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_management_ibfk_6` FOREIGN KEY (`bay_position_id`) REFERENCES `bay_position` (`bay_position_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_management_ibfk_7` FOREIGN KEY (`stillage_location_id`) REFERENCES `stillage_location` (`stillage_location_id`) ON UPDATE NO ACTION

@@ -47,7 +47,7 @@ create table cask_management (
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSKMAN_poId_COMP_poid(product_order_id)
     REFERENCES product_order(product_order_id)
-      ON DELETE RESTRICT
+      ON DELETE CASCADE -- prevents inadvertent cask_management orphanage.
       ON UPDATE NO ACTION,
   FOREIGN KEY FK_CSKMAN_curcd_CUR_curcd(currency_id)
     REFERENCES currency(currency_id)
