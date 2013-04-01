@@ -3,7 +3,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2013 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,6 +31,93 @@ use Scalar::Util qw(looks_like_number);
 use BeerFestDB::ORM;
 
 use Data::Dumper;
+
+package DipLoader;
+
+use Moose;
+
+has 'database'  => ( is       => 'ro',
+                     isa      => 'DBIx::Class::Schema',
+                     required => 1 );
+
+with 'BeerFestDB::MenuSelector';
+
+sub value_acceptable {
+
+    my ( $value ) = @_;
+
+    if ( defined $value && $value ne q{} ) {
+        return 1;
+    }
+
+    return;
+}
+
+sub load {
+
+    my ( $self, $input ) = @_;
+
+    my $batch = $self->select_dip_batch();
+
+    my $csv_parser = Text::CSV_XS->new(
+        {   sep_char    => qq{\t},
+            quote_char  => qq{"},                   # default
+            escape_char => qq{"},                   # default
+            binary      => 1,
+            allow_loose_quotes => 1,
+        }
+    );
+
+    open(my $fh, '<', $input)
+        or die(qq{Error: unable to open input file "$input".\n});
+
+    my $db = $self->database;
+
+    eval {
+        $db->txn_do(
+            sub {
+                MEAS:
+                while ( my $line = $csv_parser->getline($fh) ) {
+                    next MEAS unless ( scalar @$line > 1
+                                    && value_acceptable( $line->[0] )
+                                        && value_acceptable( $line->[1] ));
+                    my $cask = $db->resultset('Cask')->find(
+                        { festival_id      => $self->festival->id(),
+                          cellar_reference => $line->[0] })
+                        or die(qq{Error: Cask with cellar_reference "$line->[0]" }
+                                   . qq{not found.\n});
+                    $db->resultset('CaskMeasurement')->update_or_create({
+                        cask_id              => $cask->id(),
+                        measurement_batch_id => $batch->id(),
+                        volume               => $line->[1],
+                        container_measure_id => $cask->container_size_id()
+                                                     ->get_column('container_measure_id'),
+                    });
+                }
+            }
+        );
+    };
+    if ( $@ ) {
+        die(qq{Errors encountered during load:\n\n$@});
+    }
+    else {
+        
+        # Check that parsing completed successfully.
+        my ( $error, $mess ) = $csv_parser->error_diag();
+        unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
+            die(sprintf(
+		"Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
+		$mess,
+		$csv_parser->error_input()));
+        }
+        
+        print("Dip data successfully loaded.\n");
+    }
+
+    return;
+}
+
+package main;
 
 sub parse_args {
 
@@ -66,108 +153,13 @@ sub parse_args {
     return( $input, $config );
 }
 
-sub select_dip_batch {
-
-    my ( $festival ) = @_;
-
-    my @batches = $festival->search_related(
-        'measurement_batches', undef,
-        { order_by => { -asc => 'measurement_time' } }
-    );
-
-    my $wanted;
-
-    SELECT:
-    {
-        warn("Please select the dip batch to update:\n\n");
-        foreach my $n ( 1..@batches ) {
-            my $batch = $batches[$n-1];
-            warn(sprintf("  %d: %s %s\n",
-                         $n, $batch->measurement_time, $batch->description));
-        }
-        warn("\n");
-        chomp(my $select = <STDIN>);
-        redo SELECT unless ( looks_like_number( $select )
-                                 && ($wanted = $batches[ $select-1 ]) );
-    }
-
-    return $wanted;
-}
-
-sub value_acceptable {
-
-    my ( $value ) = @_;
-
-    if ( defined $value && $value ne q{} ) {
-        return 1;
-    }
-
-    return;
-}
-
 my ( $input, $config ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
-my $festname = $config->{'current_festival'}
-    or die(qq{Error: Config option for current_festival has not been set.\n});
-my $festival = $schema->resultset('Festival')->find({ name => $festname })
-    or die(qq{Error retrieving festival "$festname" from the database.\n});
+my $loader = DipLoader->new( database => $schema );
 
-my $batch = select_dip_batch( $festival );
-
-my $csv_parser = Text::CSV_XS->new(
-    {   sep_char    => qq{\t},
-        quote_char  => qq{"},                   # default
-        escape_char => qq{"},                   # default
-        binary      => 1,
-        allow_loose_quotes => 1,
-    }
-);
-
-open(my $fh, '<', $input)
-    or die(qq{Error: unable to open input file "$input".\n});
-
-eval {
-    $schema->txn_do(
-        sub {
-            MEAS:
-            while ( my $line = $csv_parser->getline($fh) ) {
-                next MEAS unless ( scalar @$line > 1
-                                && value_acceptable( $line->[0] )
-                                && value_acceptable( $line->[1] ));
-                my $cask = $schema->resultset('Cask')->find(
-                    { festival_id      => $festival->id(),
-                      cellar_reference => $line->[0] })
-                    or die(qq{Error: Cask with cellar_reference "$line->[0]" }
-                               . qq{not found for festival "$festname".\n});
-                $schema->resultset('CaskMeasurement')->update_or_create({
-                    cask_id              => $cask->id(),
-                    measurement_batch_id => $batch->id(),
-                    volume               => $line->[1],
-                    container_measure_id => $cask->container_size_id()
-                                                 ->get_column('container_measure_id'),
-                });
-            }
-        }
-    );
-};
-if ( $@ ) {
-    die(qq{Errors encountered during load:\n\n$@});
-}
-else {
-    
-    # Check that parsing completed successfully.
-    my ( $error, $mess ) = $csv_parser->error_diag();
-    unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
-	die(sprintf(
-		"Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
-		$mess,
-		$csv_parser->error_input()));
-    }
-
-    print("Dip data successfully loaded.\n");
-}
+$loader->load( $input );
 
 __END__
 

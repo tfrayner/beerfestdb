@@ -23,6 +23,10 @@ package BeerFestDB::MenuSelector;
 use Moose::Role;
 use namespace::autoclean;
 use Scalar::Util qw(looks_like_number);
+use BeerFestDB::Web;
+
+has '_festival' => ( is       => 'rw',
+                     isa      => 'BeerFestDB::ORM::Festival' );
 
 requires 'database';
 
@@ -74,15 +78,11 @@ sub select_festival {
 
 sub select_order_batch {
 
-    my ( $self, $festival ) = @_;
-
-    if ( ! $festival ) {
-        $festival = $self->select_festival();
-    }
+    my ( $self ) = @_;
 
     # Just retrieve the casks for the festival in question. We need an
     # interactive menu here.
-    my @batches = $festival->order_batches();
+    my @batches = $self->festival->order_batches();
 
     my $wanted;
 
@@ -100,6 +100,74 @@ sub select_order_batch {
     }
 
     return $wanted;
+}
+
+=head2 select_dip_batch
+
+=cut
+
+sub select_dip_batch {
+
+    my ( $self ) = @_;
+
+    my @batches = $self->festival->search_related(
+        'measurement_batches', undef,
+        { order_by => { -asc => 'measurement_time' } }
+    );
+
+    my $wanted;
+
+    SELECT:
+    {
+        warn("Please select the dip batch to update:\n\n");
+        foreach my $n ( 1..@batches ) {
+            my $batch = $batches[$n-1];
+            warn(sprintf("  %d: %s %s\n",
+                         $n, $batch->measurement_time, $batch->description));
+        }
+        warn("\n");
+        chomp(my $select = <STDIN>);
+        redo SELECT unless ( looks_like_number( $select )
+                                 && ($wanted = $batches[ $select-1 ]) );
+    }
+
+    return $wanted;
+}
+
+=head2 festival
+
+A convenience method used to cache the current working festival; this
+will examine the configured current_festival option first.
+
+=cut
+
+sub festival {
+
+    my ( $self, $fest ) = @_;
+
+    if ( $fest ) {
+        $self->_festival( $fest );
+        return( $fest );
+    }
+
+    if ( $fest = $self->_festival() ) {
+        return $fest;
+    }
+
+    my $config = BeerFestDB::Web->config();
+    if ( my $festname = $config->{'current_festival'} ) {
+        $fest = $self->database->resultset('Festival')
+                               ->find({ name => $festname })
+            or die(q{Error retrieving configured festival}
+                . qq{ "$festname" from the database.\n});
+    }
+    else {
+        $fest = $self->select_festival();
+    }
+
+    $self->_festival($fest);
+
+    return $fest;
 }
 
 =head1 COPYRIGHT AND LICENSE

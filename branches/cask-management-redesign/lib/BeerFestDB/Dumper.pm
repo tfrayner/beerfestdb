@@ -36,33 +36,10 @@ has 'database'  => ( is       => 'ro',
                      isa      => 'DBIx::Class::Schema',
                      required => 1 );
 
-has '_festival' => ( is       => 'rw',
-                     isa      => 'BeerFestDB::ORM::Festival' );
-
 has '_order_batch' => ( is       => 'rw',
                         isa      => 'BeerFestDB::ORM::OrderBatch' );
 
 with 'BeerFestDB::MenuSelector';
-
-sub festival {
-
-    my ( $self, $fest ) = @_;
-
-    if ( $fest ) {
-        $self->_festival( $fest );
-        return( $fest );
-    }
-
-    if ( $fest = $self->_festival() ) {
-        return $fest;
-    }
-
-    $fest = $self->select_festival();
-
-    $self->_festival($fest);
-
-    return $fest;
-}
 
 sub festival_casks {
 
@@ -197,10 +174,10 @@ Dumper subclasses.
 
 =over 2
 
-=item select_festival_casks
+=item festival_casks
 
-A method which will interactively ask the user for the festival of
-interest, and return a list of casks for that festival.
+Returns a list of casks for the configured current_festival, or the
+festival interactively selected from a menu by the user.
 
 =back
 
