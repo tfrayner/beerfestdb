@@ -382,7 +382,7 @@ Ext.onReady(function(){
                       allowBlank:     true,
                   })},
                 { id:         'description',
-                  header:     'Description',
+                  header:     'Short Description',
                   dataIndex:  'description',
                   width:      150,
                   editor:     new Ext.form.TextField({

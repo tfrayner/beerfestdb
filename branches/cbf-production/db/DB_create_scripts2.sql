@@ -560,6 +560,7 @@ CREATE TABLE product (
   product_style_id INTEGER(6) NULL,
   nominal_abv DECIMAL(3,1) NULL,
   description TEXT NULL,
+  long_description TEXT NULL,
   comment TEXT NULL,
   PRIMARY KEY(product_id),
   UNIQUE KEY (company_id, name),

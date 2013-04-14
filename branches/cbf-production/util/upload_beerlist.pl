@@ -250,7 +250,7 @@ sub update_brewery_info {
         status      => 'status_text',
         abv         => 'abv',
         style       => 'style',
-        description => 'notes',
+        long_description => 'notes',
         css_status  => 'css_status',
     );
     foreach my $item ( @$statuslist ) {
@@ -286,8 +286,14 @@ sub update_brewery_info {
                  ('cider', 'perry', 'apple juice', 'mead') ) {
             $item->{status} = '';
         }
-        push @{ $brewery_info->{ $id }{products} },
-            { map { $infomap{$_} => $item->{ $_ } } keys %infomap };
+        my $beer_info = { map { $infomap{$_} => $item->{ $_ } } keys %infomap };
+
+        # If long_description not available, fall back to short description.
+        if ( ! defined $beer_info->{notes} || $beer_info->{notes} eq q{} ) {
+            $beer_info->{notes} = $item->{description}
+        }
+
+        push @{ $brewery_info->{ $id }{products} }, $beer_info;
     }
 }
 
