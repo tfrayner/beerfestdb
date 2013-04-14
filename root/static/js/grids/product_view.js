@@ -131,7 +131,12 @@ Ext.onReady(function(){
               allowBlank:     true, },
 
             { name:           'description',
-              fieldLabel:     'Description',
+              fieldLabel:     'Short Description',
+              xtype:          'textarea',
+              allowBlank:     true, },
+
+            { name:           'long_description',
+              fieldLabel:     'Long Description',
               xtype:          'textarea',
               allowBlank:     true, },
 
