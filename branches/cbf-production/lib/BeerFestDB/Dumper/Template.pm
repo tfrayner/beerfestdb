@@ -72,6 +72,11 @@ has 'output_dir'  => ( is       => 'ro',
                        required => 1,
                        default  => getcwd );
 
+has 'overwrite'   => ( is       => 'ro',
+                       isa      => 'Bool',
+                       required => 1,
+                       default  => 0 );
+
 sub BUILD {
 
     my ( $self, $params ) = @_;
@@ -365,11 +370,17 @@ sub dump {
     };
 
     if ( $self->split_output() ) {
+
+        ITEM:
         foreach my $item ( @template_data ) {
-            warn(sprintf("Creating output file for %s: %s\n",
-                         $self->dump_class(), $item->{_split_export_tag}));
             my $export_filename = catfile($self->output_dir,
                                           $item->{_split_export_tag} . ".tex");
+            if ( -e $export_filename && ! $self->overwrite ) {
+                warn("Output file already exists; will not overwrite. Skipping.\n");
+                next ITEM;
+            }
+            warn(sprintf("Creating output file for %s: %s\n",
+                         $self->dump_class(), $item->{_split_export_tag}));
             open(my $export_fh, '>', $export_filename)
                 or die("Error: unable to open output file $export_filename.");
             $vars->{'objects'} = [ $item ];
@@ -480,6 +491,7 @@ sub filter_to_latex {
     $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
     $text =~ s/ (?: ß  | \x{df} ) /\\ss/gxms;
     $text =~ s/ (?: ø  | \x{f8} ) /\\o/gxms;
+    $text =~ s/ (?: π  | \x{f8} ) /\$\\pi\$/gxms;
 
     return $text;
 }
