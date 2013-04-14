@@ -66,7 +66,8 @@ sub BUILD {
 
     my $class = $params->{'dump_class'};
     if ( defined $class ) {
-        unless ( first { $class eq $_ } qw(cask gyle product product_order distributor) ) {
+        unless ( first { $class eq $_ } qw(cask cask_management gyle
+                                           product product_order distributor) ) {
             confess(qq{Error: Unsupported dump class "$class"});
         }
     }
@@ -91,21 +92,23 @@ sub product_hash {
                     ? $product->product_style_id()->description() : q{},
         category => $product->product_category_id()->description(),
         abv      => $product->nominal_abv(),
-        sale_volume => $fp->sale_volume_id()->description(),
         notes    => $product->description(),
     );
 
-    my $currency = $fp->sale_currency_id();
-    my $format   = $currency->currency_format();
-    $prodhash{currency} = $currency->currency_symbol();
+    if ( $fp ) {
+        $prodhash{sale_volume} = $fp->sale_volume_id()->description();
+        my $currency = $fp->sale_currency_id();
+        my $format   = $currency->currency_format();
+        $prodhash{currency} = $currency->currency_symbol();
 
-    $prodhash{price}   = $self->format_price( $fp->sale_price(), $format );
-    if ( looks_like_number( $prodhash{price} ) ) {
-        $prodhash{half_price}
-            = $self->format_price( ceil($fp->sale_price() / 2), $format );
-    }
-    else {
-        $prodhash{half_price} = $prodhash{price};
+        $prodhash{price}   = $self->format_price( $fp->sale_price(), $format );
+        if ( looks_like_number( $prodhash{price} ) ) {
+            $prodhash{half_price}
+                = $self->format_price( ceil($fp->sale_price() / 2), $format );
+        }
+        else {
+            $prodhash{half_price} = $prodhash{price};
+        }
     }
 
     return \%prodhash;

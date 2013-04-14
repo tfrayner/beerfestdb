@@ -2,6 +2,12 @@
 % $Id$
 %
 
+% Note - to compile this LaTeX with pdflatex you will likely need to use the following:
+%
+%   pdflatex -shell-escape <name of this file.tex>
+%
+% This activates "shell-escape" mode which is needed for barcode creation.
+
 [% IF dump_class != 'cask_management' %][% THROW bad_dump_class "Use the cask_management dump class.\n" %][% END %]
 
 \documentclass[a4paper,12pt]{article} 

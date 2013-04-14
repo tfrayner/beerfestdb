@@ -28,12 +28,16 @@ use Pod::Usage;
 
 use Data::Dumper;
 
+use BeerFestDB::ORM;
+use BeerFestDB::Web;
+
 package Preloader;
 
 use Moose;
 
 has 'database'  => ( is       => 'rw',
-                     isa      => 'DBIx::Class::Schema' );
+                     isa      => 'DBIx::Class::Schema',
+                     required => 1 );
 
 with 'BeerFestDB::MenuSelector';
 with 'BeerFestDB::CaskPreloader';
@@ -88,7 +92,9 @@ sub parse_args {
 }
 
 # All settings currently taken from the main BeerFestDB::Web config file.
-my $loader = Preloader->new();
+my $config = BeerFestDB::Web->config();
+my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
+my $loader = Preloader->new(database => $schema);
 $loader->preload_festival();
 
 
