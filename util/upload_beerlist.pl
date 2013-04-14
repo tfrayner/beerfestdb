@@ -239,6 +239,58 @@ sub get_timestamp {
     return $dt->strftime("%a %b %e %Y %H:%M:%S %Z");
 }
 
+sub update_brewery_info {
+
+    my ( $brewery_info, $statuslist, $prodcat ) = @_;
+
+    # Reorganise the status list by brewery.
+    my %infomap = (  # Map internal tags to those used by beerengine etc.
+        id          => 'id',
+        product     => 'name',
+        status      => 'status_text',
+        abv         => 'abv',
+        style       => 'style',
+        description => 'notes',
+        css_status  => 'css_status',
+    );
+    foreach my $item ( @$statuslist ) {
+        my $id = $item->{company_id};
+        $brewery_info->{ $id }{id}           ||= $item->{company_id};
+        $brewery_info->{ $id }{name}         ||= $item->{company};
+        my $notes = $item->{location};
+        $notes .= ' ' if ( defined $notes && $notes ne q{} );
+        $notes .= "est. $item->{year_founded}" if defined $item->{year_founded};
+        $brewery_info->{ $id }{notes}        ||= $notes;
+        $brewery_info->{ $id }{location}     ||= $item->{location};
+        $brewery_info->{ $id }{year_founded} ||= $item->{year_founded};
+        my ( $amount ) = ( $item->{status} =~ m/(\d+) \w+ Remaining/i );
+        if ( defined $amount ) {
+            if    ( $amount >= 18 ) {
+                $item->{status}     = 'Plenty left';
+                $item->{css_status} = 'plenty_left';
+            }
+            elsif ( $amount >= 9 ) {
+                $item->{status}     = 'Some beer remaining';
+                $item->{css_status} = 'some_beer_remaining';
+            }
+            elsif ( $amount >= 3 ) {
+                $item->{status}     = 'A little remaining';
+                $item->{css_status} = 'a_little_remaining';
+            }
+            else {
+                $item->{status}     = 'Nearly finished!';
+                $item->{css_status} = 'nearly_finished';	    
+            }
+        }
+        if ( first { $_ eq lc $prodcat }
+                 ('cider', 'perry', 'apple juice', 'mead') ) {
+            $item->{status} = '';
+        }
+        push @{ $brewery_info->{ $id }{products} },
+            { map { $infomap{$_} => $item->{ $_ } } keys %infomap };
+    }
+}
+
 sub parse_args {
 
     my ( $tfile, $html, $debug, $want_help );
@@ -290,62 +342,30 @@ foreach my $item ( qw(festival_name
     }
 }
 
-my $qobj = MyQueryClass->new(
-    festival_name    => $config->{festival_name},
-    product_category => $config->{product_category},
-    uri              => $config->{beerfestdb_uri},
-    debug            => $debug,
-);
+# We may wish to combine product categories in the output, e.g. cider and perry.
+my $conf_cat = $config->{product_category};
+my @categories;
+if ( ref $conf_cat eq 'ARRAY' ) {
+    push @categories, @$conf_cat;
+}
+else {
+    push @categories, $conf_cat;
+}
 
-# Query the JSON API for latest status list.
-my $statuslist = $qobj->query_status_list();
+my $brewery_info = {};
+foreach my $prodcat ( @categories ) {
 
-# Reorganise the status list by brewery.
-my %brewery_info;
-my %infomap = (  # Map internal tags to those used by beerengine etc.
-    id          => 'id',
-    product     => 'name',
-    status      => 'status_text',
-    abv         => 'abv',
-    style       => 'style',
-    description => 'notes',
-    css_status  => 'css_status',
-);
-foreach my $item ( @$statuslist ) {
-    my $id = $item->{company_id};
-    $brewery_info{ $id }{id}           ||= $item->{company_id};
-    $brewery_info{ $id }{name}         ||= $item->{company};
-    my $notes = $item->{location};
-    $notes .= ' ' if ( defined $notes && $notes ne q{} );
-    $notes .= "est. $item->{year_founded}" if defined $item->{year_founded};
-    $brewery_info{ $id }{notes}        ||= $notes;
-    $brewery_info{ $id }{location}     ||= $item->{location};
-    $brewery_info{ $id }{year_founded} ||= $item->{year_founded};
-    my ( $amount ) = ( $item->{status} =~ m/(\d+) \w+ Remaining/i );
-    if ( defined $amount ) {
-	if    ( $amount >= 18 ) {
-	    $item->{status}     = 'Plenty left';
-	    $item->{css_status} = 'plenty_left';
-	}
-	elsif ( $amount >= 9 ) {
-	    $item->{status}     = 'Some beer remaining';
-	    $item->{css_status} = 'some_beer_remaining';
-	}
-	elsif ( $amount >= 3 ) {
-	    $item->{status}     = 'A little remaining';
-	    $item->{css_status} = 'a_little_remaining';
-	}
-	else {
-	    $item->{status}     = 'Nearly finished!';
-	    $item->{css_status} = 'nearly_finished';	    
-	}
-    }
-    if ( first { $_ eq lc $config->{product_category} }
-             ('cider', 'perry', 'apple juice', 'mead') ) {
-        $item->{status} = '';
-    }
-    push @{ $brewery_info{ $id }{products} },
-        { map { $infomap{$_} => $item->{ $_ } } keys %infomap };
+    my $qobj = MyQueryClass->new(
+        festival_name    => $config->{festival_name},
+        product_category => $prodcat,
+        uri              => $config->{beerfestdb_uri},
+        debug            => $debug,
+    );
+
+    # Query the JSON API for latest status list.
+    my $statuslist = $qobj->query_status_list();
+
+    update_brewery_info( $brewery_info, $statuslist, $prodcat );
 }
 
 my $output;
@@ -353,7 +373,7 @@ if ( ! $use_html ) {
 
     # Default version: generate a JSON-encoded string for upload.
     my $jwriter = JSON::DWIW->new();
-    $output = $jwriter->to_json( { producers => [ values %brewery_info ],
+    $output = $jwriter->to_json( { producers => [ values %$brewery_info ],
                                    timestamp => get_timestamp() } );
 }
 else {
@@ -367,7 +387,7 @@ else {
     )   or die( "Cannot create Template object: " . Template->error() );
     
     $tt2->process(\$template,
-                  { brewers   => [ values %brewery_info ],
+                  { brewers   => [ values %$brewery_info ],
                     timestamp => get_timestamp() },
                   \$output )
         or die( "Template processing error: " . $tt2->error() );
