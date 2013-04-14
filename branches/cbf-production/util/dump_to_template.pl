@@ -33,7 +33,7 @@ use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $templatefile, $logofile, $objectlevel, $split, $outdir, $want_help );
+    my ( $templatefile, $logofile, $objectlevel, $split, $outdir, $force, $want_help );
 
     GetOptions(
         "t|template=s" => \$templatefile,
@@ -42,6 +42,7 @@ sub parse_args {
         "h|help"       => \$want_help,
         "s|split-output" => \$split,
         "d|output-dir=s" => \$outdir,
+        "f|force-overwrite" => \$force,
     );
 
     if ($want_help) {
@@ -66,14 +67,14 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    return( $templatefile, $logofile, $config, $objectlevel, $outdir, $split );
+    return( $templatefile, $logofile, $config, $objectlevel, $outdir, $split, $force );
 }
 
 ########
 # MAIN #
 ########
 
-my ( $templatefile, $logofile, $config, $objectlevel, $outdir, $split ) = parse_args();
+my ( $templatefile, $logofile, $config, $objectlevel, $outdir, $split, $force ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
@@ -84,6 +85,7 @@ my $dumper = BeerFestDB::Dumper::Template->new(
     dump_class => $objectlevel,
     split_output => $split,
     output_dir   => $outdir,
+    overwrite    => $force,
 );
 
 $dumper->dump();
@@ -132,7 +134,12 @@ The output directory into which to write files.
 
 =item -s
 
-Generate output latex files split by the object level used for dumping (-o, above).
+Generate output latex files split by the object level used for dumping
+(-o, above). The default behaviour is to write directly to STDOUT.
+
+=item -f
+
+Force overwriting of pre-existing output files when the -s option is used.
 
 =back
 

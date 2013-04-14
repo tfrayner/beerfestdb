@@ -52,9 +52,12 @@ OODoc:
 #  - Festival
 #  - FestivalProduct
 #  - Cask
+#  - CaskManagement
 #  - Gyle
 #  - StillageLocation
 #  - BayPosition
+#  - ProductOrder
+#  - OrderBatch
 
 status_query:
   festival_name:
