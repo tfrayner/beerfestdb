@@ -63,6 +63,8 @@ has 'debug'            => ( is       => 'ro',
                             required => 1,
                             default  => 0 );
 
+my $CREDENTIALS_CACHE = {};
+
 sub _find_festival_id {
 
     # FIXME it would be much quicker to run this search on the server.
@@ -118,11 +120,13 @@ sub query_status_list {
     return $status_list;
 }
 
-sub _attempt_login {
+sub _retrieve_credentials {
 
     my ( $self ) = @_;
 
-    $self->debug && warn("Attempting login...\n");
+    if ( my $username = $CREDENTIALS_CACHE->{username} ) {
+        return map { $CREDENTIALS_CACHE->{$_} } qw(username password);
+    }
 
     print STDERR ("BeerFestDB username: ");
     chomp( my $username = <STDIN> );
@@ -132,6 +136,20 @@ sub _attempt_login {
     chomp( my $password = <STDIN> );
     ReadMode 0;
     print STDERR ("\n");
+
+    $CREDENTIALS_CACHE->{username} = $username;
+    $CREDENTIALS_CACHE->{password} = $password;
+
+    return( $username, $password );
+}
+
+sub _attempt_login {
+
+    my ( $self ) = @_;
+
+    $self->debug && warn("Attempting login...\n");
+
+    my ( $username, $password ) = $self->_retrieve_credentials();
 
     my $ua   = $self->useragent();
     my $json = $self->json_parser()->to_json({
