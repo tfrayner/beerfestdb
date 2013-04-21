@@ -27,9 +27,6 @@ use List::Util qw(max);
 use BeerFestDB::Web;
 use BeerFestDB::ORM;
 
-has 'currency'  => ( is       => 'rw',
-                     isa      => 'BeerFestDB::ORM::Currency' );
-
 =head1 NAME
 
 BeerFestDB::CaskPreloader - Populating CaskManagement.
@@ -40,27 +37,6 @@ This is a Role class used to synchronise information between
 product_order and cask_management tables.
 
 =head1 METHODS
-
-=cut
-
-sub BUILD {
-
-    my ( $self, $params ) = @_;
-
-    my $config = BeerFestDB::Web->config();
-
-    my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
-
-    my $code   = $params->{'currency'} || $config->{'default_currency'};
-
-    my $currency = $schema->resultset('Currency')->find({
-        currency_code => $code,
-    }) or die("Unable to retrieve currency: $code");
-
-    $self->currency($currency);
-
-    return;
-}
 
 =head2 preload_product_order
 
@@ -118,12 +94,21 @@ sub _txn_preload_product_order {
                                    ->search({ festival_id => $fest_id })
                                    ->get_column('cellar_reference')->max() || 0;
 
+
     my %order_details = (
         festival_id        => $fest_id,
         container_size_id  => $order->get_column('container_size_id'),
-        currency_id        => $self->currency->get_column('currency_id'),
+        currency_id        => $order->get_column('currency_id'),
         is_sale_or_return  => $order->get_column('is_sale_or_return'),
+        distributor_company_id => $order->get_column('distributor_company_id'),
     );
+
+    # Deduce price automatically here.
+    if ( defined $order->advertised_price && $order->cask_count ) {
+
+        # FIXME rounding errors?
+        $order_details{ price } = $order->advertised_price / $order->cask_count;
+    }
 
     my $existing = $order->search_related('cask_managements');
     my $wanted   = $order->is_final ? $order->cask_count() : 0;

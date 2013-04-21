@@ -190,14 +190,15 @@ sub list : Local {
             $c->res->redirect( $c->uri_for('/default') );
             $c->detach();
         }
-        $rs = $festival->search_related(
-            'casks',
-            { 'product_id.product_category_id' => $category_id },
-            {
-                join     => { gyle_id =>
-                                  { festival_product_id =>
-                                        { product_id => 'product_category_id' } } },
-            });
+        $rs = $festival->search_related('cask_managements')
+                       ->search_related('casks',
+                                        { 'product_id.product_category_id' => $category_id },
+                                        {
+                                            join     => {
+                                                gyle_id => {
+                                                    festival_product_id => {
+                                                        product_id => 'product_category_id' } } },
+                                        });
     }
     else {
         die('Error: festival_id not defined.');
