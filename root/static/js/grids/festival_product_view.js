@@ -143,31 +143,6 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
     });
 
-    /* Order batch drop-down */
-    var order_batch_store = new Ext.data.JsonStore({
-        url:        url_order_batch_list,
-        root:       'objects',
-        fields:     [{ name: 'order_batch_id', type: 'int' },
-                     { name: 'description',    type: 'string'}],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-    order_batch_store.load();
-    var order_batch_combo = new MyComboBox({
-        allowBlank:     true,
-        noSelection:    emptySelect,
-        typeAhead:      true,
-        triggerAction:  'all',
-        mode:           'local',
-        store:          order_batch_store,
-        valueField:     'order_batch_id',
-        displayField:   'description',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-    });
-
     /* Cask drop-down */
     var cask_store = new Ext.data.JsonStore({
         url:        url_cask_list,
@@ -176,7 +151,7 @@ Ext.onReady(function(){
                      { name: 'festival_id',       type: 'int' },
                      { name: 'gyle_id',           type: 'int' },
                      { name: 'distributor_id',    type: 'int' },
-                     { name: 'order_batch_id',    type: 'int' },
+                     { name: 'order_batch_name',  type: 'string' },
                      { name: 'container_size_id', type: 'int' },
                      { name: 'currency_id',       type: 'int' },
                      { name: 'price',             type: 'int' },
@@ -396,12 +371,13 @@ Ext.onReady(function(){
 		  renderer:   MyCheckboxRenderer(),
 		  editor:     new Ext.form.Checkbox()
 		},
-                { id:         'order_batch_id',
+                { id:         'order_batch_name',
                   header:     'Order Batch',
-                  dataIndex:  'order_batch_id',
+                  dataIndex:  'order_batch_name',
                   width:      130,
-                  renderer:   MyComboRenderer(order_batch_combo),
-                  editor:     order_batch_combo, },
+                  editor:     new Ext.form.TextField({
+                      readOnly: true,
+                  })},
                 { id:        'comment',
                   header:    'Comment',
                   dataIndex: 'comment',

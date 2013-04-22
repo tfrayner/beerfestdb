@@ -29,7 +29,6 @@ use warnings;
 use Moose;
 
 use Carp;
-use Scalar::Util qw(looks_like_number);
 
 our $VERSION = '0.01';
 
@@ -37,57 +36,10 @@ has 'database'  => ( is       => 'ro',
                      isa      => 'DBIx::Class::Schema',
                      required => 1 );
 
-has '_festival' => ( is       => 'rw',
-                     isa      => 'BeerFestDB::ORM::Festival' );
-
 has '_order_batch' => ( is       => 'rw',
                         isa      => 'BeerFestDB::ORM::OrderBatch' );
 
-sub festival {
-
-    my ( $self, $fest ) = @_;
-
-    if ( $fest ) {
-        $self->_festival( $fest );
-        return( $fest );
-    }
-
-    if ( $fest = $self->_festival() ) {
-        return $fest;
-    }
-
-    $fest = $self->select_festival();
-
-    $self->_festival($fest);
-
-    return $fest;
-}
-
-sub select_festival {
-
-    my ( $self ) = @_;
-
-    # Just retrieve the casks for the festival in question. We need an
-    # interactive menu here.
-    my @festivals = $self->database->resultset('Festival')->all();
-
-    my $wanted;
-
-    SELECT:
-    {
-        warn("Please select the beer festival of interest:\n\n");
-        foreach my $n ( 1..@festivals ) {
-            my $fest = $festivals[$n-1];
-            warn(sprintf("  %d: %d %s\n", $n, $fest->year, $fest->name));
-        }
-        warn("\n");
-        chomp(my $select = <STDIN>);
-        redo SELECT unless ( looks_like_number( $select )
-                                 && ($wanted = $festivals[ $select-1 ]) );
-    }
-
-    return $wanted;
-}
+with 'BeerFestDB::MenuSelector';
 
 sub festival_casks {
 
@@ -95,9 +47,21 @@ sub festival_casks {
 
     my $fest = $self->festival();
 
-    my @casks = $fest->search_related('casks')->all();
+    my @casks = $fest->search_related('cask_managements')
+                     ->search_related('casks')->all();
 
     return \@casks;
+}
+
+sub festival_cask_managements {
+
+    my ( $self ) = @_;
+
+    my $fest = $self->festival();
+
+    my @caskmans = $fest->search_related('cask_managements')->all();
+
+    return \@caskmans
 }
 
 sub festival_products {
@@ -125,37 +89,11 @@ sub order_batch {
         return $batch;
     }
 
-    $batch = $self->select_order_batch();
+    $batch = $self->select_order_batch( $self->festival );
 
     $self->_order_batch($batch);
 
     return $batch;
-}
-
-sub select_order_batch {
-
-    my ( $self ) = @_;
-
-    # Just retrieve the casks for the festival in question. We need an
-    # interactive menu here.
-    my @batches = $self->festival->order_batches();
-
-    my $wanted;
-
-    SELECT:
-    {
-        warn("Please select the order batch:\n\n");
-        foreach my $n ( 1..@batches ) {
-            my $batch = $batches[$n-1];
-            warn(sprintf("  %d: %s %s\n", $n, $batch->description, $batch->order_date || q{}));
-        }
-        warn("\n");
-        chomp(my $select = <STDIN>);
-        redo SELECT unless ( looks_like_number( $select )
-                                 && ($wanted = $batches[ $select-1 ]) );
-    }
-
-    return $wanted;
 }
 
 sub festival_orders {
@@ -249,10 +187,10 @@ Dumper subclasses.
 
 =over 2
 
-=item select_festival_casks
+=item festival_casks
 
-A method which will interactively ask the user for the festival of
-interest, and return a list of casks for that festival.
+Returns a list of casks for the configured current_festival, or the
+festival interactively selected from a menu by the user.
 
 =back
 
