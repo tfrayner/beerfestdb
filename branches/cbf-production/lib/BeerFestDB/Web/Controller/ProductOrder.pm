@@ -23,7 +23,8 @@ package BeerFestDB::Web::Controller::ProductOrder;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'};
+with 'BeerFestDB::CaskPreloader';
 
 =head1 NAME
 
@@ -182,40 +183,20 @@ sub _save_records : Private {
         # need to actually track gyle information, which is not always
         # available. FIXME?
         my $gyle = $c->model('DB::Gyle')->find_or_create({
-            company_id         => $po->product_id()->get_column('company_id'),
+            company_id          => $po->product_id()->get_column('company_id'),
             festival_product_id => $fp_id,
-            internal_reference => 'auto-generated',
-            comment            => 'Gyle automatically generated upon cask receipt.',
+            internal_reference  => 'auto-generated',
+            comment             => 'Gyle automatically generated upon cask receipt.',
         });
 
-        my $casksize = $po->get_column('container_size_id');
+        $self->preload_product_order( $po );
 
-        # Cellar Cask No., i.e. number of cask within FP.
-        my $previous_max = $c->model('DB::Cask')->search(
-            {
-                'gyle_id.festival_product_id' => $fp_id,
-            },
-            {
-                join => {
-                    gyle_id => 'festival_product_id'
-                }
-            })->get_column('internal_reference')->max() || 0;            
-
-        # Festival Cask ID., i.e. a unique ID for cask within festival.
-        my $previous_festival_max = $c->model('DB::Cask')->search(
-            { festival_id => $festival_id })->get_column('cellar_reference')->max() || 0;
-
-        foreach my $n ( 1..$po->cask_count() ) {
-            $c->model('DB::Cask')->create({
-                gyle_id                => $gyle->get_column('gyle_id'),
-                festival_id            => $festival_id,
-                distributor_company_id => $po->get_column('distributor_company_id'),
-                order_batch_id         => $po->get_column('order_batch_id'),
-                container_size_id      => $casksize,
-                currency_id            => $currency_id,
-                internal_reference     => $previous_max + $n,
-                cellar_reference       => $previous_festival_max + $n,
-                is_sale_or_return      => $po->get_column('is_sale_or_return'),
+        # If we get here we must have synchronised product_order and
+        # cask_management.
+        foreach my $caskman ( $po->cask_managements() ) {
+            $c->model('DB::Cask')->find_or_create({
+                cask_management_id => $caskman,
+                gyle_id            => $gyle,
             });
         }
     }

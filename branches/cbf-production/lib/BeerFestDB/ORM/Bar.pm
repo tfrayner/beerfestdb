@@ -87,17 +87,17 @@ __PACKAGE__->add_unique_constraint("description", ["description"]);
 
 =head1 RELATIONS
 
-=head2 casks
+=head2 cask_managements
 
 Type: has_many
 
-Related object: L<BeerFestDB::ORM::Cask>
+Related object: L<BeerFestDB::ORM::CaskManagement>
 
 =cut
 
 __PACKAGE__->has_many(
-  "casks",
-  "BeerFestDB::ORM::Cask",
+  "cask_managements",
+  "BeerFestDB::ORM::CaskManagement",
   { "foreign.bar_id" => "self.bar_id" },
   {},
 );
@@ -117,8 +117,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7sa8OB+H4zgZLEFkw30UWg
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GadTYoaKwSru/1DdtT23HA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

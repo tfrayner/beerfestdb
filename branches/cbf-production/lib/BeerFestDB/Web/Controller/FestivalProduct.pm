@@ -417,8 +417,8 @@ sub _derive_status_report : Private {
         # Prior to opening, "Arrived" is all we really want.
         next FP unless $festival_open;
 
-        my $cask_rs = $festival->search_related(
-            'casks',
+        my $cask_rs = $festival->search_related('cask_managements')
+                               ->search_related('casks',
             { gyle_id => {
                 'in' => [ map { $_->get_column('gyle_id') } $fp->gyles() ]
             }
@@ -481,8 +481,8 @@ sub _amount_remaining : Private {
     # ContainerSize and CaskMeasurement) via the ContainerMeasure
     # table, then convert back into whatever the ContainerSize units
     # are. Great fun.
-    my $cask_rs = $fp->festival_id()->search_related(
-        'casks',
+    my $cask_rs = $fp->festival_id()->search_related('cask_managements')
+                                    ->search_related('casks',
         { gyle_id => {
             'in' => [ map { $_->get_column('gyle_id') } $fp->gyles() ]
         }
@@ -497,7 +497,7 @@ sub _amount_remaining : Private {
         CASK:
         while ( my $cask = $cask_rs->next() ) {
             next CASK if $cask->is_condemned();
-            my $cask_size = $cask->container_size_id();
+            my $cask_size = $cask->cask_management()->container_size_id();
             $overall_measure ||= $cask_size->container_measure_id();
             my $vol = $cask_size->container_volume()
                 * $cask_size->container_measure_id()->litre_multiplier();

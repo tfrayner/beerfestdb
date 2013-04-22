@@ -117,17 +117,17 @@ __PACKAGE__->has_many(
   {},
 );
 
-=head2 casks
+=head2 cask_managements
 
 Type: has_many
 
-Related object: L<BeerFestDB::ORM::Cask>
+Related object: L<BeerFestDB::ORM::CaskManagement>
 
 =cut
 
 __PACKAGE__->has_many(
-  "casks",
-  "BeerFestDB::ORM::Cask",
+  "cask_managements",
+  "BeerFestDB::ORM::CaskManagement",
   { "foreign.festival_id" => "self.festival_id" },
   {},
 );
@@ -208,8 +208,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZfgU4Tcw1GPT7GIXWNodLA
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U1JjodtnC34OBV3LpnUUbA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

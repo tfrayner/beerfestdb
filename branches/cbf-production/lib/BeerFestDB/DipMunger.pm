@@ -48,7 +48,9 @@ sub munge_dips {
 
     my ( $self, $cask ) = @_;
 
-    my $festival = $cask->festival_id;
+    my $caskman = $cask->cask_management_id();
+
+    my $festival = $caskman->festival_id;
 
     my $latest_batch_id = $self->_latest_dipbatch_with_data( $festival );
 
@@ -74,8 +76,8 @@ sub munge_dips {
         );
 
     my %ongoing;
-    my $latest = $cask->container_size_id->container_volume();
-    my $denom  = $cask->container_size_id->container_measure_id->litre_multiplier();
+    my $latest = $caskman->container_size_id->container_volume();
+    my $denom  = $caskman->container_size_id->container_measure_id->litre_multiplier();
 
     DIP:
     foreach my $batch ( @batches ) {
@@ -123,5 +125,7 @@ This library is released under version 3 of the GNU General Public
 License (GPL).
 
 =cut
+
+no Moose::Role;
 
 1;

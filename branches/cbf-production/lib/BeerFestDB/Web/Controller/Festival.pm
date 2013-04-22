@@ -193,8 +193,8 @@ sub status : Local {
     }
 
     # kils_remaining and num_beers_available
-    my $casks  = $festival->search_related(
-        'casks',
+    my $casks  = $festival->search_related('cask_managements')
+                          ->search_related('casks',
         { 'product_id.product_category_id' => $beercat->id() },
         { join => {
             gyle_id => { festival_product_id => 'product_id' }
@@ -223,7 +223,9 @@ sub status : Local {
             }
         }
         else {
-            $remaining_tot += $cask->container_size_id()->container_volume();
+            $remaining_tot += $cask->cask_management()
+                                   ->container_size_id()
+                                   ->container_volume();
             $product_available{ $cask->gyle_id->get_column('festival_product_id') }++;
         }
     }

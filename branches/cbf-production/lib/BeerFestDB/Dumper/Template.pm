@@ -83,7 +83,8 @@ sub BUILD {
 
     my $class = $params->{'dump_class'};
     if ( defined $class ) {
-        unless ( first { $class eq $_ } qw(cask gyle product product_order distributor) ) {
+        unless ( first { $class eq $_ } qw(cask cask_management gyle
+                                           product product_order distributor) ) {
             confess(qq{Error: Unsupported dump class "$class"});
         }
     }
@@ -134,21 +135,23 @@ sub product_hash {
                     ? $product->product_style_id()->description() : q{},
         category => $product->product_category_id()->description(),
         abv      => $product->nominal_abv(),
-        sale_volume => $fp->sale_volume_id()->description(),
         notes    => $product->description(),
         _split_export_tag => $tag,
     );
 
-    my $currency = $fp->sale_currency_id();
-    my $format   = $currency->currency_format();
-    $prodhash{currency} = $currency->currency_symbol();
+    if ( $fp ) {
+        $prodhash{sale_volume} = $fp->sale_volume_id()->description();
+        my $currency = $fp->sale_currency_id();
+        my $format   = $currency->currency_format();
+        $prodhash{currency} = $currency->currency_symbol();
 
-    # The formatted_price option is great if you just want to display
-    # the price in the local format. However, if you need to do any
-    # calculations then use price and the price_format filter
-    # below. This reduces the risk of floating-point errors.
-    $prodhash{formatted_price} = $self->format_price( $fp->sale_price(), $format );
-    $prodhash{price} = $fp->sale_price(); # typically in pennies (GBP).
+        # The formatted_price option is great if you just want to display
+        # the price in the local format. However, if you need to do any
+        # calculations then use price and the price_format filter
+        # below. This reduces the risk of floating-point errors.
+        $prodhash{formatted_price} = $self->format_price( $fp->sale_price(), $format );
+        $prodhash{price} = $fp->sale_price(); # typically in pennies (GBP).
+    }
 
     return \%prodhash;
 }
@@ -262,19 +265,30 @@ sub update_cask_hash {
     # N.B. Changes here need to be documented in the POD.
     $caskhash ||= {};
     $caskhash->{_split_export_tag} = $cask->cask_id();
-    $caskhash->{number}      = $cask->internal_reference();
-    $caskhash->{festival_id} = $cask->cellar_reference();
-    $caskhash->{size}        = $cask->container_size_id
-          ? $cask->container_size_id->container_volume() : q{};
     $caskhash->{dips}         = $self->munge_dips( $cask );
     $caskhash->{comment}      = $cask->comment();
     $caskhash->{is_condemned} = $cask->is_condemned();
-    $caskhash->{is_sale_or_return} = $cask->is_sale_or_return();
-    $caskhash->{stillage_bay} = $cask->stillage_bay();
-    $caskhash->{bay_position} = $cask->bay_position_id
-	  ? $cask->bay_position_id->description() : q{};
 
     return $caskhash;
+}
+
+sub update_caskman_hash {
+
+    my ( $self, $caskmanhash, $caskman ) = @_;
+
+    # N.B. Changes here need to be documented in the POD.
+    $caskmanhash ||= {};
+    $caskmanhash->{_split_export_tag} = $caskman->cask_management_id();
+    $caskmanhash->{number}      = $caskman->internal_reference();
+    $caskmanhash->{festival_id} = $caskman->cellar_reference();
+    $caskmanhash->{size}        = $caskman->container_size_id
+          ? $caskman->container_size_id->container_volume() : q{};
+    $caskmanhash->{is_sale_or_return} = $caskman->is_sale_or_return();
+    $caskmanhash->{stillage_bay} = $caskman->stillage_bay();
+    $caskmanhash->{bay_position} = $caskman->bay_position_id
+	  ? $caskman->bay_position_id->description() : q{};
+
+    return $caskmanhash;
 }
 
 sub dump {
@@ -288,12 +302,14 @@ sub dump {
                 $cask->gyle_id()->festival_product_id()->product_id()
             );
             $self->update_gyle_hash( $caskhash, $cask->gyle_id() );
+            $self->update_caskman_hash( $caskhash, $cask->cask_management_id() );
             $self->update_cask_hash( $caskhash, $cask );
 
             push @template_data, $caskhash;
 
-            my $stillage_name = $cask->stillage_location_id()
-                                ? $cask->stillage_location_id()->description() : '';
+            my $stillage_loc  = $cask->cask_management_id()->stillage_location_id();
+            my $stillage_name = $stillage_loc ? $stillage_loc->description() : q{};
+
             push @{ $stillage{ $stillage_name } }, $caskhash;
         }
 
@@ -304,6 +320,24 @@ sub dump {
         while ( my $batch = $batches->next() ) {
             push @dip_batches, { id   => $batch->id(),
                                  name => $batch->description() };
+        }
+    }
+    elsif ( $self->dump_class eq 'cask_management' ) {
+        foreach my $caskman ( @{ $self->festival_cask_managements() } ){
+            my $caskmanhash = {};
+            my ( $po, $casks );
+            if ( $po = $caskman->product_order_id() ) {
+                $caskmanhash = $self->product_hash(
+                    $po->product_id()
+                );
+            }
+            elsif ( $casks = $caskman->casks() ) { # Actually, There Can Be Only One...
+                $self->update_cask_hash( $caskmanhash, $casks->[0] );
+            }
+
+            $self->update_caskman_hash( $caskmanhash, $caskman );
+
+            push @template_data, $caskmanhash;
         }
     }
     elsif ( $self->dump_class eq 'gyle' ) {
@@ -321,10 +355,11 @@ sub dump {
                 # For typical use-case this might be better done by bar rather than stillage FIXME.
                 my %stillage_seen;
                 STILLAGE:
-                foreach my $cask ( $gyle->search_related('casks',
-                                                         { festival_id => $self->festival->id() }) ) { 
-                    my $stillage_name = $cask->stillage_location_id()
-                        ? $cask->stillage_location_id()->description() : '';
+                foreach my $caskman ( $gyle->search_related('casks')
+                                           ->search_related('cask_management_id',
+                                                            { festival_id => $self->festival->id() }) ) { 
+                    my $stillage_name = $caskman->stillage_location_id()
+                        ? $caskman->stillage_location_id()->description() : '';
                     next STILLAGE if $stillage_seen{ $stillage_name }++;
                     push @{ $stillage{ $stillage_name } }, $gylehash;
                 }
@@ -644,7 +679,13 @@ An arrayref containing logo file names to pass through to the templates.
 =item dump_class
 
 A string indicating the level at which to dump out data. Can be one of
-"cask", "gyle", "product" or "product_order".
+"cask", "cask_management", "gyle", "product", "product_order" or
+"distributor".
+
+The distinction between "cask" and "cask_management" is one of timing:
+the latter refers to the casks expected prior to the festival, adding
+any extra arrivals once the festival has started. The "cask" level
+simply refers to actual casks which have arrived.
 
 =back
 

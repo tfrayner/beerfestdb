@@ -47,17 +47,45 @@ sub BUILD {
 
     $self->model_view_map({
         cask_id           => 'cask_id',
-        festival_id       => 'festival_id',
-        festival_name     => {
-            festival_id => 'name',
+        cask_management_id => 'cask_management_id', # FIXME try removing this at some point
+        festival_id       => {
+            cask_management_id => 'festival_id'
         },
-        distributor_id    => 'distributor_company_id',
-        order_batch_id    => 'order_batch_id',
-        container_size_id => 'container_size_id',
-        bar_id            => 'bar_id',
-        stillage_location_id => 'stillage_location_id',
-        currency_id       => 'currency_id',
-        price             => 'price',
+        festival_name     => {
+            cask_management_id => {
+                festival_id => 'name',
+            },
+        },
+        distributor_id    => {
+            cask_management_id => 'distributor_company_id',
+        },
+        order_batch_id    => {
+            cask_management_id => {
+                product_order_id => 'order_batch_id',
+            },
+        },
+        order_batch_name    => {
+            cask_management_id => {
+                product_order_id => {
+                    order_batch_id => 'description',
+                },
+            },
+        },
+        container_size_id => {
+            cask_management_id => 'container_size_id',
+        },
+        bar_id            => {
+            cask_management_id => 'bar_id',
+        },
+        stillage_location_id => {
+            cask_management_id => 'stillage_location_id',
+        },
+        currency_id       => {
+            cask_management_id => 'currency_id',
+        },
+        price             => {
+            cask_management_id => 'price',
+        },
         gyle_id           => 'gyle_id',
         product_id        => {
             gyle_id  => {
@@ -79,20 +107,36 @@ sub BUILD {
                 company_id  => 'name',
             },
         },
-        stillage_bay      => 'stillage_bay',
-        bay_position_id   => 'bay_position_id',
-        stillage_x        => 'stillage_x_location',
-        stillage_y        => 'stillage_y_location',
-        stillage_z        => 'stillage_z_location',
+        stillage_bay      => {
+            cask_management_id => 'stillage_bay',
+        },
+        bay_position_id   => {
+            cask_management_id => 'bay_position_id',
+        },
+        stillage_x        => {
+            cask_management_id => 'stillage_x_location',
+        },
+        stillage_y        => {
+            cask_management_id => 'stillage_y_location',
+        },
+        stillage_z        => {
+            cask_management_id => 'stillage_z_location',
+        },
         comment           => 'comment',
         ext_reference     => 'external_reference',
-        int_reference     => 'internal_reference',
-        festival_ref      => 'cellar_reference',
+        int_reference     => {
+            cask_management_id => 'internal_reference',
+        },
+        festival_ref      => {
+            cask_management_id => 'cellar_reference',
+        },
         is_vented         => 'is_vented',
         is_tapped         => 'is_tapped',
         is_ready          => 'is_ready',
         is_condemned      => 'is_condemned',
-        is_sale_or_return => 'is_sale_or_return',
+        is_sale_or_return => {
+            cask_management_id => 'is_sale_or_return',
+        },
     });
 }
 
@@ -146,14 +190,15 @@ sub list : Local {
             $c->res->redirect( $c->uri_for('/default') );
             $c->detach();
         }
-        $rs = $festival->search_related(
-            'casks',
-            { 'product_id.product_category_id' => $category_id },
-            {
-                join     => { gyle_id =>
-                                  { festival_product_id =>
-                                        { product_id => 'product_category_id' } } },
-            });
+        $rs = $festival->search_related('cask_managements')
+                       ->search_related('casks',
+                                        { 'product_id.product_category_id' => $category_id },
+                                        {
+                                            join     => {
+                                                gyle_id => {
+                                                    festival_product_id => {
+                                                        product_id => 'product_category_id' } } },
+                                        });
     }
     else {
         die('Error: festival_id not defined.');
@@ -195,7 +240,9 @@ sub list_by_stillage : Local {
 
     my ( $self, $c, $id ) = @_;
 
-    my $rs = $c->model( 'DB::Cask' )->search({ stillage_location_id => $id });
+    my $rs = $c->model( 'DB::Cask' )
+        ->search({ 'cask_management_id.stillage_location_id' => $id },
+                 { join => 'cask_management_id' });
 
     $self->generate_json_and_detach( $c, $rs );
 }
@@ -213,9 +260,10 @@ sub list_by_festival_product : Local {
 
     my $rs = $c->model( 'DB::Cask' )
                ->search({
-                   'me.festival_id'              => $fp->get_column('festival_id'),
+                   'cask_management_id.festival_id' => $fp->get_column('festival_id'),
                    'gyle_id.festival_product_id' => $fp->get_column('festival_product_id'),
-               }, { join => { gyle_id => 'festival_product_id' } });
+               }, { join => [ { gyle_id => 'festival_product_id' },
+                              { cask_management_id => 'festival_id' } ] });
 
     $self->generate_json_and_detach( $c, $rs );
 }
