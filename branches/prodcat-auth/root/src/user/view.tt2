@@ -1,0 +1,10 @@
+[% META title = 'User Details' %]
+
+<script type="text/javascript">
+   var url_user_grid      = '[% c.uri_for( "/user/grid" ) %]';
+   var url_user_load_form = '[% c.uri_for( "/user/load_form" ) %]';
+   var user_id            = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/user_view.js' ) %]
+

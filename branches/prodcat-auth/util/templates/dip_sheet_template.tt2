@@ -1,0 +1,99 @@
+%
+% $Id$
+%
+% Example LaTeX template for use with cask_end_signs_latex.pl
+
+[% IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class.\n" %][% END %]
+
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, landscape, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
+\usepackage[absolute]{textpos}
+\usepackage[british]{babel}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{fix-cm}
+\begin{document}
+
+%\hyphenpenalty=10000
+%\exhyphenpenalty=10000
+
+[% BLOCK stillage_name %]
+  [% sname | latexify %]
+[% END %]
+
+[% BLOCK table_header %]
+  \begin{tabular}{ | l | l | l | c | c | c | c | c | p{0.7cm} | [% FOREACH batch = dip_batches %]p{0.4cm} | [% END %]p{5cm} | c | }
+    \hline
+  Location & Brewer & Beer & ID & No. & V & T & R & Start & [% FOREACH batch = dip_batches %][% batch.name.substr(0,1) %] & [% END %]Notes & C \\ \hline
+[% END %]
+
+[% BLOCK table_end %]
+  \end{tabular}
+[% END %]
+
+
+[% FOREACH stillage IN stillages.pairs %]
+
+  \setlength{\TPHorizModule}{\paperwidth}
+  \setlength{\TPVertModule}{\paperheight}
+  \textblockorigin{0mm}{10mm} % start everything near the top-left corner
+  \setlength{\parindent}{0pt}
+
+  \pagestyle{empty}
+
+  \fontsize{24}{30}
+
+  [% PROCESS stillage_name sname=stillage.key %]
+
+  \vspace{ 5 mm }
+
+  \fontsize{10}{12}
+  \selectfont
+
+[%- PROCESS table_header;
+    SET casks = stillage.value.sort('stillage_bay', 'bay_position', 'brewery', 'product', 'number');
+    SET counter = 0 -%]
+
+  [% FOREACH cask = casks %]
+
+    [% SET latest = cask.size %]
+
+    [% NEXT IF cask.category != 'beer' %]
+    [% cask.stillage_bay | latexify %] [% cask.bay_position | truncate(12) | latexify %] &
+    [% cask.brewery | latexify %] &
+    [% cask.product | truncate(25) | latexify %] &
+    [% cask.festival_id %] &
+    [% cask.number %] &
+    &  &  &
+    [% cask.size | format('%d') %] &
+[%- FOREACH batch = dip_batches -%]
+[%- SET bid = batch.id -%]
+ [%- cask.dips.$bid | format('%.1f') | replace('\.0$','') %] &
+[%- END -%]
+[%- cask.comment | truncate(30) | latexify %] &
+[%- IF cask.is_condemned -%] X [%- END -%] \\ \hline
+
+[%- counter = counter + 1 -%]
+
+[%- IF counter > 35;
+      counter = 0;
+      PROCESS table_end %]
+
+      \null\newpage
+
+      [% PROCESS stillage_name stillage=stillage.key %] (continued)
+
+      \vspace{ 5 mm }
+
+  [%- PROCESS table_header;
+    END;
+  END;
+  PROCESS table_end -%]
+
+  \null\newpage
+
+[% END %]
+
+\end{document}
