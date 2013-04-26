@@ -49,6 +49,15 @@ Passed a resultset object, maps it onto the view JSON objects and detaches.
 
 =cut
 
+sub raise_exception : Private {
+
+    my ( $self, $c, $message ) = @_;
+
+    $c->error($message);
+
+    die($message);
+}
+
 sub generate_json_and_detach : Private {
 
     my ( $self, $c, $rs ) = @_;
@@ -159,7 +168,7 @@ sub _get_product_category : Private {
     # Sometimes we will be passed a null object during subsequent
     # recursion; e.g. into orphaned CaskManagement objects.
     if ( ! $dbobj ) {
-        die("Unable to track object back to product_category.");
+        $self->raise_exception($c, "Unable to track object back to product_category.\n");
     }
 
     my $result_source = $dbobj->result_source();
@@ -183,7 +192,7 @@ sub _get_product_category : Private {
         return $fun->($dbobj);
     }
     else {
-        die(qq{Product category retrieval mapping not implemented for "$classname" objects.\n});
+        $self->raise_exception($c, qq{Product category retrieval mapping not implemented for "$classname" objects.\n});
     }
 }
 
@@ -192,7 +201,7 @@ sub _confirm_category_authorisation : Private {
     my ($self, $c, $dbobj) = @_;
 
     if ( ! $c->user ) {
-        die("Error: user not logged in. How could this happen?!");
+        $self->raise_exception($c, "Error: user not logged in. How could this happen?!\n");
     }
 
     my $classname = $dbobj->result_source()->source_name();
@@ -213,15 +222,15 @@ sub _confirm_category_authorisation : Private {
                             ->count();
 
         if ( ! $found ) {
-            die(sprintf(qq{You do not have authorisation to make changes to the "%s" category.\n},
-                        $pcat->description))
+            $self->raise_exception($c, sprintf(qq{You do not have authorisation to make changes to the "%s" category.\n},
+                                               $pcat->description))
         }
     }
     else {
 
         # If it's anything else, the user needs to be an admin.
         if ( ! $c->check_any_user_role('admin') ) {
-            die("Attempting to edit an object which requires admin privileges");
+            $self->raise_exception($c, "Attempting to edit an object which requires admin privileges\n");
         }
     }
 }
@@ -398,7 +407,7 @@ sub build_database_object : Private {
 	    }
          
   	    # Called within a transaction, we die hard.
-	    die( $message . "\n" );
+	    $self->raise_exception( $c, $message . "\n" );
         }
     }
 
@@ -437,8 +446,8 @@ sub write_to_resultset : Private {
             }
         );
     };
-    if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $@ );
+    if ( $@ or scalar @{ $c->error } ) {
+        $self->detach_with_txn_failure( $c );
     };
 
     $c->stash->{ 'success' } = JSON::Any->true();
@@ -470,16 +479,15 @@ sub delete_from_resultset : Private {
                         $rec->delete() if $rec;
                     };
                     if ($@) {
-                        $c->log->error("DB transaction failure: $@");
-                        die(sprintf("Unable to delete %s object with ID=%s\n",
-                                    $rs->result_source->source_name(), $id));
+                        $self->raise_exception($c, sprintf("Unable to delete %s object with ID=%s\n",
+                                                           $rs->result_source->source_name(), $id));
                     }
                 }
             }
         );
     };
-    if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $@ );
+    if ( $@ or scalar @{ $c->error } ) {
+        $self->detach_with_txn_failure( $c );
     };
 
     $c->stash->{ 'success' } = JSON::Any->false();
@@ -490,9 +498,13 @@ sub detach_with_txn_failure : Private {
 
     my ( $self, $c, $error ) = @_;
 
+    $error ||= join("; ", @{ $c->error });
+
+    $c->clear_errors();
+
     $error =~ s/\A (.*) [\r\n]* \z/$1/xms;
 
-    $error = "Transaction failed: $error";
+    $error = "Database not changed: $error";
     $c->log->error($error);
     $c->response->status('403');  # Forbidden; must use this or
                                   # similar for ExtJS to detect
@@ -512,7 +524,7 @@ sub get_default_currency : Private {
 
     my $def = $c->model('DB::Currency')->find({
         currency_code => $c->config->{'default_currency'},
-    }) or die("Error retrieving default currency; check config settings.");
+    }) or $self->raise_exception($c, "Error retrieving default currency; check config settings.\n");
 
     $c->stash->{ 'default_currency' } = $def->currency_id();
 
@@ -529,7 +541,7 @@ sub get_default_sale_volume : Private {
 
     my $def = $c->model('DB::SaleVolume')->find({
         description => $c->config->{'default_sale_volume'},
-    }) or die("Error retrieving default sale volume; check config settings.");
+    }) or $self->raise_exception($c, "Error retrieving default sale volume; check config settings.\n");
 
     $c->stash->{ 'default_sale_volume' } = $def->sale_volume_id();
 
@@ -546,7 +558,7 @@ sub get_default_product_category : Private {
 
     my $def = $c->model('DB::ProductCategory')->find({
         description => $c->config->{'default_product_category'},
-    }) or die("Error retrieving default product_category; check config settings.");
+    }) or $self->raise_exception($c, "Error retrieving default product_category; check config settings.\n");
 
     $c->stash->{ 'default_product_category' } = $def->product_category_id();
 
