@@ -10,3 +10,11 @@ INSERT INTO `role` (`role_id`, `rolename`) VALUES (1,'admin'),(2,'user');
 INSERT INTO `telephone_type` (`telephone_type_id`, `description`) VALUES (2,'fax'),(1,'landline'),(3,'mobile');
 INSERT INTO `user` (`user_id`, `username`, `name`, `email`, `password`) VALUES (1,'admin',NULL,NULL,'{SSHA1}OdySmKa+BHu7Nr4FttQ02JXQvmrigao2');
 INSERT INTO `user_role` (`user_role_id`, `user_id`, `role_id`) VALUES (1,1,1),(2,1,2);
+
+insert into role (`rolename`) values ('cellar');
+insert into user_role (`role_id`, `user_id`)
+       values ( (select role_id from role where rolename='cellar'),
+                (select user_id from user where username='cellar'));
+insert into category_auth (`role_id`, `product_category_id`)
+       values ( (select role_id from role where rolename='cellar'),
+                (select product_category_id from product_category where description='beer'));

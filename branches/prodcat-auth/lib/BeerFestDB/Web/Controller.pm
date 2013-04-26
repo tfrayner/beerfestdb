@@ -152,40 +152,91 @@ sub viewhash_from_model : Private {
     }
 }
 
-sub build_database_object : Private {
+sub _get_product_category : Private {
 
-    my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
+    my ( $self, $c, $dbobj ) = @_;
 
-    foreach my $key ( keys %$rec ) {
-        delete $rec->{$key}
-            unless $self->value_is_acceptable( $rec->{$key} );
+    # Sometimes we will be passed a null object during subsequent
+    # recursion; e.g. into orphaned CaskManagement objects.
+    if ( ! $dbobj ) {
+        die("Unable to track object back to product_category.");
     }
 
-    # Passed a JSON record nested hashref, Catalyst context and the
-    # appropriate DBIC::ResultSet object, create database objects
-    # recursively (depth first).
-    $mv_map ||= $self->model_view_map();
+    my $result_source = $dbobj->result_source();
+    my $rs            = $result_source->resultset();
+    my $classname     = $result_source->source_name();
 
-    # Firstly, find or create our top-level object. Don't insert a new
-    # object yet, since it won't have all the requisite information.
-    my %dbobj_info;
-    my @primary_cols = $rs->result_source()->primary_columns();
-    foreach my $pk ( @primary_cols ) {
-        my $value = $rec->{ $pk };
-        if ( defined $value ) {
-            $dbobj_info{ $pk } = $value;
+    # FIXME note that this may be rather too heavy on DB queries,
+    # especially for large lists of updates.
+    my %catmap = (
+        'Product'         => sub { $_[0]->product_category_id() },
+        'FestivalProduct' => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'Gyle'            => sub { $self->_get_product_category( $c, $_[0]->festival_product_id ) },
+        'Cask'            => sub { $self->_get_product_category( $c, $_[0]->gyle_id ) },
+        'CaskMeasurement' => sub { $self->_get_product_category( $c, $_[0]->cask_id ) },
+        'ProductOrder'    => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'CaskManagement'  => sub { $self->_get_product_category( $c, $_[0]->casks->first() ||
+                                                                     $_[0]->product_order_id ) },
+    );
+
+    if ( my $fun = $catmap{ $classname } ) {
+        return $fun->($dbobj);
+    }
+    else {
+        die(qq{Product category retrieval mapping not implemented for "$classname" objects.\n});
+    }
+}
+
+sub _confirm_category_authorisation : Private {
+
+    my ($self, $c, $dbobj) = @_;
+
+    if ( ! $c->user ) {
+        die("Error: user not logged in. How could this happen?!");
+    }
+
+    my $classname = $dbobj->result_source()->source_name();
+
+    # Make sure this list matches the keys of %catmap, above.
+    if ( first { $_ eq $classname } qw( Product FestivalProduct Gyle
+                                        Cask ProductOrder CaskManagement
+                                        CaskMeasurement  ) ) {
+
+        my $pcat    = $self->_get_product_category($c, $dbobj);
+        my $pcat_id = $pcat->get_column('product_category_id');
+
+        # Test that pcat is in $c->user's roles->categories.
+        my $found = $c->user->search_related('user_roles')
+                            ->search_related('role_id')
+                            ->search_related('category_auths',
+                                             { product_category_id => $pcat_id })
+                            ->count();
+
+        if ( ! $found ) {
+            die(sprintf(qq{You do not have authorisation to make changes to the "%s" category.\n},
+                        $pcat->description))
         }
     }
-    my $dbobj = $rs->find_or_new( \%dbobj_info );
+    else {
+
+        # If it's anything else, the user needs to be an admin.
+        if ( ! $c->check_any_user_role('admin') ) {
+            die("Attempting to edit an object which requires admin privileges");
+        }
+    }
+}
+
+sub _add_object_column_attributes : Private {
+
+    my ( $self, $dbobj, $rec, $primary_cols, $mv_map ) = @_;
 
     my @hashrefs;
     
-    # Secondly, deal with simple table-based attributes.
     VIEW_KEY:
     foreach my $view_key (keys %$rec) {
 
         # Skip primary columns; we've already dealt with them.
-        next VIEW_KEY if ( first { $view_key eq $_ } @primary_cols );
+        next VIEW_KEY if ( first { $view_key eq $_ } @$primary_cols );
 
         # There's a strong risk of key collision from an upper
         # recursion into this one here; to fix this, we have to manage
@@ -222,8 +273,14 @@ sub build_database_object : Private {
         }
     }
 
-    # Thirdly, we handle the relationships.
-    foreach my $view_key (@hashrefs) {
+    return \@hashrefs;
+}
+
+sub _add_object_relationships : Private {
+
+    my ( $self, $c, $rs, $dbobj, $rec, $hashrefs, $mv_map ) = @_;
+    
+    foreach my $view_key (@$hashrefs) {
 
         my $lookup ||= $mv_map->{ $view_key } || $view_key;
         
@@ -276,6 +333,45 @@ sub build_database_object : Private {
         my $pk = $pks[0];
         $dbobj->set_column( $rel, $value->$pk );
     }
+
+    return;
+}
+
+sub build_database_object : Private {
+
+    my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
+
+    foreach my $key ( keys %$rec ) {
+        delete $rec->{$key}
+            unless $self->value_is_acceptable( $rec->{$key} );
+    }
+
+    # Passed a JSON record nested hashref, Catalyst context and the
+    # appropriate DBIC::ResultSet object, create database objects
+    # recursively (depth first).
+    $mv_map ||= $self->model_view_map();
+
+    # Firstly, find or create our top-level object. Don't insert a new
+    # object yet, since it won't have all the requisite information.
+    my %dbobj_info;
+    my @primary_cols = $rs->result_source()->primary_columns();
+    foreach my $pk ( @primary_cols ) {
+        my $value = $rec->{ $pk };
+        if ( defined $value ) {
+            $dbobj_info{ $pk } = $value;
+        }
+    }
+    my $dbobj = $rs->find_or_new( \%dbobj_info );
+
+    # Secondly, deal with simple table-based attributes.
+    my $hashrefs = $self->_add_object_column_attributes($dbobj, $rec, \@primary_cols, $mv_map);
+
+    # Thirdly, we handle the relationships.
+    $self->_add_object_relationships($c, $rs, $dbobj, $rec, $hashrefs, $mv_map);
+
+    # Note that this will raise an exception to derail the enclosing
+    # transaction if the user is not authorised to make changes.
+    $self->_confirm_category_authorisation($c, $dbobj) if $dbobj->is_changed();
 
     unless ( $no_update ) {
         eval {
