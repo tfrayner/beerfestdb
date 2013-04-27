@@ -16,9 +16,13 @@ CREATE TABLE `category_auth` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Assumes that the initialise_vocabs.sql user accounts are still active.
-insert into role (`rolename`) values ('cellar');
+INSERT INTO `role` (`role_id`, `rolename`) VALUES (3,'manager');
+INSERT INTO `role` (`role_id`, `rolename`) VALUES (4,'cellar');
 insert into user_role (`role_id`, `user_id`)
        values ( (select role_id from role where rolename='cellar'),
+                (select user_id from user where username='cellar'));
+insert into user_role (`role_id`, `user_id`)
+       values ( (select role_id from role where rolename='manager'),
                 (select user_id from user where username='cellar'));
 insert into category_auth (`role_id`, `product_category_id`)
        values ( (select role_id from role where rolename='cellar'),

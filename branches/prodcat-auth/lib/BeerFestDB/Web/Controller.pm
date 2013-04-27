@@ -204,6 +204,9 @@ sub _confirm_category_authorisation : Private {
         $self->raise_exception($c, "Error: user not logged in. How could this happen?!\n");
     }
 
+    # Admin users get all the privs.
+    return if $c->check_any_user_role('admin');
+
     my $classname = $dbobj->result_source()->source_name();
 
     # Make sure this list matches the keys of %catmap, above.
@@ -222,15 +225,19 @@ sub _confirm_category_authorisation : Private {
                             ->count();
 
         if ( ! $found ) {
-            $self->raise_exception($c, sprintf(qq{You do not have authorisation to make changes to the "%s" category.\n},
-                                               $pcat->description))
+            $self->raise_exception($c,
+                                   sprintf(qq{You do not have authorisation to}
+                                         . qq{ make changes to the "%s" category.\n},
+                                           $pcat->description))
         }
     }
     else {
 
         # If it's anything else, the user needs to be an admin.
-        if ( ! $c->check_any_user_role('admin') ) {
-            $self->raise_exception($c, "Attempting to edit an object which requires admin privileges\n");
+        if ( ! $c->check_any_user_role('manager') ) {
+            $self->raise_exception($c,
+                                   "Attempting to edit an object which requires"
+                                   . " manager or admin privileges\n");
         }
     }
 }
