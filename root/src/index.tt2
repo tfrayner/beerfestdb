@@ -10,8 +10,6 @@
       <p class="textblock"><span class="message">[% message | html %]</span></p> 
     [% END %] 
 
-  <p class="textblock" style="color: red">Warning: this web site is still under construction.</p>
-
   <p class="textblock">This is the main entry page for the BeerFestDB product management web site. Please use the links below to navigate:</p>
 
   <ul class="linkslist"> 
