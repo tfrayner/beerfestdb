@@ -154,6 +154,7 @@ DROP TABLE IF EXISTS `cask_management`;
 CREATE TABLE `cask_management` (
   `cask_management_id` int(6) NOT NULL AUTO_INCREMENT,
   `festival_id` int(6) NOT NULL,
+  `distributor_company_id` int(6) DEFAULT NULL,
   `product_order_id` int(6) DEFAULT NULL,
   `container_size_id` int(6) NOT NULL,
   `bar_id` int(6) DEFAULT NULL,
@@ -170,6 +171,7 @@ CREATE TABLE `cask_management` (
   `is_sale_or_return` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`cask_management_id`),
   UNIQUE KEY `festival_cellar_ref` (`festival_id`,`cellar_reference`),
+  KEY `IDX_CSKMAN_dfid` (`distributor_company_id`),
   KEY `IDX_CSKMAN_poid` (`product_order_id`),
   KEY `IDX_CSKMAN_bid` (`bar_id`),
   KEY `IDX_CSKMAN_stid` (`stillage_location_id`),
@@ -180,10 +182,11 @@ CREATE TABLE `cask_management` (
   CONSTRAINT `cask_management_ibfk_1` FOREIGN KEY (`bar_id`) REFERENCES `bar` (`bar_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_management_ibfk_2` FOREIGN KEY (`container_size_id`) REFERENCES `container_size` (`container_size_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_management_ibfk_3` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`festival_id`) ON UPDATE NO ACTION,
-  CONSTRAINT `cask_management_ibfk_4` FOREIGN KEY (`product_order_id`) REFERENCES `product_order` (`product_order_id`) ON UPDATE NO ACTION ON DELETE CASCADE,  -- prevents inadvertent cask_management orphanage.
-  CONSTRAINT `cask_management_ibfk_5` FOREIGN KEY (`currency_id`) REFERENCES `currency` (`currency_id`) ON UPDATE NO ACTION,
-  CONSTRAINT `cask_management_ibfk_6` FOREIGN KEY (`bay_position_id`) REFERENCES `bay_position` (`bay_position_id`) ON UPDATE NO ACTION,
-  CONSTRAINT `cask_management_ibfk_7` FOREIGN KEY (`stillage_location_id`) REFERENCES `stillage_location` (`stillage_location_id`) ON UPDATE NO ACTION
+  CONSTRAINT `cask_management_ibfk_4` FOREIGN KEY (`distributor_company_id`) REFERENCES `company` (`company_id`) ON UPDATE NO ACTION,
+  CONSTRAINT `cask_management_ibfk_5` FOREIGN KEY (`product_order_id`) REFERENCES `product_order` (`product_order_id`) ON DELETE CASCADE ON UPDATE NO ACTION,  -- prevents inadvertent cask_management orphanage.
+  CONSTRAINT `cask_management_ibfk_6` FOREIGN KEY (`currency_id`) REFERENCES `currency` (`currency_id`) ON UPDATE NO ACTION,
+  CONSTRAINT `cask_management_ibfk_7` FOREIGN KEY (`bay_position_id`) REFERENCES `bay_position` (`bay_position_id`) ON UPDATE NO ACTION,
+  CONSTRAINT `cask_management_ibfk_8` FOREIGN KEY (`stillage_location_id`) REFERENCES `stillage_location` (`stillage_location_id`) ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=25802 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -203,11 +206,10 @@ begin
     if ( new.product_order_id is not null
         and new.product_order_id != old.product_order_id
         and (select count(ob.order_batch_id)
-             from product_order po, order_batch ob, cask c
-             where new.cask_management_id=c.cask_management_id
-             and new.product_order_id=po.product_order_id
+             from product_order po, order_batch ob
+             where new.product_order_id=po.product_order_id
              and po.order_batch_id=ob.order_batch_id
-             and ob.festival_id=c.festival_id) = 0 ) then
+             and ob.festival_id=new.festival_id) = 0 ) then
         call ERROR_CASKMAN_OB_UPDATE_TRIGGER();
     end if;
     if ( new.festival_id != old.festival_id and
@@ -304,6 +306,26 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `category_auth`
+--
+
+DROP TABLE IF EXISTS `category_auth`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `category_auth` (
+  `category_auth_id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_category_id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  PRIMARY KEY (`category_auth_id`),
+  UNIQUE KEY `category_role_id` (`product_category_id`,`role_id`),
+  KEY `product_category_id` (`product_category_id`),
+  KEY `role_id` (`role_id`),
+  CONSTRAINT `category_auth_ibfk_1` FOREIGN KEY (`product_category_id`) REFERENCES `product_category` (`product_category_id`) ON DELETE CASCADE,
+  CONSTRAINT `category_auth_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `role` (`role_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `company`
@@ -774,7 +796,7 @@ CREATE TABLE `product` (
   `product_style_id` int(6) DEFAULT NULL,
   `nominal_abv` decimal(3,1) DEFAULT NULL,
   `description` text,
-  `long_description` TEXT NULL,
+  `long_description` text,
   `comment` text,
   PRIMARY KEY (`product_id`),
   UNIQUE KEY `company_id` (`company_id`,`name`),

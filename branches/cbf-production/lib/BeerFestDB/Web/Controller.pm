@@ -49,6 +49,15 @@ Passed a resultset object, maps it onto the view JSON objects and detaches.
 
 =cut
 
+sub raise_exception : Private {
+
+    my ( $self, $c, $message ) = @_;
+
+    $c->error($message);
+
+    die($message);
+}
+
 sub generate_json_and_detach : Private {
 
     my ( $self, $c, $rs ) = @_;
@@ -152,40 +161,98 @@ sub viewhash_from_model : Private {
     }
 }
 
-sub build_database_object : Private {
+sub _get_product_category : Private {
 
-    my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
+    my ( $self, $c, $dbobj ) = @_;
 
-    foreach my $key ( keys %$rec ) {
-        delete $rec->{$key}
-            unless $self->value_is_acceptable( $rec->{$key} );
+    # Sometimes we will be passed a null object during subsequent
+    # recursion; e.g. into orphaned CaskManagement objects.
+    if ( ! $dbobj ) {
+        $self->raise_exception($c, "Unable to track object back to product_category.\n");
     }
 
-    # Passed a JSON record nested hashref, Catalyst context and the
-    # appropriate DBIC::ResultSet object, create database objects
-    # recursively (depth first).
-    $mv_map ||= $self->model_view_map();
+    my $result_source = $dbobj->result_source();
+    my $rs            = $result_source->resultset();
+    my $classname     = $result_source->source_name();
 
-    # Firstly, find or create our top-level object. Don't insert a new
-    # object yet, since it won't have all the requisite information.
-    my %dbobj_info;
-    my @primary_cols = $rs->result_source()->primary_columns();
-    foreach my $pk ( @primary_cols ) {
-        my $value = $rec->{ $pk };
-        if ( defined $value ) {
-            $dbobj_info{ $pk } = $value;
+    # FIXME note that this may be rather too heavy on DB queries,
+    # especially for large lists of updates.
+    my %catmap = (
+        'Product'         => sub { $_[0]->product_category_id() },
+        'FestivalProduct' => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'Gyle'            => sub { $self->_get_product_category( $c, $_[0]->festival_product_id ) },
+        'Cask'            => sub { $self->_get_product_category( $c, $_[0]->gyle_id ) },
+        'CaskMeasurement' => sub { $self->_get_product_category( $c, $_[0]->cask_id ) },
+        'ProductOrder'    => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'CaskManagement'  => sub { $self->_get_product_category( $c, $_[0]->casks->first() ||
+                                                                     $_[0]->product_order_id ) },
+    );
+
+    if ( my $fun = $catmap{ $classname } ) {
+        return $fun->($dbobj);
+    }
+    else {
+        $self->raise_exception($c, qq{Product category retrieval mapping not implemented for "$classname" objects.\n});
+    }
+}
+
+sub _confirm_category_authorisation : Private {
+
+    my ($self, $c, $dbobj) = @_;
+
+    if ( ! $c->user ) {
+        $self->raise_exception($c, "Error: user not logged in. How could this happen?!\n");
+    }
+
+    # Admin users get all the privs.
+    return if $c->check_any_user_role('admin');
+
+    my $classname = $dbobj->result_source()->source_name();
+
+    # Make sure this list matches the keys of %catmap, above.
+    if ( first { $_ eq $classname } qw( Product FestivalProduct Gyle
+                                        Cask ProductOrder CaskManagement
+                                        CaskMeasurement  ) ) {
+
+        my $pcat    = $self->_get_product_category($c, $dbobj);
+        my $pcat_id = $pcat->get_column('product_category_id');
+
+        # Test that pcat is in $c->user's roles->categories.
+        my $found = $c->user->search_related('user_roles')
+                            ->search_related('role_id')
+                            ->search_related('category_auths',
+                                             { product_category_id => $pcat_id })
+                            ->count();
+
+        if ( ! $found ) {
+            $self->raise_exception($c,
+                                   sprintf(qq{You do not have authorisation to}
+                                         . qq{ make changes to the "%s" category.\n},
+                                           $pcat->description))
         }
     }
-    my $dbobj = $rs->find_or_new( \%dbobj_info );
+    else {
+
+        # If it's anything else, the user needs to be an admin.
+        if ( ! $c->check_any_user_role('manager') ) {
+            $self->raise_exception($c,
+                                   "Attempting to edit an object which requires"
+                                   . " manager or admin privileges\n");
+        }
+    }
+}
+
+sub _add_object_column_attributes : Private {
+
+    my ( $self, $dbobj, $rec, $primary_cols, $mv_map ) = @_;
 
     my @hashrefs;
     
-    # Secondly, deal with simple table-based attributes.
     VIEW_KEY:
     foreach my $view_key (keys %$rec) {
 
         # Skip primary columns; we've already dealt with them.
-        next VIEW_KEY if ( first { $view_key eq $_ } @primary_cols );
+        next VIEW_KEY if ( first { $view_key eq $_ } @$primary_cols );
 
         # There's a strong risk of key collision from an upper
         # recursion into this one here; to fix this, we have to manage
@@ -222,8 +289,14 @@ sub build_database_object : Private {
         }
     }
 
-    # Thirdly, we handle the relationships.
-    foreach my $view_key (@hashrefs) {
+    return \@hashrefs;
+}
+
+sub _add_object_relationships : Private {
+
+    my ( $self, $c, $rs, $dbobj, $rec, $hashrefs, $mv_map ) = @_;
+    
+    foreach my $view_key (@$hashrefs) {
 
         my $lookup ||= $mv_map->{ $view_key } || $view_key;
         
@@ -277,6 +350,45 @@ sub build_database_object : Private {
         $dbobj->set_column( $rel, $value->$pk );
     }
 
+    return;
+}
+
+sub build_database_object : Private {
+
+    my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
+
+    foreach my $key ( keys %$rec ) {
+        delete $rec->{$key}
+            unless $self->value_is_acceptable( $rec->{$key} );
+    }
+
+    # Passed a JSON record nested hashref, Catalyst context and the
+    # appropriate DBIC::ResultSet object, create database objects
+    # recursively (depth first).
+    $mv_map ||= $self->model_view_map();
+
+    # Firstly, find or create our top-level object. Don't insert a new
+    # object yet, since it won't have all the requisite information.
+    my %dbobj_info;
+    my @primary_cols = $rs->result_source()->primary_columns();
+    foreach my $pk ( @primary_cols ) {
+        my $value = $rec->{ $pk };
+        if ( defined $value ) {
+            $dbobj_info{ $pk } = $value;
+        }
+    }
+    my $dbobj = $rs->find_or_new( \%dbobj_info );
+
+    # Secondly, deal with simple table-based attributes.
+    my $hashrefs = $self->_add_object_column_attributes($dbobj, $rec, \@primary_cols, $mv_map);
+
+    # Thirdly, we handle the relationships.
+    $self->_add_object_relationships($c, $rs, $dbobj, $rec, $hashrefs, $mv_map);
+
+    # Note that this will raise an exception to derail the enclosing
+    # transaction if the user is not authorised to make changes.
+    $self->_confirm_category_authorisation($c, $dbobj) if $dbobj->is_changed();
+
     unless ( $no_update ) {
         eval {
             $dbobj->update_or_insert();
@@ -302,7 +414,7 @@ sub build_database_object : Private {
 	    }
          
   	    # Called within a transaction, we die hard.
-	    die( $message . "\n" );
+	    $self->raise_exception( $c, $message . "\n" );
         }
     }
 
@@ -341,8 +453,8 @@ sub write_to_resultset : Private {
             }
         );
     };
-    if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $@ );
+    if ( $@ or scalar @{ $c->error } ) {
+        $self->detach_with_txn_failure( $c );
     };
 
     $c->stash->{ 'success' } = JSON::Any->true();
@@ -374,16 +486,15 @@ sub delete_from_resultset : Private {
                         $rec->delete() if $rec;
                     };
                     if ($@) {
-                        $c->log->error("DB transaction failure: $@");
-                        die(sprintf("Unable to delete %s object with ID=%s\n",
-                                    $rs->result_source->source_name(), $id));
+                        $self->raise_exception($c, sprintf("Unable to delete %s object with ID=%s\n",
+                                                           $rs->result_source->source_name(), $id));
                     }
                 }
             }
         );
     };
-    if ( $@ ) {
-        $self->detach_with_txn_failure( $c, $@ );
+    if ( $@ or scalar @{ $c->error } ) {
+        $self->detach_with_txn_failure( $c );
     };
 
     $c->stash->{ 'success' } = JSON::Any->false();
@@ -394,9 +505,13 @@ sub detach_with_txn_failure : Private {
 
     my ( $self, $c, $error ) = @_;
 
+    $error ||= join("; ", @{ $c->error });
+
+    $c->clear_errors();
+
     $error =~ s/\A (.*) [\r\n]* \z/$1/xms;
 
-    $error = "Transaction failed: $error";
+    $error = "Database not changed: $error";
     $c->log->error($error);
     $c->response->status('403');  # Forbidden; must use this or
                                   # similar for ExtJS to detect
@@ -416,7 +531,7 @@ sub get_default_currency : Private {
 
     my $def = $c->model('DB::Currency')->find({
         currency_code => $c->config->{'default_currency'},
-    }) or die("Error retrieving default currency; check config settings.");
+    }) or $self->raise_exception($c, "Error retrieving default currency; check config settings.\n");
 
     $c->stash->{ 'default_currency' } = $def->currency_id();
 
@@ -433,7 +548,7 @@ sub get_default_sale_volume : Private {
 
     my $def = $c->model('DB::SaleVolume')->find({
         description => $c->config->{'default_sale_volume'},
-    }) or die("Error retrieving default sale volume; check config settings.");
+    }) or $self->raise_exception($c, "Error retrieving default sale volume; check config settings.\n");
 
     $c->stash->{ 'default_sale_volume' } = $def->sale_volume_id();
 
@@ -450,7 +565,7 @@ sub get_default_product_category : Private {
 
     my $def = $c->model('DB::ProductCategory')->find({
         description => $c->config->{'default_product_category'},
-    }) or die("Error retrieving default product_category; check config settings.");
+    }) or $self->raise_exception($c, "Error retrieving default product_category; check config settings.\n");
 
     $c->stash->{ 'default_product_category' } = $def->product_category_id();
 
