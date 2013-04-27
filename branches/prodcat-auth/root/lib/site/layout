@@ -1,9 +1,0 @@
-<div id="content">
-    [% IF error %] 
-      <div><span class="error">[% error | html %]</span></div> 
-    [% END %] 
-    [% IF message %] 
-      <p><span class="message">[% message | html %]</span></p> 
-    [% END %] 
-[% content %]
-</div>

@@ -1,3 +1,0 @@
-importFrom(RCurl, getURI)
-
-exportPattern("^[[:alpha:]]+")
