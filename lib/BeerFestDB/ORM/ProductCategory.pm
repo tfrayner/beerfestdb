@@ -72,6 +72,21 @@ __PACKAGE__->add_unique_constraint("description", ["description"]);
 
 =head1 RELATIONS
 
+=head2 category_auths
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::CategoryAuth>
+
+=cut
+
+__PACKAGE__->has_many(
+  "category_auths",
+  "BeerFestDB::ORM::CategoryAuth",
+  { "foreign.product_category_id" => "self.product_category_id" },
+  {},
+);
+
 =head2 product_characteristic_types
 
 Type: has_many
@@ -118,8 +133,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wgBatICkStjQAlv/TraYMw
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-04-25 23:31:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JZF5HXy7J8u8I9NI4CQG4Q
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
