@@ -5,6 +5,9 @@
 Model::DB:
   connect_info:
     - DBI:mysql:test:localhost:3306
+    -
+    -
+    - mysql_enable_utf8: 1
 
 # CBF-production config item: since we only ever run a single festival
 #  at a time we can designate the current festival:

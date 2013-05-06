@@ -25,6 +25,8 @@ use namespace::autoclean;
 
 use List::Util qw(first);
 use Carp;
+use utf8;
+use Encode;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -428,6 +430,21 @@ sub value_is_acceptable : Private {  # Required by DBHashRefValidator
     return 1;  # Undef values must be allowed if we want to break relationships.
 }
 
+sub decode_json_changes : Private {
+
+    my ( $self, $c ) = @_;
+ 
+    my $j = JSON::XS->new->utf8;
+    my $data;
+    eval { $data = $j->decode( encode('UTF-8', $c->request->param( 'changes' ) ) ) };
+    if ($@) {
+	$c->error("Unable to parse submitted JSON upload: $@");
+	$self->detach_with_txn_failure( $c );
+    }
+
+    return $data;
+}
+
 =head2 write_to_resultset
 
 Passed a resultset and a context object, map the changes in the
@@ -440,8 +457,7 @@ sub write_to_resultset : Private {
 
     my ( $self, $c, $rs ) = @_;
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
+    my $data = $self->decode_json_changes( $c );
 
     # Wrap everything in a transaction - all should pass, or none.
     eval {
@@ -474,8 +490,7 @@ sub delete_from_resultset : Private {
 
     my ( $self, $c, $rs ) = @_;
 
-    my $j = JSON::Any->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
+    my $data = $self->decode_json_changes( $c );
 
     eval {
         $rs->result_source()->schema()->txn_do(
