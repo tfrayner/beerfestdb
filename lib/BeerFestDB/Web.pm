@@ -65,7 +65,7 @@ __PACKAGE__->config(
     session => { flash_to_stash => 1,
                  expires        => 3600, },
     'View::JSON' => {
-        json_driver => 'JSON::DWIW', # Better utf-8 support than JSON(::XS)
+        json_driver => 'JSON::XS',
     },
     authentication => {  
         default_realm => 'beerfestdb',
