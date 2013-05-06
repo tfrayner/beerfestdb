@@ -223,7 +223,7 @@ sub status : Local {
             }
         }
         else {
-            $remaining_tot += $cask->cask_management()
+            $remaining_tot += $cask->cask_management_id()
                                    ->container_size_id()
                                    ->container_volume();
             $product_available{ $cask->gyle_id->get_column('festival_product_id') }++;
