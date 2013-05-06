@@ -222,6 +222,8 @@ use JSON::DWIW;
 use List::Util qw (first);
 use BeerFestDB::Web;
 
+use utf8;
+
 sub send_update {
 
     my ( $content, $debug, $uri, $clientid, $key ) = @_;
@@ -416,6 +418,23 @@ else {
                   \$output )
         or die( "Template processing error: " . $tt2->error() );
 }
+
+# Check for valid UTF-8 (don't just trust MySQL, although I've no reason to doubt it yet).
+unless (utf8::valid($output)) {
+    die("Error: Database generated non-UTF8 output");
+}
+
+# Warn on unusual/new characters. Add new characters here only if
+# you're sure the server can handle it.
+my $core_re = qr/[^[:alnum:]_&"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄπ° -]+/;
+my $re = qr/( .{0,8} $core_re .{0,8} )/xms;
+if ( $output =~ $re ) {
+    warn("Warning: uploaded content contains unexpected characters and may fail."
+       . " Context follows:\n\n$1\n\n"
+       . "If failure occurs, try using -d to examine the upload string.\n");
+}
+
+$debug && print STDOUT "\n$output\n";
 
 # Do the upload itself.
 send_update($output, $debug,
