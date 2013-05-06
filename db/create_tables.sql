@@ -1100,6 +1100,7 @@ SET character_set_client = utf8;
   `beer` varchar(100),
   `abv` decimal(3,1),
   `tasting_notes` text,
+  `tasting_essay` text,
   `style` varchar(100)
 ) ENGINE=MyISAM */;
 SET character_set_client = @saved_cs_client;
@@ -1264,7 +1265,7 @@ CREATE TABLE `user_role` (
 /*!50001 SET collation_connection      = latin1_swedish_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `programme_notes_view` AS (select distinct `f`.`name` AS `festival`,`pc`.`description` AS `category`,`c`.`name` AS `brewer`,`c`.`loc_desc` AS `location`,`c`.`year_founded` AS `year_established`,`p`.`name` AS `beer`,`p`.`nominal_abv` AS `abv`,`p`.`description` AS `tasting_notes`,`ps`.`description` AS `style` from (((((`company` `c` join (`product` `p` left join `product_style` `ps` on((`ps`.`product_style_id` = `p`.`product_style_id`)))) join `product_category` `pc`) join `product_order` `po`) join `order_batch` `ob`) join `festival` `f`) where ((`f`.`festival_id` = `ob`.`festival_id`) and (`ob`.`order_batch_id` = `po`.`order_batch_id`) and (`po`.`product_id` = `p`.`product_id`) and (`p`.`company_id` = `c`.`company_id`) and (`pc`.`product_category_id` = `p`.`product_category_id`) and (`po`.`is_final` = 1)) order by `f`.`name`,`pc`.`description`,`c`.`name`,`p`.`name`) */;
+/*!50001 VIEW `programme_notes_view` AS (select distinct `f`.`name` AS `festival`,`pc`.`description` AS `category`,`c`.`name` AS `brewer`,`c`.`loc_desc` AS `location`,`c`.`year_founded` AS `year_established`,`p`.`name` AS `beer`,`p`.`nominal_abv` AS `abv`,`p`.`description` AS `tasting_notes`,`p`.`long_description` AS `tasting_essay`,`ps`.`description` AS `style` from (((((`company` `c` join (`product` `p` left join `product_style` `ps` on((`ps`.`product_style_id` = `p`.`product_style_id`)))) join `product_category` `pc`) join `product_order` `po`) join `order_batch` `ob`) join `festival` `f`) where ((`f`.`festival_id` = `ob`.`festival_id`) and (`ob`.`order_batch_id` = `po`.`order_batch_id`) and (`po`.`product_id` = `p`.`product_id`) and (`p`.`company_id` = `c`.`company_id`) and (`pc`.`product_category_id` = `p`.`product_category_id`) and (`po`.`is_final` = 1)) order by `f`.`name`,`pc`.`description`,`c`.`name`,`p`.`name`) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
