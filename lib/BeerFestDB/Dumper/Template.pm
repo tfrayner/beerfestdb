@@ -36,6 +36,7 @@ use Cwd;
 use File::Spec::Functions qw(catfile);
 use Template;
 use POSIX qw(ceil);
+use utf8;
 
 our $VERSION = '0.01';
 
