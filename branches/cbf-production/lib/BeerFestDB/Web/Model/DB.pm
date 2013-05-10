@@ -29,12 +29,6 @@ use parent 'Catalyst::Model::DBIC::Schema';
 # Database connection params are set in the main config file.
 __PACKAGE__->config(
     schema_class => 'BeerFestDB::ORM',
-    connect_info => {
-        RaiseError        => 1,
-        AutoCommit        => 1,
-        on_connect_call   => 'set_strict_mode',
-        mysql_enable_utf8 => 1,
-    },
 );
 
 =head1 NAME
