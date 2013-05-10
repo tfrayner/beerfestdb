@@ -153,6 +153,27 @@ sub _add_error_report_string {
     return;
 }
 
+sub _retrieve_reverse_dbkey {
+
+    my ( $self, $source, $key ) = @_;
+
+    # A slightly ugly method to figure out the correct column name on
+    # relationships where the source and target key names differ
+    # (e.g. sale_currency_id => currency_id).
+
+    my $relsource_info = $source->reverse_relationship_info( $key );
+    my $reldefs        = (values %$relsource_info)[0];
+    my $cond = $reldefs->{'cond'};
+    my $revkey;
+    while ( my ( $qkey, $qval ) = each %$cond ) {
+        if ($qkey eq "foreign.$key") {
+            $revkey = $qval;
+            $revkey =~ s/^self\.//;
+        }
+    }
+    return $revkey;
+}
+
 sub add_protection_error {
 
     my ( $self, $req_vals, $class ) = @_;
@@ -167,11 +188,10 @@ sub add_protection_error {
     foreach my $key ( keys %$req_vals ) {
         if ( $source->has_relationship( $key ) ) {
             my $relsource   = $source->related_source( $key );
-            my $rel         = $relsource->resultset->find({
-                $key => $req_vals->{$key}
-            });
+            my $revkey      = $self->_retrieve_reverse_dbkey( $source, $key );
+            my $rel         = $relsource->resultset->find({ $revkey => $req_vals->{$key} });
             my $related_rqd = $self->resultsource_required_columns($relsource);
-            my $relstr = join(";", map { $rel->get_column($_) } @$related_rqd);
+            my $relstr = join(";", map { $rel ? $rel->get_column($_) : "" } @$related_rqd);
             $key  =~ s/_id\z//xms;
             $err .= qq{        $key : $relstr\n};
         }
