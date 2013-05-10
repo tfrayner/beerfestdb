@@ -303,15 +303,21 @@ sub update_brewery_info {
             }
         }
         if ( first { $_ eq lc $prodcat }
-                 ('cider', 'perry', 'apple juice', 'mead') ) {
+                 ('cider', 'perry', 'apple juice', 'mead', 'wine') ) {
             $item->{status} = '';
         }
         my $beer_info = { map { $infomap{$_} => $item->{ $_ } } keys %infomap };
+
+        if ( $prodcat eq 'apple juice' ) {
+            $beer_info->{name} .= ' APPLE JUICE';
+        }
 
         # If long_description not available, fall back to short description.
         if ( ! defined $beer_info->{notes} || $beer_info->{notes} eq q{} ) {
             $beer_info->{notes} = $item->{description}
         }
+
+        $beer_info->{category} = $prodcat;
 
         push @{ $brewery_info->{ $id }{products} }, $beer_info;
     }

@@ -108,7 +108,8 @@
 
   \begin{textblock}{0.8}[0.5, 0.5](0.5,0.50)
   \begin{center}
-  \textbf{[% cask.product | latexify %]}
+  \textbf{[% cask.product | latexify -%]}
+  [%- IF cask.category == 'apple juice' %] APPLE JUICE[% END %]}
   \end{center}
 
   % \hspace{5mm} 0.0\%
@@ -139,8 +140,7 @@
   \begin{center}
   \fontsize{[% product_font_size %]}{94}
   \selectfont
-  \textbf{[% cask.product | latexify -%]
-[%- IF cask.category == 'apple juice' %] APPLE JUICE[% END %]}
+  \textbf{[% cask.product | latexify %]
   \end{center}
 
   % \hspace{5mm} 0.0\%
