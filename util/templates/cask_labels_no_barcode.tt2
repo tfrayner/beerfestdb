@@ -2,7 +2,7 @@
 % $Id$
 %
 
-[% IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class.\n" %][% END %]
+[% IF dump_class != 'cask_management' %][% THROW bad_dump_class "Use the cask_management dump class.\n" %][% END %]
 
 \documentclass[a4paper,12pt]{article} 
 \usepackage[newdimens]{labels}
@@ -35,7 +35,7 @@
 \begin{document}% End of preamble
 
 \begin{labels}
-[% FOREACH cask = objects %]
+[% FOREACH cask = objects.sort('category', 'brewery', 'product') %]
 Cask ID: \textbf{[% IF cask.festival_id.defined %][% cask.festival_id %][% ELSE %]NOT AVAILABLE[% END %]}
 [% cask.brewery | truncate(20) | latexify %]
 [% cask.product | truncate(20) | latexify %]

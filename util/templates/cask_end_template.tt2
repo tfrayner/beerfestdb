@@ -108,7 +108,7 @@
 
   \begin{textblock}{0.8}[0.5, 0.5](0.5,0.50)
   \begin{center}
-  \textbf{[% cask.product | latexify -%]}
+  \textbf{[% cask.product | latexify -%]
   [%- IF cask.category == 'apple juice' %] APPLE JUICE[% END %]}
   \end{center}
 
@@ -117,7 +117,7 @@
   %\vspace{8mm}
   \end{textblock}
 
-[% ELSIF cask.category == 'mead' %]
+[% ELSIF cask.category == 'mead' || cask.category == 'wine' %]
 
   [% IF cask.product.length > 55 %]
     [% product_font_size = 48 %]
@@ -140,7 +140,7 @@
   \begin{center}
   \fontsize{[% product_font_size %]}{94}
   \selectfont
-  \textbf{[% cask.product | latexify %]
+  \textbf{[% cask.product | latexify %]}
   \end{center}
 
   % \hspace{5mm} 0.0\%
@@ -181,15 +181,11 @@
   \fontsize{48}{60}
   \selectfont
 
-[% IF cask.category == 'mead' %]
+[% IF cask.category == 'mead' || cask.category == 'wine' %]
 
-\begin{textblock}{0.3}(0.60,0.70)
-  [% IF cask.price == cask.half_price %]
-    \textbf{[% cask.price %]}
-  [% ELSE %]
-    \textbf{[% cask.currency | latexify -%]
-            [%- cask.price %]~per\\ [% cask.sale_volume %]}
-  [% END %]
+\begin{textblock}{0.3}(0.50,0.70)
+  \textbf{[% cask.currency | latexify -%]
+          [%- cask.price | price_format | format('%.2f') -%]/[% cask.sale_volume %]}
 \end{textblock}
 
 [% ELSE %]

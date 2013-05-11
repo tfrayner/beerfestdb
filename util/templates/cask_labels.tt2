@@ -46,7 +46,7 @@
 \begin{document}% End of preamble
 
 \begin{labels}
-[% FOREACH cask = objects %]
+[% FOREACH cask = objects.sort('category', 'brewery', 'product') %]
 \begin{tabular}{ l l }
 \multirow{5}{*}{
 [% IF cask.festival_id.defined -%]
