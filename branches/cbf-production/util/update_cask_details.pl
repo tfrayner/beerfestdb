@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# $Id: upload_beerlist.pl 381 2012-05-17 14:35:44Z tfrayner $
+# $Id$
 
 use strict;
 use warnings;

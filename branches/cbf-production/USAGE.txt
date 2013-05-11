@@ -1,0 +1,253 @@
+Operations During a Running Festival
+====================================
+
+There are a few scripts used to manage the database during a
+festival. The scripts are all in the project "utils" subdirectory but
+should be directly accessible via the command line PATH. In every case
+you can run the script with either "-h" or "--help" to get some idea
+of the arguments the script is expecting. In approximate order of
+usage, the scripts are:
+
+1. load_data.pl
+---------------
+
+This is the main data loading script. It's very flexible but not
+particularly well documented. With luck you may not need this during
+the festival proper, but in reality this will probably become
+necessary at some stage (e.g. during a beer re-order). The script can
+be used to add or modify various non-festival specific details
+(e.g. company and product info), but here we are more concerned with
+how it is used during the festival.
+
+Depending on how big and complex the festival is, one can load product
+data in one of two ways: (a) directly linking the product to the
+festival, in effect saying "this product is at this festival", without
+necessarily specifying the quantities involved, or (b) linking the
+product to a given order batch, with quantities specified. The latter
+approach is very much preferable if sufficient information is
+available on what has been ordered. To use the 'order batch' approach,
+make sure you include a column in the loaded data file named "order
+batch name".
+
+Since this script is so powerful, a mechanism has been created to
+protect various object types from being changed at any given time. In
+effect, we treat different tables as containing controlled
+vocabularies depending on what we're trying to accomplish. This is
+controlled from within the main beerfestdb_web.yml config file. The
+"protected_classes" setting gives a listing of the object types which
+cannot be added or modified by the load_data.pl script. If you are
+trying to make a change but are blocked from doing so with a
+"Protection error", you can temporarily comment out the relevant
+object type to bypass the error (but be aware that the error may be
+warning you of a genuine problem, e.g. mis-spelling of a given beer
+name). 
+
+During the festival only object types likely to need
+addition/modification are as follows: ProductOrder, OrderBatch. Other
+possible object types would be FestivalProduct, Gyle, CaskManagement,
+Cask. Finally, it's conceivable but unlikely that both Company and
+Product might need additions (if, say, the reorder gets in some
+genuinely new beers) but in practice I think that this will almost
+never happen.
+
+Typical script usage:
+
+> load_data.pl -i my_data_to_load.csv
+
+FIXME example_data
+
+2. preload_festival_casks.pl
+----------------------------
+
+This is a relatively simple script which creates "virtual casks" from
+the product order information for a festival; in effect, this the set
+of casks which we expect to be delivered. This allows for some
+planning tasks to be completed prior to delivery (e.g., printing of
+cask labels, stillage planning etc.). Typical usage (no arguments
+required):
+
+> preload_festival_casks.pl
+
+You can run this script as many times as you like; if you make changes
+to the product orders, simply rerun the script to have those changes
+correctly reflected in the virtual cask listings.
+
+3. upload_beerlist.pl
+---------------------
+
+Upload the details and status of all the products at the festival to
+the main public festival web site. Again, usage is simple:
+
+> upload_beerlist.pl
+
+The script will ask you for a username and password. This will be your
+department account that you would use to log into the beerfestdb
+website. Since this script never writes to the database it's possible
+to run this using any user account. Again, you can run this script as
+often as you might like.
+
+4. dump_to_template.pl
+----------------------
+
+This is the main script used to generate latex output files from the
+database. It fills out template files (in the "util/template" project
+directory) using information from the database organised by various
+levels of abstraction ("dump class"): cask, cask_management, gyle,
+product, product_order or distributor. Typical usage:
+
+# For cask end signs:
+> dump_to_template.pl -t templates/cask_end_template.tt2 \
+                      -l images/cake.png -o gyle > cask_ends.tex
+
+# For dip sheets:
+> dump_to_template.pl -t templates/dip_sheet_template.tt2 -o cask > dip_sheets.tex
+
+# For cask graveyard signs:
+> dump_to_template.pl -t templates/cask_graveyard.tt2 -o distributor > graveyard.tex
+
+The templates themselves know which level(s) they can be used with, so
+if you go wrong you'll just get an error message with a (hopefully
+helpful) suggestion on how to fix the problem. Some of the templates
+contain links out to specific image files; others use the value passed
+by the "-l" option ("--logo") to add a festival-specific
+logo. Currently available template files include the following:
+
+ - bar_price_list.tt2: A set of price list tables that can be used at
+   the bar, typically as a single sheet of laminated card or
+   paper. Dump class: gyle.
+
+ - cask_end_template.tt2: The cask end signs, with tweaks for
+   different product categories (cider/wine/mead etc.). Dump classes:
+   gyle or product. Expects a logo file.
+
+ - cask_graveyard.tt2: A set of cask graveyard signs, organised by
+   distributor. Dump class: distributor.
+
+ - cask_labels.tt2: Cask labels, obviously. These are currently set up
+   for a 3x7 label grid and will attempt to generate a barcode based
+   on cask festival number; the barcodes are somewhat error prone and
+   so if this fails badly then cask_labels_no_barcode.tt2 is provided
+   as a backup. Dump class: cask_management
+
+ - delivery_checklist.tt2: A set of delivery checklists ordered by
+   distributor. Dump class: distributor.
+
+ - dip_sheet_template.tt2: Dip sheets for each stillage. Note that if
+   you regenerate dip sheets during the festival then the values
+   stored in the database will be entered into the sheets, so
+   cellarers don't need to copy their data across. Dump class: cask.
+
+ - jacket_labels.tt2: Like cask_labels, but simpler; these are
+   designed to provide a visual cue as to which cask is hiding under a
+   cooling jacket. Typically you only need one jacket label per product
+   rather than per cask. Dump class: gyle.
+
+There is a handful of other templates, but they are typically used in
+the run-up to the festival and so can be ignored for the moment.
+
+5. dump_to_oodoc.pl (optional)
+-------------------
+
+FIXME
+
+6. update_cask_details.pl
+-------------------------
+
+A script used to set the status and stillage position information for
+sets of casks on a given stillage. Please see the "-h" help
+documentation for details on the file format, which I won't reiterate
+here (FIXME example_data). Note that by default this script will refuse to move casks
+between stillages, which in practice means that a given run of the
+script is restricted to the casks on just one stillage. Typical usage:
+
+> update_cask_details.pl -f cask_details_file.csv
+
+7. load_dips.pl
+---------------
+
+A script used to load dip data; the input format is simple: two
+columns separated by a tab character; the first column is the
+festival cask ID, and the second the remaining volume in gallons:
+
+1    3
+2    0.5
+3    8
+4    9
+5    0
+
+(FIXME also example_data)
+If a cask is not present in the list it is assumed unchanged since the
+previous dip. The script will ask you which dipping time these data
+should be stored against; they will overwrite anything previously
+stored for that time in the database, so it's not a bad idea to keep
+the input files somewhere as a temporary backup in case of
+mistakes. Typical script usage:
+
+> load_dips.pl -i my_dip_datafile.txt
+
+Typical Festival Workflow
+=========================
+
+It may be worth referring to this page for a broad overview of the
+dependencies on data input/output before and during a given festival:
+
+http://sourceforge.net/apps/mediawiki/beerfestdb/index.php?title=Suggested_process
+
+If we assume you start the festival with a database containing a set
+of beers specified as having been ordered, the following steps will be
+necessary:
+
+# Update the expected cask listings.
+> preload_festival_casks.pl
+
+# Generate cask labels and print them out.
+> dump_to_template.pl -t templates/cask_labels.tt2 -o cask_management > cask_labels.tex
+> pdflatex cask_labels.tex
+
+# Receive deliveries, put labels on casks, make a note of
+# discrepancies. Record the successful deliveries using the beerfestdb
+# web site (product order pages). For unexpected cask deliveries
+# create new festival products directly ("products received"), add a
+# gyle record and the individual casks. One hopes there will not be
+# too many of these, although if it gets out of hand there's always
+# the load_data.pl script.
+
+# Assign casks to stillages. This can either be done via the web page,
+# or using the update_cask_details.pl script. In the latter case,
+# create a tab-delimited file with two columns: cask_festival_id and
+# stillage_location. Run this script (note that the -a option allows
+# casks to move between stillages; usually you will omit this option):
+> update_cask_details.pl -a -f the_tab_delimited_file.txt
+
+# Generate dip sheets:
+> dump_to_template.pl -t templates/dip_sheet_template.tt2 > dip_sheets.tex
+> pdflatex dip_sheets.tex
+
+# Enter the sale prices for each beer at the festival. This is done
+# using the web interface, under "Products received"; prices must
+# currently be entered in pence (i.e. 320 for a GBP3.20 pint).
+
+# Generate cask end signs:
+> dump_to_template.pl -t templates/cask_end_template.tt2 -l images/cake.png > cask_ends.tex
+> pdflatex cask_ends.tex 
+
+# On the first day of the festival, before opening, run the web site
+# upload script to change the status flags from "Ordered/Arrived" to "X
+# amount left":
+> upload_beerlist.pl
+
+# After the session, do the dips and generate a dip data file as
+# described above. Load the data and update the public web pages:
+> load_dips.pl -i dip_data_file.txt
+> upload_beerlist.pl
+
+Copy over the main database (duh) 
+
+Copy over some example po-level load_data.pl files into example_data;
+maybe also some non-festival specific data files as well? Also an
+example for load_dips.pl, update_cask_details.pl, and maybe even an
+oodoc dump template?
+
+See if we can get barcodes working on this machine.
+Print out delivery checklist, cask labels.
+
