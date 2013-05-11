@@ -116,6 +116,7 @@ Readonly my $BREWER_REGION             => 51;
 Readonly my $ORDER_SALE_OR_RETURN      => 52;
 Readonly my $BAY_NUMBER                => 53;
 Readonly my $BAY_POSITION              => 54;
+Readonly my $CASK_UNIT                 => 55;
 
 ########
 # SUBS #
@@ -373,13 +374,14 @@ sub _load_data {
         : undef;
 
     # This is going to be pretty much constant for UK beers. Will need
-    # modification for European casks though FIXME.
-    my $cask_measure = $self->_load_column_value(
-        {
-            litre_multiplier => 4.54609188,
-            description      => 'gallon',
-        },
-        'ContainerMeasure');
+    # modification for European casks/wine/mead though. Note that
+    # 'gallon' will have been entered into the database as part of the
+    # initial set of controlled terms.
+    my $cask_unit = $self->value_is_acceptable( $datahash->{$CASK_UNIT} )
+        ? $datahash->{$CASK_UNIT} : 'gallon';
+    my $cask_measure = $self->database()->resultset('ContainerMeasure')
+        ->find({description => $cask_unit})
+            or die(qq{Unable to retrieve desired cask units "$cask_unit".});
 
     my $cask_size
         = $self->value_is_acceptable( $datahash->{$CASK_SIZE} )
@@ -732,6 +734,7 @@ sub _coerce_headings {
         qr/cask [_ -]* festival [_ -]* id/ixms         => $CASK_FESTIVAL_ID,
         qr/cask [_ -]* count/ixms                      => $CASK_COUNT,
         qr/cask [_ -]* size/ixms                       => $CASK_SIZE,
+        qr/cask [_ -]* unit/ixms                       => $CASK_UNIT,
         qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
         qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,
         qr/cask [_ -]* measurement [_ -]* date/ixms    => $CASK_MEASUREMENT_DATE,
