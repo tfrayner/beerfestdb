@@ -66,10 +66,10 @@ OODoc:
 #  - OrderBatch
 
 status_query:
-  festival_name:
-  product_category:
+  departments:
+    - product_category:
+      public_site_clientid:
   beerfestdb_uri:
   public_site_upload_uri:
-  public_site_clientid:
   public_site_key:
 
