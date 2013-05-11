@@ -1,0 +1,37 @@
+\documentclass[12pt]{article} 
+\usepackage{palatino}
+\usepackage[newdimens]{labels}
+\numberoflabels=8
+
+% the buggers are 8 per sheet L7165
+
+\LabelCols=2% Number of columns of labels per page
+\LabelRows=4% Number of rows of labels per page
+
+\LeftPageMargin=5mm% 
+\RightPageMargin=5mm% 
+\TopPageMargin=13mm% 
+\BottomPageMargin=13mm% 
+% These four parameters give the page gutter sizes. The outer edges of the outer labels are the specified distances from the edge of the paper.
+
+\InterLabelColumn=2.5mm% Gap between columns of labels
+\InterLabelRow=0mm% Gap between rows of labels
+
+\LeftLabelBorder=8mm% 
+\RightLabelBorder=8mm% 
+\TopLabelBorder=5mm% 
+\BottomLabelBorder=10mm% 
+% These four parameters give the extra space used around the text on each actual label.
+
+
+\renewcommand\familydefault{\sfdefault} % makes it use sans serif
+
+
+
+\begin{document}% End of preamble
+\begin{labels}
+  \fontsize{36}{48}
+  \selectfont
+\center{\textbf{CONDEMNED}}
+\end{labels}
+\end{document}
