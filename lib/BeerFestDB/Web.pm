@@ -67,6 +67,9 @@ __PACKAGE__->config(
     'View::JSON' => {
         json_driver => 'JSON::XS',
     },
+    'Plugin::Session' => {
+	storage => "/tmp/beerfestdb-$>/web/session_data",
+    },
     authentication => {  
         default_realm => 'beerfestdb',
         realms => {
