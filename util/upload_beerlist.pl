@@ -226,7 +226,7 @@ use utf8;
 
 sub send_update {
 
-    my ( $content, $debug, $uri, $clientid, $key ) = @_;
+    my ( $content, $debug, $clientid, $uri, $key ) = @_;
     
     $debug && warn("Uploading content...\n");
     
@@ -302,6 +302,11 @@ sub update_brewery_info {
                 $item->{css_status} = 'nearly_finished';	    
             }
         }
+
+        # Suppress status reports for departments which aren't
+        # currently stocktaking using the database. Note that if this
+        # changes the above $amount logic will need to be made
+        # smarter.
         if ( first { $_ eq lc $prodcat }
                  ('cider', 'perry', 'apple juice', 'mead', 'wine') ) {
             $item->{status} = '';
@@ -360,92 +365,109 @@ sub parse_args {
     return( $st, $template, $html, $debug );
 }
 
+sub upload_department {
+
+    my ( $dept, $config, $use_html, $template, $debug ) = @_;
+
+    # We may wish to combine product categories in the output, e.g. cider and perry.
+    my $conf_cat = $dept->{product_category};
+    my @categories;
+    if ( ref $conf_cat eq 'ARRAY' ) {
+        push @categories, @$conf_cat;
+    }
+    else {
+        push @categories, $conf_cat;
+    }
+
+    my $brewery_info = {};
+    foreach my $prodcat ( @categories ) {
+
+        my $qobj = MyQueryClass->new(
+            festival_name    => $config->{festival_name},
+            product_category => $prodcat,
+            uri              => $config->{beerfestdb_uri},
+            debug            => $debug,
+        );
+
+        # Query the JSON API for latest status list.
+        my $statuslist = $qobj->query_status_list();
+
+        update_brewery_info( $brewery_info, $statuslist, $prodcat );
+    }
+
+    my $output;
+    if ( ! $use_html ) {
+
+        # Default version: generate a JSON-encoded string for upload.
+        my $jwriter = JSON::DWIW->new();
+        $output = $jwriter->to_json( { producers => [ values %$brewery_info ],
+                                       timestamp => get_timestamp() } );
+    }
+    else {
+
+        # Old version: Generate the HTML fragment to upload.
+        $template ||= join(q{}, <DATA>);
+    
+        # We define a custom title case filter for convenience.
+        my $tt2 = Template->new(
+            FILTERS => { titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) } }
+        )   or die( "Cannot create Template object: " . Template->error() );
+    
+        $tt2->process(\$template,
+                      { brewers   => [ values %$brewery_info ],
+                        timestamp => get_timestamp() },
+                      \$output )
+            or die( "Template processing error: " . $tt2->error() );
+    }
+
+    # Check for valid UTF-8 (don't just trust MySQL, although I've no reason to doubt it yet).
+    unless (utf8::valid($output)) {
+        die("Error: Database generated non-UTF8 output");
+    }
+
+    # Warn on unusual/new characters. Add new characters here only if
+    # you're sure the server can handle it.
+    my $core_re = qr/[^[:alnum:]_&"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄπ° -]+/;
+    my $re = qr/( .{0,8} $core_re .{0,8} )/xms;
+    if ( $output =~ $re ) {
+        warn("Warning: uploaded content contains unexpected characters and may fail."
+           . " Context follows:\n\n$1\n\n"
+           . "If failure occurs, try using -d to examine the upload string.\n");
+    }
+
+    $debug && print STDOUT "\n$output\n";
+
+    printf STDOUT ("Uploading data for %s...\n", join(", ", @categories));
+
+    # Do the upload itself.
+    send_update($output, $debug, $dept->{public_site_clientid},
+                map { $config->{$_} }
+                    qw(public_site_upload_uri public_site_key));
+}
+
 my ( $config, $template, $use_html, $debug ) = parse_args();
 
 # Check that the appropriate config parameters have been set
 foreach my $item ( qw(festival_name
-                      product_category
+                      departments
                       beerfestdb_uri
                       public_site_upload_uri
-                      public_site_clientid
                       public_site_key) ) {
     unless ( defined $config->{ $item } ) {
         die(qq{Error: Config variable "$item" has not been set in the configuration file.});
     }
 }
 
-# We may wish to combine product categories in the output, e.g. cider and perry.
-my $conf_cat = $config->{product_category};
-my @categories;
-if ( ref $conf_cat eq 'ARRAY' ) {
-    push @categories, @$conf_cat;
+foreach my $dept ( @{ $config->{departments} } ) {
+    foreach my $item ( qw(product_category
+                          public_site_clientid) ) {
+        unless ( defined $dept->{ $item } ) {
+            die(qq{Error: Dept. config variable "$item" is not set in the configuration file.});
+        }
+    }
+
+    upload_department($dept, $config, $use_html, $template, $debug)
 }
-else {
-    push @categories, $conf_cat;
-}
-
-my $brewery_info = {};
-foreach my $prodcat ( @categories ) {
-
-    my $qobj = MyQueryClass->new(
-        festival_name    => $config->{festival_name},
-        product_category => $prodcat,
-        uri              => $config->{beerfestdb_uri},
-        debug            => $debug,
-    );
-
-    # Query the JSON API for latest status list.
-    my $statuslist = $qobj->query_status_list();
-
-    update_brewery_info( $brewery_info, $statuslist, $prodcat );
-}
-
-my $output;
-if ( ! $use_html ) {
-
-    # Default version: generate a JSON-encoded string for upload.
-    my $jwriter = JSON::DWIW->new();
-    $output = $jwriter->to_json( { producers => [ values %$brewery_info ],
-                                   timestamp => get_timestamp() } );
-}
-else {
-
-    # Old version: Generate the HTML fragment to upload.
-    $template ||= join(q{}, <DATA>);
-    
-    # We define a custom title case filter for convenience.
-    my $tt2 = Template->new(
-        FILTERS => { titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) } }
-    )   or die( "Cannot create Template object: " . Template->error() );
-    
-    $tt2->process(\$template,
-                  { brewers   => [ values %$brewery_info ],
-                    timestamp => get_timestamp() },
-                  \$output )
-        or die( "Template processing error: " . $tt2->error() );
-}
-
-# Check for valid UTF-8 (don't just trust MySQL, although I've no reason to doubt it yet).
-unless (utf8::valid($output)) {
-    die("Error: Database generated non-UTF8 output");
-}
-
-# Warn on unusual/new characters. Add new characters here only if
-# you're sure the server can handle it.
-my $core_re = qr/[^[:alnum:]_&"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄπ° -]+/;
-my $re = qr/( .{0,8} $core_re .{0,8} )/xms;
-if ( $output =~ $re ) {
-    warn("Warning: uploaded content contains unexpected characters and may fail."
-       . " Context follows:\n\n$1\n\n"
-       . "If failure occurs, try using -d to examine the upload string.\n");
-}
-
-$debug && print STDOUT "\n$output\n";
-
-# Do the upload itself.
-send_update($output, $debug,
-            map { $config->{$_} }
-                qw(public_site_upload_uri public_site_clientid public_site_key));
 
 =head1 NAME
 
