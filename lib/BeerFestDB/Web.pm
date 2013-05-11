@@ -69,6 +69,7 @@ __PACKAGE__->config(
     },
     'Plugin::Session' => {
 	storage => "/tmp/beerfestdb-$>/web/session_data",
+	unlink_on_exit => 1,
     },
     authentication => {  
         default_realm => 'beerfestdb',
