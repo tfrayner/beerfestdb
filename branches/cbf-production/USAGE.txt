@@ -54,7 +54,17 @@ Typical script usage:
 
 > load_data.pl -i my_data_to_load.csv
 
-FIXME example_data
+See example_data/reorder1.csv for an example of a file which might be
+used to load beer reorder data. 
+
+Other examples of files suitable for use with this script are
+cider_mead.csv, october_2010_beer.txt, summer_2005_beer.txt,
+winter_2010_cider.txt and winter_2010_beer.txt, all of which
+illustrate how one might link products directly to a festival without
+using the product order mechanism. The producers.csv file shows
+another possible use of the script: to change properties associated
+with companies (in this case, their geographic locations), rather than
+festival-specific attributes.
 
 2. preload_festival_casks.pl
 ----------------------------
@@ -148,7 +158,15 @@ the run-up to the festival and so can be ignored for the moment.
 5. dump_to_oodoc.pl (optional)
 -------------------
 
-FIXME
+This script generates OpenOffice documents using an input template
+document to define a set of document styles which are used to render
+the various data fields. In principle this works in much the same way
+as dump_to_template.pl. The output files of the script can also be
+used as an input template; it is the styles embedded in the document
+which are important. See the file example_data/programme_notes.odt
+for an example template document. Typical usage:
+
+> dump_to_oodoc.pl -t programme_notes.odt -f output_file.odt 
 
 6. update_cask_details.pl
 -------------------------
@@ -156,9 +174,10 @@ FIXME
 A script used to set the status and stillage position information for
 sets of casks on a given stillage. Please see the "-h" help
 documentation for details on the file format, which I won't reiterate
-here (FIXME example_data). Note that by default this script will refuse to move casks
-between stillages, which in practice means that a given run of the
-script is restricted to the casks on just one stillage. Typical usage:
+here (FIXME we need some example_data). Note that by default this
+script will refuse to move casks between stillages, which in practice
+means that a given run of the script is restricted to the casks on
+just one stillage. Typical usage:
 
 > update_cask_details.pl -f cask_details_file.csv
 
@@ -175,7 +194,7 @@ festival cask ID, and the second the remaining volume in gallons:
 4    9
 5    0
 
-(FIXME also example_data)
+(FIXME also needs example_data)
 If a cask is not present in the list it is assumed unchanged since the
 previous dip. The script will ask you which dipping time these data
 should be stored against; they will overwrite anything previously
@@ -220,7 +239,7 @@ necessary:
 > update_cask_details.pl -a -f the_tab_delimited_file.txt
 
 # Generate dip sheets:
-> dump_to_template.pl -t templates/dip_sheet_template.tt2 > dip_sheets.tex
+> dump_to_template.pl -t templates/dip_sheet_template.tt2 -o cask > dip_sheets.tex
 > pdflatex dip_sheets.tex
 
 # Enter the sale prices for each beer at the festival. This is done
@@ -228,7 +247,7 @@ necessary:
 # currently be entered in pence (i.e. 320 for a GBP3.20 pint).
 
 # Generate cask end signs:
-> dump_to_template.pl -t templates/cask_end_template.tt2 -l images/cake.png > cask_ends.tex
+> dump_to_template.pl -t templates/cask_end_template.tt2 -o gyle -l images/cake.png > cask_ends.tex
 > pdflatex cask_ends.tex 
 
 # On the first day of the festival, before opening, run the web site
@@ -241,13 +260,13 @@ necessary:
 > load_dips.pl -i dip_data_file.txt
 > upload_beerlist.pl
 
-Copy over the main database (duh) 
+# If you need to add a reorder you will most likely want to use the
+# load_data.pl script. There's an example data file in
+# example_data/reorder1.csv.
+> load_data.pl -i reorder1.csv
 
-Copy over some example po-level load_data.pl files into example_data;
-maybe also some non-festival specific data files as well? Also an
-example for load_dips.pl, update_cask_details.pl, and maybe even an
-oodoc dump template?
-
-See if we can get barcodes working on this machine.
-Print out delivery checklist, cask labels.
+# To complete the reorder load, you will need to do the following in
+# the web interface:
+# (a) Set the products as "arrived" in the relevant product order batch pages;
+# (b) Set the sale prices in the festival "Products received" page.
 
