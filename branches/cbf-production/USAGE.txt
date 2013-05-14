@@ -2,7 +2,7 @@ Operations During a Running Festival
 ====================================
 
 There are a few scripts used to manage the database during a
-festival. The scripts are all in the project "utils" subdirectory but
+festival. The scripts are all in the project "util" subdirectory but
 should be directly accessible via the command line PATH. In every case
 you can run the script with either "-h" or "--help" to get some idea
 of the arguments the script is expecting. In approximate order of
@@ -100,7 +100,7 @@ often as you might like.
 ----------------------
 
 This is the main script used to generate latex output files from the
-database. It fills out template files (in the "util/template" project
+database. It fills out template files (in the "util/templates" project
 directory) using information from the database organised by various
 levels of abstraction ("dump class"): cask, cask_management, gyle,
 product, product_order or distributor. Typical usage:
@@ -137,7 +137,9 @@ logo. Currently available template files include the following:
    for a 3x7 label grid and will attempt to generate a barcode based
    on cask festival number; the barcodes are somewhat error prone and
    so if this fails badly then cask_labels_no_barcode.tt2 is provided
-   as a backup. Dump class: cask_management
+   as a backup. Dump class: cask_management. Note that you will need
+   to run pdflatex with the -shell-escape argument to get this to
+   work.
 
  - delivery_checklist.tt2: A set of delivery checklists ordered by
    distributor. Dump class: distributor.
@@ -221,15 +223,21 @@ necessary:
 
 # Generate cask labels and print them out.
 > dump_to_template.pl -t templates/cask_labels.tt2 -o cask_management > cask_labels.tex
-> pdflatex cask_labels.tex
+> pdflatex -shell-escape cask_labels.tex
 
 # Receive deliveries, put labels on casks, make a note of
 # discrepancies. Record the successful deliveries using the beerfestdb
-# web site (product order pages). For unexpected cask deliveries
-# create new festival products directly ("products received"), add a
-# gyle record and the individual casks. One hopes there will not be
-# too many of these, although if it gets out of hand there's always
-# the load_data.pl script.
+# web site (product order pages). The most efficient way to do this is
+# probably to navigate to the product order pages, click on the first
+# "Arrived" checkbox, use <space> to switch it from "no" to "yes" and
+# hit <return> to move to the next row. By alternating <space> and
+# <return> you can toggle the arrival state for the whole batch quite
+# quickly.
+
+# For unexpected cask deliveries create new festival products
+# directly ("products received"), add a gyle record and the individual
+# casks. One hopes there will not be too many of these, although if it
+# gets out of hand there's always the load_data.pl script.
 
 # Assign casks to stillages. This can either be done via the web page,
 # or using the update_cask_details.pl script. In the latter case,
