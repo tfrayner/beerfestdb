@@ -241,9 +241,11 @@ necessary:
 
 # Assign casks to stillages. This can either be done via the web page,
 # or using the update_cask_details.pl script. In the latter case,
-# create a tab-delimited file with two columns: cask_festival_id and
-# stillage_location. Run this script (note that the -a option allows
-# casks to move between stillages; usually you will omit this option):
+# create a tab-delimited file with two columns: cask_festival_id
+# (i.e. the cask number as on its label) and stillage_location (the
+# text as in the "casks by stillage" list in the web interface). Run
+# this script (note that the -a option allows casks to move between
+# stillages; usually you will omit this option): 
 > update_cask_details.pl -a -f the_tab_delimited_file.txt
 
 # Generate dip sheets:

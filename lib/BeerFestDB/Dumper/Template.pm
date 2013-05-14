@@ -391,6 +391,7 @@ sub dump {
     
     # We define some custom filters for convenience.
     my $template = Template->new(
+	ABSOLUTE => 1,
 	FILTERS => {
             titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) },
             latexify  => \&filter_to_latex,
