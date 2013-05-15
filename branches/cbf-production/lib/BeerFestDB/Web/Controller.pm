@@ -165,11 +165,12 @@ sub viewhash_from_model : Private {
 
 sub _get_product_category : Private {
 
-    my ( $self, $c, $dbobj ) = @_;
+    my ( $self, $c, $dbobj, $null_okay ) = @_;
 
     # Sometimes we will be passed a null object during subsequent
     # recursion; e.g. into orphaned CaskManagement objects.
     if ( ! $dbobj ) {
+        return if $null_okay; # Only CaskManagement for the moment.
         $self->raise_exception($c, "Unable to track object back to product_category.\n");
     }
 
@@ -187,7 +188,7 @@ sub _get_product_category : Private {
         'CaskMeasurement' => sub { $self->_get_product_category( $c, $_[0]->cask_id ) },
         'ProductOrder'    => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
         'CaskManagement'  => sub { $self->_get_product_category( $c, $_[0]->casks->first() ||
-                                                                     $_[0]->product_order_id ) },
+                                                                     $_[0]->product_order_id, 1 ) },
     );
 
     if ( my $fun = $catmap{ $classname } ) {
@@ -217,6 +218,11 @@ sub _confirm_category_authorisation : Private {
                                         CaskMeasurement  ) ) {
 
         my $pcat    = $self->_get_product_category($c, $dbobj);
+
+        # Creation of new CaskManagements has to occur in the absence
+        # of any link to product_category.
+        return if ( ! defined $pcat && $classname eq 'CaskManagement' );
+
         my $pcat_id = $pcat->get_column('product_category_id');
 
         # Test that pcat is in $c->user's roles->categories.
