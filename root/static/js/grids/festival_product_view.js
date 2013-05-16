@@ -164,6 +164,7 @@ Ext.onReady(function(){
             field:     'int_reference',
             direction: 'ASC',
         },
+        defaultData: { currency_id: default_currency },
     });
     cask_store.load();
 

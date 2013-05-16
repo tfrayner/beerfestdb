@@ -29,6 +29,8 @@ BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 with 'BeerFestDB::DipMunger';
 
+use Storable qw(dclone);
+
 =head1 NAME
 
 BeerFestDB::Web::Controller::Cask - Catalyst Controller
@@ -230,6 +232,8 @@ sub grid : Local {
         $c->detach();        
     }
     $c->stash->{category} = $category;
+
+    $self->get_default_currency( $c );
 }
 
 =head2 list_by_stillage
@@ -298,6 +302,62 @@ sub list_dips : Local {
     $c->detach( $c->view( 'JSON' ) );
 }
 
+sub _extract_caskman_terms : Private {
+
+    my ( $self, $rec, $mv_map ) = @_;
+
+    my $newrec = dclone($rec);
+
+    my ( %caskmanrec, %caskman_mvmap );
+
+    my @deleted_keys;
+    while ( my ( $key, $value ) = each %$rec ) {
+        if ( ref $mv_map->{ $key } eq 'HASH' ) {
+            if ( my $caskmankey = $mv_map->{ $key }->{ 'cask_management_id' } ) {
+                $caskmanrec{ $key }    = $value;
+                $caskman_mvmap{ $key } = $caskmankey;
+                push @deleted_keys, $key;
+            }
+        }
+    }
+
+    foreach my $key ( @deleted_keys ) {
+        delete $newrec->{ $key };
+    }
+
+    return( $newrec, \%caskmanrec, \%caskman_mvmap );
+}
+
+sub build_database_object : Private {
+
+    my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
+
+    $mv_map ||= $self->model_view_map();
+
+    # If any mv_map keys point to hashes containing cask_management_id
+    # as a key, build that caskman object; then build a cask pointing
+    # to that caskman via its ID.
+    my $caskman_refs;
+    if ( ref $mv_map eq 'HASH' ) {
+        foreach my $subref ( values %$mv_map ) {
+            if ( ref $subref eq 'HASH' ) {
+                $caskman_refs += scalar grep { $_ eq 'cask_management_id' } keys %$subref;
+            }
+        }
+    }
+    if ( $caskman_refs && ! $rec->{ 'cask_management_id' } ) {
+        $c->log->debug("Attempting to create cask_management object.");
+        my ($caskman, $caskman_rec, $caskman_mvmap);
+        ( $rec, $caskman_rec, $caskman_mvmap ) = $self->_extract_caskman_terms( $rec, $mv_map );
+        $caskman = $self->build_database_object( $caskman_rec, $c,
+                                                 $c->model( 'DB::CaskManagement' ),
+                                                 $caskman_mvmap, $no_update );
+        $rec->{ 'cask_management_id' } = $caskman->cask_management_id();
+    }
+
+    $self->next::method( $rec, $c, $rs, $mv_map, $no_update );
+}
+
 =head2 submit
 
 =cut
@@ -324,6 +384,19 @@ sub delete : Local {
     $self->delete_from_resultset( $c, $rs );
 }
 
+sub delete_database_object : Private {
+    my ( $self, $c, $rec ) = @_;
+
+    # Ensure that cask deletion doesn't result in orphaned cask_management rows.
+    if ( $rec->result_source->source_name() eq 'Cask' ) {
+        my $caskman = $rec->cask_management_id;
+        $self->next::method( $c, $rec );
+        if ( ! $caskman->product_order_id ) {
+            $self->next::method( $c, $caskman );
+        }
+    }
+}
+
 =head2 delete_from_stillage
 
 =cut
@@ -343,11 +416,13 @@ sub delete_from_stillage : Local {
                 foreach my $id ( @{ $data } ) {
                     my $rec = $rs->find($id);
                     eval {
-                        $rec->set_column('stillage_location_id', undef) if $rec;
-                        $rec->update();
+                        my $caskman = $rec->cask_management_id;
+                        $caskman->set_column('stillage_location_id', undef);
+                        $caskman->update();
                     };
                     if ($@) {
-                        die("Unable to delete Cask with ID=$id from stillage\n");
+                        $self->raise_exception($c,
+                                               "Unable to delete Cask with ID=$id from stillage\n");
                     }
                 }
             }

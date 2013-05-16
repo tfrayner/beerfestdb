@@ -250,6 +250,8 @@ sub view : Local {
     $c->stash->{object}     = $object;
     $c->stash->{festival}   = $object->festival_id();
 
+    $self->get_default_currency( $c );
+
     return;
 }
 
