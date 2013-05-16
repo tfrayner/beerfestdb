@@ -148,6 +148,7 @@ Ext.onReady(function(){
         url:        url_cask_list,
         root:       'objects',
         fields:     [{ name: 'cask_id',           type: 'int' },
+                     { name: 'cask_management_id', type: 'int' },
                      { name: 'festival_id',       type: 'int' },
                      { name: 'gyle_id',           type: 'int' },
                      { name: 'distributor_id',    type: 'int' },
@@ -307,6 +308,8 @@ Ext.onReady(function(){
             recordChanges:      function (record) {
                 var fields = record.getChanges();
                 fields.cask_id = record.get( 'cask_id' );
+                fields.cask_management_id = record.get( 'cask_management_id' );
+                fields.currency_id = record.get( 'currency_id' );
                 fields.festival_id = festival_id;
                 fields.product_id  = product_id;
                 return(fields);

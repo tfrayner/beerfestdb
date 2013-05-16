@@ -27,6 +27,7 @@ Ext.onReady(function(){
     
     var Cask = Ext.data.Record.create([
         { name: 'cask_id',           type: 'int' },
+        { name: 'cask_management_id',  type: 'int' },
         { name: 'festival_id',       type: 'int' },
         { name: 'company_name',      type: 'string' },
         { name: 'product_name',      type: 'string' },
@@ -177,6 +178,7 @@ Ext.onReady(function(){
     function recordChanges (record) {
         var fields = record.getChanges();
         fields.cask_id = record.get( 'cask_id' );
+        fields.cask_management_id = record.get( 'cask_management_id' );
         return(fields);
     }
 
