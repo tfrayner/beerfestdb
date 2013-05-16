@@ -476,6 +476,11 @@ sub write_to_resultset : Private {
         );
     };
     if ( $@ or scalar @{ $c->error } ) {
+        if ( ! scalar @{ $c->error } ) {
+
+            # Generate a log error if nothing is to be displayed in the web interface.
+            $c->log->error( $@ );
+        }
         $self->detach_with_txn_failure( $c );
     };
 
@@ -492,6 +497,21 @@ objects from the database.
 
 =cut
 
+sub delete_database_object : Private {
+
+    my ( $self, $c, $rec ) = @_;
+
+    eval {
+        $rec->delete();
+    };
+    if ($@) {
+        my $id    = join(",", $rec->id);
+        my $class = $rec->result_source->source_name();
+        $self->raise_exception($c, sprintf("Unable to delete %s object with ID=%s\n",
+                                           $class, $id));
+    }
+}
+
 sub delete_from_resultset : Private {
 
     my ( $self, $c, $rs ) = @_;
@@ -503,13 +523,7 @@ sub delete_from_resultset : Private {
             sub {
                 foreach my $id ( @{ $data } ) {
                     my $rec = $rs->find($id);
-                    eval {
-                        $rec->delete() if $rec;
-                    };
-                    if ($@) {
-                        $self->raise_exception($c, sprintf("Unable to delete %s object with ID=%s\n",
-                                                           $rs->result_source->source_name(), $id));
-                    }
+                    $self->delete_database_object( $c, $rec ) if $rec;
                 }
             }
         );

@@ -16,6 +16,8 @@
    var festival_product_id  = '[% object.id %]';
    var fpname               = '[% object.product_id.company_id.name | xml %]:&nbsp;
        [%- object.product_id.name | xml %] ([% object.festival_id.name | xml %])';
+
+   var default_currency     = '[% default_currency %]';
 </script>
 
 [% js_link( src = '/static/js/grids/festival_product_view.js' ) %]

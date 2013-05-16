@@ -142,6 +142,7 @@ sub _save_records : Private {
                             . " was already is_received in database.");
                 }
             }
+            $rec->{ 'is_final' } = 1; # This is implied.
             push @received, $rec;
         }
     }
