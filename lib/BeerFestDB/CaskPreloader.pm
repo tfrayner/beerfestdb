@@ -69,7 +69,7 @@ sub _txn_preload_product_order {
 
     my $festival = $order->order_batch_id->festival_id;
     my $fest_id  = $festival->get_column('festival_id');
-    my $product_id = $order->product_id->get_column('product_id');
+    my $product_id = $order->get_column('product_id');
 
     # We need to go around the houses a bit here so that all the casks
     # for a given product at the festival are counted.
@@ -79,12 +79,12 @@ sub _txn_preload_product_order {
         $order->search_related('product_id')
               ->search_related('product_orders')
               ->search_related('order_batch_id', { 'order_batch_id.festival_id' => $fest_id })
-              ->search_related('product_orders', { 'product_orders_2.product_id' => $product_id})
+              ->search_related('product_orders', { 'product_orders_2.product_id' => $product_id })
               ->search_related('cask_managements')
               ->get_column('internal_reference')->max() || 0,
 
         # Cask management entries associated with instantiated casks.
-        $festival->search_related('festival_products', { product_id => $order->get_column('product_id') })
+        $festival->search_related('festival_products', { product_id => $product_id })
                  ->search_related('gyles')
                  ->search_related('casks')
                  ->search_related('cask_management_id')

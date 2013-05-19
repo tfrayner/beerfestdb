@@ -178,6 +178,8 @@ sub _get_product_category : Private {
     my $rs            = $result_source->resultset();
     my $classname     = $result_source->source_name();
 
+    $c->log->debug("Tracking product_category for $classname object...");
+
     # FIXME note that this may be rather too heavy on DB queries,
     # especially for large lists of updates.
     my %catmap = (
