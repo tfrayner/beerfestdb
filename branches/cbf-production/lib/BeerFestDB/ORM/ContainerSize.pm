@@ -80,11 +80,16 @@ __PACKAGE__->set_primary_key("container_size_id");
 
 =item * L</container_volume>
 
+=item * L</container_measure_id>
+
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("container_volume", ["container_volume"]);
+__PACKAGE__->add_unique_constraint(
+  "container_volume",
+  ["container_volume", "container_measure_id"],
+);
 
 =head2 C<description>
 
@@ -145,8 +150,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e+1iVaUDkIC2OH8PbAGGsg
+# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-05-19 20:53:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2T4X/eRxJ4rLNI8zQvhvTg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
