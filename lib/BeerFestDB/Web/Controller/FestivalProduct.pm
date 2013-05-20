@@ -499,7 +499,7 @@ sub _amount_remaining : Private {
         CASK:
         while ( my $cask = $cask_rs->next() ) {
             next CASK if $cask->is_condemned();
-            my $cask_size = $cask->cask_management()->container_size_id();
+            my $cask_size = $cask->cask_management_id()->container_size_id();
             $overall_measure ||= $cask_size->container_measure_id();
             my $vol = $cask_size->container_volume()
                 * $cask_size->container_measure_id()->litre_multiplier();
