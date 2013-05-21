@@ -239,6 +239,21 @@ necessary:
 # casks. One hopes there will not be too many of these, although if it
 # gets out of hand there's always the load_data.pl script.
 
+# To correct discrepancies (the most common example is ABV
+# differences) after a product is marked "arrived", go to the
+# festival products tab. Find the product, go to its page, and then
+# to the relevant tab:
+
+#   To correct ABV, click Gyle, then update "gyle ABV". This leaves
+#   the "advertised ABV unchanged at the level of product, but updates
+#   at the level of festival roduct so that cask end signs are
+#   accurate.
+
+#   If extra casks come, or the sizes differ from the order, add casks
+#   in the Cask tab. Note that cask IDs must be added manually -- just
+#   pick an unused number (the system won't allow an in-use
+#   number). Put "auto-generated" as the gyle.
+
 # Assign casks to stillages. This can either be done via the web page,
 # or using the update_cask_details.pl script. In the latter case,
 # create a tab-delimited file with two columns: cask_festival_id

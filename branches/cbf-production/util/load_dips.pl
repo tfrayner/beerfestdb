@@ -81,15 +81,16 @@ sub load {
                                     && value_acceptable( $line->[0] )
                                         && value_acceptable( $line->[1] ));
                     my $cask = $db->resultset('Cask')->find(
-                        { festival_id      => $self->festival->id(),
-                          cellar_reference => $line->[0] })
+                        { 'cask_management_id.festival_id'      => $self->festival->id(),
+                          'cask_management_id.cellar_reference' => $line->[0] },
+			{ join => 'cask_management_id' } )
                         or die(qq{Error: Cask with cellar_reference "$line->[0]" }
                                    . qq{not found.\n});
                     $db->resultset('CaskMeasurement')->update_or_create({
                         cask_id              => $cask->id(),
                         measurement_batch_id => $batch->id(),
                         volume               => $line->[1],
-                        container_measure_id => $cask->container_size_id()
+                        container_measure_id => $cask->cask_management_id()->container_size_id()
                                                      ->get_column('container_measure_id'),
                     });
                 }
