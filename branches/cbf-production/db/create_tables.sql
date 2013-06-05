@@ -437,7 +437,7 @@ CREATE TABLE `container_size` (
   `container_measure_id` int(6) NOT NULL,
   `description` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`container_size_id`),
-  UNIQUE KEY `container_volume` (`container_volume`),
+  UNIQUE KEY `container_volume` (`container_volume`,`container_measure_id`),
   UNIQUE KEY `description` (`description`),
   KEY `FK_CS_cmid_CM_cmid` (`container_measure_id`),
   CONSTRAINT `container_size_ibfk_1` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION
