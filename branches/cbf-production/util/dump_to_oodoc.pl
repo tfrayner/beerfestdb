@@ -74,7 +74,7 @@ my $dumper = BeerFestDB::Dumper::OODoc->new(
     database => $schema,
     filename => $outfile,
     template => $template,
-    config   => $config->get_OODoc(),
+    config   => $config->{'OODoc'},
 );
 
 $dumper->dump();
