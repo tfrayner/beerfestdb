@@ -501,6 +501,11 @@ sub _load_data {
         
         foreach my $n ( @wanted_casks ) {
 
+            # In the absence of product order data, cask_management
+            # has no link to product when it's initially created. This
+            # means we effectively have to create an orphaned cask_man
+            # and rely on the cask creation code within the same db
+            # transaction to reparent it.
             my $cask_man
                 = ( $product && $festival )
                     ? $self->_load_column_value(
@@ -517,7 +522,7 @@ sub _load_data {
                             internal_reference     => $n,
                             cellar_reference       => $datahash->{$CASK_FESTIVAL_ID},
                         },
-                        'CaskManagement')
+                        'CaskManagement', 1) # 1 here forces creation of a new object.
                         : undef;
 
             my $cask
@@ -603,7 +608,9 @@ sub _retrieve_obj_id {
 
 sub _load_column_value {
 
-    my ( $self, $args, $class, $trigger ) = @_;
+    my ( $self, $args, $class, $force_create ) = @_;
+
+    my $create_method = $force_create ? 'create' : 'find_or_create';
 
     my $resultset = $self->database()->resultset($class)
 	or confess(qq{Error: No result set returned from DB for class "$class".});
@@ -649,7 +656,7 @@ sub _load_column_value {
             # way of testloading and generating a full report on all
             # errors.
             $self->add_protection_error( \%req, $class );
-            $object = $resultset->find_or_create(\%req);
+            $object = $resultset->$create_method(\%req);
         }
         else {  # This is bad - it indicates a class which is not
                 # uniquely defined by its required attributes.
@@ -659,7 +666,7 @@ sub _load_column_value {
     else {
 
         # Regular class; find and/or create as necessary.
-        $object = $resultset->find_or_create(\%req);
+        $object = $resultset->$create_method(\%req);
     }
 
     # Update optional columns, e.g. description on Product.
