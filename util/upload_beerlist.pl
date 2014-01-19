@@ -202,7 +202,7 @@ sub _data_from_uri {
 
     my $data = $self->json_parser->from_json($json);
     unless ( $data->{success} ) {
-        die("Error: JSON query returned error: $data->{errorMessage}\n");
+        die("Error: JSON query returned error: $data->{error}\n");
     }
 
     return( $data->{objects} );
