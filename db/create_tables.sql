@@ -701,7 +701,7 @@ begin
             from cask_measurement cm, cask c, cask_management cg
             where old.measurement_batch_id=cm.measurement_batch_id
             and cm.cask_id=c.cask_id
-            and cg.cask_manegement_id=c.cask_management_id
+            and cg.cask_management_id=c.cask_management_id
             and cg.festival_id=old.festival_id) != 0 ) then
         call ERROR_MEASUREMENT_BATCH_UPDATE_TRIGGER();
     end if;
