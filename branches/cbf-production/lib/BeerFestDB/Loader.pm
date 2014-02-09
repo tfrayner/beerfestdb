@@ -649,7 +649,7 @@ sub _load_column_value {
         if ( scalar @objects == 1 ) {
             $object = $objects[0];
         }
-        elsif ( scalar @objects == 0 ) {
+        elsif ( scalar @objects == 0 or $force_create ) {
 
             # Add an error, but create the object anyway *within the
             # transaction which will be rolled back*. This is a cheap
