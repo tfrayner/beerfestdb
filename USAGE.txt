@@ -109,6 +109,12 @@ product, product_order or distributor. Typical usage:
 > dump_to_template.pl -t templates/cask_end_template.tt2 \
                       -l images/cake.png -o gyle > cask_ends.tex
 
+# use -o gyle for summer festival -- this makes it sort nicely by product type
+
+# for smaller festivals that have less robust documentation throughout
+#  proceedings (octoberfest we're lookin' at you), use -o product so
+#  nothing will be missed out.
+
 # For dip sheets:
 > dump_to_template.pl -t templates/dip_sheet_template.tt2 -o cask > dip_sheets.tex
 
