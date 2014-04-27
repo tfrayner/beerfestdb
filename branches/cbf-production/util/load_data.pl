@@ -35,11 +35,12 @@ use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $input, $want_version, $want_help );
+    my ( $input, $overwrite, $want_version, $want_help );
 
     GetOptions(
-	"i|input=s"  => \$input,
-        "h|help"     => \$want_help,
+	"i|input=s"   => \$input,
+	"o|overwrite" => \$overwrite,
+        "h|help"      => \$want_help,
     );
 
     if ($want_help) {
@@ -61,20 +62,29 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    return( $input, $config );
+    return( $input, $config, $overwrite );
 }
 
-my ( $input, $config ) = parse_args();
+my ( $input, $config, $overwrite ) = parse_args();
 
 ########
 # MAIN #
 ########
+
+if ( $overwrite ) {
+    print "Warning: you have asked to run the loader in 'overwrite' mode. Are you sure (y/N)? ";
+    chomp(my $answer = <STDIN>);
+    unless ( lc($answer) eq 'y' ) {
+	die("User canceled script execution.\n");
+    }
+}
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
 my $loader = BeerFestDB::Loader->new(
     database  => $schema,
     protected => ( $config->{'protected_classes'} || [] ),
+    overwrite => $overwrite,
 );
 
 $loader->load( $input );
@@ -101,6 +111,10 @@ into the database. See L<BeerFestDB::Loader> for more information.
 =item -i
 
 The tab-delimited file to import.
+
+=item -o
+
+Run the loader in overwrite mode. This is potentially dangerous.
 
 =back
 
