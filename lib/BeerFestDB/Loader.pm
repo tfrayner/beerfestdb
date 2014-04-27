@@ -117,6 +117,7 @@ Readonly my $ORDER_SALE_OR_RETURN      => 52;
 Readonly my $BAY_NUMBER                => 53;
 Readonly my $BAY_POSITION              => 54;
 Readonly my $CASK_UNIT                 => 55;
+Readonly my $PRODUCT_LONG_DESCRIPTION       => 56;
 
 ########
 # SUBS #
@@ -331,6 +332,7 @@ sub _load_data {
 		name             => $datahash->{$PRODUCT_NAME},
                 company_id       => $brewer->company_id,
 		description      => $datahash->{$PRODUCT_DESCRIPTION},
+		long_description => $datahash->{$PRODUCT_LONG_DESCRIPTION},
 		comment          => $datahash->{$PRODUCT_COMMENT},
                 product_category_id => $category,
                 product_style_id    => $style,
@@ -698,6 +700,15 @@ sub _load_column_value {
         if ( ! defined $old || $old =~ /\A \s* \z/xms || $self->overwrite() ) {
             $object->set_column( $col, $value ) if defined $value;
         }
+
+	# Don't discard data silently!!!
+	if ( ( ! $self->overwrite() ) && ( defined $old && $old =~ /\S/xms )
+	     && defined $value && $value ne $old ) {
+	    warn(
+		sprintf(
+		    qq{WARNING: Will not overwrite old data with new}
+		    . qq{ (consider overwrite mode?):\nOLD: %s\nNEW: %s\n\n}, $old, $value))
+	}
     }
     $object->update();
 
@@ -726,6 +737,7 @@ sub _coerce_headings {
         qr/product [_ -]* name/ixms                    => $PRODUCT_NAME,
         qr/product [_ -]* style/ixms                   => $PRODUCT_STYLE,
         qr/product [_ -]* description/ixms             => $PRODUCT_DESCRIPTION,
+        qr/product [_ -]* long [_ -]* description/ixms => $PRODUCT_LONG_DESCRIPTION,
         qr/product [_ -]* comment/ixms                 => $PRODUCT_COMMENT,
         qr/product [_ -]* abv/ixms                     => $PRODUCT_ABV,
         qr/gyle [_ -]* brewery? [_ -]* number/ixms     => $GYLE_BREWERY_NUMBER,
