@@ -2,7 +2,7 @@
 
 <script type="text/javascript">
    var url_login_submit       = '[% c.uri_for( "/login" ) %]';
-   var url_success_target     = '[% c.uri_for( "/" ) %]';
+   var url_success_target     = '[% url_success_target %]';
 </script>
 
 [% js_link( src = '/static/js/grids/login.js' ) %]
