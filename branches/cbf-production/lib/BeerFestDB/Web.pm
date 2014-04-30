@@ -99,6 +99,9 @@ __PACKAGE__->config(
 # Start the application
 __PACKAGE__->setup();
 
+# Turn off debug output unless we're really debugging.
+__PACKAGE__->log->levels( qw/info warn error fatal/ ) unless __PACKAGE__->debug;
+
 # Access control.
 foreach my $path ( qw(bar bayposition caskmeasurement cask company companyregion
                       contact contacttype containersize country currency festival
