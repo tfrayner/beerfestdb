@@ -62,8 +62,14 @@ they're not permitted. This is called by the Authorization::ACL plugin.
 
 sub access_denied : Private {
     my ( $self, $c, $action ) = @_;
+
     $c->res->status('403');
-    $c->stash->{template} = 'denied.tt2';
+
+    # Set up the post-login destination URI.
+    $c->flash->{url_success_target} = '' . $c->req->uri;
+
+    # Redirect the user to the login page.
+    $c->res->redirect( $c->uri_for('/login') );
 }
 
 =head2 index
@@ -83,6 +89,13 @@ sub login : Global {
 
     my ( $self, $c ) = @_;
 
+    # Not sure why this works; possibly it's circumventing the reset
+    # of user session, or maybe some Authorization::ACL oddness?
+    # N.B. currently this forgets the target if the user hits reload
+    # on the web page. FIXME?
+    $c->stash->{'url_success_target'}
+        = $c->flash->{'url_success_target'} || '' . $c->uri_for('/');
+
     my $j = JSON::Any->new;
     my $json_req = $c->request->param( 'data' );
 
@@ -93,7 +106,7 @@ sub login : Global {
     if ( $c->authenticate({ username => $data->{ 'username' },
                             password => $data->{ 'password' }, }) ) {
 
-        $c->res->redirect($c->uri_for('/'));  ## FIXME allow pass-through from prior location.
+        # ExtJS form redirects to url_success_target URI.
         $c->stash->{ 'success' } = JSON::Any->true();
         $c->detach( $c->view( 'JSON' ) );
     }
@@ -103,6 +116,8 @@ sub login : Global {
         $c->stash->{ 'success' } = JSON::Any->false();
         $c->detach( $c->view( 'JSON' ) );
     }
+
+    return;
 }
 
 =head2 logout
