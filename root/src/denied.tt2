@@ -4,7 +4,10 @@
   <div class="heading"><h1>BeerFestDB: There's been a problem...</h1></div>
   <p class="textblock">
 [%- IF !error %]You are not allowed to access this resource.[% END %]
-[% IF !c.user %]Please <a href="[% c.uri_for('/login') %]">log in</a> as a user with the appropriate privileges.[% END %]
+[% IF !c.user -%]
+  Please <a href="[% c.uri_for('/login') %]">log in</a>
+[%- ELSE -%]Please <a href="[% c.uri_for('/logout') %]">log out</a> and log back in
+[%- END -%] as a user with the appropriate privileges.
   </p>
 </div>
 
