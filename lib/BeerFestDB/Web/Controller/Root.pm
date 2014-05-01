@@ -65,11 +65,17 @@ sub access_denied : Private {
 
     $c->res->status('403');
 
-    # Set up the post-login destination URI.
-    $c->flash->{url_success_target} = '' . $c->req->uri;
+    if (!$c->user_exists) {
 
-    # Redirect the user to the login page.
-    $c->res->redirect( $c->uri_for('/login') );
+        # Set up the post-login destination URI.
+        $c->flash->{url_success_target} = '' . $c->req->uri;
+
+        # Redirect the user to the login page.
+        $c->res->redirect( $c->uri_for('/login') );
+    }
+    else {
+        $c->stash->{template} = 'denied.tt2';
+    }
 }
 
 =head2 index
