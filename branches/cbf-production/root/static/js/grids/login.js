@@ -25,7 +25,7 @@ Ext.onReady(function(){
     var login_form = new MyLoginPanel({
         url:         url_login_submit,
         targetUrl:   url_success_target,
-        title:       'Login details',
+        title:       'Please enter your login details:',
         items: [
             { name:       'username',
               fieldLabel: 'Username',
