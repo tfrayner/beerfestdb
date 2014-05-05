@@ -112,7 +112,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/measurementbatch/view/{measurement_batch_id}');
+                var t = new Ext.XTemplate(url_base + 'measurementbatch/view/{measurement_batch_id}');
                 window.location=t.apply({
                     measurement_batch_id: record.get('measurement_batch_id'),
                 })
@@ -151,7 +151,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/orderbatch/view/{order_batch_id}');
+                var t = new Ext.XTemplate(url_base + 'orderbatch/view/{order_batch_id}');
                 window.location=t.apply({
                     order_batch_id: record.get('order_batch_id'),
                 })
@@ -168,7 +168,7 @@ Ext.onReady(function(){
                   dataIndex: 'description' },
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/festivalproduct/grid/{festival_id}/{product_category_id}');
+                var t = new Ext.XTemplate(url_base + 'festivalproduct/grid/{festival_id}/{product_category_id}');
                 window.location=t.apply({
                         product_category_id: record.get('product_category_id'),
                         festival_id: festival_id,
@@ -187,7 +187,7 @@ Ext.onReady(function(){
                   dataIndex: 'description' },
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/cask/grid/{festival_id}/{product_category_id}');
+                var t = new Ext.XTemplate(url_base + 'cask/grid/{festival_id}/{product_category_id}');
                 window.location=t.apply({
                         product_category_id: record.get('product_category_id'),
                         festival_id: festival_id,
@@ -220,7 +220,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/stillagelocation/grid/{stillage_location_id}');
+                var t = new Ext.XTemplate(url_base + 'stillagelocation/grid/{stillage_location_id}');
                 window.location=t.apply({
                     stillage_location_id: record.get('stillage_location_id'),
                 })
@@ -320,7 +320,7 @@ Ext.onReady(function(){
         items: tabpanel,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Festivals', handler: function() { window.location = url_festival_grid; } },
         ],
     });

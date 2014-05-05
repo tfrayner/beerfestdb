@@ -67,8 +67,16 @@ sub access_denied : Private {
 
     if (!$c->user_exists) {
 
+	# Handle cases where we're not running at server root
+	# (e.g. behind a reverse proxy).
+	my $base = $c->config->{ 'base_path' };
+	my $uri  = $c->req->uri;
+	if ( defined $base ) {
+	    $uri->path($base . $uri->path);
+	}
+
         # Set up the post-login destination URI.
-        $c->flash->{url_success_target} = '' . $c->req->uri;
+        $c->flash->{url_success_target} = '' . $uri;
 
         # Redirect the user to the login page.
         $c->res->redirect( $c->uri_for('/login') );
@@ -142,6 +150,20 @@ sub logout : Global {
     $c->flash->{ 'message' } = 'Successfully logged out.';
     $c->stash->{ 'success' } = JSON::Any->true();
     $c->res->redirect( $c->uri_for('/') );
+}
+
+sub auto : Private {
+
+    my ($self, $c) = @_;
+
+    # Prepend all uri_for paths so that this works under a reverse proxy.
+    my $base = $c->config->{ 'base_path' };
+    if ( defined $base ) {
+	my $uri = $c->req->base;
+	$uri->path($base);
+	$c->req->base($uri);
+	$c->stash->{'base_path'} = $base;
+    }
 }
 
 =head2 end

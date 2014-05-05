@@ -219,7 +219,7 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate('/festivalproduct/view/{festival_product_id}');
+        var t = new Ext.XTemplate(url_base + 'festivalproduct/view/{festival_product_id}');
         window.location=t.apply({festival_product_id: record.get('festival_product_id')});
     };
 
@@ -266,7 +266,7 @@ Ext.onReady(function(){
         items: myGrid,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Festival', handler: function() { window.location = url_festival_view; } },
         ],
     });

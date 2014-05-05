@@ -82,7 +82,7 @@ Ext.onReady(function(){
         items: tabpanel,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Festival', handler: function() { window.location = url_festival_view; } },
             { text: 'Measurement Batch', handler: function() { window.location = url_measurement_batch_view; } },
             { text: 'Cask', handler: function() { window.location = url_cask_view; } },

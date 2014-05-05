@@ -47,7 +47,7 @@ Ext.onReady(function(){
                   dataIndex: 'description' },
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/caskmeasurement/grid/{measurement_batch_id}/{stillage_location_id}');
+                var t = new Ext.XTemplate(url_base + 'caskmeasurement/grid/{measurement_batch_id}/{stillage_location_id}');
                 window.location=t.apply({
                         stillage_location_id: record.get('stillage_location_id'),
                         measurement_batch_id: measurement_batch_id,
@@ -63,7 +63,7 @@ Ext.onReady(function(){
         items: myGrid,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Festival', handler: function() { window.location = url_festival_view; } },
         ],
     });

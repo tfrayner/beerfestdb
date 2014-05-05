@@ -135,7 +135,7 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate('/product/view/{product_id}');
+        var t = new Ext.XTemplate(url_base + 'product/view/{product_id}');
         window.location=t.apply({product_id: record.get('product_id')});
     };
 
@@ -164,7 +164,7 @@ Ext.onReady(function(){
         ),
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Categories', handler: function() { window.location = url_product_index; } },
         ],
     });

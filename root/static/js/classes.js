@@ -510,8 +510,8 @@ MyLoginPanel = Ext.extend(Ext.form.FormPanel, {
 
 MyMainPanel = Ext.extend(Ext.Panel, {
 
-    logoutUrl:   "/logout",  // A reasonable but not universally-applicable default.
-    rootUrl:     "/",
+    logoutUrl:   url_base + "logout",
+    rootUrl:     url_base,
     
     initComponent: function() {
 
@@ -521,7 +521,7 @@ MyMainPanel = Ext.extend(Ext.Panel, {
                 qtip: 'Log out from the database',
                 handler: function(event, elem, panel, conf) {
                     Ext.Ajax.request({
-                        url:        "/logout",// this.logoutUrl, FIXME
+                        url:        url_base + "/logout",
                         success:    function() {
                             Ext.Msg.show({
                                 title:'Success',
@@ -529,7 +529,7 @@ MyMainPanel = Ext.extend(Ext.Panel, {
                                 buttons: { ok: 'Okay' },
                                 scope: this,
                                 fn: function() {
-                                    window.location.href = "/";//this.rootUrl;  FIXME
+                                    window.location.href = url_base;
                                 }});
                         },
                         failure:    function(res, opts) {
