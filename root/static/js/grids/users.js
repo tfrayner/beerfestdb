@@ -64,7 +64,7 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate('/user/view/{user_id}');
+        var t = new Ext.XTemplate(url_base + 'user/view/{user_id}');
         window.location=t.apply({user_id: record.get('user_id')});
     };
 
@@ -93,7 +93,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home',
-              handler: function() { window.location = '/'; } },
+              handler: function() { window.location = url_base; } },
         ],
     });
     

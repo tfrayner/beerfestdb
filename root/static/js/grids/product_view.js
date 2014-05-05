@@ -159,7 +159,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/festivalproduct/view/{festival_product_id}');
+                var t = new Ext.XTemplate(url_base + 'festivalproduct/view/{festival_product_id}');
                 window.location=t.apply({
                     festival_product_id: record.get('festival_product_id'),
                 })
@@ -188,7 +188,7 @@ Ext.onReady(function(){
         items: tabpanel,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Companies', handler: function() { window.location = url_company_grid; } },
             { text: 'Company', handler: function() { window.location = url_company_view; } },
         ],
