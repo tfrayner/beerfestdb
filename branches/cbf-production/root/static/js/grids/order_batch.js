@@ -47,7 +47,7 @@ Ext.onReady(function(){
                   dataIndex: 'description' },
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/productorder/grid/{order_batch_id}/{product_category_id}');
+                var t = new Ext.XTemplate(url_base + '/productorder/grid/{order_batch_id}/{product_category_id}');
                 window.location=t.apply({
                         product_category_id: record.get('product_category_id'),
                         order_batch_id:      order_batch_id,
@@ -63,7 +63,7 @@ Ext.onReady(function(){
         items: myGrid,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Festival', handler: function() { window.location = url_festival_view; } },
         ],
     });

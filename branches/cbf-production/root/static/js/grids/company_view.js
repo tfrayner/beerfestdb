@@ -339,7 +339,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/contact/view/{contact_id}');
+                var t = new Ext.XTemplate(url_base + 'contact/view/{contact_id}');
                 window.location=t.apply({
                     contact_id: record.get('contact_id'),
                 })
@@ -409,7 +409,7 @@ Ext.onReady(function(){
                   editor:     style_combo },
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/product/view/{product_id}');
+                var t = new Ext.XTemplate(url_base + 'product/view/{product_id}');
                 window.location=t.apply({
                     product_id: record.get('product_id'),
                 })
@@ -440,7 +440,7 @@ Ext.onReady(function(){
                   dataIndex: 'comment' },
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/festivalproduct/view/{festival_product_id}');
+                var t = new Ext.XTemplate(url_base + 'festivalproduct/view/{festival_product_id}');
                 window.location=t.apply({
                         festival_product_id: record.get('festival_product_id'),
                     })
@@ -473,7 +473,7 @@ Ext.onReady(function(){
         items: tabpanel,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Companies', handler: function() { window.location = url_company_grid; } },
         ],
     });

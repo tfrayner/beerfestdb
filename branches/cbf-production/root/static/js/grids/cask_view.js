@@ -278,7 +278,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/caskmeasurement/view/{cask_measurement_id}');
+                var t = new Ext.XTemplate(url_base + 'caskmeasurement/view/{cask_measurement_id}');
                 window.location=t.apply({
                     cask_measurement_id: record.get('cask_measurement_id'),
                 })
@@ -304,7 +304,7 @@ Ext.onReady(function(){
         items: tabpanel,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Festival', handler: function() { window.location = url_festival_view; } },
             { text: 'Festival Product', handler: function() { window.location = url_festival_product_view; } },
         ],

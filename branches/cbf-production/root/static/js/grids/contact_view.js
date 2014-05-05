@@ -222,7 +222,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/telephone/view/{telephone_id}');
+                var t = new Ext.XTemplate(url_base + 'telephone/view/{telephone_id}');
                 window.location=t.apply({
                     telephone_id: record.get('telephone_id'),
                 })
@@ -248,7 +248,7 @@ Ext.onReady(function(){
         items: tabpanel,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Company', handler: function() { window.location = url_company_view; } },
         ],
     });

@@ -289,7 +289,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/gyle/view/{gyle_id}');
+                var t = new Ext.XTemplate(url_base + 'gyle/view/{gyle_id}');
                 window.location=t.apply({
                     gyle_id: record.get('gyle_id'),
                 })
@@ -390,7 +390,7 @@ Ext.onReady(function(){
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate('/cask/view/{cask_id}');
+                var t = new Ext.XTemplate(url_base + 'cask/view/{cask_id}');
                 window.location=t.apply({
                     cask_id: record.get('cask_id'),
                 })
@@ -419,7 +419,7 @@ Ext.onReady(function(){
         items: tabpanel,
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = '/'; } },
+            { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Festival', handler: function() { window.location = url_festival_view; } },
             { text: 'Product', handler: function() { window.location = url_product_view; } },
         ],

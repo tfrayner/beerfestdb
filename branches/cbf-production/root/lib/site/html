@@ -4,6 +4,10 @@
   <title>[% template.title or site.title %]</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 [% IF ! generate_bare_html -%]
+ <script type="text/javascript">
+   <!-- We must set our base URL before defining our custom classes (in /static/js/classes.js). -->
+   var url_base = '[% c.uri_for( "/" ) %]';
+ </script>
 [%-
   css_link( href = "/static/ext/resources/css/ext-all.css" );
   css_link( href = "/static/tp_skin/resources/css/xtheme-tp.css" );
@@ -28,7 +32,6 @@
 [%- IF ! generate_bare_html -%]
    <!-- These variables may be overridden in the content section. -->
  <script type="text/javascript">
-
    var url_cask_size_list       = '[% c.uri_for( "/containersize/list" ) %]';
    var url_category_list        = '[% c.uri_for( "/productcategory/list" ) %]';
    var url_company_list         = '[% c.uri_for( "/company/list" ) %]';
