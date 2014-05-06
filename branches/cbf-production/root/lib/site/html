@@ -27,6 +27,7 @@
 [%- PROCESS ttsite.css -%]
   </style>
 [%- END %]
+ <link rel="shortcut icon" href="[% c.uri_for( "/favicon.ico") %]" />
  </head>
  <body>
 [%- IF ! generate_bare_html -%]
