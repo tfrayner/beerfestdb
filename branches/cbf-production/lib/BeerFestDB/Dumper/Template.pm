@@ -288,6 +288,8 @@ sub update_caskman_hash {
     $caskmanhash->{stillage_bay} = $caskman->stillage_bay();
     $caskmanhash->{bay_position} = $caskman->bay_position_id
 	  ? $caskman->bay_position_id->description() : q{};
+    my $stillage_loc = $caskman->stillage_location_id();
+    $caskmanhash->{stillage_location} = $stillage_loc ? $stillage_loc->description() : q{};
 
     return $caskmanhash;
 }

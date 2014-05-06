@@ -1,0 +1,63 @@
+%
+% $Id$
+%
+[% IF dump_class != 'cask_management' %][% THROW bad_dump_class "Use the cask_management dump class.\n" %][% END %]
+
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, portrait, top=1.0cm, bottom=1.0cm, left=1cm, right=1cm]{geometry}
+
+\usepackage[british]{babel}
+\usepackage{palatino}
+\pagestyle{empty}
+\begin{document}
+
+[% BLOCK table_header %]
+  \begin{tabular}{ l | l | r | r | r | r }
+  Brewer & Beer & Cask Size & Cask Count & Cum. Casks & Cum. Volume (fkns) \\ \hline
+[% END %]
+
+[% BLOCK table_end %]
+  \hline
+  \end{tabular}
+[% END %]
+
+[% SET cum_cask_count = 0 %]
+[% SET cum_cask_volume = 0 %]
+
+[% SET running_brewery = '' %]
+[% SET running_product = '' %]
+
+[% SET brewcask = {} %] [%# { caskvol => count } %]
+
+[% SET line_counter = 0 %]
+
+[% PROCESS table_header %]
+
+[% FOREACH caskman = objects.sort('brewery', 'product') -%]
+  [%- NEXT IF caskman.category != 'beer' -%][%# Cider, Foreign, Mead, Wine etc. %]
+  [%- NEXT IF caskman.stillage_location.search('Brewery') -%][%# Brewery bars %]
+  [%- IF caskman.brewery != running_brewery || caskman.product != running_product -%]
+    [% FOREACH pair IN brewcask.pairs -%]
+      [%- running_brewery | truncate(20) | latexify %] & [% running_product | truncate(25) | latexify %] & [% pair.key | format("%.0f") %] & [% pair.value %] & [% cum_cask_count %] & [% cum_cask_volume / 9 | format("%.0f") %] \\
+      [%- line_counter = line_counter + 1 -%]
+    [% END %]
+    [%- SET running_brewery = caskman.brewery -%]
+    [%- SET running_product = caskman.product -%]
+    [%- SET brewcask = {} -%]
+    [%- IF line_counter > 60 -%]
+      [% line_counter = 0 %]
+      [% PROCESS table_end %]
+      \null\newpage
+      [% PROCESS table_header %]
+    [%- END -%]
+  [%- END -%]
+  [%- SET casksize = caskman.size -%]
+  [%- SET brewcask.$casksize = brewcask.$casksize + 1 -%]
+  [%- SET cum_cask_count  = cum_cask_count + 1 -%]
+  [%- SET cum_cask_volume = cum_cask_volume + casksize -%]
+[%- END %]
+
+[% PROCESS table_end %]
+
+\end{document}
