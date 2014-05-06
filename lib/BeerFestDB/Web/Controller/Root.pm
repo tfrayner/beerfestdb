@@ -113,6 +113,8 @@ sub login : Global {
     my $j = JSON::Any->new;
     my $json_req = $c->request->param( 'data' );
 
+    $c->res->status('403');
+
     return unless $json_req;
 
     my $data = $j->jsonToObj( $json_req );
@@ -121,6 +123,7 @@ sub login : Global {
                             password => $data->{ 'password' }, }) ) {
 
         # ExtJS form redirects to url_success_target URI.
+	$c->res->status('200');
         $c->stash->{ 'success' } = JSON::Any->true();
         $c->detach( $c->view( 'JSON' ) );
     }
