@@ -335,7 +335,9 @@ sub dump {
                 );
             }
             elsif ( $casks = $caskman->casks() ) { # Actually, There Can Be Only One...
-                $self->update_cask_hash( $caskmanhash, $casks->[0] );
+		my $cask = $casks->next();
+                $caskmanhash = $self->product_hash( $cask->gyle_id()->festival_product_id()->product_id() );
+                $self->update_cask_hash( $caskmanhash, $cask );
             }
 
             $self->update_caskman_hash( $caskmanhash, $caskman );
