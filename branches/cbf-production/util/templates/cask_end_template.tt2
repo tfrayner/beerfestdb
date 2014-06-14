@@ -42,7 +42,7 @@
 
 % CAMRA logo (hardcoded)
 \begin{textblock}{0.01}(0.86,0.04)
-\includegraphics[width=30mm]{camra_logo.png}
+\includegraphics[width=30mm]{images/camra_logo.png}
 \end{textblock}
 
 % product info to be plugged in

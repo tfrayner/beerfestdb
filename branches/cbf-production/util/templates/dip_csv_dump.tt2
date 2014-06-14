@@ -1,0 +1,19 @@
+[%- IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class.\n" %][% END -%]
+"Cask ID","Brewery","Beer","ABV","Style","Order Batch","Start","[% FOREACH batch = dip_batches %][% batch.name %]","[% END %]Condemned","SOR","Comment"
+[% FOREACH cask = objects.sort('brewery', 'product') -%]
+[%- NEXT IF cask.category != 'beer' -%]
+[%- cask.festival_id -%]
+,"[% cask.brewery -%]
+","[% cask.product -%]
+",[% cask.abv -%]
+,"[% cask.style -%]
+","[% cask.order_batch -%]
+",[% cask.size -%]
+,[% FOREACH batch = dip_batches -%]
+[%- SET bid = batch.id -%]
+ [%- cask.dips.$bid | format('%.1f') | replace('\.0$','') %],
+[%- END -%]
+[% IF cask.is_condemned %]Yes[% END -%]
+,[% IF cask.is_sale_or_return %]Yes[% END -%]
+,"[% cask.comment %]"
+[% END %]
