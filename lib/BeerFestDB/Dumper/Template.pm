@@ -290,6 +290,8 @@ sub update_caskman_hash {
 	  ? $caskman->bay_position_id->description() : q{};
     my $stillage_loc = $caskman->stillage_location_id();
     $caskmanhash->{stillage_location} = $stillage_loc ? $stillage_loc->description() : q{};
+    $caskmanhash->{order_batch}  = $caskman->product_order_id
+  	  ? $caskman->product_order_id->order_batch_id->description() : 'Unknown';
 
     return $caskmanhash;
 }
