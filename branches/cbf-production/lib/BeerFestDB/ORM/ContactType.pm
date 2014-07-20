@@ -84,12 +84,12 @@ __PACKAGE__->has_many(
   "contacts",
   "BeerFestDB::ORM::Contact",
   { "foreign.contact_type_id" => "self.contact_type_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sEmVKlJEXVNxYr8+coNnvg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fUE2fdy+EyNU3F0StM/TcA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

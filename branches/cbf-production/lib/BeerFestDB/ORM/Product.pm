@@ -153,7 +153,7 @@ __PACKAGE__->has_many(
   "festival_products",
   "BeerFestDB::ORM::FestivalProduct",
   { "foreign.product_id" => "self.product_id" },
-  {},
+  undef,
 );
 
 =head2 product_category_id
@@ -182,7 +182,7 @@ __PACKAGE__->has_many(
   "product_characteristics",
   "BeerFestDB::ORM::ProductCharacteristic",
   { "foreign.product_id" => "self.product_id" },
-  {},
+  undef,
 );
 
 =head2 product_orders
@@ -197,7 +197,7 @@ __PACKAGE__->has_many(
   "product_orders",
   "BeerFestDB::ORM::ProductOrder",
   { "foreign.product_id" => "self.product_id" },
-  {},
+  undef,
 );
 
 =head2 product_style_id
@@ -215,8 +215,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-04-14 21:48:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g7ABjKztoevcCHbtRSLULA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xYRyXLl3w69aKgm80nwvDg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

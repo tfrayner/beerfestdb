@@ -116,12 +116,12 @@ __PACKAGE__->has_many(
   "product_orders",
   "BeerFestDB::ORM::ProductOrder",
   { "foreign.order_batch_id" => "self.order_batch_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rT4RySElxzVOP8/EXMTAVA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2RyJ9qpoOVZZk7WLnxfr4g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

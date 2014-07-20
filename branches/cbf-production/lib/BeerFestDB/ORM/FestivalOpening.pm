@@ -94,7 +94,7 @@ __PACKAGE__->has_many(
   "festival_entries",
   "BeerFestDB::ORM::FestivalEntry",
   { "foreign.festival_opening_id" => "self.festival_opening_id" },
-  {},
+  undef,
 );
 
 =head2 festival_id
@@ -112,8 +112,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i7SFUL7OGQe0cZHgE+3ibg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p76jLxlPazTNTeriXiurRw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
