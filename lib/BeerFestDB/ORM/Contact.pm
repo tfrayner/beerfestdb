@@ -190,12 +190,12 @@ __PACKAGE__->has_many(
   "telephones",
   "BeerFestDB::ORM::Telephone",
   { "foreign.contact_id" => "self.contact_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JxRRmtSZo8WZztOqUz7GrA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qWfX5HWovLakCr2ZPkn8Qw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

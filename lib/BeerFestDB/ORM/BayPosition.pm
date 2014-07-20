@@ -84,12 +84,12 @@ __PACKAGE__->has_many(
   "cask_managements",
   "BeerFestDB::ORM::CaskManagement",
   { "foreign.bay_position_id" => "self.bay_position_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mKt83oidc4IHqarbALNOZA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5P5UGc/4VUHx02pwt+jcWw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

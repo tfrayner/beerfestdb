@@ -84,12 +84,12 @@ __PACKAGE__->has_many(
   "companies",
   "BeerFestDB::ORM::Company",
   { "foreign.company_region_id" => "self.company_region_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3oatGM7BQZVGEr6AfTeBcQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7wEWMRTBe6VifAWH1oSRVw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -139,7 +139,7 @@ __PACKAGE__->has_many(
   "gyles",
   "BeerFestDB::ORM::Gyle",
   { "foreign.festival_product_id" => "self.festival_product_id" },
-  {},
+  undef,
 );
 
 =head2 product_id
@@ -185,8 +185,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j1aJUTveEz9QTDwltFmWZw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OkLkHK35yC/sMfZ1FgM8zQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

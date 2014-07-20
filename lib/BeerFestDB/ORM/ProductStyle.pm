@@ -108,12 +108,12 @@ __PACKAGE__->has_many(
   "products",
   "BeerFestDB::ORM::Product",
   { "foreign.product_style_id" => "self.product_style_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XsTUG/XyGuWODmGn4spWiA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RbGXcQP/eoA0l6xFZjQXiA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

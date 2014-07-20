@@ -64,6 +64,7 @@ __PACKAGE__->table("cask");
 =head2 is_condemned
 
   data_type: 'tinyint'
+  default_value: 0
   is_nullable: 1
 
 =head2 cask_management_id
@@ -90,7 +91,7 @@ __PACKAGE__->add_columns(
   "is_ready",
   { data_type => "tinyint", is_nullable => 1 },
   "is_condemned",
-  { data_type => "tinyint", is_nullable => 1 },
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
   "cask_management_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
@@ -149,7 +150,7 @@ __PACKAGE__->has_many(
   "cask_measurements",
   "BeerFestDB::ORM::CaskMeasurement",
   { "foreign.cask_id" => "self.cask_id" },
-  {},
+  undef,
 );
 
 =head2 gyle_id
@@ -163,8 +164,8 @@ Related object: L<BeerFestDB::ORM::Gyle>
 __PACKAGE__->belongs_to("gyle_id", "BeerFestDB::ORM::Gyle", { gyle_id => "gyle_id" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y+14Adm3vxLEzO92uEwj0A
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M+M3cjWRYpn+pETzWEP5Ag
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -130,7 +130,7 @@ __PACKAGE__->has_many(
   "cask_managements",
   "BeerFestDB::ORM::CaskManagement",
   { "foreign.distributor_company_id" => "self.company_id" },
-  {},
+  undef,
 );
 
 =head2 company_region_id
@@ -159,7 +159,7 @@ __PACKAGE__->has_many(
   "contacts",
   "BeerFestDB::ORM::Contact",
   { "foreign.company_id" => "self.company_id" },
-  {},
+  undef,
 );
 
 =head2 gyles
@@ -174,7 +174,7 @@ __PACKAGE__->has_many(
   "gyles",
   "BeerFestDB::ORM::Gyle",
   { "foreign.company_id" => "self.company_id" },
-  {},
+  undef,
 );
 
 =head2 product_orders
@@ -189,7 +189,7 @@ __PACKAGE__->has_many(
   "product_orders",
   "BeerFestDB::ORM::ProductOrder",
   { "foreign.distributor_company_id" => "self.company_id" },
-  {},
+  undef,
 );
 
 =head2 products
@@ -204,12 +204,12 @@ __PACKAGE__->has_many(
   "products",
   "BeerFestDB::ORM::Product",
   { "foreign.company_id" => "self.company_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-03-03 22:25:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ICDcTXv3mIVpwgbY+/7wnw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8qbKBR9bFDYMyaeudOL2WA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
