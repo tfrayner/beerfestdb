@@ -114,12 +114,12 @@ __PACKAGE__->has_many(
   "festival_products",
   "BeerFestDB::ORM::FestivalProduct",
   { "foreign.sale_volume_id" => "self.sale_volume_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1CwKb7EQGVjV9AuKjFyrwg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e2xxg05sszJfuw2EK9mUrg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

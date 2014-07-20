@@ -117,7 +117,7 @@ __PACKAGE__->has_many(
   "cask_managements",
   "BeerFestDB::ORM::CaskManagement",
   { "foreign.container_size_id" => "self.container_size_id" },
-  {},
+  undef,
 );
 
 =head2 container_measure_id
@@ -146,12 +146,12 @@ __PACKAGE__->has_many(
   "product_orders",
   "BeerFestDB::ORM::ProductOrder",
   { "foreign.container_size_id" => "self.container_size_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-05-19 20:53:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2T4X/eRxJ4rLNI8zQvhvTg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U6n+NopBfYepZFbZgevO8Q
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -84,7 +84,7 @@ __PACKAGE__->has_many(
   "category_auths",
   "BeerFestDB::ORM::CategoryAuth",
   { "foreign.product_category_id" => "self.product_category_id" },
-  {},
+  undef,
 );
 
 =head2 product_characteristic_types
@@ -99,7 +99,7 @@ __PACKAGE__->has_many(
   "product_characteristic_types",
   "BeerFestDB::ORM::ProductCharacteristicType",
   { "foreign.product_category_id" => "self.product_category_id" },
-  {},
+  undef,
 );
 
 =head2 product_styles
@@ -114,7 +114,7 @@ __PACKAGE__->has_many(
   "product_styles",
   "BeerFestDB::ORM::ProductStyle",
   { "foreign.product_category_id" => "self.product_category_id" },
-  {},
+  undef,
 );
 
 =head2 products
@@ -129,12 +129,12 @@ __PACKAGE__->has_many(
   "products",
   "BeerFestDB::ORM::Product",
   { "foreign.product_category_id" => "self.product_category_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-04-25 23:31:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JZF5HXy7J8u8I9NI4CQG4Q
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Efrh7iWm+Q98Wmt1vDET4g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

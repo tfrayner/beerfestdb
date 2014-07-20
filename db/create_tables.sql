@@ -64,7 +64,7 @@ CREATE TABLE `cask` (
   `is_vented` tinyint(1) DEFAULT NULL,
   `is_tapped` tinyint(1) DEFAULT NULL,
   `is_ready` tinyint(1) DEFAULT NULL,
-  `is_condemned` tinyint(1) DEFAULT NULL,
+  `is_condemned` tinyint(1) DEFAULT 0, -- web json list drops this silently if NULL (a problem for our R code).
   `cask_management_id` int(6) NOT NULL,
   PRIMARY KEY (`cask_id`),
   UNIQUE KEY `cask_management` (`cask_management_id`),
@@ -168,7 +168,7 @@ CREATE TABLE `cask_management` (
   `stillage_z_location` int(6) unsigned DEFAULT NULL,
   `internal_reference` int(6) DEFAULT NULL,
   `cellar_reference` int(6) DEFAULT NULL,
-  `is_sale_or_return` tinyint(1) DEFAULT NULL,
+  `is_sale_or_return` tinyint(1) DEFAULT 0, -- web json list drops this silently if NULL (a problem for our R code).
   PRIMARY KEY (`cask_management_id`),
   UNIQUE KEY `festival_cellar_ref` (`festival_id`,`cellar_reference`),
   KEY `IDX_CSKMAN_dfid` (`distributor_company_id`),

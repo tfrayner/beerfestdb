@@ -35,10 +35,13 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
                             fest[ fest$name==festname, 'festival_id'],
                             cat[cat$description==prodcat, 'product_category_id'], sep='/'),
                       c('cask_id','product_id','container_size_id','order_batch_id','gyle_id',
-                        'stillage_location_id','festival_ref','is_condemned','is_sale_or_return'))
-    suppressWarnings(cask <- as.data.frame(apply(cask, 2, as.integer)))
+                        'stillage_location_id','festival_ref','is_condemned','is_sale_or_return','comment'))
+
+    w <- colnames(cask) != 'comment'
+    suppressWarnings(cask[,w] <- as.data.frame(apply(cask[,w], 2, as.integer)))
     cask[ is.na(cask$is_condemned), 'is_condemned' ] <- 0
     cask[ is.na(cask$is_sale_or_return), 'is_sale_or_return' ] <- 0
+    cask[ is.na(cask$comment), 'comment' ] <- ''
 
     sizes <- queryBFDB(paste(baseuri, 'containersize/list', sep='/'),
                        c('container_size_id','volume'))

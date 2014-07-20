@@ -109,7 +109,7 @@ __PACKAGE__->has_many(
   "cask_measurements",
   "BeerFestDB::ORM::CaskMeasurement",
   { "foreign.measurement_batch_id" => "self.measurement_batch_id" },
-  {},
+  undef,
 );
 
 =head2 festival_id
@@ -127,8 +127,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ww9nUpHUxgL0fdqHRLFhlQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uHRDSWY6bQhOEm6QfPUkaw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

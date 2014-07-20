@@ -30,6 +30,7 @@ use base qw(DBIx::Class::Schema::Loader);
 
 __PACKAGE__->loader_options(
 #    debug => 1,
+    exclude => qr/_view \z/xms,
 );
 
 package main;

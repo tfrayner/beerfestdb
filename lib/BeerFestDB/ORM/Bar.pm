@@ -99,7 +99,7 @@ __PACKAGE__->has_many(
   "cask_managements",
   "BeerFestDB::ORM::CaskManagement",
   { "foreign.bar_id" => "self.bar_id" },
-  {},
+  undef,
 );
 
 =head2 festival_id
@@ -117,8 +117,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GadTYoaKwSru/1DdtT23HA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JpAKNUep2PbC/y8RUmaFTQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

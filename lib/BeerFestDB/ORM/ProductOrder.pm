@@ -181,7 +181,7 @@ __PACKAGE__->has_many(
   "cask_managements",
   "BeerFestDB::ORM::CaskManagement",
   { "foreign.product_order_id" => "self.product_order_id" },
-  {},
+  undef,
 );
 
 =head2 container_size_id
@@ -255,8 +255,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HIqA69QclcDtwrXl0VWrnw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hJpCZZ5VsITocCrUvJY0vQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

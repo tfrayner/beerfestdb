@@ -92,7 +92,7 @@ __PACKAGE__->has_many(
   "cask_measurements",
   "BeerFestDB::ORM::CaskMeasurement",
   { "foreign.container_measure_id" => "self.container_measure_id" },
-  {},
+  undef,
 );
 
 =head2 container_sizes
@@ -107,7 +107,7 @@ __PACKAGE__->has_many(
   "container_sizes",
   "BeerFestDB::ORM::ContainerSize",
   { "foreign.container_measure_id" => "self.container_measure_id" },
-  {},
+  undef,
 );
 
 =head2 sale_volumes
@@ -122,12 +122,12 @@ __PACKAGE__->has_many(
   "sale_volumes",
   "BeerFestDB::ORM::SaleVolume",
   { "foreign.container_measure_id" => "self.container_measure_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mg8sAMUo3TKzVA1ehWDOmw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:f5Ing4GR3zRsurXcZBJqKw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

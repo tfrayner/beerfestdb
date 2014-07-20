@@ -120,6 +120,7 @@ __PACKAGE__->table("cask_management");
 =head2 is_sale_or_return
 
   data_type: 'tinyint'
+  default_value: 0
   is_nullable: 1
 
 =cut
@@ -158,7 +159,7 @@ __PACKAGE__->add_columns(
   "cellar_reference",
   { data_type => "integer", is_nullable => 1 },
   "is_sale_or_return",
-  { data_type => "tinyint", is_nullable => 1 },
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -227,7 +228,7 @@ __PACKAGE__->has_many(
   "casks",
   "BeerFestDB::ORM::Cask",
   { "foreign.cask_management_id" => "self.cask_management_id" },
-  {},
+  undef,
 );
 
 =head2 container_size_id
@@ -315,8 +316,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-03-03 22:25:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xcsVwXLh+HCPXp1CV+s8pQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oh83mGFCCK5WRCdjuiu0GQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

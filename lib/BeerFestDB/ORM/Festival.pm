@@ -114,7 +114,7 @@ __PACKAGE__->has_many(
   "bars",
   "BeerFestDB::ORM::Bar",
   { "foreign.festival_id" => "self.festival_id" },
-  {},
+  undef,
 );
 
 =head2 cask_managements
@@ -129,7 +129,7 @@ __PACKAGE__->has_many(
   "cask_managements",
   "BeerFestDB::ORM::CaskManagement",
   { "foreign.festival_id" => "self.festival_id" },
-  {},
+  undef,
 );
 
 =head2 festival_openings
@@ -144,7 +144,7 @@ __PACKAGE__->has_many(
   "festival_openings",
   "BeerFestDB::ORM::FestivalOpening",
   { "foreign.festival_id" => "self.festival_id" },
-  {},
+  undef,
 );
 
 =head2 festival_products
@@ -159,7 +159,7 @@ __PACKAGE__->has_many(
   "festival_products",
   "BeerFestDB::ORM::FestivalProduct",
   { "foreign.festival_id" => "self.festival_id" },
-  {},
+  undef,
 );
 
 =head2 measurement_batches
@@ -174,7 +174,7 @@ __PACKAGE__->has_many(
   "measurement_batches",
   "BeerFestDB::ORM::MeasurementBatch",
   { "foreign.festival_id" => "self.festival_id" },
-  {},
+  undef,
 );
 
 =head2 order_batches
@@ -189,7 +189,7 @@ __PACKAGE__->has_many(
   "order_batches",
   "BeerFestDB::ORM::OrderBatch",
   { "foreign.festival_id" => "self.festival_id" },
-  {},
+  undef,
 );
 
 =head2 stillage_locations
@@ -204,12 +204,12 @@ __PACKAGE__->has_many(
   "stillage_locations",
   "BeerFestDB::ORM::StillageLocation",
   { "foreign.festival_id" => "self.festival_id" },
-  {},
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2013-02-26 21:06:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U1JjodtnC34OBV3LpnUUbA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hzo67vQShRe9KA/Z+t/rBw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
