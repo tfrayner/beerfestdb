@@ -14,6 +14,7 @@ use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
+__PACKAGE__->table_class("DBIx::Class::ResultSource::View");
 
 =head1 TABLE: C<programme_notes_view>
 
@@ -69,6 +70,11 @@ __PACKAGE__->table("programme_notes_view");
   data_type: 'text'
   is_nullable: 1
 
+=head2 tasting_essay
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 style
 
   data_type: 'varchar'
@@ -94,13 +100,15 @@ __PACKAGE__->add_columns(
   { data_type => "decimal", is_nullable => 1, size => [3, 1] },
   "tasting_notes",
   { data_type => "text", is_nullable => 1 },
+  "tasting_essay",
+  { data_type => "text", is_nullable => 1 },
   "style",
   { data_type => "varchar", is_nullable => 1, size => 100 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07015 @ 2012-03-22 16:57:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/M7WPKZFf2ZHLfhzvFSWJw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:45:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BFLdDjG9mQqXu/2MKzkmrQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
