@@ -501,6 +501,10 @@ sub filter_to_latex {
 
     # N.B. we're not covering capitals yet FIXME?
 
+    # Hex representations can be found by running e.g.:
+    #    printf "%x", ord('ç')
+    # (although make sure you 'use utf8' when doing so).
+
     # Grave accents.
     $text =~ s/ (?: à | \x{e0} ) /\\`{a}/gxms;
     $text =~ s/ (?: è | \x{e8} ) /\\`{e}/gxms;
@@ -534,7 +538,8 @@ sub filter_to_latex {
     $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
     $text =~ s/ (?: ß  | \x{df} ) /\\ss/gxms;
     $text =~ s/ (?: ø  | \x{f8} ) /\\o/gxms;
-    $text =~ s/ (?: π  | \x{f8} ) /\$\\pi\$/gxms;
+    $text =~ s/ (?: π  | \x{3c0} ) /\$\\pi\$/gxms;
+    $text =~ s/ (?: °  | \x{b0} ) /\$\^\{\\circ\}\$/gxms;
 
     return $text;
 }
