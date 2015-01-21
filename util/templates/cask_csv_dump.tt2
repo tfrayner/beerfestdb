@@ -1,0 +1,18 @@
+%
+% $Id: stillage_planning.tt2 480 2014-05-06 21:06:48Z tfrayner $
+%
+[%- IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class.\n" %][% END -%]
+"Cask ID","Brewery","Beer","ABV","Style","Order Batch","Cask Size","Condemned","Sale or Return","Comment"
+[% FOREACH cask = objects.sort('brewery', 'product') -%]
+[%- NEXT IF cask.category != 'beer' -%]
+[%- cask.festival_id -%]
+,"[% cask.brewery -%]
+","[% cask.product -%]
+",[% cask.abv -%]
+,"[% cask.style -%]
+","[% cask.order_batch -%]
+",[% cask.size -%]
+,[% IF cask.is_condemned %]Yes[% END -%]
+,[% IF cask.is_sale_or_return %]Yes[% END -%]
+,"[% cask.comment %]"
+[% END %]
