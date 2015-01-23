@@ -123,7 +123,8 @@ sub select_dip_batch {
         foreach my $n ( 1..@batches ) {
             my $batch = $batches[$n-1];
             warn(sprintf("  %d: %s %s\n",
-                         $n, $batch->measurement_time, $batch->description));
+                         $n, $batch->measurement_time,
+                         $batch->description || q{}));
         }
         warn("\n");
         chomp(my $select = <STDIN>);
