@@ -159,6 +159,7 @@ Ext.onReady(function(){
                      { name: 'int_reference',     type: 'string' },
                      { name: 'ext_reference',     type: 'string' },
                      { name: 'festival_ref',      type: 'string' },
+                     { name: 'is_condemned',      type: 'int' },
                      { name: 'is_sale_or_return', type: 'int' },
                      { name: 'comment',           type: 'string' }],
         sortInfo:   {
@@ -387,6 +388,13 @@ Ext.onReady(function(){
                   dataIndex: 'comment',
                   editor:     new Ext.form.TextField({
                       allowBlank: true,
+                  })},
+                { id:         'is_condemned',
+                  header:     'Condemned',
+                  dataIndex:  'is_condemned',
+                  width:      50,
+                  renderer:   MyCheckboxRenderer(),
+                  editor:     new Ext.form.Checkbox({
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {

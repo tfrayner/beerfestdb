@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::Cask;
 use Moose;
 use namespace::autoclean;
 
-use JSON::Any;
+use JSON::MaybeXS;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -297,9 +297,9 @@ sub list_dips : Local {
     }
 
     $c->stash->{ 'objects' } = $dips;
-    $c->stash->{ 'success' } = JSON::Any->true();
+    $c->stash->{ 'success' } = JSON->true();
 
-    $c->detach( $c->view( 'JSON' ) );
+    $c->forward( 'View::JSON' );
 }
 
 sub _extract_caskman_terms : Private {
@@ -407,7 +407,7 @@ sub delete_from_stillage : Local {
 
     my $rs = $c->model( 'DB::Cask' );
 
-    my $j = JSON::Any->new;
+    my $j = JSON->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
     eval {
@@ -432,7 +432,7 @@ sub delete_from_stillage : Local {
         $self->detach_with_txn_failure( $c, $rs, $@ );
     }
 
-    $c->detach( $c->view( 'JSON' ) );
+    $c->forward( 'View::JSON' );
 }
 
 =head1 COPYRIGHT AND LICENSE
