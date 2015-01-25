@@ -22,6 +22,7 @@
 package BeerFestDB::Web::Controller::Root;
 use Moose;
 use namespace::autoclean;
+use JSON::MaybeXS;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -110,28 +111,28 @@ sub login : Global {
     $c->stash->{'url_success_target'}
         = $c->flash->{'url_success_target'} || '' . $c->uri_for('/');
 
-    my $j = JSON::Any->new;
+    my $j = JSON->new;
     my $json_req = $c->request->param( 'data' );
 
     $c->res->status('403');
 
     return unless $json_req;
 
-    my $data = $j->jsonToObj( $json_req );
+    my $data = $j->decode( $json_req );
 
     if ( $c->authenticate({ username => $data->{ 'username' },
                             password => $data->{ 'password' }, }) ) {
 
         # ExtJS form redirects to url_success_target URI.
 	$c->res->status('200');
-        $c->stash->{ 'success' } = JSON::Any->true();
-        $c->detach( $c->view( 'JSON' ) );
+        $c->stash->{ 'success' } = JSON->true();
+        $c->forward( 'View::JSON' );
     }
     else {
         $c->res->status('401');
         $c->stash->{ 'message' } = 'Login failed.';
-        $c->stash->{ 'success' } = JSON::Any->false();
-        $c->detach( $c->view( 'JSON' ) );
+        $c->stash->{ 'success' } = JSON->false();
+        $c->forward( 'View::JSON' );
     }
 
     return;
@@ -151,7 +152,7 @@ sub logout : Global {
     $c->logout;
 
     $c->flash->{ 'message' } = 'Successfully logged out.';
-    $c->stash->{ 'success' } = JSON::Any->true();
+    $c->stash->{ 'success' } = JSON->true();
     $c->res->redirect( $c->uri_for('/') );
 }
 
@@ -167,6 +168,9 @@ sub auto : Private {
 	$c->req->base($uri);
 	$c->stash->{'base_path'} = $base;
     }
+
+    # Return true to continue processing.
+    return 1;
 }
 
 =head2 end
