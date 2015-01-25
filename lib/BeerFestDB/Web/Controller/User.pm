@@ -25,6 +25,7 @@ use namespace::autoclean;
 
 use Crypt::SaltedHash;
 use List::Util qw(first);
+use JSON::MaybeXS;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -194,7 +195,7 @@ sub modify : Local {
 
     # Quick check for authorisation; we may need to put in other
     # checks for content FIXME.
-    my $j = JSON::Any->new;
+    my $j = JSON->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
     foreach my $rec ( @{ $data } ) {

@@ -22,6 +22,7 @@
 package BeerFestDB::Web::Controller::ProductOrder;
 use Moose;
 use namespace::autoclean;
+use JSON::MaybeXS;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'};
 with 'BeerFestDB::CaskPreloader';
@@ -111,7 +112,7 @@ sub submit : Local {
 
     my $rs = $c->model( 'DB::ProductOrder' );
 
-    my $j = JSON::Any->new;
+    my $j = JSON->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
     eval {
@@ -123,8 +124,8 @@ sub submit : Local {
         $self->detach_with_txn_failure( $c, $@ );
     }
 
-    $c->stash->{ 'success' } = JSON::Any->true();
-    $c->detach( $c->view( 'JSON' ) );
+    $c->stash->{ 'success' } = JSON->true();
+    $c->forward( 'View::JSON' );
 }
 
 sub _save_records : Private {

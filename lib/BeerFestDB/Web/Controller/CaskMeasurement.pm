@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::CaskMeasurement;
 use Moose;
 use namespace::autoclean;
 
-use JSON::Any;
+use JSON::MaybeXS;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -182,9 +182,9 @@ sub list : Local {
         push @casks, \%cask_info;
     }
 
-    $c->stash->{ 'success' } = JSON::Any->true();
+    $c->stash->{ 'success' } = JSON->true();
     $c->stash->{ 'objects' } = \@casks;
-    $c->detach( $c->view( 'JSON' ) );
+    $c->forward( 'View::JSON' );
 }
 
 =head2 list_by_cask
@@ -221,7 +221,7 @@ sub submit : Local {
 
     # Note that the previous dip measurement is assumed not to be
     # returned from the view component.
-    my $j = JSON::Any->new;
+    my $j = JSON->new;
     my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
 
     eval {
@@ -233,9 +233,9 @@ sub submit : Local {
         $self->detach_with_txn_failure( $c, $@ );
     }
     
-    $c->stash->{success} = JSON::Any->true();
+    $c->stash->{success} = JSON->true();
 
-    $c->detach( $c->view( 'JSON' ) );
+    $c->forward( 'View::JSON' );
 }
 
 sub _save_records : Private {

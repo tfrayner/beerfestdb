@@ -27,6 +27,7 @@ use List::Util qw(first);
 use Carp;
 use utf8;
 use Encode;
+use JSON::MaybeXS;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -69,9 +70,9 @@ sub generate_json_and_detach : Private {
         push @objects, $self->generate_object_viewhash($obj);
     }
 
-    $c->stash->{ 'success' } = JSON::Any->true();
+    $c->stash->{ 'success' } = JSON->true();
     $c->stash->{ 'objects' } = \@objects;
-    $c->detach( $c->view( 'JSON' ) );
+    $c->forward( 'View::JSON' );
 }
 
 sub generate_object_viewhash : Private {
@@ -107,19 +108,19 @@ sub form_json_and_detach : Private {
 
         if ( $obj ) {
             $c->stash->{ 'data' } = $self->generate_object_viewhash( $obj );
-            $c->stash->{ 'success' } = JSON::Any->true();
+            $c->stash->{ 'success' } = JSON->true();
         }
         else {
-            $c->stash->{ 'success' } = JSON::Any->false();
+            $c->stash->{ 'success' } = JSON->false();
             $c->stash->{ 'error' } = qq{Error: Unable to find $pk "$id".};
         }
     }
     else {
-        $c->stash->{ 'success' } = JSON::Any->false();
+        $c->stash->{ 'success' } = JSON->false();
         $c->stash->{ 'error' } = "Error: $pk is not defined.";
     }
 
-    $c->detach( $c->view( 'JSON' ) );
+    $c->forward( 'View::JSON' );
 
     return;
 }
@@ -442,7 +443,7 @@ sub decode_json_changes : Private {
 
     my ( $self, $c ) = @_;
  
-    my $j = JSON::XS->new->utf8;
+    my $j = JSON::MaybeXS->new(utf8 => 1);
     my $data;
     eval { $data = $j->decode( encode('UTF-8', $c->request->param( 'changes' ) ) ) };
     if ($@) {
@@ -486,8 +487,8 @@ sub write_to_resultset : Private {
         $self->detach_with_txn_failure( $c );
     };
 
-    $c->stash->{ 'success' } = JSON::Any->true();
-    $c->detach( $c->view( 'JSON' ) );
+    $c->stash->{ 'success' } = JSON->true();
+    $c->forward( 'View::JSON' );
 
     return;
 }
@@ -534,8 +535,8 @@ sub delete_from_resultset : Private {
         $self->detach_with_txn_failure( $c );
     };
 
-    $c->stash->{ 'success' } = JSON::Any->false();
-    $c->detach( $c->view( 'JSON' ) );
+    $c->stash->{ 'success' } = JSON->false();
+    $c->forward( 'View::JSON' );
 }
 
 sub detach_with_txn_failure : Private {
@@ -553,9 +554,9 @@ sub detach_with_txn_failure : Private {
     $c->response->status('403');  # Forbidden; must use this or
                                   # similar for ExtJS to detect
                                   # failure.
-    $c->stash->{ 'success' } = JSON::Any->false();
+    $c->stash->{ 'success' } = JSON->false();
     $c->stash->{ 'error' }   = $error;
-    $c->detach( $c->view( 'JSON' ) );    
+    $c->forward( 'View::JSON' );
 }
 
 =head2 get_default_currency

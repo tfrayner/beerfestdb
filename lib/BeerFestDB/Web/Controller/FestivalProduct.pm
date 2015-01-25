@@ -26,6 +26,7 @@ use namespace::autoclean;
 use List::Util qw( min );
 use Digest::SHA1 qw( sha1_hex );
 use Carp;
+use JSON::MaybeXS;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -270,15 +271,15 @@ sub list_status : Local {
 
     if ( my $rc = $@ ) {
         $rc =~ s/\n \z//xms;
-        $c->stash->{success} = JSON::Any->false();
+        $c->stash->{success} = JSON->false();
         $c->stash->{error}   = $rc;
     }
     else {
-        $c->stash->{success} = JSON::Any->true();
+        $c->stash->{success} = JSON->true();
         $c->stash->{objects} = $objects;
     }
 
-    $c->detach( $c->view( 'JSON' ) );
+    $c->forward( 'View::JSON' );
 }
 
 =head2 html_status_list
@@ -414,6 +415,7 @@ sub _derive_status_report : Private {
         $prodhash->{'abv'}        = $abv;
         $prodhash->{'status'}     = 'Arrived';
         $prodhash->{'css_status'} = 'arrived';
+        $festprod{ $product_id }{starting_volume} = undef;
         $festprod{ $product_id } = $prodhash;
 
         # Prior to opening, "Arrived" is all we really want.
@@ -446,7 +448,8 @@ sub _derive_status_report : Private {
             else {
 
                 # If not condemned, get the amount remaining.
-                my ( $amt_remaining, $measure ) = $self->_amount_remaining( $fp );
+                my ( $amt_remaining, $starting, $measure ) = $self->_amount_remaining( $fp );
+                $festprod{ $product_id }{starting_volume} = $starting;
                 if ( ! ( defined $amt_remaining && defined $measure ) ) {
 
                     # Shouldn't happen.
@@ -493,6 +496,7 @@ sub _amount_remaining : Private {
 
     # The output volume and measurement unit.
     my ( $remaining, $overall_measure );
+    my $starting_volume = 0;
     if ( $cask_rs->count() ) {
 
         my $running_volume = 0;
@@ -503,6 +507,7 @@ sub _amount_remaining : Private {
             $overall_measure ||= $cask_size->container_measure_id();
             my $vol = $cask_size->container_volume()
                 * $cask_size->container_measure_id()->litre_multiplier();
+            $starting_volume += $vol;
             if ( $cask->cask_measurements()->count() ) {
                 my @dip_vols;
                 foreach my $dip ( $cask->cask_measurements() ) {
@@ -516,8 +521,10 @@ sub _amount_remaining : Private {
         $remaining = $running_volume / $overall_measure->litre_multiplier();
     }
 
+    $starting_volume = $starting_volume / $overall_measure->litre_multiplier();
+
     # Undef return implies no Cask objects attached to Gyles for this FestivalProduct.
-    return ( $remaining, $overall_measure );
+    return ( $remaining, $starting_volume, $overall_measure );
 }
 
 =head1 COPYRIGHT AND LICENSE

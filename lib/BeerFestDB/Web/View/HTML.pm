@@ -35,6 +35,7 @@ __PACKAGE__->config({
     TIMER        => 0,
     ENCODING     => 'utf-8',
     TEMPLATE_EXTENSION => '.tt2',
+    render_die => 1,
 });
 
 =head1 NAME
