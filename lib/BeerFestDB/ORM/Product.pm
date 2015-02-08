@@ -64,12 +64,12 @@ __PACKAGE__->table("product");
   data_type: 'text'
   is_nullable: 1
 
-=head2 comment
+=head2 long_description
 
   data_type: 'text'
   is_nullable: 1
 
-=head2 long_description
+=head2 comment
 
   data_type: 'text'
   is_nullable: 1
@@ -91,9 +91,9 @@ __PACKAGE__->add_columns(
   { data_type => "decimal", is_nullable => 1, size => [3, 1] },
   "description",
   { data_type => "text", is_nullable => 1 },
-  "comment",
-  { data_type => "text", is_nullable => 1 },
   "long_description",
+  { data_type => "text", is_nullable => 1 },
+  "comment",
   { data_type => "text", is_nullable => 1 },
 );
 
@@ -152,6 +152,21 @@ Related object: L<BeerFestDB::ORM::FestivalProduct>
 __PACKAGE__->has_many(
   "festival_products",
   "BeerFestDB::ORM::FestivalProduct",
+  { "foreign.product_id" => "self.product_id" },
+  undef,
+);
+
+=head2 product_allergens
+
+Type: has_many
+
+Related object: L<BeerFestDB::ORM::ProductAllergen>
+
+=cut
+
+__PACKAGE__->has_many(
+  "product_allergens",
+  "BeerFestDB::ORM::ProductAllergen",
   { "foreign.product_id" => "self.product_id" },
   undef,
 );
@@ -215,13 +230,28 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xYRyXLl3w69aKgm80nwvDg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-01 13:24:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:57CSCEAcZVhS2cPHalHqbw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 __PACKAGE__->many_to_many(
     "festivals" => "festival_products", "festival_id"
+);
+
+__PACKAGE__->many_to_many(
+    "allergens_present" => "product_allergens", "product_allergen_type_id",
+    { where => { present => 1 } }, # FIXME untested
+);
+
+__PACKAGE__->many_to_many(
+    "allergens_absent" => "product_allergens", "product_allergen_type_id",
+    { where => { present => 0 } },
+);
+
+__PACKAGE__->many_to_many(
+    "allergens_unknown" => "product_allergens", "product_allergen_type_id",
+    { where => { present => undef } },
 );
 
 1;

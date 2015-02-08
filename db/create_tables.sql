@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.5.15, for osx10.6 (i386)
+-- MySQL dump 10.13  Distrib 5.6.20, for osx10.9 (x86_64)
 --
--- Host: localhost    Database: beerfestdb_dev
+-- Host: localhost    Database: beerfestdb
 -- ------------------------------------------------------
--- Server version	5.5.15
+-- Server version	5.6.20
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -31,7 +31,7 @@ CREATE TABLE `bar` (
   UNIQUE KEY `description` (`description`),
   KEY `FK_BAR_fstid_FST_fstid` (`festival_id`),
   CONSTRAINT `bar_ibfk_1` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`festival_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,7 +46,7 @@ CREATE TABLE `bay_position` (
   `description` varchar(50) NOT NULL,
   PRIMARY KEY (`bay_position_id`),
   UNIQUE KEY `description` (`description`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -64,14 +64,14 @@ CREATE TABLE `cask` (
   `is_vented` tinyint(1) DEFAULT NULL,
   `is_tapped` tinyint(1) DEFAULT NULL,
   `is_ready` tinyint(1) DEFAULT NULL,
-  `is_condemned` tinyint(1) DEFAULT 0, -- web json list drops this silently if NULL (a problem for our R code).
+  `is_condemned` tinyint(1) DEFAULT '0', -- web json list drops this silently if NULL (a problem for our R code).
   `cask_management_id` int(6) NOT NULL,
   PRIMARY KEY (`cask_id`),
   UNIQUE KEY `cask_management` (`cask_management_id`),
   KEY `FK_CSK_bbid` (`gyle_id`),
   CONSTRAINT `cask_ibfk_10` FOREIGN KEY (`cask_management_id`) REFERENCES `cask_management` (`cask_management_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_ibfk_6` FOREIGN KEY (`gyle_id`) REFERENCES `gyle` (`gyle_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=25802 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -86,7 +86,7 @@ DELIMITER ;;
     before insert on cask
 for each row
 begin
-    
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( (select count(fp.festival_id)
             from festival_product fp, gyle g, cask_management cg
             where new.gyle_id=g.gyle_id
@@ -110,6 +110,7 @@ begin
             and cg.product_order_id=po.product_order_id) = 0 ) then
         call ERROR_CASK_OB_INSERT_TRIGGER();
     end if;
+    end if;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -129,6 +130,7 @@ DELIMITER ;;
     before update on cask
 for each row
 begin
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( (select count(fp.festival_id)
             from festival_product fp, gyle g, cask_management cg
             where new.gyle_id=g.gyle_id
@@ -136,6 +138,7 @@ begin
             and fp.festival_id=cg.festival_id
             and cg.cask_management_id=new.cask_management_id) = 0 ) then
         call ERROR_CASK_FP_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -168,7 +171,7 @@ CREATE TABLE `cask_management` (
   `stillage_z_location` int(6) unsigned DEFAULT NULL,
   `internal_reference` int(6) DEFAULT NULL,
   `cellar_reference` int(6) DEFAULT NULL,
-  `is_sale_or_return` tinyint(1) DEFAULT 0, -- web json list drops this silently if NULL (a problem for our R code).
+  `is_sale_or_return` tinyint(1) DEFAULT '0', -- web json list drops this silently if NULL (a problem for our R code).
   PRIMARY KEY (`cask_management_id`),
   UNIQUE KEY `festival_cellar_ref` (`festival_id`,`cellar_reference`),
   KEY `IDX_CSKMAN_dfid` (`distributor_company_id`),
@@ -187,7 +190,7 @@ CREATE TABLE `cask_management` (
   CONSTRAINT `cask_management_ibfk_6` FOREIGN KEY (`currency_id`) REFERENCES `currency` (`currency_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_management_ibfk_7` FOREIGN KEY (`bay_position_id`) REFERENCES `bay_position` (`bay_position_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_management_ibfk_8` FOREIGN KEY (`stillage_location_id`) REFERENCES `stillage_location` (`stillage_location_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=25802 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -203,6 +206,7 @@ DELIMITER ;;
 for each row
 begin
     
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( new.product_order_id is not null
         and new.product_order_id != old.product_order_id
         and (select count(ob.order_batch_id)
@@ -220,6 +224,7 @@ begin
             and c.cask_id=cm.cask_id
             and c.cask_management_id=old.cask_management_id) != 0 ) then
         call ERROR_CASKMAN_MB_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -250,7 +255,7 @@ CREATE TABLE `cask_measurement` (
   CONSTRAINT `cask_measurement_ibfk_1` FOREIGN KEY (`cask_id`) REFERENCES `cask` (`cask_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_measurement_ibfk_2` FOREIGN KEY (`measurement_batch_id`) REFERENCES `measurement_batch` (`measurement_batch_id`) ON UPDATE NO ACTION,
   CONSTRAINT `cask_measurement_ibfk_3` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=12924 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -265,6 +270,7 @@ DELIMITER ;;
     before insert on cask_measurement
 for each row
 begin
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( (select count(mb.measurement_batch_id)
             from cask c, measurement_batch mb, cask_management cg
             where new.cask_id=c.cask_id
@@ -272,6 +278,7 @@ begin
             and mb.festival_id=cg.festival_id
             and mb.measurement_batch_id=new.measurement_batch_id) = 0 ) then
         call ERROR_CASK_MEASUREMENT_INSERT_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -292,6 +299,7 @@ DELIMITER ;;
     before update on cask_measurement
 for each row
 begin
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( (select count(mb.measurement_batch_id)
             from cask c, measurement_batch mb, cask_management cg
             where new.cask_id=c.cask_id
@@ -299,6 +307,7 @@ begin
             and mb.festival_id=cg.festival_id
             and mb.measurement_batch_id=new.measurement_batch_id) = 0 ) then
         call ERROR_CASK_MEASUREMENT_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -324,7 +333,7 @@ CREATE TABLE `category_auth` (
   KEY `role_id` (`role_id`),
   CONSTRAINT `category_auth_ibfk_1` FOREIGN KEY (`product_category_id`) REFERENCES `product_category` (`product_category_id`) ON DELETE CASCADE,
   CONSTRAINT `category_auth_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `role` (`role_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -347,7 +356,7 @@ CREATE TABLE `company` (
   UNIQUE KEY `name` (`name`),
   KEY `FK_CO_rgnid_RGN_rgnid` (`company_region_id`),
   CONSTRAINT `company_ibfk_1` FOREIGN KEY (`company_region_id`) REFERENCES `company_region` (`company_region_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=665 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -362,7 +371,7 @@ CREATE TABLE `company_region` (
   `description` varchar(30) NOT NULL,
   PRIMARY KEY (`company_region_id`),
   UNIQUE KEY `description` (`description`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -390,7 +399,7 @@ CREATE TABLE `contact` (
   CONSTRAINT `contact_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `company` (`company_id`) ON UPDATE NO ACTION,
   CONSTRAINT `contact_ibfk_2` FOREIGN KEY (`contact_type_id`) REFERENCES `contact_type` (`contact_type_id`) ON UPDATE NO ACTION,
   CONSTRAINT `contact_ibfk_3` FOREIGN KEY (`country_id`) REFERENCES `country` (`country_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -405,7 +414,7 @@ CREATE TABLE `contact_type` (
   `description` varchar(30) NOT NULL,
   PRIMARY KEY (`contact_type_id`),
   UNIQUE KEY `description` (`description`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -421,7 +430,7 @@ CREATE TABLE `container_measure` (
   `description` varchar(50) NOT NULL,
   PRIMARY KEY (`container_measure_id`),
   UNIQUE KEY `description` (`description`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -441,7 +450,7 @@ CREATE TABLE `container_size` (
   UNIQUE KEY `description` (`description`),
   KEY `FK_CS_cmid_CM_cmid` (`container_measure_id`),
   CONSTRAINT `container_size_ibfk_1` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -460,7 +469,7 @@ CREATE TABLE `country` (
   PRIMARY KEY (`country_id`),
   KEY `IDX_CNTRY_countrycode3` (`country_code_iso3`),
   KEY `IDX_CNTRY_countrynum3` (`country_code_num3`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -480,7 +489,7 @@ CREATE TABLE `currency` (
   PRIMARY KEY (`currency_id`),
   UNIQUE KEY `currency_code` (`currency_code`),
   KEY `CUR_currencynumber` (`currency_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -499,7 +508,7 @@ CREATE TABLE `festival` (
   `fst_end_date` date DEFAULT NULL,
   PRIMARY KEY (`festival_id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -580,7 +589,7 @@ CREATE TABLE `festival_product` (
   CONSTRAINT `festival_product_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT `festival_product_ibfk_3` FOREIGN KEY (`sale_volume_id`) REFERENCES `sale_volume` (`sale_volume_id`) ON UPDATE NO ACTION,
   CONSTRAINT `festival_product_ibfk_4` FOREIGN KEY (`sale_currency_id`) REFERENCES `currency` (`currency_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=30600 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -595,6 +604,7 @@ DELIMITER ;;
     before update on festival_product
 for each row
 begin
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if (  new.festival_id != old.festival_id and
          (select count(f.festival_id)
           from festival f, gyle g, cask c, cask_management cg
@@ -603,6 +613,7 @@ begin
           and c.gyle_id=g.gyle_id
           and g.festival_product_id=old.festival_product_id) != 0 ) then
         call ERROR_FP_CASK_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -634,7 +645,7 @@ CREATE TABLE `gyle` (
   KEY `IDX_BB_iref` (`internal_reference`),
   CONSTRAINT `gyle_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `company` (`company_id`) ON UPDATE NO ACTION,
   CONSTRAINT `gyle_ibfk_2` FOREIGN KEY (`festival_product_id`) REFERENCES `festival_product` (`festival_product_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=25038 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -649,6 +660,7 @@ DELIMITER ;;
     before update on gyle
 for each row
 begin
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( new.festival_product_id != old.festival_product_id and
            (select count(fp.festival_id)
             from festival_product fp, cask c, cask_management cg
@@ -657,6 +669,7 @@ begin
             and cg.festival_id=fp.festival_id
             and fp.festival_product_id=old.festival_product_id) != 0 ) then
         call ERROR_GYLE_FP_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -681,7 +694,7 @@ CREATE TABLE `measurement_batch` (
   UNIQUE KEY `festival_measurement_batch` (`festival_id`,`measurement_time`),
   KEY `FK_ORDER_fid` (`festival_id`),
   CONSTRAINT `measurement_batch_ibfk_1` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`festival_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -696,6 +709,7 @@ DELIMITER ;;
     before update on measurement_batch
 for each row
 begin
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( new.festival_id != old.festival_id and
            (select count(cm.measurement_batch_id)
             from cask_measurement cm, cask c, cask_management cg
@@ -704,6 +718,7 @@ begin
             and cg.cask_management_id=c.cask_management_id
             and cg.festival_id=old.festival_id) != 0 ) then
         call ERROR_MEASUREMENT_BATCH_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -728,7 +743,7 @@ CREATE TABLE `order_batch` (
   UNIQUE KEY `festival_order_batch` (`festival_id`,`description`),
   KEY `FK_ORDER_fid` (`festival_id`),
   CONSTRAINT `order_batch_ibfk_1` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`festival_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -744,7 +759,7 @@ DELIMITER ;;
 for each row
 begin
     
-    
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( old.festival_id != new.festival_id
          and (select count(c.order_batch_id)
               from cask c, cask_management cg, product_order po
@@ -754,6 +769,7 @@ begin
               ) > 0 ) then
         call ERROR_ORDER_BATCH_UPDATE_TRIGGER();
     end if;
+    end if;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -762,23 +778,22 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
--- Temporary table structure for view `order_summary_view`
+-- Temporary view structure for view `order_summary_view`
 --
 
 DROP TABLE IF EXISTS `order_summary_view`;
 /*!50001 DROP VIEW IF EXISTS `order_summary_view`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
-/*!50001 CREATE TABLE `order_summary_view` (
-  `festival` varchar(60),
-  `category` varchar(100),
-  `brewery` varchar(100),
-  `beer` varchar(100),
-  `style` varchar(100),
-  `sale_or_return` varchar(3),
-  `abv` decimal(3,1),
-  `kils` decimal(36,1)
-) ENGINE=MyISAM */;
+/*!50001 CREATE VIEW `order_summary_view` AS SELECT 
+ 1 AS `festival`,
+ 1 AS `category`,
+ 1 AS `brewery`,
+ 1 AS `beer`,
+ 1 AS `style`,
+ 1 AS `sale_or_return`,
+ 1 AS `abv`,
+ 1 AS `kils`*/;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -805,7 +820,7 @@ CREATE TABLE `product` (
   CONSTRAINT `product_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `company` (`company_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT `product_ibfk_2` FOREIGN KEY (`product_category_id`) REFERENCES `product_category` (`product_category_id`) ON UPDATE NO ACTION,
   CONSTRAINT `product_ibfk_3` FOREIGN KEY (`product_style_id`) REFERENCES `product_style` (`product_style_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=4993 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -821,12 +836,14 @@ DELIMITER ;;
 for each row
 begin
     
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( new.product_style_id is not null
        and (select count(product_style_id)
             from product_style
             where product_category_id=new.product_category_id
             and product_style_id=new.product_style_id) = 0 ) then
         call ERROR_PRODUCT_INSERT_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -848,6 +865,7 @@ DELIMITER ;;
 for each row
 begin
     
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( new.product_style_id is not null
         and (select count(product_style_id)
              from product_style
@@ -867,12 +885,46 @@ begin
           and t.product_category_id=new.product_category_id) ) then
         call ERROR_PRODUCT_UPDATE_TRIGGER();
     end if;
+    end if;
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `product_allergen`
+--
+
+DROP TABLE IF EXISTS `product_allergen`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `product_allergen` (
+  `product_id` int(6) NOT NULL,
+  `product_allergen_type_id` int(6) NOT NULL,
+  `present` tinyint(1) DEFAULT NULL, -- nullable so we can record 'known unknowns' positively
+  PRIMARY KEY (`product_id`),
+  KEY `product_allergen_ibfk_1` (`product_allergen_type_id`),
+  UNIQUE KEY `product_allergen_id` (`product_id`,`product_allergen_type_id`),
+  CONSTRAINT `product_allergen_ibfk_1` FOREIGN KEY (`product_allergen_type_id`) REFERENCES `product_allergen_type` (`product_allergen_type_id`) ON UPDATE NO ACTION,
+  CONSTRAINT `product_allergen_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_allergen_type`
+--
+
+DROP TABLE IF EXISTS `product_allergen_type`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `product_allergen_type` (
+  `product_allergen_type_id` int(6) NOT NULL AUTO_INCREMENT,
+  `description` varchar(50) NOT NULL,
+  PRIMARY KEY (`product_allergen_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `product_category`
@@ -886,7 +938,7 @@ CREATE TABLE `product_category` (
   `description` varchar(100) NOT NULL,
   PRIMARY KEY (`product_category_id`),
   UNIQUE KEY `description` (`description`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -920,12 +972,14 @@ DELIMITER ;;
 for each row
 begin
     
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( (select count(t.product_characteristic_type_id)
           from product_characteristic_type t, product p
           where t.product_characteristic_type_id=new.product_characteristic_type_id
           and p.product_id=ne .product_id
           and t.product_category_id=p.product_category_id) = 0 ) then
         call ERROR_PRODUCT_CHARACTERISTIC_INSERT_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -947,12 +1001,14 @@ DELIMITER ;;
 for each row
 begin
     
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( (select count(t.product_characteristic_type_id)
           from product_characteristic_type t, product p
           where t.product_characteristic_type_id=new.product_characteristic_type_id
           and p.product_id=new.product_id
           and t.product_category_id=p.product_category_id) = 0 ) then
         call ERROR_PRODUCT_CHARACTERISTIC_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -991,11 +1047,13 @@ DELIMITER ;;
 for each row
 begin
     
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( old.product_category_id != new.product_category_id
          and (select count(c.product_characteristic_type_id)
               from product_characteristic c
               where c.product_characteristic_type_id=old.product_characteristic_type_id) > 0 ) then
         call ERROR_PRODUCT_CHARACTERISTIC_TYPE_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -1036,7 +1094,7 @@ CREATE TABLE `product_order` (
   CONSTRAINT `product_order_ibfk_3` FOREIGN KEY (`distributor_company_id`) REFERENCES `company` (`company_id`) ON UPDATE NO ACTION,
   CONSTRAINT `product_order_ibfk_4` FOREIGN KEY (`currency_id`) REFERENCES `currency` (`currency_id`) ON UPDATE NO ACTION,
   CONSTRAINT `product_order_ibfk_5` FOREIGN KEY (`container_size_id`) REFERENCES `container_size` (`container_size_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=6470 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1054,7 +1112,7 @@ CREATE TABLE `product_style` (
   UNIQUE KEY `product_category_id` (`product_category_id`,`description`),
   KEY `IDX_PS_pcid` (`product_category_id`),
   CONSTRAINT `product_style_ibfk_1` FOREIGN KEY (`product_category_id`) REFERENCES `product_category` (`product_category_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1070,11 +1128,13 @@ DELIMITER ;;
 for each row
 begin
     
+    if ( @TRIGGER_DISABLED is NULL or @TRIGGER_DISABLED=0 ) THEN
     if ( old.product_category_id != new.product_category_id
          and (select count(p.product_style_id)
               from product p
               where p.product_style_id=old.product_style_id) > 0 ) then
         call ERROR_PRODUCT_STYLE_UPDATE_TRIGGER();
+    end if;
     end if;
 end */;;
 DELIMITER ;
@@ -1084,25 +1144,24 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
--- Temporary table structure for view `programme_notes_view`
+-- Temporary view structure for view `programme_notes_view`
 --
 
 DROP TABLE IF EXISTS `programme_notes_view`;
 /*!50001 DROP VIEW IF EXISTS `programme_notes_view`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
-/*!50001 CREATE TABLE `programme_notes_view` (
-  `festival` varchar(60),
-  `category` varchar(100),
-  `brewer` varchar(100),
-  `location` varchar(100),
-  `year_established` int(4),
-  `beer` varchar(100),
-  `abv` decimal(3,1),
-  `tasting_notes` text,
-  `tasting_essay` text,
-  `style` varchar(100)
-) ENGINE=MyISAM */;
+/*!50001 CREATE VIEW `programme_notes_view` AS SELECT 
+ 1 AS `festival`,
+ 1 AS `category`,
+ 1 AS `brewer`,
+ 1 AS `location`,
+ 1 AS `year_established`,
+ 1 AS `beer`,
+ 1 AS `abv`,
+ 1 AS `tasting_notes`,
+ 1 AS `tasting_essay`,
+ 1 AS `style`*/;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -1117,7 +1176,7 @@ CREATE TABLE `role` (
   `rolename` varchar(255) NOT NULL,
   PRIMARY KEY (`role_id`),
   UNIQUE KEY `rolename` (`rolename`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1136,7 +1195,7 @@ CREATE TABLE `sale_volume` (
   UNIQUE KEY `description` (`description`),
   KEY `FK_SV_cmid_CM_cmid` (`container_measure_id`),
   CONSTRAINT `sale_volume_ibfk_1` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1153,7 +1212,7 @@ CREATE TABLE `stillage_location` (
   PRIMARY KEY (`stillage_location_id`),
   UNIQUE KEY `festival_id` (`festival_id`,`description`),
   CONSTRAINT `stillage_location_ibfk_1` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`festival_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1176,7 +1235,7 @@ CREATE TABLE `telephone` (
   KEY `IDX_TEL_cntid` (`contact_id`),
   CONSTRAINT `telephone_ibfk_1` FOREIGN KEY (`contact_id`) REFERENCES `contact` (`contact_id`) ON UPDATE NO ACTION,
   CONSTRAINT `telephone_ibfk_2` FOREIGN KEY (`telephone_type_id`) REFERENCES `telephone_type` (`telephone_type_id`) ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=133 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1191,7 +1250,7 @@ CREATE TABLE `telephone_type` (
   `description` varchar(30) NOT NULL,
   PRIMARY KEY (`telephone_type_id`),
   UNIQUE KEY `description` (`description`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1209,7 +1268,7 @@ CREATE TABLE `user` (
   `password` varchar(40) NOT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1229,14 +1288,13 @@ CREATE TABLE `user_role` (
   KEY `role_id` (`role_id`),
   CONSTRAINT `user_role_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `user_role_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `role` (`role_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Final view structure for view `order_summary_view`
 --
 
-/*!50001 DROP TABLE IF EXISTS `order_summary_view`*/;
 /*!50001 DROP VIEW IF EXISTS `order_summary_view`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
@@ -1255,7 +1313,6 @@ CREATE TABLE `user_role` (
 -- Final view structure for view `programme_notes_view`
 --
 
-/*!50001 DROP TABLE IF EXISTS `programme_notes_view`*/;
 /*!50001 DROP VIEW IF EXISTS `programme_notes_view`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
@@ -1279,4 +1336,4 @@ CREATE TABLE `user_role` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-02-26 22:35:39
+-- Dump completed on 2015-02-01 13:09:55
