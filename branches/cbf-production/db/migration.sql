@@ -1,30 +1,26 @@
 --
--- Table structure for table `user_role`
+-- Table structure for table `product_allergen_type`
 --
 
-DROP TABLE IF EXISTS `category_auth`;
-CREATE TABLE `category_auth` (
-  `category_auth_id` int(11) NOT NULL AUTO_INCREMENT,
-  `product_category_id` int(11) NOT NULL,
-  `role_id` int(11) NOT NULL,
-  PRIMARY KEY (`category_auth_id`),
-  UNIQUE KEY `category_role_id` (`product_category_id`,`role_id`),
-  KEY `product_category_id` (`product_category_id`),
-  KEY `role_id` (`role_id`),
-  CONSTRAINT `category_auth_ibfk_1` FOREIGN KEY (`product_category_id`) REFERENCES `product_category` (`product_category_id`) ON DELETE CASCADE,
-  CONSTRAINT `category_auth_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `role` (`role_id`) ON DELETE CASCADE
+DROP TABLE IF EXISTS `product_allergen_type`;
+CREATE TABLE `product_allergen_type` (
+  `product_allergen_type_id` int(6) NOT NULL AUTO_INCREMENT,
+  `description` varchar(50) NOT NULL,
+  PRIMARY KEY (`product_allergen_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Assumes that the initialise_vocabs.sql user accounts are still active.
-INSERT INTO `role` (`role_id`, `rolename`) VALUES (3,'manager');
-INSERT INTO `role` (`role_id`, `rolename`) VALUES (4,'cellar');
-insert into user_role (`role_id`, `user_id`)
-       values ( (select role_id from role where rolename='cellar'),
-                (select user_id from user where username='cellar'));
-insert into user_role (`role_id`, `user_id`)
-       values ( (select role_id from role where rolename='manager'),
-                (select user_id from user where username='cellar'));
-insert into category_auth (`role_id`, `product_category_id`)
-       values ( (select role_id from role where rolename='cellar'),
-                (select product_category_id from product_category where description='beer'));
+--
+-- Table structure for table `product_allergen`
+--
+
+DROP TABLE IF EXISTS `product_allergen`;
+CREATE TABLE `product_allergen` (
+  `product_id` int(6) NOT NULL,
+  `product_allergen_type_id` int(6) NOT NULL,
+  `present` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`product_id`),
+  UNIQUE KEY `product_allergen_id` (`product_id`,`product_allergen_type_id`),
+  CONSTRAINT `product_allergen_ibfk_1` FOREIGN KEY (`product_allergen_type_id`) REFERENCES `product_allergen_type` (`product_allergen_type_id`) ON UPDATE NO ACTION,
+  CONSTRAINT `product_allergen_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
