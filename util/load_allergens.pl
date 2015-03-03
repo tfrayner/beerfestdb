@@ -27,6 +27,7 @@ use Getopt::Long;
 use Pod::Usage;
 use Text::CSV_XS;
 use BeerFestDB::ORM;
+use BeerFestDB::Web;
 
 use Data::Dumper;
 
@@ -85,7 +86,7 @@ sub _parse_row {
 
     # Parse product/company name and convert allergen presence data
     # into 0/1.
-    my @rowvals = map { $_ =~ s/\A \s*(.*?)\s* \z/$1/xms } @$larry;
+    my @rowvals = map { $_ =~ s/\A \s*(.*?)\s* \z/$1/xms; $_ } @$larry;
 
     my %datahash;
     @datahash{ @{ $self->_header } } = @rowvals;
@@ -115,7 +116,7 @@ sub _load_table_data {
     PRODUCT:
     while ( my $line = $self->_csv_parser->getline($fh) ) {
 
-        next PRODUCT if ( $line->[0] =~ /\A \s* #/xms );
+        next PRODUCT if ( $line->[0] =~ /\A \s* \#/xms );
         my ( $prodname, $compname, $allergens ) = $self->_parse_row( $line );
 
         my $product = $db->resultset('Product')->find(
@@ -162,7 +163,7 @@ sub load {
         or die(qq{Error: unable to open input file "$input".\n});
 
     my $rawheader = $self->_csv_parser->getline($fh);
-    my @header = map { $_ =~ s/\A \s*(.*?)\s* \z/$1/xms } @$rawheader;
+    my @header = map { $_ =~ s/\A \s*(.*?)\s* \z/$1/xms; $_ } @$rawheader;
     $self->_header( \@header );
 
     my $db = $self->database;
