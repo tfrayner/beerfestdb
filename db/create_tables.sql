@@ -901,12 +901,13 @@ DROP TABLE IF EXISTS `product_allergen`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `product_allergen` (
+  `product_allergen_id` int(6) NOT NULL AUTO_INCREMENT,
   `product_id` int(6) NOT NULL,
   `product_allergen_type_id` int(6) NOT NULL,
   `present` tinyint(1) DEFAULT NULL, -- nullable so we can record 'known unknowns' positively
-  PRIMARY KEY (`product_id`),
+  PRIMARY KEY (`product_allergen_id`),
+  UNIQUE KEY `product_allergen_mapping` (`product_id`,`product_allergen_type_id`),
   KEY `product_allergen_ibfk_1` (`product_allergen_type_id`),
-  UNIQUE KEY `product_allergen_id` (`product_id`,`product_allergen_type_id`),
   CONSTRAINT `product_allergen_ibfk_1` FOREIGN KEY (`product_allergen_type_id`) REFERENCES `product_allergen_type` (`product_allergen_type_id`) ON UPDATE NO ACTION,
   CONSTRAINT `product_allergen_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

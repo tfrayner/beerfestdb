@@ -1,0 +1,5 @@
+# Ignore main site config file, for obvious security reasons.
+beerfestdb_web.yml
+
+# Ignore emacs backup files.
+*~

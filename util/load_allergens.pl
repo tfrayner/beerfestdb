@@ -23,17 +23,14 @@
 use strict;
 use warnings;
 
-use Getopt::Long;
-use Pod::Usage;
-use Text::CSV_XS;
-use BeerFestDB::ORM;
-use BeerFestDB::Web;
-
 use Data::Dumper;
+
+################################################################################
 
 package AllergenLoader;
 
 use Moose;
+use Text::CSV_XS;
 
 has 'database'    => ( is       => 'ro',
                        isa      => 'DBIx::Class::Schema',
@@ -46,6 +43,41 @@ has '_csv_parser' => ( is       => 'rw',
 has '_header'     => ( is       => 'rw',
                        isa      => 'ArrayRef',
                        required => 0 );
+
+# Hashref with keys as BeerFestDB::ORM class names and values as
+# booleans indicating whether new objects are to be created or not.
+has 'category'        => ( is       => 'rw',
+                           isa      => 'Str',
+                           default  => 'beer' );
+
+has 'unprotected'     => ( is       => 'rw',
+                           isa      => 'HashRef',
+                           default  => sub { {} } );
+
+has 'force_products'  => ( is       => 'rw',
+                           isa      => 'Bool',
+                           default  => 0,
+                           trigger  => sub {
+                               my ( $self, $val ) = @_;
+                               $self->unprotected->{'Product'} = $val } );
+
+has 'force_companies' => ( is       => 'rw',
+                           isa      => 'Bool',
+                           default  => 0,
+                           trigger  => sub {
+                               my ( $self, $val ) = @_;
+                               $self->unprotected->{'Company'} = $val });
+
+has 'force_allergens' => ( is       => 'rw',
+                           isa      => 'Bool',
+                           default  => 0,
+                           trigger  => sub {
+                               my ( $self, $val ) = @_;
+                               $self->unprotected->{'ProductAllergenType'} = $val });
+
+has 'interactive'     => ( is       => 'rw',
+                           isa      => 'Bool',
+                           default  => 0 );
 
 sub value_acceptable {
 
@@ -107,11 +139,65 @@ sub _parse_row {
     return( $prodname, $compname, \%allergen );
 }
 
+sub _forced_creation {
+
+    my ( $self, $dbclass ) = @_;
+
+    return $self->unprotected->{ $dbclass };
+}
+
+sub _user_approved {
+
+    my ( $self, $dbclass, $attrs ) = @_;
+
+    my $decision;
+
+    DECISION:
+    {
+        warn("Need to create a new $dbclass:\n");
+        while ( my ( $key, $val ) = each %$attrs ) {
+            warn("$key : $val\n"); # FIXME this needs to drill down into db objs.
+        }
+        warn("Do you approve (Y/N; N will abort load)?\n");
+        chomp($decision = <STDIN>);
+        redo DECISION unless ( $decision =~ /\A [yn] \z/ixms );
+    }
+
+    return lc($decision) eq 'y';
+}
+
+sub _protected_find_or_create_database_object {
+
+    my ( $self, $dbclass, $attrs ) = @_;
+
+    my $obj = $self->database->resultset( $dbclass )->find( $attrs );
+
+    if ( ! $obj ) {
+        if ( $self->_forced_creation( $dbclass ) ||
+                 ( $self->interactive &&
+                       $self->_user_approved( $dbclass, $attrs ) ) ) {
+            $obj = $self->database->resultset( $dbclass )->create( $attrs );
+        }
+        else {
+            my $msg = qq{Error: Unable to find $dbclass in the database:\n};
+            while ( my ( $attr, $val ) = each %$attrs ) {
+                $msg .= qq{$attr: $val\n};
+            }
+            die($msg);
+        }
+    }
+
+    return $obj;
+}
+
 sub _load_table_data {
 
     my ( $self, $fh ) = @_;
 
-    my $db = $self->database;
+    my $product_category = $self->database->resultset("ProductCategory")->find(
+        { description => $self->category } )
+        or die(sprintf(qq{Unable to find the product category "%s" in the database.\n"},
+                       $self->category));
 
     PRODUCT:
     while ( my $line = $self->_csv_parser->getline($fh) ) {
@@ -119,28 +205,31 @@ sub _load_table_data {
         next PRODUCT if ( $line->[0] =~ /\A \s* \#/xms );
         my ( $prodname, $compname, $allergens ) = $self->_parse_row( $line );
 
-        my $product = $db->resultset('Product')->find(
-            {
-                'name'            => $prodname,
-                'company_id.name' => $compname,
-            },
-            { join => 'company_id' } )
-            or die(qq{Error: Unable to find Product in the database:\n}
-                       .qq{$compname: $prodname\n});
+        my $company = $self->_protected_find_or_create_database_object(
+            'Company',
+            { 'name' => $compname },
+        );
+        my $product = $self->_protected_find_or_create_database_object(
+            'Product',
+            { 'name'                => $prodname,
+              'company_id'          => $company,
+              'product_category_id' => $product_category },
+        );
 
         while ( my ( $allername, $present ) = each %$allergens ) {
 
-            ## FIXME set a flag to create these automatically; we need
-            ## a pre-validation run to list what would be created.
-            my $allergen = $db->resultset('ProductAllergenType')->find(
-                { 'description' => $allername } )
-            or die(qq{Error: Unable to find Allergen in the database:\n$allername\n});
-            
-            $db->resultset('ProductAllergen')->update_or_create({
+            ## FIXME we need a pre-validation run to list what would
+            ## be created.
+            my $allergen = $self->_protected_find_or_create_database_object(
+                'ProductAllergenType',
+                { 'description' => $allername },
+            );
+            my $record = $self->database->resultset('ProductAllergen')->find_or_create({
                 product_id               => $product->id(),
                 product_allergen_type_id => $allergen->id(),
-                present                  => $present,
-            });
+            }, { key => 'product_allergen_mapping' });
+            $record->set_column('present', $present);
+            $record->update();
         }
     }
 }
@@ -166,10 +255,8 @@ sub load {
     my @header = map { $_ =~ s/\A \s*(.*?)\s* \z/$1/xms; $_ } @$rawheader;
     $self->_header( \@header );
 
-    my $db = $self->database;
-
     eval {
-        $db->txn_do( sub { $self->_load_table_data($fh); } );
+        $self->database->txn_do( sub { $self->_load_table_data($fh); } );
     };
     if ( $@ ) {
         die(qq{Errors encountered during load:\n\n$@});
@@ -191,15 +278,35 @@ sub load {
     return;
 }
 
+no Moose;
+
+################################################################################
+
 package main;
+
+use Getopt::Long;
+use Pod::Usage;
+use BeerFestDB::ORM;
+use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $input, $want_help );
+    my ( $input,
+         $category,
+         $force_companies,
+         $force_products,
+         $force_allergens,
+         $interactive,
+         $want_help );
 
     GetOptions(
-	"i|input=s"  => \$input,
-        "h|help"     => \$want_help,
+	"i|input=s"       => \$input,
+        "c|category=s"    => \$category,
+        "force-companies" => \$force_companies,
+        "force-products"  => \$force_products,
+        "force-allergens" => \$force_allergens,
+        "interactive"     => \$interactive,
+        "h|help"          => \$want_help,
     );
 
     if ($want_help) {
@@ -221,14 +328,35 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    return( $input, $config );
+    $category ||= 'beer';
+
+    return( $input,
+            $config,
+            $category,
+            $force_companies,
+            $force_products,
+            $force_allergens,
+            $interactive );
 }
 
-my ( $input, $config ) = parse_args();
+my ( $input,
+     $config,
+     $category,
+     $force_companies,
+     $force_products,
+     $force_allergens,
+     $interactive ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
-my $loader = AllergenLoader->new( database => $schema );
+my $loader = AllergenLoader->new(
+    database        => $schema,
+    category        => $category,
+    force_companies => $force_companies,
+    force_products  => $force_products,
+    force_allergens => $force_allergens,
+    interactive     => $interactive,
+);
 
 $loader->load( $input );
 
@@ -256,6 +384,22 @@ of the allergen cannot be established, use one of these values: na,
 n/a, nd, n/d, or a blank value. All other values will raise an error.
 
 Lines beginning with # will be treated as comments.
+
+=head1 OPTIONS
+
+=head2 -c, --category
+
+The product category to use when creating new products in the
+database. Default is 'beer'.
+
+=head2 --force-companies, --force-products, --force-allergens
+
+Force the creation of new companies, products or allergen types in the
+database.
+
+=head2 --interactive
+
+Ask the user for advice on creating new objects in the database.
 
 =head1 AUTHOR
 
