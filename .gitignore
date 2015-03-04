@@ -1,0 +1,5 @@
+# We don't track the primary config file in github for obvious security reasons.
+beerfestdb_web.yml
+
+# Skip emacs backup files.
+*~
