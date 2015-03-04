@@ -23,6 +23,12 @@ __PACKAGE__->table("product_allergen");
 
 =head1 ACCESSORS
 
+=head2 product_allergen_id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+
 =head2 product_id
 
   data_type: 'integer'
@@ -43,6 +49,8 @@ __PACKAGE__->table("product_allergen");
 =cut
 
 __PACKAGE__->add_columns(
+  "product_allergen_id",
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "product_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "product_allergen_type_id",
@@ -55,17 +63,17 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</product_id>
+=item * L</product_allergen_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("product_id");
+__PACKAGE__->set_primary_key("product_allergen_id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<product_allergen_id>
+=head2 C<product_allergen_mapping>
 
 =over 4
 
@@ -78,7 +86,7 @@ __PACKAGE__->set_primary_key("product_id");
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "product_allergen_id",
+  "product_allergen_mapping",
   ["product_id", "product_allergen_type_id"],
 );
 
@@ -113,8 +121,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-07 21:55:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nH8wDnE5j9FNTm241vCgfA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-04 16:26:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V0vAeCRsaY8lNak6CtorJg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

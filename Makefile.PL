@@ -58,6 +58,7 @@ requires 'Term::ReadKey';
 recommends 'YAML::XS';  # YAML::Syck is deprecated.
 recommends 'DateTime';  # CBF-specific web site upload script.
 recommends 'JSON::XS';  # Seems to work a bit more reliably than JSON::PP in this context.
+recommends 'DBD::mysql'; # Or whatever you wish to use; beerfestdb has been extensively tested on mysql.
 
 recommends 'OpenOffice::OODoc';
 
