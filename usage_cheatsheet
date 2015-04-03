@@ -5,13 +5,13 @@ Author: Midori Harris, Head Cellar Manager
 General data entry
 
 To get special characters in, go to http://unicode-table.com/, find
-the character, and click it. There used to be a handy "copy to
-clipboard" button on the popup, and you could paste from that into the
-web interface or a mysql command. Sigh.
+the character, and click it. A decent modern browser should offer a
+handy "copy to clipboard" button on the popup, and you can paste from
+that into the web interface or a mysql command.
 
 Or go to http://www.fileformat.info/info/unicode/char/a.htm, find the
 character, follow its link, and copy/past from the Java Data ->
-string.toUpperCase() table entry.
+string.toUpperCase() or string.toLowerCase() table entry.
 
 Summer Festival
 
