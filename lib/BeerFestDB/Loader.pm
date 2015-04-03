@@ -706,8 +706,9 @@ sub _load_column_value {
 	     && defined $value && $value ne $old ) {
 	    warn(
 		sprintf(
-		    qq{WARNING: Will not overwrite old data with new}
-		    . qq{ (consider overwrite mode?):\nOLD: %s\nNEW: %s\n\n}, $old, $value))
+		    qq{WARNING: Will not overwrite old %s.%s value with new data}
+		    . qq{ (consider overwrite mode?):\nOLD: %s\nNEW: %s\n\n},
+		    $class, $col, $old, $value))
 	}
     }
     $object->update();
