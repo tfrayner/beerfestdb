@@ -107,6 +107,7 @@ Logo
   reduce to ~150 pixels, and flatten (no alpha channel)
 
 Appendix 1
+
 column headings for files to load (using load_data.pl):
   copied & human-friendlied from beerfestdb/lib/BeerFestDB/Loader.pm
   script also accepts space or - instead of _
@@ -167,6 +168,6 @@ column headings for files to load (using load_data.pl):
         contact_comment
         telephone_type	telephone will go in as telephone_type
 
-
+To load companies using load_data.pl, use the brewery_* column headers, and unprotect Company in the .yaml file.
 
 
