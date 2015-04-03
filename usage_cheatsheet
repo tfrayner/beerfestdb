@@ -168,9 +168,5 @@ column headings for files to load (using load_data.pl):
         telephone_type	telephone will go in as telephone_type
 
 
-Appendix 2
-note to preserve what's left of sanity: mysql password is NOT the same
-as the interface password (at the moment mine happens to be the same as my self-assigned nickname)
 
-changed SourceForge password 2014-04-27 to LnwRtm123aoe
 
