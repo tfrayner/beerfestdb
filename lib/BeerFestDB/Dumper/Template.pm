@@ -115,6 +115,25 @@ sub _sanitise_filename {
     return $tag;
 }
 
+sub allergen_hash {
+
+    my ( $self, $product ) = @_;
+
+    # Return a hashref keyed by allergen; values are 1=present,
+    # 0=absent, undef=unknown, as stored in the database.
+
+    my %allergen_data;
+
+    foreach my $allergen ( $self->database->resultset('ProductAllergenType')->all() ) {
+        my $pa = $allergen->search_related(
+            'product_allergens',
+            { product_id => $product->product_id })->first();
+        $allergen_data{ $allergen->description() } = $pa ? $pa->present : undef;
+    }
+
+    return \%allergen_data;
+}
+
 sub product_hash {
 
     my ( $self, $product ) = @_;
@@ -137,9 +156,11 @@ sub product_hash {
         category => $product->product_category_id()->description(),
         abv      => $product->nominal_abv(),
         notes    => $product->description(),
+        allergens => $self->allergen_hash( $product ),
         _split_export_tag => $tag,
     );
 
+    # Handle FestivalProduct data here.
     if ( $fp ) {
         $prodhash{sale_volume} = $fp->sale_volume_id()->description();
         my $currency = $fp->sale_currency_id();
@@ -204,7 +225,9 @@ sub distributor_hash {
     my $fest       = $self->festival();
     my $orderbatch = $self->order_batch();
 
-    my $tag = $self->_sanitise_filename(sprintf("%s %s", $orderbatch->description(), $dist->name()));
+    my $tag = $self->_sanitise_filename(sprintf("%s %s",
+                                                $orderbatch->description(),
+                                                $dist->name()));
 
     my %disthash = (
         id         => $dist->id(),
@@ -499,7 +522,7 @@ sub filter_to_latex {
     # mysql_enable_utf8 => 1 in the DBD::mysql connection options (see
     # beerfestdb_web.yml).
 
-    # N.B. we're not covering capitals yet FIXME?
+    # N.B. we're not covering all capitals yet FIXME?
 
     # Hex representations can be found by running e.g.:
     #    printf "%x", ord('ç')
@@ -519,6 +542,12 @@ sub filter_to_latex {
     $text =~ s/ (?: ó | \x{f3} ) /\\'{o}/gxms;
     $text =~ s/ (?: ú | \x{fa} ) /\\'{u}/gxms;
 
+    $text =~ s/ (?: Á | \x{c1} ) /\\'{A}/gxms;
+    $text =~ s/ (?: É | \x{c9} ) /\\'{E}/gxms;
+    $text =~ s/ (?: Í | \x{cd} ) /\\'{\\I}/gxms;
+    $text =~ s/ (?: Ó | \x{d3} ) /\\'{O}/gxms;
+    $text =~ s/ (?: Ú | \x{da} ) /\\'{U}/gxms;
+
     # Circumflex accents.
     $text =~ s/ (?: â | \x{e2} ) /\\^{a}/gxms;
     $text =~ s/ (?: ê | \x{ea} ) /\\^{e}/gxms;
@@ -532,6 +561,12 @@ sub filter_to_latex {
     $text =~ s/ (?: ï | \x{ef} ) /\\"{\\i}/gxms;
     $text =~ s/ (?: ö | \x{f6} ) /\\"{o}/gxms;
     $text =~ s/ (?: ü | \x{fc} ) /\\"{u}/gxms;
+
+    $text =~ s/ (?: Ä | \x{c4} ) /\\"{A}/gxms;
+    $text =~ s/ (?: Ë | \x{cb} ) /\\"{E}/gxms;
+    $text =~ s/ (?: Ï | \x{cf} ) /\\"{\\I}/gxms;
+    $text =~ s/ (?: Ö | \x{d6} ) /\\"{O}/gxms;
+    $text =~ s/ (?: Ü | \x{dc} ) /\\"{U}/gxms;
 
     # Misc.
     $text =~ s/ (?: \£ | \x{a3} ) /\\pounds/gxms;
@@ -653,6 +688,12 @@ A boolean flag indicating whether the cask or product order is sale-or-return or
 A hashref of dip measurements keyed by measurement batch ID, fully
 filled up to the latest batch containing any dip figures. This
 arrayref is populated using the DipMunger role.
+
+=item allergens
+
+A hashref of allergen records, keyed by the name of the allergens. All
+allergens stored in the database are represented. Values are
+1=present, 0=absent, undef=unknown.
 
 =back
 
