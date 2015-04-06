@@ -195,8 +195,7 @@ sub modify : Local {
 
     # Quick check for authorisation; we may need to put in other
     # checks for content FIXME.
-    my $j = JSON->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
+    my $data = $self->decode_json_changes($c);
 
     foreach my $rec ( @{ $data } ) {
         if ( $rec->{'user_id'} != eval{ $c->user->user_id } ) {

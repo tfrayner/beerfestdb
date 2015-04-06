@@ -221,8 +221,7 @@ sub submit : Local {
 
     # Note that the previous dip measurement is assumed not to be
     # returned from the view component.
-    my $j = JSON->new;
-    my $data = $j->jsonToObj( $c->request->param( 'changes' ) );
+    my $data = $self->decode_json_changes($c);
 
     eval {
         $rs->result_source()->schema()->txn_do(
