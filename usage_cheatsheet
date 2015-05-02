@@ -79,6 +79,13 @@ To spawn summer fest programme beer list fodder:
 
 To get new info to replace old (e.g. improved tasting notes), use load_data.pl overwrite mode (-o option).
 
+For cask lists (delivery & stillage plan checklists)
+  1. Run preload_festival_casks.pl to bring cask entries into existence
+        (optional: redirect the 80 bazillion "Creating new cask..." messages to trash file or /dev/null/)
+  2. Use dump_to_template.pl with options:
+     a. delivery checklist: -t templates/delivery_checklist.tt2 -o distributor
+        optional: manually edit .tex to split by day (because of course not quite everything arrives on the specified Wednesday)
+     b. cask list for stillage plan: -t templates/stillage_planning.tt2 -o cask_management
 
 When beer comes
   Tick "arrived"
