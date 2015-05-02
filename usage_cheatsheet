@@ -29,6 +29,7 @@ Summer Festival
                       -l images/cake.png -o distributor > some_order.tex
 	also note: if you don't know what to put for -o option, run script without it and it'll prompt you
 	-s option splits into multiple .tex files based on -o option setting; use instead of '> filename.tex' (e.g. '-o distributor -s' yields one .tex per supplier)
+   7a. If an order needs a continuation sheet, use the 2015 Boggart order as an example.
  
 Info gathering spreadsheet --> load_data input
 1. File -> Download as
@@ -49,6 +50,23 @@ Info gathering spreadsheet --> load_data input
 10. Unprotect company & product in beerfestdb.yml; load!
 11. Spawn 'n' send orders as above
 
+To load mead or wine data using load_data.pl
+  punt and
+    1. load everything as some tidy n-gallon measure, e.g. 9 for firkin
+    2. change to correct measure in web interface
+  OR really punt and just
+    a. load up everything as though there's just one of each product/size combo
+    b. update quantities in web interface upon arrival, or later (if later, add new lines in web interface or use load_data.pl -- if scripted, don't forget to subtract 1 from each qty)
+  (tried this:
+    one. include a cask_unit column, set to 'litre'
+    two. put number of L in cask_size column; hope no floating point problems bite us
+   but got cranky error messages, e.g. "DBIx::Class::ResultSet::find_or_create(): DBI Exception: DBD::mysql::st execute failed: Incorrect decimal value: '50 cL bottle' for column 'container_volume' at row 1 [for Statement "INSERT INTO container_size ( container_measure_id, container_volume) VALUES ( ?, ? )" with ParamValues: 0='2', 1='50 cL bottle'] at /home/tfrayner/beerfestdb/lib/BeerFestDB/Loader.pm line 661")
+
+Cider, perry, apple juice
+  - Ciderdom may or may not provide container sizes and quantities. If they don't, there are two options:
+        a. include order_batch column, and dummy values for cask_size and cask_quantity (e.g. size 5, qty 1); OR
+        b. omit order_batch, cask_size and cask_quantity, and unprotect FestivalProduct in beerfestdb.yml
+  - Handle cider & perry ABVs at gyle level (and load correspondingly late in proceedings)
 
 To spawn summer fest programme beer list fodder:
   1. go into mysql command line (% mysql -p beerfestdb)
