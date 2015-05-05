@@ -395,11 +395,17 @@ database. Default is 'beer'.
 =head2 --force-companies, --force-products, --force-allergens
 
 Force the creation of new companies, products or allergen types in the
-database.
+database. The default behaviour is to only create links between
+products and allergens already existing in the database. If
+unrecognised (i.e., new) data are encountered then the script will
+exit with an error. In such cases either these options or
+--interactive (below) may be used.
 
 =head2 --interactive
 
-Ask the user for advice on creating new objects in the database.
+Ask the user for advice on creating new objects in the database. When
+loading new allergens, products or companies you will need to use
+either this option or one of the --force-* options above.
 
 =head1 AUTHOR
 
