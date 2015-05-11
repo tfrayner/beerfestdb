@@ -36,9 +36,11 @@
 % festival logo
 [% SET logo = logos.0 %]
 
+[% IF logo != '' -%]
 \begin{textblock}{0.01}(0.06,0.04)
 \includegraphics[width=28mm]{[% logo %]}  %% Recommended 150 pixels wide to reduce burden on printer.
 \end{textblock}
+[%- END %]
 
 % Allergen data (replaces old hardcoded CAMRA logo)
 \fontsize{10}{12}
