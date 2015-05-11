@@ -40,9 +40,31 @@
 \includegraphics[width=28mm]{[% logo %]}  %% Recommended 150 pixels wide to reduce burden on printer.
 \end{textblock}
 
-% CAMRA logo (hardcoded)
-\begin{textblock}{0.01}(0.86,0.04)
-\includegraphics[width=30mm]{images/camra_logo.png}
+% Allergen data (replaces old hardcoded CAMRA logo)
+\fontsize{10}{12}
+\selectfont
+\begin{textblock}{0.15}(0.80,0.04)
+[% SET allergens = cask.allergens %]
+[% SET started   = 0 %]
+\textbf{Contains:}
+[% FOREACH allergen IN allergens.pairs -%]
+  [%- IF allergen.value.defined && allergen.value == 1 -%]
+  [%- IF started == 1 -%], [%- END -%]
+  [% allergen.key -%]
+  [%- SET started = 1 -%]
+  [%- END -%]
+[% END %] \\
+
+[% SET started   = 0 %]
+\textbf{Does not contain:}
+[% FOREACH allergen IN allergens.pairs -%]
+  [%- IF allergen.value.defined && allergen.value == 0 -%]
+  [%- IF started == 1 -%], [%- END -%]
+  [% allergen.key -%] 
+  [%- SET started = 1 -%]
+  [%- END -%]
+[% END %]
+
 \end{textblock}
 
 % product info to be plugged in
