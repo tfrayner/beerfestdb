@@ -171,7 +171,8 @@ sub product_hash {
         # the price in the local format. However, if you need to do any
         # calculations then use price and the price_format filter
         # below. This reduces the risk of floating-point errors.
-        $prodhash{formatted_price} = $self->format_price( $fp->sale_price(), $format );
+	# UPDATE: commented out this line as the formatting code breaks on large price values.
+#        $prodhash{formatted_price} = $self->format_price( $fp->sale_price(), $format );
         $prodhash{price} = $fp->sale_price(); # typically in pennies (GBP).
     }
 

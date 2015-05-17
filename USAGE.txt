@@ -144,8 +144,8 @@ logo. Currently available template files include the following:
    on cask festival number; the barcodes are somewhat error prone and
    so if this fails badly then cask_labels_no_barcode.tt2 is provided
    as a backup. Dump class: cask_management. Note that you will need
-   to run pdflatex with the -shell-escape argument to get it to
-   work with barcodes.
+   to run pdflatex with the -shell-escape argument to get it to work
+   with the barcodes.
 
  - delivery_checklist.tt2: A set of delivery checklists ordered by
    distributor. Dump class: distributor.
