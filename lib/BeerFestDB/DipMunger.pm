@@ -66,7 +66,7 @@ sub munge_dips {
         $festival->search_related(
             'measurement_batches',
             { 'cask_measurements.cask_id' => $cask->id() },
-            { prefetch => { 'cask_measurements' => 'container_measure_id' },
+            { join     => { 'cask_measurements' => 'container_measure_id' },
               +select  => [ 'measurement_time',
                             'cask_measurements.volume',
                             'container_measure_id.litre_multiplier', ],

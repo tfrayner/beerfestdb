@@ -24,7 +24,7 @@ use Moose;
 use namespace::autoclean;
 
 use List::Util qw( min );
-use Digest::SHA1 qw( sha1_hex );
+use Digest::SHA qw( sha1_hex );
 use Carp;
 use JSON::MaybeXS;
 
@@ -313,7 +313,7 @@ sub _sha1_hash : Private {
 
     my ( $self, $content ) = @_;
 
-    my $sha1 = Digest::SHA1->new;
+    my $sha1 = Digest::SHA->new;
     $sha1->add($content);
 
     return $sha1->hexdigest();
