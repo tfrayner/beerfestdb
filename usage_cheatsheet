@@ -46,7 +46,7 @@ Info gathering spreadsheet --> load_data input
     brewery_name	product_name	product_abv	product_style	cask_size	cask_count	order_sor	distributor_name	order_batch	product_category	festival_name	festival_year	order_finalized
 8. Feed to load_data.pl with default beerfestdb.yml (i.e. default protected categories including company, product)
 	a. if it squawks "Protection error (ProductOrder):" uncomment ProductOrder to create (wait for it) this product order
-9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things
+9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things (make sure nothing is missing or mangled)
 10. Unprotect company & product in beerfestdb.yml; load!
 11. Spawn 'n' send orders as above
 
