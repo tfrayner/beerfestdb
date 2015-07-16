@@ -38,7 +38,7 @@
 
 [% IF logo != '' -%]
 \begin{textblock}{0.01}(0.06,0.04)
-\includegraphics[width=28mm]{[% logo %]}  %% Recommended 150 pixels wide to reduce burden on printer.
+\includegraphics[width=28mm]{[% logo %]}  %% Note that all logo image files should be flattened to remove alpha channel; otherwise this slows printing to a crawl.
 \end{textblock}
 [%- END %]
 

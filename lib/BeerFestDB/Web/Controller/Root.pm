@@ -156,6 +156,24 @@ sub logout : Global {
     $c->res->redirect( $c->uri_for('/') );
 }
 
+=head2 json_logout
+
+A method which simply deauthenticates the user without redirecting to
+the root page (so that the stashed success message can be retrieved).
+
+=cut
+
+sub json_logout : Global {
+
+    my ( $self, $c ) = @_;
+
+    $c->logout;
+    
+    $c->flash->{ 'message' } = 'Successfully logged out.';
+    $c->stash->{ 'success' } = JSON->true();
+    $c->detach( $c->view( 'JSON' ) );
+}
+
 sub auto : Private {
 
     my ($self, $c) = @_;

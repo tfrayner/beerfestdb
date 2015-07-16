@@ -19,23 +19,28 @@
 ##
 ## $Id$
 
-getFestivalData <- function( baseuri, festname, prodcat ) {
+getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list() ) {
 
     ## Begin building the main data frame.
-    fest <- queryBFDB(paste(baseuri, 'festival/list', sep='/'))
+    fest <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                      'Festival', 'list')
 
-    batch <- queryBFDB(paste(baseuri, 'measurementbatch/list',
-                             fest[ fest$name==festname, 'festival_id'], sep='/'))
+    batch <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                       'MeasurementBatch', 'list',
+                       params=fest[ fest$name==festname, 'festival_id'])
     batch$measurement_time <- as.Date(batch$measurement_time)
     batch <- batch[ order(batch$measurement_time), ]
 
-    cat <- queryBFDB(paste(baseuri, 'productcategory/list', sep='/'))
+    cat <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                     'ProductCategory', 'list')
 
-    cask <- queryBFDB(paste(baseuri, 'cask/list',
-                            fest[ fest$name==festname, 'festival_id'],
-                            cat[cat$description==prodcat, 'product_category_id'], sep='/'),
-                      c('cask_id','product_id','container_size_id','order_batch_id','gyle_id',
-                        'stillage_location_id','festival_ref','is_condemned','is_sale_or_return','comment'))
+    cask <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                      'Cask', 'list',
+                      params=c(fest[ fest$name==festname, 'festival_id'],
+                          cat[cat$description==prodcat, 'product_category_id']),
+                      columns=c('cask_id','product_id','container_size_id',
+                          'order_batch_id','gyle_id','stillage_location_id',
+                          'festival_ref','is_condemned','is_sale_or_return','comment'))
 
     w <- colnames(cask) != 'comment'
     suppressWarnings(cask[,w] <- as.data.frame(apply(cask[,w], 2, as.integer)))
@@ -43,48 +48,55 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
     cask[ is.na(cask$is_sale_or_return), 'is_sale_or_return' ] <- 0
     cask[ is.na(cask$comment), 'comment' ] <- ''
 
-    sizes <- queryBFDB(paste(baseuri, 'containersize/list', sep='/'),
-                       c('container_size_id','volume'))
+    sizes <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                       'ContainerSize', 'list',
+                       columns=c('container_size_id','volume'))
     colnames(sizes)[2] <- 'cask_volume'
     cp <- merge(cask, sizes, by='container_size_id')
 
-    product <- queryBFDB(paste(baseuri, 'product/list', sep='/'),
-                         c('product_id','company_id','nominal_abv','name','product_style_id'))
+    product <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                         'Product', 'list',
+                         columns=c('product_id','company_id','nominal_abv',
+                             'name','product_style_id'))
     colnames(product)[4]<-'product_name'
     cp <- merge(cp, product, by='product_id')
 
-    gyle <- queryBFDB(paste(baseuri, 'gyle/list_by_festival',
-                            fest[ fest$name==festname, 'festival_id'], sep='/'),
-                       c('gyle_id','abv'))
+    gyle <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                      'Gyle', 'list_by_festival',
+                      params=fest[ fest$name==festname, 'festival_id'],
+                      columns=c('gyle_id','abv'))
     colnames(gyle)[2] <- 'gyle_abv'
     cp <- merge(cp, gyle, by='gyle_id')
 
-    style <- queryBFDB(paste(baseuri, 'productstyle/list', sep='/'),
-                       c('product_style_id','description'))
+    style <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                       'ProductStyle', 'list',
+                       columns=c('product_style_id','description'))
     colnames(style)[2] <- 'style'
     cp <- merge(cp, style, by='product_style_id', all.x=TRUE)
     
-    company <- queryBFDB(paste(baseuri, 'company/list', sep='/'),
-                         c('company_id','name','company_region_id'))
+    company <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                         'company', 'list',
+                         columns=c('company_id','name','company_region_id'))
     colnames(company)[2]<-'company_name'
     cp <- merge(cp, company, by='company_id')
     
-    region <- queryBFDB(paste(baseuri, 'companyregion/list', sep='/'),
-                        c('company_region_id','description'))
+    region <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                        'CompanyRegion', 'list',
+                        columns=c('company_region_id','description'))
     colnames(region)[2] <- 'region'
     cp <- merge(cp, region, by='company_region_id', all.x=TRUE)
 
-    stillage <- queryBFDB(paste(baseuri, 'stillagelocation/list',
-                                fest[ fest$name==festname, 'festival_id'],
-                                sep='/'),
-                        c('stillage_location_id','description'))
+    stillage <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                          'StillageLocation', 'list',
+                          params=fest[ fest$name==festname, 'festival_id'],
+                          columns=c('stillage_location_id','description'))
     colnames(stillage)[2] <- 'stillage'
     cp <- merge(cp, stillage, by='stillage_location_id', all.x=TRUE)
 
-    orderbatch <- queryBFDB(paste(baseuri, 'orderbatch/list',
-                                  fest[ fest$name==festname, 'festival_id'],
-                                  sep='/'),
-                        c('order_batch_id','description'))
+    orderbatch <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                            'OrderBatch', 'list',
+                            params=fest[ fest$name==festname, 'festival_id'],
+                            columns=c('order_batch_id','description'))
     colnames(orderbatch)[2] <- 'order_batch'
     cp <- merge(cp, orderbatch, by='order_batch_id', all.x=TRUE)
     cp[ is.na(cp$order_batch), 'order_batch' ] <- 'Other'
@@ -97,7 +109,7 @@ getFestivalData <- function( baseuri, festname, prodcat ) {
     colnames(dipmat) <- paste('dip', batch$description, sep='.')
 
     for ( id in cp$cask_id ) {
-        d <- retrieveDips(baseuri, id)
+        d <- retrieveDips(baseuri=baseuri, auth=auth, .opts=.opts, id)
         d <- unlist(lapply(batch$measurement_batch_id, function(n) { d[[as.character(n)]] }))
         dipmat[ as.character(id), ] <- d
     }
