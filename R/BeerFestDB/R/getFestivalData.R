@@ -21,6 +21,9 @@
 
 getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list() ) {
 
+    if ( is.null(auth) || ! inherits(auth, 'CURLHandle') )
+        auth <- .getBFDBHandle(baseuri=baseuri, auth=auth, .opts=.opts)
+
     ## Begin building the main data frame.
     fest <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                       'Festival', 'list')
