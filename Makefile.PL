@@ -33,7 +33,7 @@ requires 'Catalyst::Plugin::Authentication'               => '0.10007';
 requires 'Catalyst::Plugin::Authorization::ACL'           => '0.08';    # NOT 0.09!
 requires 'Catalyst::Plugin::Authorization::Roles'         => '0.05';
 requires 'Catalyst::Authentication::Store::DBIx::Class'   => '0.104';
-requires 'Digest::SHA1'                                   => '2.11';
+requires 'Digest::SHA'                                    => '5.93';
 requires 'Crypt::SaltedHash'                              => '0.06';
 requires 'Catalyst::Action::RenderView';
 requires 'Catalyst::Plugin::Unicode::Encoding';
