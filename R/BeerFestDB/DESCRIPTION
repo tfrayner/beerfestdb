@@ -1,6 +1,6 @@
 Package: BeerFestDB
 Type: Package
-Title: Utility functions used to query and analyse dip data from the BeerFestDB database.
+Title: Utility functions used to query and analyse dip data from the BeerFestDB database
 Version: 0.1
 Date: 2011-06-18
 Author: Tim F. Rayner

@@ -1,3 +1,21 @@
-importFrom(RCurl, getURI)
+importFrom(RCurl, getURLContent, curlEscape, getURI)
+
+importFrom(tcltk,
+           tktoplevel,
+           tkwm.deiconify,
+           tclVar,
+           tclvalue,
+           tkbind,
+           tkbutton,
+           tkdestroy,
+           tkentry,
+           tkfocus,
+           tkgrab.release,
+           tkgrab.set,
+           tkgrid,
+           tklabel,
+           tkwait.window,
+           tkwm.title
+           )
 
 exportPattern("^[[:alpha:]]+")

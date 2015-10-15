@@ -44,8 +44,8 @@
 <<echo=FALSE>>=
 
 # Edit these:
-baseuri  <- 'http://localhost:3000'
-festname <- '17th Cambridge Winter Ale Festival'
+baseuri  <- 'https://secure.cambridge-camra.org.uk/beerfestdb'
+festname <- '42nd Cambridge Beer Festival'
 prodcat  <- 'beer'
 author   <- ''
 # End of editable section.
@@ -69,6 +69,8 @@ library(gplots)
 library(BeerFestDB)
 
 cp <- getFestivalData(baseuri, festname, prodcat)
+w  <- nchar(cp$stillage) > 12
+cp[w, 'stillage'] <- paste(substr(cp[w, 'stillage'], 0, 12), '...', sep='')
 w  <- colnames(cp) == 'cask_volume' | grepl('^dip\\.', colnames(cp))
 write.csv(cp, 'full_dip_dump.csv', row.names=FALSE)
 vol.total  <- sum(cp$cask_volume)

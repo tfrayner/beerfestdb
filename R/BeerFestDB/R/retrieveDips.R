@@ -19,12 +19,14 @@
 ##
 ## $Id$
 
-retrieveDips <- function( baseuri, id ) {
+retrieveDips <- function( baseuri, id, auth=NULL, .opts=list() ) {
 
-    res <- getURI(paste(baseuri, 'cask/list_dips', id, sep='/'))
-    res <- rjson::fromJSON(res)
-    stopifnot(isTRUE(res$success))
+    if ( is.null(auth) || ! inherits(auth, 'CURLHandle') )
+        auth <- .getBFDBHandle(baseuri=baseuri, auth=auth, .opts=.opts)
 
-    return(res$objects)
+    objects <- queryBFDB('Cask', 'list_dips', id,
+                         baseuri=baseuri, auth=auth, .opts=.opts)
+
+    return(objects)
 }
 

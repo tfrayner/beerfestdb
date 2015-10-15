@@ -12,8 +12,8 @@ library(BeerFestDB)
 if ( ! interactive() ) {
 
     ## Ideally these would be set either by config or command-line arguments.
-    baseuri  <- 'http://localhost:3000'
-    festname <- '38th Cambridge Beer Festival'
+    baseuri  <- 'https://secure.cambridge-camra.org.uk/beerfestdb'
+    festname <- '42nd Cambridge Beer Festival'
     prodcat  <- 'beer'
 
     cp <- getFestivalData(baseuri, festname, prodcat)
