@@ -244,7 +244,8 @@ sub send_update {
     );
     
     if ( ! $res->is_success() ) {
-        die("Error: Unable to connect to Public web site: " . $res->status_line() );
+        die(sprintf("Error: Unable to connect to Public web site: %s\nResponse content:\n  %s",
+		    $res->status_line(), $res->content() ));
     }
 
     return();
