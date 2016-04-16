@@ -221,6 +221,7 @@ use DateTime::TimeZone;
 use JSON::DWIW;
 use List::Util qw (first);
 use BeerFestDB::Web;
+use Encode qw(encode_utf8);
 
 use utf8;
 
@@ -232,7 +233,7 @@ sub send_update {
     
     $content     =~ s/[\r\n]//g;  # workaround for server bug
     my $counter  = time;
-    my $mac      = hmac_sha256_hex($clientid . $counter . $content, $key);
+    my $mac      = hmac_sha256_hex(encode_utf8($clientid . $counter . $content), $key);
 
     my $ua  = LWP::UserAgent->new;
     my $res = $ua->post(
