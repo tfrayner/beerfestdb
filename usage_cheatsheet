@@ -22,7 +22,7 @@ Summer Festival
    b. Most order data will go in via load_data.pl
 4. Edit beerfestdb_web.yml to update festival name.
 	Consult USAGE.txt for other (temporary) edits to beerfestdb_web.yml as needed to allow convenient loading.
-5. Update logo, i.e. add current to home/images/directory
+5. If using a logo on orders, update the file, i.e. add current to home/images/directory; otherwise skip to step 7.
 6. Update beerfestdb/util/templates/order_template.tt2 to refer to shiny new logo.
 7. Use dump_to_template.pl to generate order .tex files. You know the rest. e.g.
 	> dump_to_template.pl -t templates/order_template.tt2 \
@@ -49,6 +49,8 @@ Info gathering spreadsheet --> load_data input
 9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things (make sure nothing is missing or mangled)
 10. Unprotect company & product in beerfestdb.yml; load!
 11. Spawn 'n' send orders as above
+Alternative to steps 1-6: Copy just columns A-F from spreadsheet GUI; don't forget to repeat with updated quantities for any SOR casks. Paste into file destined to be input for load_data.pl.
+Note that either approach is error-prone, so check carefully to avoid duplications and omissions.
 
 To load mead or wine data using load_data.pl
   punt and
