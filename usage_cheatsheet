@@ -132,6 +132,17 @@ October & Winter festivals
 
 Logo
   reduce to ~150 pixels, and flatten (no alpha channel)
+  
+Allergens
+- Script: load_allergens.pl runs in either of two modes
+	a. load_allergens.pl --interactive asks what to do if it encounters an allergen not previously loaded
+        b. --force-allergens automatically loads new allergens found as column headers (more convenient for early runs, but more dangerous, as it would happily all\
+ow misspellings in)
+- Loading behaves in a manner analogous to "protect/unprotect", but using command-line options instead of beerfestdb.yaml (like other scripts, do % load_allergens.\
+pl -h to see options)
+- Database allows present (Y, yes, 1), absent (N, no, 0), unknown (NA, n/a, ND, or leave NULL)
+        recommend noting presence or absence that we're told about, and leave unknown/null for anything not specifically mentioned
+- Allergen list in Appendix 2
 
 Appendix 1
 
@@ -197,4 +208,20 @@ column headings for files to load (using load_data.pl):
 
 To load companies using load_data.pl, use the brewery_* column headers, and unprotect Company in the .yaml file.
 
+Appendix 2: List of reportable allergens
+- List of allergens:
+	celery
+        crustaceans
+        egg
+        fish (but isinglass finings don't count; apparently it's sufficiently purified away from the allergen(s))
+        gluten (it's "allergies and intolerances", not just conditions that are technically allergies)
+	lupins
+	milk
+        molluscs
+        mustard
+	nuts
+        peanuts
+        sesame
+        soybeans
+        sulphites
 
