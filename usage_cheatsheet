@@ -105,6 +105,33 @@ When beer comes
 
 For dip sheets: manually enter "Measurement batches" -- otherwise no dip data slots print out!
 
+Info for cask index cards: This query retrieves certain details for every cask for which (a) the order is finalized and (b) has its "virtual cask" in the db, i.e. preload_festival_casks has been run.
+  Details: cask ID, beer, brewery, ABV, style, cask size
+
+    select cm.cellar_reference as cask_id, c.name as brewery,
+    p.name as beer, p.nominal_abv as abv,
+    ps.description as style, cs.description as size
+    from cask_management cm, product p, company c,
+    product_style ps, container_size cs,
+    product_category pc, product_order po,
+    order_batch ob, festival f
+    where f.name="43rd Cambridge Beer Festival"
+    and f.festival_id=ob.festival_id
+    and ob.order_batch_id=po.order_batch_id
+    and po.product_order_id=cm.product_order_id
+    and cm.container_size_id=cs.container_size_id
+    and po.product_id=p.product_id
+    and p.company_id=c.company_id
+    and p.product_style_id=ps.product_style_id
+    and p.product_category_id=pc.product_category_id
+    and pc.description="beer"
+
+  To get the details in a useful file, use the
+        echo '[query parameters]' | mysql -p beerfestdb > [output_file.txt]
+  business as described above for generating the programme beer list.
+
+  Note that this all retrieves advertised product ABVs, not gyle ABVs. Using gyle ABVs would require waiting until orders have been marked "arrived" and gyle ABVs updated in the db. Resolve discrepancies manually (until & unless someone contributes an enhancement to the query).
+
 If a beer gets condemned, record it for each affected cask in Casks by
 Stillage > condemned. Someone should also fill out a "Problematic Beer
 Report" form.
