@@ -145,8 +145,9 @@ If there's a reorder
 1. Create a new order batch in the web interface. Use its name in step 2.
 2. Create a file with the usual details, as in main order loading. 
    2a. can omit product_abv and product_style if it's all stuff that's been in the main order, as the db will know about it
+   2b. don't forget the order_finalized column, set to '1'
 3. Unprotect ProductOrder in beerfestdb.yml, then load & go!
-   3a. also don't forget to flag them as arrived, either in the load file (include order_finalized and order_received, both "1") or the interface.
+   3a. also don't forget to flag them as arrived in the interface.
 
 
 Wine & Mead
