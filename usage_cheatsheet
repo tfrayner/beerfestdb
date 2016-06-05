@@ -149,6 +149,9 @@ If there's a reorder
 3. Unprotect ProductOrder in beerfestdb.yml, then load & go!
    3a. also don't forget to flag them as arrived in the interface.
 
+Dip spreadsheet
+  If anyone wants the dip data in spreadsheet format, use dump_to_template.pl with dip_csv_dump.tt2 and -o cask	to gene\
+rate a .csv file that should load into Excel, OpenOffice, etc.
 
 Wine & Mead
   To make signs come out with "glass" (not "pint"), use web interface:
@@ -179,6 +182,8 @@ pl -h to see options)
 - Database allows present (Y, yes, 1), absent (N, no, 0), unknown (NA, n/a, ND, or leave NULL)
         recommend noting presence or absence that we're told about, and leave unknown/null for anything not specifically mentioned
 - Allergen list in Appendix 2
+
+General hint for dump_to_template.pl: each template (.tt2) file has its allowed dump class(es) at the top.
 
 Appendix 1
 
