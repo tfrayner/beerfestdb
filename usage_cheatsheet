@@ -69,6 +69,12 @@ Cider, perry, apple juice
         a. include order_batch column, and dummy values for cask_size and cask_quantity (e.g. size 5, qty 1); OR
         b. omit order_batch, cask_size and cask_quantity, and unprotect FestivalProduct in beerfestdb.yml
   - Handle cider & perry ABVs at gyle level (and load correspondingly, and annoyingly, late in proceedings)
+        use load-data.pl once to get companies and product names in and connected to the festival, then prepare a second file for gyle ABVs.
+        - for the first round, include these columns: brewery_name, product_name, product_style, cask_size, cask_count,\
+ distributor_name, order_sor, order_batch, product_category, festival_name, festival_year, order_finalized (it shouldn'\
+t require product_abv, but if it does, include a blank column)
+        - in the second round, include: gyle_ABV, brewery_name, product_name, product_category, product_sale_price, fes\
+tival_name, festival_year
 
 Foreign beer
   Managers will send .csv file basically ready to load; fill in festival name
