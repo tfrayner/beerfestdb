@@ -433,7 +433,10 @@ sub _load_data {
                 currency_id            => $currency,
                 advertised_price       => $cask_price,
                 is_final               => $datahash->{$ORDER_FINALISED},
-                is_received            => $datahash->{$ORDER_RECEIVED},
+
+# I'm Deactivating this because it's rarely what's actually wanted;
+# FIXME instead consider the CaskManagement autogeneration step here.
+#                is_received            => $datahash->{$ORDER_RECEIVED},
                 comment                => $datahash->{$ORDER_COMMENT},
                 is_sale_or_return      => $datahash->{$ORDER_SALE_OR_RETURN} || 0, # Part of a DB key
             },
