@@ -22,7 +22,7 @@ Summer Festival
    b. Most order data will go in via load_data.pl
 4. Edit beerfestdb_web.yml to update festival name.
 	Consult USAGE.txt for other (temporary) edits to beerfestdb_web.yml as needed to allow convenient loading.
-5. Update logo, i.e. add current to home/images/directory
+5. If using a logo on orders, update the file, i.e. add current to home/images/directory; otherwise skip to step 7.
 6. Update beerfestdb/util/templates/order_template.tt2 to refer to shiny new logo.
 7. Use dump_to_template.pl to generate order .tex files. You know the rest. e.g.
 	> dump_to_template.pl -t templates/order_template.tt2 \
@@ -49,6 +49,8 @@ Info gathering spreadsheet --> load_data input
 9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things (make sure nothing is missing or mangled)
 10. Unprotect company & product in beerfestdb.yml; load!
 11. Spawn 'n' send orders as above
+Alternative to steps 1-6: Copy just columns A-F from spreadsheet GUI; don't forget to repeat with updated quantities for any SOR casks. Paste into file destined to be input for load_data.pl.
+Note that either approach is error-prone, so check carefully to avoid duplications and omissions.
 
 To load mead or wine data using load_data.pl
   punt and
@@ -66,7 +68,20 @@ Cider, perry, apple juice
   - Ciderdom may or may not provide container sizes and quantities. If they don't, there are two options:
         a. include order_batch column, and dummy values for cask_size and cask_quantity (e.g. size 5, qty 1); OR
         b. omit order_batch, cask_size and cask_quantity, and unprotect FestivalProduct in beerfestdb.yml
-  - Handle cider & perry ABVs at gyle level (and load correspondingly late in proceedings)
+  - Handle cider & perry ABVs at gyle level (and load correspondingly, and annoyingly, late in proceedings)
+        use load-data.pl once to get companies and product names in and connected to the festival, then prepare a second file for gyle ABVs.
+        - for the first round, include these columns: brewery_name, product_name, product_style, cask_size, cask_count,\
+ distributor_name, order_sor, order_batch, product_category, festival_name, festival_year, order_finalized (it shouldn'\
+t require product_abv, but if it does, include a blank column)
+        - in the second round, include: gyle_ABV, brewery_name, product_name, product_category, product_sale_price, fes\
+tival_name, festival_year
+
+Foreign beer
+  Managers will send .csv file basically ready to load; fill in festival name
+  Also copy product_abv to a gyle_abv column - that will create a gyle, which in turn will generate cask end sign output when dump_to_template.pl is run with -o\
+ gyle
+
+To get new info to replace old (e.g. improved tasting notes), use load_data.pl overwrite mode (-o option).
 
 To spawn summer fest programme beer list fodder:
   1. go into mysql command line (% mysql -p beerfestdb)
@@ -77,15 +92,16 @@ To spawn summer fest programme beer list fodder:
 	echo 'select * from programme_notes_view where festival="[name of festival of interest]"' | mysql -p beerfestdb > [output_file.txt]
 	e.g. % echo 'select * from programme_notes_view where festival="41st Cambridge Beer Festival"' | mysql -p beerfestdb > cbf41_beerlist.txt
 
-To get new info to replace old (e.g. improved tasting notes), use load_data.pl overwrite mode (-o option).
-
-For cask lists (delivery & stillage plan checklists)
+For cask lists (delivery & stillage plan checklists; cask labels)
   1. Run preload_festival_casks.pl to bring cask entries into existence
         (optional: redirect the 80 bazillion "Creating new cask..." messages to trash file or /dev/null/)
   2. Use dump_to_template.pl with options:
      a. delivery checklist: -t templates/delivery_checklist.tt2 -o distributor
         optional: manually edit .tex to split by day (because of course not quite everything arrives on the specified Wednesday)
      b. cask list for stillage plan: -t templates/stillage_planning.tt2 -o cask_management
+     c. cask labels (21 per page; J8160 / L7160 or equivalent): -t templates/cask_labels_no_barcode.tt2 -o cask_management
+        optional: get a little barcode on each label with -t templates/cask_labels.tt2 -o cask_management
+	this also requires you to run pdflatex with the -shell-escape argument
 
 When beer comes
   Tick "arrived"
@@ -100,6 +116,33 @@ When beer comes
 
 For dip sheets: manually enter "Measurement batches" -- otherwise no dip data slots print out!
 
+Info for cask index cards: This query retrieves certain details for every cask for which (a) the order is finalized and (b) has its "virtual cask" in the db, i.e. preload_festival_casks has been run.
+  Details: cask ID, beer, brewery, ABV, style, cask size
+
+    select cm.cellar_reference as cask_id, c.name as brewery,
+    p.name as beer, p.nominal_abv as abv,
+    ps.description as style, cs.description as size
+    from cask_management cm, product p, company c,
+    product_style ps, container_size cs,
+    product_category pc, product_order po,
+    order_batch ob, festival f
+    where f.name="43rd Cambridge Beer Festival"
+    and f.festival_id=ob.festival_id
+    and ob.order_batch_id=po.order_batch_id
+    and po.product_order_id=cm.product_order_id
+    and cm.container_size_id=cs.container_size_id
+    and po.product_id=p.product_id
+    and p.company_id=c.company_id
+    and p.product_style_id=ps.product_style_id
+    and p.product_category_id=pc.product_category_id
+    and pc.description="beer"
+
+  To get the details in a useful file, use the
+        echo '[query parameters]' | mysql -p beerfestdb > [output_file.txt]
+  business as described above for generating the programme beer list.
+
+  Note that this all retrieves advertised product ABVs, not gyle ABVs. Using gyle ABVs would require waiting until orders have been marked "arrived" and gyle ABVs updated in the db. Resolve discrepancies manually (until & unless someone contributes an enhancement to the query).
+
 If a beer gets condemned, record it for each affected cask in Casks by
 Stillage > condemned. Someone should also fill out a "Problematic Beer
 Report" form.
@@ -108,15 +151,24 @@ If there's a reorder
 1. Create a new order batch in the web interface. Use its name in step 2.
 2. Create a file with the usual details, as in main order loading. 
    2a. can omit product_abv and product_style if it's all stuff that's been in the main order, as the db will know about it
+   2b. don't forget the order_finalized column, set to '1'
 3. Unprotect ProductOrder in beerfestdb.yml, then load & go!
-   3a. also don't forget to flag them as arrived, either in the load file (include order_finalized and order_received, both "1") or the interface.
+   3a. also don't forget to flag them as arrived in the interface.
 
+Dip spreadsheet
+  If anyone wants the dip data in spreadsheet format, use dump_to_template.pl with dip_csv_dump.tt2 and -o cask	to gene\
+rate a .csv file that should load into Excel, OpenOffice, etc.
 
 Wine & Mead
   To make signs come out with "glass" (not "pint"), use web interface:
     Festival -> Products Received -> Wine|Mead ->
     set Sale volume column to glass
 
+Report Graphs
+  Requires local beerfestdb installation, R and package - see Appendix 3
+  The dip_figure_analysis.Rnw script spawns a .tex file to produce the graphs, but the festival name has to be updated manually in the file. The file location is [pathto]/beerfestdb/R/dip_figure_analysis.Rnw, editing instructions are in the header, and the bit to change is helpfully flagged "# Edit these:". Issue the command (also provided	in the file hea\
+der):
+    % SWEAVE_STYLEPATH_DEFAULT=TRUE R CMD Sweave dip_figure_analysis.Rnw
 
 October & Winter festivals
   Cellar isn't involved in ordering, so we just do most of the db stuff once beer has arrived.
@@ -130,6 +182,19 @@ October & Winter festivals
 
 Logo
   reduce to ~150 pixels, and flatten (no alpha channel)
+  
+Allergens
+- Script: load_allergens.pl runs in either of two modes
+	a. load_allergens.pl --interactive asks what to do if it encounters an allergen not previously loaded
+        b. --force-allergens automatically loads new allergens found as column headers (more convenient for early runs, but more dangerous, as it would happily all\
+ow misspellings in)
+- Loading behaves in a manner analogous to "protect/unprotect", but using command-line options instead of beerfestdb.yaml (like other scripts, do % load_allergens.\
+pl -h to see options)
+- Database allows present (Y, yes, 1), absent (N, no, 0), unknown (NA, n/a, ND, or leave NULL)
+        recommend noting presence or absence that we're told about, and leave unknown/null for anything not specifically mentioned
+- Allergen list in Appendix 2
+
+General hint for dump_to_template.pl: each template (.tt2) file has its allowed dump class(es) at the top.
 
 Appendix 1
 
@@ -195,4 +260,45 @@ column headings for files to load (using load_data.pl):
 
 To load companies using load_data.pl, use the brewery_* column headers, and unprotect Company in the .yaml file.
 
+Appendix 2: List of reportable allergens
+- List of allergens:
+	celery
+        crustaceans
+        egg
+        fish (but isinglass finings don't count; apparently it's sufficiently purified away from the allergen(s))
+        gluten (it's "allergies and intolerances", not just conditions that are technically allergies)
+	lupins
+	milk
+        molluscs
+        mustard
+	nuts
+        peanuts
+        sesame
+        soybeans
+        sulphites
 
+Appendix 3 - setting up beerfestdb R to run the graph-generating script
+
+  get R from cran.org (follow instructions there)
+  get beerfestdb from GitHub
+  aim is to run this command:
+    % cd beerfestdb/R/
+    % R CMD INSTALL BeerFestDB/
+  But first, there are some dependencies* to deal with. You'll see them if you issue the command.
+  We recommend installing Bioconductor, which is bioinformatics geekery but just happens to cover the dependencies beerfestdb needs (certainly not the only way to get them, but it's one we know works).
+    go to http://bioconductor.org/install/, and run the commands there, i.e.
+      % R
+      > source("https://bioconductor.org/biocLite.R")
+      > biocLite()
+    Don't fret about the cryptic status messages; if the '>' prompt reappears, all is well.
+    For each package in the list, run biocLite('packagename'), e.g.
+      > biocLite('rjson')
+    Then quit R:
+      > q()
+
+  On a Mac you'll also have to install XQuartz from xquartz.macosforge.org
+
+  Now we're ready to install the beerfestdb R package for real
+    % R CMD INSTALL BeerFestDB/
+
+*(2016-07-02 output was "ERROR: dependencies ‘rjson’, ‘RCurl’, ‘RColorBrewer’, ‘gplots’ are not available for package ‘BeerFestDB’", so installed rjson, RCurl, RColorBrewer and gplots as above)
