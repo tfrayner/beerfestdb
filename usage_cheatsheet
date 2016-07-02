@@ -164,6 +164,11 @@ Wine & Mead
     Festival -> Products Received -> Wine|Mead ->
     set Sale volume column to glass
 
+Report Graphs
+  Requires local beerfestdb installation, R and package - see Appendix 3
+  The dip_figure_analysis.Rnw script spawns a .tex file to produce the graphs, but the festival name has to be updated manually in the file. The file location is [pathto]/beerfestdb/R/dip_figure_analysis.Rnw, editing instructions are in the header, and the bit to change is helpfully flagged "# Edit these:". Issue the command (also provided	in the file hea\
+der):
+    % SWEAVE_STYLEPATH_DEFAULT=TRUE R CMD Sweave dip_figure_analysis.Rnw
 
 October & Winter festivals
   Cellar isn't involved in ordering, so we just do most of the db stuff once beer has arrived.
@@ -272,3 +277,28 @@ Appendix 2: List of reportable allergens
         soybeans
         sulphites
 
+Appendix 3 - setting up beerfestdb R to run the graph-generating script
+
+  get R from cran.org (follow instructions there)
+  get beerfestdb from GitHub
+  aim is to run this command:
+    % cd beerfestdb/R/
+    % R CMD INSTALL BeerFestDB/
+  But first, there are some dependencies* to deal with. You'll see them if you issue the command.
+  We recommend installing Bioconductor, which is bioinformatics geekery but just happens to cover the dependencies beerfestdb needs (certainly not the only way to get them, but it's one we know works).
+    go to http://bioconductor.org/install/, and run the commands there, i.e.
+      % R
+      > source("https://bioconductor.org/biocLite.R")
+      > biocLite()
+    Don't fret about the cryptic status messages; if the '>' prompt reappears, all is well.
+    For each package in the list, run biocLite('packagename'), e.g.
+      > biocLite('rjson')
+    Then quit R:
+      > q()
+
+  On a Mac you'll also have to install XQuartz from xquartz.macosforge.org
+
+  Now we're ready to install the beerfestdb R package for real
+    % R CMD INSTALL BeerFestDB/
+
+*(2016-07-02 output was "ERROR: dependencies ‘rjson’, ‘RCurl’, ‘RColorBrewer’, ‘gplots’ are not available for package ‘BeerFestDB’", so installed rjson, RCurl, RColorBrewer and gplots as above)
