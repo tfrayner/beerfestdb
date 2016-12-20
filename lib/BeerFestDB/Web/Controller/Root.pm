@@ -24,6 +24,8 @@ use Moose;
 use namespace::autoclean;
 use JSON::MaybeXS;
 
+use Data::Dumper;
+
 BEGIN {extends 'Catalyst::Controller'; }
 
 #
@@ -66,6 +68,8 @@ sub access_denied : Private {
 
     $c->res->status('403');
 
+    $c->log->debug("Request access was denied.");
+
     if (!$c->user_exists) {
 
 	# Handle cases where we're not running at server root
@@ -75,6 +79,8 @@ sub access_denied : Private {
 	if ( defined $base ) {
 	    $uri->path($base . $uri->path);
 	}
+
+	$c->log->debug("If login succeeds, will redirect to $uri");
 
         # Set up the post-login destination URI.
         $c->flash->{url_success_target} = '' . $uri;
@@ -108,11 +114,15 @@ sub login : Global {
     # of user session, or maybe some Authorization::ACL oddness?
     # N.B. currently this forgets the target if the user hits reload
     # on the web page. FIXME?
+    $c->log->debug("login flash: " . Dumper $c->flash);
+
     $c->stash->{'url_success_target'}
         = $c->flash->{'url_success_target'} || '' . $c->uri_for('/');
 
     my $j = JSON->new;
     my $json_req = $c->request->param( 'data' );
+
+    $c->log->debug("login JSON received: $json_req");
 
     $c->res->status('403');
 
@@ -120,8 +130,13 @@ sub login : Global {
 
     my $data = $j->decode( $json_req );
 
+    $c->log->debug('login credentials received: username="' . $data->{ 'username' }
+		   . '" password="' . $data->{ 'password' } . '"');
+
     if ( $c->authenticate({ username => $data->{ 'username' },
                             password => $data->{ 'password' }, }) ) {
+
+	$c->log->debug("login authentication successful.");
 
         # ExtJS form redirects to url_success_target URI.
 	$c->res->status('200');
@@ -129,6 +144,9 @@ sub login : Global {
         $c->forward( 'View::JSON' );
     }
     else {
+
+	$c->log->debug("login authentication failed.");
+
         $c->res->status('401');
         $c->stash->{ 'message' } = 'Login failed.';
         $c->stash->{ 'success' } = JSON->false();
