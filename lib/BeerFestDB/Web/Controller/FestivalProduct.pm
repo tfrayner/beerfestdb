@@ -415,7 +415,7 @@ sub _derive_status_report : Private {
         $prodhash->{'abv'}        = $abv;
         $prodhash->{'status'}     = 'Arrived';
         $prodhash->{'css_status'} = 'arrived';
-        $festprod{ $product_id }{starting_volume} = undef;
+	$prodhash->{'starting_volume'} = undef;
         $festprod{ $product_id } = $prodhash;
 
         # Prior to opening, "Arrived" is all we really want.
@@ -449,7 +449,7 @@ sub _derive_status_report : Private {
 
                 # If not condemned, get the amount remaining.
                 my ( $amt_remaining, $starting, $measure ) = $self->_amount_remaining( $fp );
-                $festprod{ $product_id }{starting_volume} = $starting;
+                $festprod{ $product_id }{'starting_volume'} = $starting;
                 if ( ! ( defined $amt_remaining && defined $measure ) ) {
 
                     # Shouldn't happen.
