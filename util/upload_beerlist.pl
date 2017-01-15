@@ -397,6 +397,11 @@ sub upload_department {
         update_brewery_info( $brewery_info, $statuslist, $prodcat );
     }
 
+    if ( ! scalar grep { defined $_ } values %$brewery_info ) {
+	warn("No festival data retrieved for " . join(", ", @categories) . "; skipping.\n");
+	return;
+    }
+
     my $output;
     if ( ! $use_html ) {
 
@@ -429,7 +434,7 @@ sub upload_department {
 
     # Warn on unusual/new characters. Add new characters here only if
     # you're sure the server can handle it.
-    my $core_re = qr/[^[:alnum:]_&"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄπ° -]+/;
+    my $core_re = qr/[^[:alnum:]_&"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄπ° \*-]+/;
     my $re = qr/( .{0,8} $core_re .{0,8} )/xms;
     if ( $output =~ $re ) {
         warn("Warning: uploaded content contains unexpected characters and may fail."
@@ -441,10 +446,16 @@ sub upload_department {
 
     printf STDOUT ("Uploading data for %s...\n", join(", ", @categories));
 
-    # Do the upload itself.
-    send_update($output, $debug, $dept->{public_site_clientid},
-                map { $config->{$_} }
+    # Do the upload itself. This may fail but should not block
+    # department updates subsequently listed in the config file.
+    eval {
+	send_update($output, $debug, $dept->{public_site_clientid},
+		    map { $config->{$_} }
                     qw(public_site_upload_uri public_site_key));
+    };
+    if ( $@ ) {
+        warn(qq{Error encountered during dept. update: $@});
+    }
 }
 
 my ( $config, $template, $use_html, $debug ) = parse_args();
