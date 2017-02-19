@@ -251,6 +251,11 @@ Ext.onReady(function(){
               xtype:          'textfield',
               allowBlank:     true, },
             
+            { name:           'awrs_urn',
+              fieldLabel:     'AWRS URN',
+              xtype:          'textfield',
+              allowBlank:     true, },
+            
             { name:           'comment',
               fieldLabel:     'Comment',
               xtype:          'textarea',

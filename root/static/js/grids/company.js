@@ -33,6 +33,7 @@ Ext.onReady(function(){
         { name: 'company_region_id', type: 'int'},
         { name: 'year_founded',      type: 'int' },
         { name: 'url',               type: 'string' },
+        { name: 'awrs_urn',          type: 'string' },
         { name: 'comment',           type: 'string' },
     ]);
 

@@ -351,6 +351,7 @@ CREATE TABLE `company` (
   `company_region_id` int(6) DEFAULT NULL,
   `year_founded` int(4) DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
+  `awrs_urn` varchar(31) DEFAULT NULL,
   `comment` text,
   PRIMARY KEY (`company_id`),
   UNIQUE KEY `name` (`name`),

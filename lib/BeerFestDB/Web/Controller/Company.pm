@@ -49,7 +49,8 @@ sub BUILD {
         year_founded      => 'year_founded',
         url               => 'url',
         comment           => 'comment',
-        company_region_id => 'company_region_id',
+	awrs_urn          => 'awrs_urn',
+	company_region_id => 'company_region_id',
     });
 }
 

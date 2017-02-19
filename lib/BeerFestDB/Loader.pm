@@ -117,7 +117,9 @@ Readonly my $ORDER_SALE_OR_RETURN      => 52;
 Readonly my $BAY_NUMBER                => 53;
 Readonly my $BAY_POSITION              => 54;
 Readonly my $CASK_UNIT                 => 55;
-Readonly my $PRODUCT_LONG_DESCRIPTION       => 56;
+Readonly my $PRODUCT_LONG_DESCRIPTION  => 56;
+Readonly my $BREWER_AWRS_URN           => 57;
+Readonly my $DISTRIBUTOR_AWRS_URN      => 58;
 
 ########
 # SUBS #
@@ -272,6 +274,7 @@ sub _load_data {
 		year_founded => $datahash->{$BREWER_YEAR_FOUNDED},
 		url          => $datahash->{$BREWER_URL},
 		comment      => $datahash->{$BREWER_COMMENT},
+		awrs_urn     => $datahash->{$BREWER_AWRS_URN},
 	    },
 	    'Company')
 	: undef;
@@ -350,6 +353,7 @@ sub _load_data {
 		loc_desc     => $datahash->{$DISTRIBUTOR_LOC_DESC},
 		year_founded => $datahash->{$DISTRIBUTOR_YEAR_FOUNDED},
 		comment      => $datahash->{$DISTRIBUTOR_COMMENT},
+		awrs_urn     => $datahash->{$DISTRIBUTOR_AWRS_URN},
 	    },
 	    'Company')
 	: undef;
@@ -738,6 +742,7 @@ sub _coerce_headings {
         qr/brewery? [_ -]* year [_ -]* founded/ixms    => $BREWER_YEAR_FOUNDED,
         qr/brewery? [_ -]* comment/ixms                => $BREWER_COMMENT,
         qr/brewery? [_ -]* website/ixms                => $BREWER_URL,
+        qr/brewery? [_ -]* awrs [_ -]* urn/ixms        => $BREWER_AWRS_URN,
         qr/product [_ -]* name/ixms                    => $PRODUCT_NAME,
         qr/product [_ -]* style/ixms                   => $PRODUCT_STYLE,
         qr/product [_ -]* description/ixms             => $PRODUCT_DESCRIPTION,
@@ -753,6 +758,7 @@ sub _coerce_headings {
         qr/distributor [_ -]* loc [_ -]* desc/ixms     => $DISTRIBUTOR_LOC_DESC,
         qr/distributor [_ -]* year [_ -]* founded/ixms => $DISTRIBUTOR_YEAR_FOUNDED,
         qr/distributor [_ -]* comment/ixms             => $DISTRIBUTOR_COMMENT,
+        qr/distributor [_ -]* awrs [_ -]* urn/ixms     => $DISTRIBUTOR_AWRS_URN,
         qr/cask [_ -]* cellar [_ -]* id/ixms           => $CASK_CELLAR_ID,
         qr/cask [_ -]* festival [_ -]* id/ixms         => $CASK_FESTIVAL_ID,
         qr/cask [_ -]* count/ixms                      => $CASK_COUNT,
