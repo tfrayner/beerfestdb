@@ -319,9 +319,33 @@ sub _sha1_hash : Private {
     return $sha1->hexdigest();
 }
 
+sub _build_allergen_data : Private {
+
+    my ( $self, $product, $c ) = @_;
+
+    # Return a hashref keyed by allergen; values are either true or
+    # false. Allergens with unknown applicability to the product are
+    # omitted.
+
+    my %allergen_data;
+
+    foreach my $allergen ( $c->model('DB::ProductAllergenType')->all() ) {
+        my $pa = $allergen->search_related(
+            'product_allergens',
+            { product_id => $product->product_id })->first();
+	if ( $pa ) {
+	    $allergen_data{ $allergen->description() } = $pa->present ? 'true' : 'false';
+	}
+    }
+
+    return \%allergen_data;
+}
+
+
+
 sub _build_product_data : Private {
 
-    my ( $self, $product ) = @_;
+    my ( $self, $product, $c ) = @_;
 
     my $company = $product->company_id();
     my $year    = $company->year_founded();
@@ -339,6 +363,7 @@ sub _build_product_data : Private {
         abv          => $product->nominal_abv(),
         style        => $style ? $style->description() : undef,
         description  => $product->description(),
+	allergens    => $self->_build_allergen_data( $product, $c ),
     };
 
     return( $data );
@@ -386,7 +411,7 @@ sub _derive_status_report : Private {
     if ( ! $festival_open ) {
         while ( my $po = $po_rs->next() ) {
             my $product  = $po->product_id();
-            my $prodhash = $self->_build_product_data( $product );
+            my $prodhash = $self->_build_product_data( $product, $c );
             $prodhash->{'status'}     = 'Ordered';
             $prodhash->{'css_status'} = 'ordered';
             $festprod{ $po->get_column('product_id') } = $prodhash;
@@ -411,7 +436,7 @@ sub _derive_status_report : Private {
                 ? $gyleabvs[0]
 		: $product->nominal_abv();	    
 
-        my $prodhash = $self->_build_product_data( $product );
+        my $prodhash = $self->_build_product_data( $product, $c );
         $prodhash->{'abv'}        = $abv;
         $prodhash->{'status'}     = 'Arrived';
         $prodhash->{'css_status'} = 'arrived';
