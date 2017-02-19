@@ -274,6 +274,7 @@ sub update_brewery_info {
         style       => 'style',
         long_description => 'notes',
         css_status  => 'css_status',
+	allergens   => 'allergens',
     );
     foreach my $item ( @$statuslist ) {
         my $id = $item->{company_id};
