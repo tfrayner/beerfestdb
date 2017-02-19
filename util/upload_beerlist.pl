@@ -286,16 +286,17 @@ sub update_brewery_info {
         $brewery_info->{ $id }{location}     ||= $item->{location};
         $brewery_info->{ $id }{year_founded} ||= $item->{year_founded};
         my ( $amount ) = ( $item->{status} =~ m/(\d+) \w+ Remaining/i );
+	my $starting   = $item->{starting_volume} || 36; # default is 2 kils
         if ( defined $amount ) {
-            if    ( $amount >= 18 ) {
+            if    ( $amount >= $starting / 2 ) {
                 $item->{status}     = 'Plenty left';
                 $item->{css_status} = 'plenty_left';
             }
-            elsif ( $amount >= 9 ) {
+            elsif ( $amount >= $starting / 4 ) {
                 $item->{status}     = 'Some beer remaining';
                 $item->{css_status} = 'some_beer_remaining';
             }
-            elsif ( $amount >= 3 ) {
+            elsif ( $amount >= $starting / 12 ) {
                 $item->{status}     = 'A little remaining';
                 $item->{css_status} = 'a_little_remaining';
             }
