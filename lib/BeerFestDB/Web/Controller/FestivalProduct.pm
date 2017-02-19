@@ -333,7 +333,7 @@ sub _build_allergen_data : Private {
         my $pa = $allergen->search_related(
             'product_allergens',
             { product_id => $product->product_id })->first();
-	if ( $pa ) {
+	if ( $pa && defined $pa->present ) {
 	    $allergen_data{ $allergen->description() } = $pa->present ? 'true' : 'false';
 	}
     }
