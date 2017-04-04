@@ -122,11 +122,11 @@ sub login : Global {
     my $j = JSON->new;
     my $json_req = $c->request->param( 'data' );
 
-    $c->log->debug("login JSON received: $json_req");
-
     $c->res->status('403');
 
     return unless $json_req;
+
+    $c->log->debug("login JSON received: $json_req");
 
     my $data = $j->decode( $json_req );
 

@@ -64,16 +64,16 @@ __PACKAGE__->table("company");
   is_nullable: 1
   size: 255
 
-=head2 comment
-
-  data_type: 'text'
-  is_nullable: 1
-
 =head2 awrs_urn
 
   data_type: 'varchar'
   is_nullable: 1
   size: 31
+
+=head2 comment
+
+  data_type: 'text'
+  is_nullable: 1
 
 =cut
 
@@ -92,10 +92,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "url",
   { data_type => "varchar", is_nullable => 1, size => 255 },
-  "comment",
-  { data_type => "text", is_nullable => 1 },
   "awrs_urn",
   { data_type => "varchar", is_nullable => 1, size => 31 },
+  "comment",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -216,8 +216,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-02-19 15:49:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WrSA2f5LDPJM2zbW6NFEkQ
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-04 18:03:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bftST0OBm/aJbtqZ85C30g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

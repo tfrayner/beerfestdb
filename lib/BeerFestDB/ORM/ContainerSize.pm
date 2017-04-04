@@ -41,6 +41,12 @@ __PACKAGE__->table("container_size");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 dispense_method_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =head2 description
 
   data_type: 'varchar'
@@ -55,6 +61,8 @@ __PACKAGE__->add_columns(
   "container_volume",
   { data_type => "decimal", is_nullable => 0, size => [4, 2] },
   "container_measure_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "dispense_method_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "description",
   { data_type => "varchar", is_nullable => 1, size => 100 },
@@ -82,13 +90,19 @@ __PACKAGE__->set_primary_key("container_size_id");
 
 =item * L</container_measure_id>
 
+=item * L</dispense_method_id>
+
 =back
 
 =cut
 
 __PACKAGE__->add_unique_constraint(
   "container_volume",
-  ["container_volume", "container_measure_id"],
+  [
+    "container_volume",
+    "container_measure_id",
+    "dispense_method_id",
+  ],
 );
 
 =head2 C<description>
@@ -134,6 +148,20 @@ __PACKAGE__->belongs_to(
   { container_measure_id => "container_measure_id" },
 );
 
+=head2 dispense_method_id
+
+Type: belongs_to
+
+Related object: L<BeerFestDB::ORM::DispenseMethod>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "dispense_method_id",
+  "BeerFestDB::ORM::DispenseMethod",
+  { dispense_method_id => "dispense_method_id" },
+);
+
 =head2 product_orders
 
 Type: has_many
@@ -150,8 +178,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U6n+NopBfYepZFbZgevO8Q
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-04 18:03:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KQ4bQpFKG7GZEj2bNo6dvQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

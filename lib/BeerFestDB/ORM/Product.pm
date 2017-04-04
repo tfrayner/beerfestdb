@@ -64,12 +64,12 @@ __PACKAGE__->table("product");
   data_type: 'text'
   is_nullable: 1
 
-=head2 comment
+=head2 long_description
 
   data_type: 'text'
   is_nullable: 1
 
-=head2 long_description
+=head2 comment
 
   data_type: 'text'
   is_nullable: 1
@@ -91,9 +91,9 @@ __PACKAGE__->add_columns(
   { data_type => "decimal", is_nullable => 1, size => [3, 1] },
   "description",
   { data_type => "text", is_nullable => 1 },
-  "comment",
-  { data_type => "text", is_nullable => 1 },
   "long_description",
+  { data_type => "text", is_nullable => 1 },
+  "comment",
   { data_type => "text", is_nullable => 1 },
 );
 
@@ -230,8 +230,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-02-19 15:49:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:InUFzSo7lLyRD+rb3GD3Bg
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-04 18:03:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IRhT8BT5kE8zRidXyBrxFA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

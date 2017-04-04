@@ -435,6 +435,21 @@ CREATE TABLE `container_measure` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `dispense_method`
+--
+
+DROP TABLE IF EXISTS `dispense_method`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dispense_method` (
+  `dispense_method_id` int(6) NOT NULL AUTO_INCREMENT,
+  `description` varchar(100) NOT NULL,
+  PRIMARY KEY (`dispense_method_id`),
+  UNIQUE KEY `description` (`description`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `container_size`
 --
 
@@ -445,12 +460,15 @@ CREATE TABLE `container_size` (
   `container_size_id` int(6) NOT NULL AUTO_INCREMENT,
   `container_volume` decimal(4,2) NOT NULL,
   `container_measure_id` int(6) NOT NULL,
+  `dispense_method_id` int(6) NOT NULL,
   `description` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`container_size_id`),
-  UNIQUE KEY `container_volume` (`container_volume`,`container_measure_id`),
+  UNIQUE KEY `container_volume` (`container_volume`,`container_measure_id`,`dispense_method_id`),
   UNIQUE KEY `description` (`description`),
   KEY `FK_CS_cmid_CM_cmid` (`container_measure_id`),
-  CONSTRAINT `container_size_ibfk_1` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION
+  KEY `FK_CS_dmid_DM_dmid` (`dispense_method_id`),
+  CONSTRAINT `container_size_ibfk_1` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION,
+  CONSTRAINT `container_size_ibfk_2` FOREIGN KEY (`dispense_method_id`) REFERENCES `dispense_method` (`dispense_method_id`) ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
