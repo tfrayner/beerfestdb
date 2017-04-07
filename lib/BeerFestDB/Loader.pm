@@ -383,23 +383,16 @@ sub _load_data {
     # modification for European casks/wine/mead though. Note that
     # 'gallon' will have been entered into the database as part of the
     # initial set of controlled terms.
-    my $cask_unit = $self->value_is_acceptable( $datahash->{$CASK_UNIT} )
-        ? $datahash->{$CASK_UNIT} : 'gallon';
-    my $cask_measure = $self->database()->resultset('ContainerMeasure')
-        ->find({description => $cask_unit})
-            or die(qq{Unable to retrieve desired cask units "$cask_unit".});
-
     my $cask_size
         = $self->value_is_acceptable( $datahash->{$CASK_SIZE} )
         ? $self->_load_column_value(
             {
-                container_volume     => $datahash->{$CASK_SIZE},
-                container_measure_id => $cask_measure,
+                description => $datahash->{$CASK_SIZE},
             },
             'ContainerSize')
         : undef;
 
-    my $cask_price = $datahash->{$CASK_PRICE}      ? $datahash->{$CASK_PRICE}      * 100 : undef;
+    my $cask_price = $datahash->{$CASK_PRICE} ? $datahash->{$CASK_PRICE} * 100 : undef;
 
     my $count = $datahash->{$CASK_COUNT};
     unless ( defined $count && $count ne q{} ) {
@@ -547,6 +540,9 @@ sub _load_data {
 
             # FIXME at the moment we're assuming that dip measurements use the
             # same volume units as the cask sizes.
+	    my $cask_measure = $cask->cask_management_id
+		                    ->container_size_id
+				    ->container_measure_id();
             my $cask_measurement
                 = $self->value_is_acceptable( $datahash->{$CASK_MEASUREMENT_VOLUME} )
                     ? $self->load_cask_measurement(
@@ -635,7 +631,23 @@ sub _load_column_value {
     }
 
     # Validate our arguments against the database.
-    $self->validate_against_resultset( $args, $resultset );
+    eval {
+	$self->validate_against_resultset( $args, $resultset );
+    };
+    if ( $@ ) {
+	if ( $force_create ) {
+	    die($@);
+	} else {
+	    my $object = $resultset->find($args);
+	    if ( $object ) {
+		return( $object );
+	    } else {
+		die("Unable to find pre-existing $class object, with insufficient"
+		    . " information to create a new one: $@");
+	    }
+	}
+    }
+   
     my ( $required, $optional ) = $self->resultset_required_columns( $resultset );
 
     # Rather obnoxious special casing of a column which, while

@@ -461,7 +461,7 @@ CREATE TABLE `container_size` (
   `container_volume` decimal(4,2) NOT NULL,
   `container_measure_id` int(6) NOT NULL,
   `dispense_method_id` int(6) NOT NULL,
-  `description` varchar(100) DEFAULT NULL,
+  `description` varchar(100) NOT NULL,
   PRIMARY KEY (`container_size_id`),
   UNIQUE KEY `container_volume` (`container_volume`,`container_measure_id`,`dispense_method_id`),
   UNIQUE KEY `description` (`description`),
