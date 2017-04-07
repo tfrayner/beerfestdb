@@ -254,4 +254,8 @@ __PACKAGE__->many_to_many(
     { where => { present => undef } },
 );
 
+sub repr {
+    my ( $self ) = @_; return $self->name;
+}
+
 1;

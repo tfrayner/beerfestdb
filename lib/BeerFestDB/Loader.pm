@@ -148,6 +148,17 @@ sub value_is_acceptable {
     return ( defined $value && $value ne q{} && $value !~ m/\A \?+ \z/xms );
 }
 
+sub _value_repr {
+
+    my ( $self, $value ) = @_;
+
+    if ( ref $value && $value->can('repr') ) {
+	return $value->repr();
+    } else {
+	return "$value";
+    }
+}
+
 sub _add_error_report_string {
 
     my ( $self, $str ) = @_;
@@ -642,7 +653,10 @@ sub _load_column_value {
 	    if ( $object ) {
 		return( $object );
 	    } else {
-		die("Unable to find pre-existing $class object, with insufficient"
+		my $repr = join("\n",
+				map { "  $_ => " . $self->_value_repr( $args->{$_} ) } keys %$args);
+		die("Unable to find pre-existing $class object:"
+		    . "\n\n$repr\n\nand query contains insufficient"
 		    . " information to create a new one: $@");
 	    }
 	}

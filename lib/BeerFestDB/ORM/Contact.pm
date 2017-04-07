@@ -199,4 +199,10 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s",
+				      $self->company_id->repr(),
+				      $self->contact_type_id->repr());
+}
+
 1;

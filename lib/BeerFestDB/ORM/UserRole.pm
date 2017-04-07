@@ -108,4 +108,10 @@ __PACKAGE__->belongs_to("user_id", "BeerFestDB::ORM::User", { user_id => "user_i
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s",
+				      $self->user_id->repr(),
+				      $self->role_id->repr());
+}
+
 1;

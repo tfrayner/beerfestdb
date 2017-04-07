@@ -112,4 +112,10 @@ __PACKAGE__->belongs_to("role_id", "BeerFestDB::ORM::Role", { role_id => "role_i
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s",
+				      $self->product_category_id->repr(),
+				      $self->role_id->repr());
+}
+
 1;
