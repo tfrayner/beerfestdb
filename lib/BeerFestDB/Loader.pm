@@ -30,10 +30,13 @@ use Text::CSV_XS;
 use Readonly;
 use Carp;
 use List::Util qw(first);
+use Scalar::Util qw(blessed);
 
 use BeerFestDB::ORM;
 
 with 'BeerFestDB::DBHashRefValidator';
+
+with 'BeerFestDB::MenuSelector';
 
 has 'database' => ( is       => 'ro',
                     isa      => 'DBIx::Class::Schema',
@@ -152,7 +155,7 @@ sub _value_repr {
 
     my ( $self, $value ) = @_;
 
-    if ( ref $value && $value->can('repr') ) {
+    if ( blessed $value && $value->can('repr') ) {
 	return $value->repr();
     } else {
 	return "$value";
@@ -234,7 +237,7 @@ sub _load_data {
                 description => $datahash->{$FESTIVAL_DESCRIPTION},
 	    },
 	    'Festival')
-	: undef;
+	: $self->festival();
 
     my $stillage
 	= $self->value_is_acceptable( $datahash->{$STILLAGE_LOCATION} )
