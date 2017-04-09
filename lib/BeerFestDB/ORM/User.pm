@@ -121,4 +121,8 @@ __PACKAGE__->many_to_many(
     "roles" => "user_roles", "role_id"
 );
 
+sub repr {
+    my ( $self ) = @_; return $self->username;
+}
+
 1;

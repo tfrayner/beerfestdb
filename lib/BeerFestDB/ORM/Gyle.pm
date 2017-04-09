@@ -165,4 +165,10 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s",
+				      $self->festival_product_id->repr(),
+				      $self->internal_reference);
+}
+
 1;

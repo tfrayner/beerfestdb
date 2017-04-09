@@ -169,4 +169,8 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return $self->currency_code;
+}
+
 1;

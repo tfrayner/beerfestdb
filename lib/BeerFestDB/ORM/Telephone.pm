@@ -132,4 +132,10 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s",
+				      $self->contact_id->repr(),
+				      $self->telephone_type_id->repr());
+}
+
 1;

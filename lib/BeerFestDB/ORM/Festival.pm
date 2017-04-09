@@ -217,4 +217,8 @@ __PACKAGE__->many_to_many(
     "products" => "festival_products", "product_id"
 );
 
+sub repr {
+    my ( $self ) = @_; return $self->name;
+}
+
 1;

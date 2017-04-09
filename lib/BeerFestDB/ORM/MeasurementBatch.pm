@@ -132,4 +132,10 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s",
+				      $self->festival_id->repr(),
+				      $self->measurement_time);
+}
+
 1;
