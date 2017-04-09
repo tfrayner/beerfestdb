@@ -44,13 +44,39 @@ Info gathering spreadsheet --> load_data input
 6. Correct columns headers as needed (see list below)
 7. Add remaining required columns: festival name & year, product category, order batch, is-final ('1' for yes). Example header row:
     brewery_name	product_name	product_abv	product_style	cask_size	cask_count	order_sor	distributor_name	order_batch	product_category	festival_name	festival_year	order_finalized
+    	a. For cask_size, use one of the text descriptions from the database (see list below). Watch for typos, especially if a load fails. (New 2017-04; previously used number of gallons)
 8. Feed to load_data.pl with default beerfestdb.yml (i.e. default protected categories including company, product)
 	a. if it squawks "Protection error (ProductOrder):" uncomment ProductOrder to create (wait for it) this product order
 9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things (make sure nothing is missing or mangled)
 10. Unprotect company & product in beerfestdb.yml; load!
 11. Spawn 'n' send orders as above
-Alternative to steps 1-6: Copy just columns A-F from spreadsheet GUI; don't forget to repeat with updated quantities for any SOR casks. Paste into file destined to be input for load_data.pl.
+Alternative to steps 1-6: Copy just columns A-F from spreadsheet GUI; don't forget to repeat with updated quantities for any SOR casks. Paste into file destined to be input for load_data.pl, add remaining column, and edit container size descriptions as indicated above.
 Note that either approach is error-prone, so check carefully to avoid duplications and omissions.
+
+Container size descriptions from beerfestdb:
++----------------------+
+| description          |
++----------------------+
+| 10 gallon            |
+| 10L polypin          |
+| 11 gallon            |
+| 12 x 750 mL case     |
+| 20L KeyKeg           |
+| 20L polypin          |
+| 22 gallon            |
+| 30L KeyKeg           |
+| 4.37gal cider tub    |
+| 5 gallon             |
+| 50 cL bottle         |
+| 6 gallon KeyKeg/cask |
+| 6 x 750 mL case      |
+| 70 cL bottle         |
+| 75cl bottle          |
+| barrel               |
+| firkin               |
+| kilderkin            |
+| pin                  |
++----------------------+
 
 To load mead or wine data using load_data.pl
   punt and
