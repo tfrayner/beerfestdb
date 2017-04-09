@@ -34,10 +34,6 @@ use Scalar::Util qw(blessed);
 
 use BeerFestDB::ORM;
 
-with 'BeerFestDB::DBHashRefValidator';
-
-with 'BeerFestDB::MenuSelector';
-
 has 'database' => ( is       => 'ro',
                     isa      => 'DBIx::Class::Schema',
                     required => 1 );
@@ -52,6 +48,11 @@ has 'overwrite' => ( is       => 'ro',
                      required => 1,
                      default  => 0 );
 
+has 'use_default_festival' => ( is       => 'ro',
+                                isa      => 'Bool',
+                                required => 1,
+                                default  => 0 );
+
 has '_error_report' => ( is       => 'rw',
                          isa      => 'Str',
                          required => 1,
@@ -61,6 +62,10 @@ has '_error_count' => ( is       => 'rw',
                         isa      => 'Int',
                         required => 1,
                         default  => 0 );
+
+with 'BeerFestDB::DBHashRefValidator';
+
+with 'BeerFestDB::MenuSelector';
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -137,7 +142,7 @@ sub _get_csv_parser {
             quote_char  => qq{"},                   # default
             escape_char => qq{"},                   # default
             binary      => 1,
-	    allow_loose_quotes => 1,
+            allow_loose_quotes => 1,
         }
     );
 
@@ -156,9 +161,9 @@ sub _value_repr {
     my ( $self, $value ) = @_;
 
     if ( blessed $value && $value->can('repr') ) {
-	return $value->repr();
+        return $value->repr();
     } else {
-	return "$value";
+        return "$value";
     }
 }
 
@@ -197,7 +202,7 @@ sub add_protection_error {
     my ( $self, $req_vals, $class ) = @_;
 
     my $resultset = $self->database()->resultset($class)
-	or confess(qq{Error: No result set returned from DB for class "$class".});
+        or confess(qq{Error: No result set returned from DB for class "$class".});
 
     my $source = $resultset->result_source();
 
@@ -229,69 +234,69 @@ sub _load_data {
     # Each of these calls defines the column to be used from the input
     # file.
     my $festival
-	= $self->value_is_acceptable( $datahash->{$FESTIVAL_NAME} )
-	? $self->_load_column_value(
-	    {
-		year        => $datahash->{$FESTIVAL_YEAR},
-		name        => $datahash->{$FESTIVAL_NAME},
+        = $self->value_is_acceptable( $datahash->{$FESTIVAL_NAME} )
+        ? $self->_load_column_value(
+            {
+                year        => $datahash->{$FESTIVAL_YEAR},
+                name        => $datahash->{$FESTIVAL_NAME},
                 description => $datahash->{$FESTIVAL_DESCRIPTION},
-	    },
-	    'Festival')
-	: $self->festival();
+            },
+            'Festival')
+        : $self->use_default_festival ? $self->festival() : undef;
 
     my $stillage
-	= $self->value_is_acceptable( $datahash->{$STILLAGE_LOCATION} )
-	? $self->_load_column_value(
-	    {
-		description => $datahash->{$STILLAGE_LOCATION},
+        = $self->value_is_acceptable( $datahash->{$STILLAGE_LOCATION} )
+        ? $self->_load_column_value(
+            {
+                description => $datahash->{$STILLAGE_LOCATION},
                 festival_id => $festival->id,
-	    },
-	    'StillageLocation')
-	: undef;
+            },
+            'StillageLocation')
+        : undef;
 
     my $bay_position
-	= $self->value_is_acceptable( $datahash->{$BAY_POSITION} )
-	? $self->_load_column_value(
-	    {
-		description => $datahash->{$BAY_POSITION},
-	    },
-	    'BayPosition')
-	: undef;
+        = $self->value_is_acceptable( $datahash->{$BAY_POSITION} )
+        ? $self->_load_column_value(
+            {
+                description => $datahash->{$BAY_POSITION},
+            },
+            'BayPosition')
+        : undef;
 
     my $bar
-	= $self->value_is_acceptable( $datahash->{$BAR_DESCRIPTION} )
-	? $self->_load_column_value(
-	    {
-		description => $datahash->{$BAR_DESCRIPTION},
+        = $self->value_is_acceptable( $datahash->{$BAR_DESCRIPTION} )
+        ? $self->_load_column_value(
+            {
+                description => $datahash->{$BAR_DESCRIPTION},
                 festival_id => $festival->id,
-	    },
-	    'Bar')
-	: undef;
+            },
+            'Bar')
+        : undef;
 
     my $region
-	= $self->value_is_acceptable( $datahash->{$BREWER_REGION} )
-	? $self->_load_column_value(
-	    {
-		description => $datahash->{$BREWER_REGION},
-	    },
-	    'CompanyRegion')
-	: undef;
+        = $self->value_is_acceptable( $datahash->{$BREWER_REGION} )
+        ? $self->_load_column_value(
+            {
+                description => $datahash->{$BREWER_REGION},
+            },
+            'CompanyRegion')
+        : undef;
 
     my $brewer
-	= $self->value_is_acceptable( $datahash->{$BREWER_NAME} )
-	? $self->_load_column_value(
-	    {
-		name         => $datahash->{$BREWER_NAME},
-		full_name    => $datahash->{$BREWER_FULL_NAME},
-		loc_desc     => $datahash->{$BREWER_LOC_DESC},
+        = $self->value_is_acceptable( $datahash->{$BREWER_NAME} )
+        ? $self->_load_column_value(
+            {
+                name         => $datahash->{$BREWER_NAME},
+                full_name    => $datahash->{$BREWER_FULL_NAME},
+                loc_desc     => $datahash->{$BREWER_LOC_DESC},
                 company_region_id => $region,
-		year_founded => $datahash->{$BREWER_YEAR_FOUNDED},
-		url          => $datahash->{$BREWER_URL},
-		comment      => $datahash->{$BREWER_COMMENT},
-		awrs_urn     => $datahash->{$BREWER_AWRS_URN},
-	    },
-	    'Company')
-	: undef;
+                year_founded => $datahash->{$BREWER_YEAR_FOUNDED},
+                url          => $datahash->{$BREWER_URL},
+                comment      => $datahash->{$BREWER_COMMENT},
+                awrs_urn     => $datahash->{$BREWER_AWRS_URN},
+            },
+            'Company')
+        : undef;
 
     my $category
         = $self->_load_column_value(
@@ -302,14 +307,14 @@ sub _load_data {
 
     # FIXME this is a controlled vocab so should die on invalid values.
     my $style
-	= $self->value_is_acceptable( $datahash->{$PRODUCT_STYLE} )
-	? $self->_load_column_value(
-	    {
+        = $self->value_is_acceptable( $datahash->{$PRODUCT_STYLE} )
+        ? $self->_load_column_value(
+            {
                 product_category_id => $category,
-		description         => $datahash->{$PRODUCT_STYLE},
-	    },
-	    'ProductStyle')
-	: undef;
+                description         => $datahash->{$PRODUCT_STYLE},
+            },
+            'ProductStyle')
+        : undef;
 
     # Likely to be the default for UK beer festivals.
     my $pint_size = $self->_load_column_value(
@@ -343,34 +348,34 @@ sub _load_data {
     my $nominal_abv = $datahash->{$PRODUCT_ABV};
     $nominal_abv = undef if ( defined $nominal_abv && $nominal_abv eq q{} );
     my $product
-	= $self->value_is_acceptable( $datahash->{$PRODUCT_NAME} )
-	? $self->_load_column_value(
-	    {
-		name             => $datahash->{$PRODUCT_NAME},
+        = $self->value_is_acceptable( $datahash->{$PRODUCT_NAME} )
+        ? $self->_load_column_value(
+            {
+                name             => $datahash->{$PRODUCT_NAME},
                 company_id       => $brewer->company_id,
-		description      => $datahash->{$PRODUCT_DESCRIPTION},
-		long_description => $datahash->{$PRODUCT_LONG_DESCRIPTION},
-		comment          => $datahash->{$PRODUCT_COMMENT},
+                description      => $datahash->{$PRODUCT_DESCRIPTION},
+                long_description => $datahash->{$PRODUCT_LONG_DESCRIPTION},
+                comment          => $datahash->{$PRODUCT_COMMENT},
                 product_category_id => $category,
                 product_style_id    => $style,
-		nominal_abv         => $nominal_abv,
-	    },
-	    'Product')
-	: undef;
+                nominal_abv         => $nominal_abv,
+            },
+            'Product')
+        : undef;
 
     my $distributor
-	= $self->value_is_acceptable( $datahash->{$DISTRIBUTOR_NAME} )
-	? $self->_load_column_value(
-	    {
-		name         => $datahash->{$DISTRIBUTOR_NAME},
-		full_name    => $datahash->{$DISTRIBUTOR_FULL_NAME},
-		loc_desc     => $datahash->{$DISTRIBUTOR_LOC_DESC},
-		year_founded => $datahash->{$DISTRIBUTOR_YEAR_FOUNDED},
-		comment      => $datahash->{$DISTRIBUTOR_COMMENT},
-		awrs_urn     => $datahash->{$DISTRIBUTOR_AWRS_URN},
-	    },
-	    'Company')
-	: undef;
+        = $self->value_is_acceptable( $datahash->{$DISTRIBUTOR_NAME} )
+        ? $self->_load_column_value(
+            {
+                name         => $datahash->{$DISTRIBUTOR_NAME},
+                full_name    => $datahash->{$DISTRIBUTOR_FULL_NAME},
+                loc_desc     => $datahash->{$DISTRIBUTOR_LOC_DESC},
+                year_founded => $datahash->{$DISTRIBUTOR_YEAR_FOUNDED},
+                comment      => $datahash->{$DISTRIBUTOR_COMMENT},
+                awrs_urn     => $datahash->{$DISTRIBUTOR_AWRS_URN},
+            },
+            'Company')
+        : undef;
 
     my $contact_type
         = $self->value_is_acceptable( $datahash->{$CONTACT_TYPE} )
@@ -554,9 +559,9 @@ sub _load_data {
 
             # FIXME at the moment we're assuming that dip measurements use the
             # same volume units as the cask sizes.
-	    my $cask_measure = $cask->cask_management_id
-		                    ->container_size_id
-				    ->container_measure_id();
+            my $cask_measure = $cask->cask_management_id
+                                    ->container_size_id
+                                    ->container_measure_id();
             my $cask_measurement
                 = $self->value_is_acceptable( $datahash->{$CASK_MEASUREMENT_VOLUME} )
                     ? $self->load_cask_measurement(
@@ -632,7 +637,7 @@ sub _load_column_value {
     my $create_method = $force_create ? 'create' : 'find_or_create';
 
     my $resultset = $self->database()->resultset($class)
-	or confess(qq{Error: No result set returned from DB for class "$class".});
+        or confess(qq{Error: No result set returned from DB for class "$class".});
 
     # Fields containing only whitespace are discarded.
     foreach my $key ( keys %$args ) {
@@ -646,23 +651,23 @@ sub _load_column_value {
 
     # Validate our arguments against the database.
     eval {
-	$self->validate_against_resultset( $args, $resultset );
+        $self->validate_against_resultset( $args, $resultset );
     };
     if ( $@ ) {
-	if ( $force_create ) {
-	    die($@);
-	} else {
-	    my $object = $resultset->find($args);
-	    if ( $object ) {
-		return( $object );
-	    } else {
-		my $repr = join("\n",
-				map { "  $_ => " . $self->_value_repr( $args->{$_} ) } keys %$args);
-		die("Unable to find pre-existing $class object:"
-		    . "\n\n$repr\n\nand query contains insufficient"
-		    . " information to create a new one: $@");
-	    }
-	}
+        if ( $force_create ) {
+            die($@);
+        } else {
+            my $object = $resultset->find($args);
+            if ( $object ) {
+                return( $object );
+            } else {
+                my $repr = join("\n",
+                                map { "  $_ => " . $self->_value_repr( $args->{$_} ) } keys %$args);
+                die("Unable to find pre-existing $class object:"
+                    . "\n\n$repr\n\nand query contains insufficient"
+                    . " information to create a new one: $@");
+            }
+        }
     }
    
     my ( $required, $optional ) = $self->resultset_required_columns( $resultset );
@@ -737,15 +742,15 @@ sub _load_column_value {
             $object->set_column( $col, $value ) if defined $value;
         }
 
-	# Don't discard data silently!!!
-	if ( ( ! $self->overwrite() ) && ( defined $old && $old =~ /\S/xms )
-	     && defined $value && $value ne $old ) {
-	    warn(
-		sprintf(
-		    qq{WARNING: Will not overwrite old %s.%s value with new data}
-		    . qq{ (consider overwrite mode?):\nOLD: %s\nNEW: %s\n\n},
-		    $class, $col, $old, $value))
-	}
+        # Don't discard data silently!!!
+        if ( ( ! $self->overwrite() ) && ( defined $old && $old =~ /\S/xms )
+             && defined $value && $value ne $old ) {
+            warn(
+                sprintf(
+                    qq{WARNING: Will not overwrite old %s.%s value with new data}
+                    . qq{ (consider overwrite mode?):\nOLD: %s\nNEW: %s\n\n},
+                    $class, $col, $old, $value))
+        }
     }
     $object->update();
 
@@ -845,7 +850,7 @@ sub load {
     my $csv_parser = $self->_get_csv_parser();
 
     open( my $input_fh, '<', $input )
-	or die(qq{Error opening input file "$input": $!});
+        or die(qq{Error opening input file "$input": $!});
 
     # Assume first line is the header, for now:
     my $headings = $self->_coerce_headings( $csv_parser->getline($input_fh) );
@@ -878,14 +883,14 @@ sub load {
     }
     else {
 
-	# Check that parsing completed successfully.
-	my ( $error, $mess ) = $csv_parser->error_diag();
-	unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
-	    die(sprintf(
-		    "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
-		    $mess,
-		    $csv_parser->error_input()));
-	}
+        # Check that parsing completed successfully.
+        my ( $error, $mess ) = $csv_parser->error_diag();
+        unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
+            die(sprintf(
+                    "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
+                    $mess,
+                    $csv_parser->error_input()));
+        }
 
         warn("All data successfully loaded.\n");
     }
