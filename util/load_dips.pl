@@ -83,9 +83,34 @@ sub load {
                     my $cask = $db->resultset('Cask')->find(
                         { 'cask_management_id.festival_id'      => $self->festival->id(),
                           'cask_management_id.cellar_reference' => $line->[0] },
-			{ join => 'cask_management_id' } )
+                        { join => 'cask_management_id' } )
                         or die(qq{Error: Cask with cellar_reference "$line->[0]" }
-                                   . qq{not found.\n});
+                               . qq{not found.\n});
+
+                    # Avoid total nonsense dips.
+                    if ( $line->[1] > $cask->container_size_id->container_volume ) {
+                        die(sprintf("Dip figure of %.1f for cask %i larger than cask size %i.",
+                                    $line->[1], $line->[0],
+                                    $cask->container_size_id->container_volume))
+                    }
+
+                    # Warn on oddities.
+                    my @dips =
+                        $cask->search_related('cask_measurements',
+                                              undef,
+                                              { join => 'measurement_batch_id',
+                                                order_by => {
+                                                    -desc => 'measurement_batch_id.datetime'
+                                                },
+                                            }
+                                          );
+                    if ( scalar @dips > 0 ) {
+                        if ( $line->[1] > $dips[0]->volume ) {
+                            warn(sprintf("Dip figure for cask %i (%.1f) is higher than the previous dip (%.1f).",
+                                         $line->[0], $line->[1], $dips[0]->volume))
+                        }
+                    }
+
                     $db->resultset('CaskMeasurement')->update_or_create({
                         cask_id              => $cask->id(),
                         measurement_batch_id => $batch->id(),
@@ -106,9 +131,9 @@ sub load {
         my ( $error, $mess ) = $csv_parser->error_diag();
         unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
             die(sprintf(
-		"Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
-		$mess,
-		$csv_parser->error_input()));
+                "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
+                $mess,
+                $csv_parser->error_input()));
         }
         
         print("Dip data successfully loaded.\n");
@@ -124,7 +149,7 @@ sub parse_args {
     my ( $input, $want_help );
 
     GetOptions(
-	"i|input=s"  => \$input,
+        "i|input=s"  => \$input,
         "h|help"     => \$want_help,
     );
 
