@@ -12,7 +12,7 @@ library(BeerFestDB)
 if ( ! interactive() ) {
 
     ## Ideally these would be set either by config or command-line arguments.
-    baseuri  <- 'https://secure.cambridge-camra.org.uk/beerfestdb'
+    baseuri  <- 'https://beerfestdb.cambridgebeerfestival.uk/'
     festname <- '42nd Cambridge Beer Festival'
     prodcat  <- 'beer'
 

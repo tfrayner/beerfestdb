@@ -44,8 +44,8 @@
 <<echo=FALSE>>=
 
 # Edit these:
-baseuri  <- 'https://secure.cambridge-camra.org.uk/beerfestdb'
-festname <- '42nd Cambridge Beer Festival'
+baseuri  <- 'https://beerfestdb.cambridgebeerfestival.uk/'
+festname <- '43rd Cambridge Beer Festival'
 prodcat  <- 'beer'
 author   <- ''
 # End of editable section.
