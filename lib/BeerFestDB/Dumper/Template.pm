@@ -191,6 +191,7 @@ sub order_hash {
         product     => $order->product_id->name(),
         distributor => $order->distributor_company_id->name(),
         cask_size   => $order->container_size_id->container_volume(),
+        cask_size_name => $order->container_size_id->description(),
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
         nominal_abv => $order->product_id->nominal_abv(),

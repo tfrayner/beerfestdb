@@ -222,35 +222,80 @@ use JSON::DWIW;
 use List::Util qw (first);
 use BeerFestDB::Web;
 use Encode qw(encode_utf8);
+use URI;
 
 use utf8;
 
 sub send_update {
 
-    my ( $content, $debug, $clientid, $uri, $key ) = @_;
-    
-    $debug && warn("Uploading content...\n");
-    
-    $content     =~ s/[\r\n]//g;  # workaround for server bug
-    my $counter  = time;
-    my $mac      = hmac_sha256_hex(encode_utf8($clientid . $counter . $content), $key);
+    my ( $content, $uri, $festival_tag, $dept, $debug ) = @_;
 
-    my $ua  = LWP::UserAgent->new;
-    my $res = $ua->post(
-        $uri,
-        [ 'clientid' => $clientid,
-          'counter'  => $counter,
-          'mac'      => $mac,
-          'content'  => $content, ],
+    $debug && warn("Uploading content...\n");
+
+    $content =~ s/[\r\n]//g;  # workaround for server bug
+
+    my $upload_uri = URI->new($uri);
+
+    my %dispatch = (
+        file  => \&_update_via_local_command,
+#        http  => \&_update_via_web_upload,
+#        https => \&_update_via_web_upload,
     );
-    
-    if ( ! $res->is_success() ) {
-        die(sprintf("Error: Unable to connect to Public web site: %s\nResponse content:\n  %s",
-		    $res->status_line(), $res->content() ));
+
+    my $scheme = $dispatch{$upload_uri->scheme};
+    if ( ! exists $dispatch{ $scheme } ) {
+        croak("Data upload scheme not recognised: $scheme");
     }
+    $scheme->( $upload_uri, $content, $festival_tag, $dept );
 
     return();
 }
+
+sub _update_via_local_command {
+
+    my ( $uri, $content, $festival_tag, $dept ) = @_;
+
+    $dept =~ s/ /-/g; # as requested by public site team.
+
+    my $cmd = $uri->path;
+    $cmd =~ s/%20/ /g;
+
+    # This assumes that the command accepts '-' as designating input
+    # from stdin.
+    open ( my $pipe, "| $cmd $festival_tag $dept -" )
+        or die("Unable to open command pipe: $!");
+
+    print $pipe $content;
+
+    return();
+}
+
+# No longer supported, this remains for now as a record of how the old
+# beerengine upload worked.
+
+# sub _update_via_web_upload {
+
+#     my ( $uri, $content, $clientid, $key ) = @_;
+
+#     my $counter  = time;
+#     my $mac      = hmac_sha256_hex(encode_utf8($clientid . $counter . $content), $key);
+
+#     my $ua  = LWP::UserAgent->new;
+#     my $res = $ua->post(
+#         $uri,
+#         [ 'clientid' => $clientid,
+#           'counter'  => $counter,
+#           'mac'      => $mac,
+#           'content'  => $content, ],
+#     );
+
+#     if ( ! $res->is_success() ) {
+#         die(sprintf("Error: Unable to connect to Public web site: %s\nResponse content:\n  %s",
+#                     $res->status_line(), $res->content() ));
+#     }
+
+#     return();
+# }
 
 sub get_timestamp {
 
@@ -274,7 +319,9 @@ sub update_brewery_info {
         style       => 'style',
         long_description => 'notes',
         css_status  => 'css_status',
-	allergens   => 'allergens',
+        allergens   => 'allergens',
+        stillage_location => 'bar',
+        dispense_method   => 'dispense',
     );
     foreach my $item ( @$statuslist ) {
         my $id = $item->{company_id};
@@ -287,7 +334,7 @@ sub update_brewery_info {
         $brewery_info->{ $id }{location}     ||= $item->{location};
         $brewery_info->{ $id }{year_founded} ||= $item->{year_founded};
         my ( $amount ) = ( $item->{status} =~ m/(\d+) \w+ Remaining/i );
-	my $starting   = $item->{starting_volume} || 36; # default is 2 kils
+        my $starting   = $item->{starting_volume} || 36; # default is 2 kils
         if ( defined $amount ) {
             if    ( $amount >= $starting / 2 ) {
                 $item->{status}     = 'Plenty left';
@@ -303,14 +350,12 @@ sub update_brewery_info {
             }
             else {
                 $item->{status}     = 'Nearly finished!';
-                $item->{css_status} = 'nearly_finished';	    
+                $item->{css_status} = 'nearly_finished';
             }
         }
 
         # Suppress status reports for departments which aren't
-        # currently stocktaking using the database. Note that if this
-        # changes the above $amount logic will need to be made
-        # smarter.
+        # currently stocktaking using the database.
         if ( first { $_ eq lc $prodcat }
                  ('cider', 'perry', 'apple juice', 'mead', 'wine') ) {
             $item->{status} = '';
@@ -334,11 +379,10 @@ sub update_brewery_info {
 
 sub parse_args {
 
-    my ( $tfile, $html, $debug, $want_help );
+    my ( $tfile, $debug, $want_help );
 
     GetOptions(
         "t|template=s" => \$tfile,
-        "html"         => \$html,
         "d|debug"      => \$debug,
         "h|help"       => \$want_help,
     );
@@ -366,68 +410,36 @@ sub parse_args {
     # We don't really want to set this twice.
     $st->{ festival_name } ||= $config->{ current_festival };
 
-    return( $st, $template, $html, $debug );
+    return( $st, $template, $debug );
 }
 
 sub upload_department {
 
-    my ( $dept, $config, $use_html, $template, $debug ) = @_;
-
-    # We may wish to combine product categories in the output, e.g. cider and perry.
-    my $conf_cat = $dept->{product_category};
-    my @categories;
-    if ( ref $conf_cat eq 'ARRAY' ) {
-        push @categories, @$conf_cat;
-    }
-    else {
-        push @categories, $conf_cat;
-    }
+    my ( $prodcat, $config, $template, $debug ) = @_;
 
     my $brewery_info = {};
-    foreach my $prodcat ( @categories ) {
 
-        my $qobj = MyQueryClass->new(
-            festival_name    => $config->{festival_name},
-            product_category => $prodcat,
-            uri              => $config->{beerfestdb_uri},
-            debug            => $debug,
-        );
+    my $qobj = MyQueryClass->new(
+        festival_name    => $config->{festival_name},
+        product_category => $prodcat,
+        uri              => $config->{beerfestdb_uri},
+        debug            => $debug,
+    );
 
-        # Query the JSON API for latest status list.
-        my $statuslist = $qobj->query_status_list();
+    # Query the JSON API for latest status list.
+    my $statuslist = $qobj->query_status_list();
 
-        update_brewery_info( $brewery_info, $statuslist, $prodcat );
-    }
+    update_brewery_info( $brewery_info, $statuslist, $prodcat );
 
     if ( ! scalar grep { defined $_ } values %$brewery_info ) {
-	warn("No festival data retrieved for " . join(", ", @categories) . "; skipping.\n");
-	return;
+        warn("No festival data retrieved for $prodcat; skipping.\n");
+        return;
     }
 
-    my $output;
-    if ( ! $use_html ) {
-
-        # Default version: generate a JSON-encoded string for upload.
-        my $jwriter = JSON::DWIW->new();
-        $output = $jwriter->to_json( { producers => [ values %$brewery_info ],
-                                       timestamp => get_timestamp() } );
-    }
-    else {
-
-        # Old version: Generate the HTML fragment to upload.
-        $template ||= join(q{}, <DATA>);
-    
-        # We define a custom title case filter for convenience.
-        my $tt2 = Template->new(
-            FILTERS => { titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) } }
-        )   or die( "Cannot create Template object: " . Template->error() );
-    
-        $tt2->process(\$template,
-                      { brewers   => [ values %$brewery_info ],
-                        timestamp => get_timestamp() },
-                      \$output )
-            or die( "Template processing error: " . $tt2->error() );
-    }
+    # Default version: generate a JSON-encoded string for upload.
+    my $jwriter = JSON::DWIW->new();
+    my $output = $jwriter->to_json( { producers => [ values %$brewery_info ],
+                                      timestamp => get_timestamp() } );
 
     # Check for valid UTF-8 (don't just trust MySQL, although I've no reason to doubt it yet).
     unless (utf8::valid($output)) {
@@ -446,42 +458,37 @@ sub upload_department {
 
     $debug && print STDOUT "\n$output\n";
 
-    printf STDOUT ("Uploading data for %s...\n", join(", ", @categories));
+    printf STDOUT ("Uploading data for %s...\n", $prodcat);
 
     # Do the upload itself. This may fail but should not block
     # department updates subsequently listed in the config file.
     eval {
-	send_update($output, $debug, $dept->{public_site_clientid},
-		    map { $config->{$_} }
-                    qw(public_site_upload_uri public_site_key));
+        send_update($output,
+                    $config->{'public_site_upload_uri'},
+                    $config->{'public_festival_tag'},
+                    $prodcat,
+                    $debug);
     };
     if ( $@ ) {
         warn(qq{Error encountered during dept. update: $@});
     }
 }
 
-my ( $config, $template, $use_html, $debug ) = parse_args();
+my ( $config, $template, $debug ) = parse_args();
 
 # Check that the appropriate config parameters have been set
 foreach my $item ( qw(festival_name
                       departments
                       beerfestdb_uri
                       public_site_upload_uri
-                      public_site_key) ) {
+                      public_festival_tag) ) {
     unless ( defined $config->{ $item } ) {
         die(qq{Error: Config variable "$item" has not been set in the configuration file.});
     }
 }
 
 foreach my $dept ( @{ $config->{departments} } ) {
-    foreach my $item ( qw(product_category
-                          public_site_clientid) ) {
-        unless ( defined $dept->{ $item } ) {
-            die(qq{Error: Dept. config variable "$item" is not set in the configuration file.});
-        }
-    }
-
-    upload_department($dept, $config, $use_html, $template, $debug)
+    upload_department($dept, $config, $template, $debug)
 }
 
 =head1 NAME

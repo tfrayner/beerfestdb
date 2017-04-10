@@ -35,11 +35,12 @@ use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $input, $overwrite, $want_version, $want_help );
+    my ( $input, $overwrite, $default_festival, $want_version, $want_help );
 
     GetOptions(
 	"i|input=s"   => \$input,
 	"o|overwrite" => \$overwrite,
+	"d|default-festival" => \$default_festival,
         "h|help"      => \$want_help,
     );
 
@@ -62,10 +63,10 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    return( $input, $config, $overwrite );
+    return( $input, $config, $overwrite, $default_festival );
 }
 
-my ( $input, $config, $overwrite ) = parse_args();
+my ( $input, $config, $overwrite, $default_festival ) = parse_args();
 
 ########
 # MAIN #
@@ -85,6 +86,7 @@ my $loader = BeerFestDB::Loader->new(
     database  => $schema,
     protected => ( $config->{'protected_classes'} || [] ),
     overwrite => $overwrite,
+    use_default_festival => $default_festival,
 );
 
 $loader->load( $input );

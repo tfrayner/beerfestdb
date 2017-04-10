@@ -84,7 +84,7 @@ Site contact for delivery: 07804 184948\\
 \begin{textblock}{35}(2,20)
 \textbf{Please supply for delivery on Wednesday 17 May 2017:}
 
-[% BLOCK order_row %][% order.cask_count %] x [% order.cask_size | format('%i') %]s [% IF order.is_sale_or_return %](sale or return)[% END %][% END %]
+[% BLOCK order_row %][% order.cask_count %] x [% order.cask_size_name %]s [% IF order.is_sale_or_return %](sale or return)[% END %][% END %]
 
 \emph{Delivery will not be accepted on any other date unless prior arrangements have been made.}
 \end{textblock}
