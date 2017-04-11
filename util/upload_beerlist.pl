@@ -440,7 +440,8 @@ sub upload_department {
 
     # Default version: generate a JSON-encoded string for upload.
     my $jwriter = JSON::DWIW->new();
-    my $output = $jwriter->to_json( { data => [ values %$brewery_info ] } );
+    my $output = $jwriter->to_json( { producers => [ values %$brewery_info ],
+				      timestamp => get_timestamp() } );
 
     # Check for valid UTF-8 (don't just trust MySQL, although I've no reason to doubt it yet).
     unless (utf8::valid($output)) {
