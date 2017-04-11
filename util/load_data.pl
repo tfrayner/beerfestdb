@@ -118,6 +118,12 @@ The tab-delimited file to import.
 
 Run the loader in overwrite mode. This is potentially dangerous.
 
+=item -d
+
+When running the loader on an input file which does not contain
+festival details, load those data against the configured default
+festival.
+
 =back
 
 =head1 AUTHOR

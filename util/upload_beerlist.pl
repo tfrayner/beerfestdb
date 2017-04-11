@@ -223,6 +223,7 @@ use List::Util qw (first);
 use BeerFestDB::Web;
 use Encode qw(encode_utf8);
 use URI;
+use Carp;
 
 use utf8;
 
@@ -242,11 +243,12 @@ sub send_update {
 #        https => \&_update_via_web_upload,
     );
 
-    my $scheme = $dispatch{$upload_uri->scheme};
+    my $scheme = $upload_uri->scheme();
     if ( ! exists $dispatch{ $scheme } ) {
-        croak("Data upload scheme not recognised: $scheme");
+        croak("Data upload scheme not recognised: '" . $upload_uri->scheme()
+	      . "'\nShould be one of: " . join(", ", keys %dispatch) . "\n" );
     }
-    $scheme->( $upload_uri, $content, $festival_tag, $dept );
+    $dispatch{$scheme}->( $upload_uri, $content, $festival_tag, $dept ) unless $debug;
 
     return();
 }
@@ -438,8 +440,7 @@ sub upload_department {
 
     # Default version: generate a JSON-encoded string for upload.
     my $jwriter = JSON::DWIW->new();
-    my $output = $jwriter->to_json( { producers => [ values %$brewery_info ],
-                                      timestamp => get_timestamp() } );
+    my $output = $jwriter->to_json( { data => [ values %$brewery_info ] } );
 
     # Check for valid UTF-8 (don't just trust MySQL, although I've no reason to doubt it yet).
     unless (utf8::valid($output)) {
@@ -458,7 +459,7 @@ sub upload_department {
 
     $debug && print STDOUT "\n$output\n";
 
-    printf STDOUT ("Uploading data for %s...\n", $prodcat);
+    printf STDERR ("Uploading data for %s...\n", $prodcat);
 
     # Do the upload itself. This may fail but should not block
     # department updates subsequently listed in the config file.
