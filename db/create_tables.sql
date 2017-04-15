@@ -1315,16 +1315,17 @@ CREATE TABLE `user_role` (
 -- Final view structure for view `order_summary_view`
 --
 
+/*!50001 DROP TABLE IF EXISTS `order_summary_view`*/;
 /*!50001 DROP VIEW IF EXISTS `order_summary_view`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
-/*!50001 SET character_set_client      = latin1 */;
-/*!50001 SET character_set_results     = latin1 */;
-/*!50001 SET collation_connection      = latin1_swedish_ci */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `order_summary_view` AS (select `f`.`name` AS `festival`,`pc`.`description` AS `category`,`c`.`name` AS `brewery`,`p`.`name` AS `beer`,`st`.`description` AS `style`,if((`po`.`is_sale_or_return` = 1),'Yes','No') AS `sale_or_return`,`p`.`nominal_abv` AS `abv`,round(sum(((`po`.`cask_count` * `cs`.`container_volume`) / 18)),1) AS `kils` from ((((((`company` `c` join `product_category` `pc`) join (`product` `p` left join `product_style` `st` on((`p`.`product_style_id` = `st`.`product_style_id`)))) join `product_order` `po`) join `order_batch` `ob`) join `container_size` `cs`) join `festival` `f`) where ((`f`.`festival_id` = `ob`.`festival_id`) and (`ob`.`order_batch_id` = `po`.`order_batch_id`) and (`p`.`product_id` = `po`.`product_id`) and (`p`.`company_id` = `c`.`company_id`) and (`po`.`container_size_id` = `cs`.`container_size_id`) and (`p`.`product_category_id` = `pc`.`product_category_id`) and (`po`.`is_final` = 1)) group by `f`.`name`,`pc`.`description`,`c`.`name`,`p`.`name`,`st`.`description`,if((`po`.`is_sale_or_return` = 1),'Yes','No'),`p`.`nominal_abv`,(`po`.`cask_count` * `cs`.`container_volume`)) */;
+/*!50001 VIEW `order_summary_view` AS (select `f`.`name` AS `festival`,`pc`.`description` AS `category`,`c`.`name` AS `brewery`,`p`.`name` AS `beer`,`st`.`description` AS `style`,if((`po`.`is_sale_or_return` = 1),'Yes','No') AS `sale_or_return`,`p`.`nominal_abv` AS `abv`,round(sum((((`po`.`cask_count` * `cs`.`container_volume`) * `cm`.`litre_multiplier`) / (18 * 4.5461))),1) AS `kils` from (((((((`company` `c` join `product_category` `pc`) join (`product` `p` left join `product_style` `st` on((`p`.`product_style_id` = `st`.`product_style_id`)))) join `product_order` `po`) join `order_batch` `ob`) join `container_size` `cs`) join `container_measure` `cm`) join `festival` `f`) where ((`f`.`festival_id` = `ob`.`festival_id`) and (`ob`.`order_batch_id` = `po`.`order_batch_id`) and (`p`.`product_id` = `po`.`product_id`) and (`p`.`company_id` = `c`.`company_id`) and (`po`.`container_size_id` = `cs`.`container_size_id`) and (`cs`.`container_measure_id` = `cm`.`container_measure_id`) and (`p`.`product_category_id` = `pc`.`product_category_id`) and (`po`.`is_final` = 1)) group by `f`.`name`,`pc`.`description`,`c`.`name`,`p`.`name`,`st`.`description`,if((`po`.`is_sale_or_return` = 1),'Yes','No'),`p`.`nominal_abv`,((`po`.`cask_count` * `cs`.`container_volume`) * `cm`.`litre_multiplier`)) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
