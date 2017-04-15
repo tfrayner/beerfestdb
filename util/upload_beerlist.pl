@@ -23,6 +23,8 @@
 use strict;
 use warnings;
 
+binmode(STDOUT, ":utf8");
+
 package MyQueryClass;
 use Moose;
 
