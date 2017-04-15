@@ -267,6 +267,8 @@ sub _update_via_local_command {
     open ( my $pipe, "| $cmd $festival_tag $dept -" )
         or die("Unable to open command pipe: $!");
 
+    binmode($pipe, ":utf8");
+
     print $pipe $content;
 
     return();
