@@ -1,0 +1,82 @@
+%
+% $Id$
+%
+[% IF dump_class != 'distributor' %][% THROW bad_dump_class "Use the distributor dump class.\n" %][% END %]
+
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, portrait, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
+\usepackage[british]{babel}
+\usepackage{palatino}
+\usepackage{multicol}
+
+\pagestyle{empty}
+\renewcommand\familydefault{\sfdefault} % makes it use sans serif
+
+\begin{document}
+
+[%# FIXME Technically it would be better to dump at the cask level and work from their distributors %]
+
+[% SET nondistrib = {} %]
+
+[% FOREACH dist = objects %]
+
+[% SET brewerhash = {} %]
+[% FOREACH company IN dist.orders %]
+  [% IF company.key != dist.name %]
+    [% SET brewery = company.key %]
+    [% SET brewerhash.$brewery = 1 %]
+  [% END %]
+[% END %]
+
+[% IF brewerhash.keys.size == 0 %]
+  [% SET brewery = dist.name %]
+  [% SET nondistrib.$brewery = 1 %]
+  [% NEXT %]
+[% END %]
+
+\fontsize{30}{36}
+\selectfont
+
+\begin{center}\textbf{[% dist.name | latexify %]}\end{center}
+
+\vspace{5 mm}
+
+%
+\begin{multicols}{2}
+
+\fontsize{24}{30}
+\selectfont
+
+[% FOR b IN brewerhash %]
+  [% b.key | latexify %]
+[% END %]
+
+%
+\end{multicols}
+
+\vspace{5 mm}
+%% \null\newpage
+
+[% END %]
+
+[%# And now for the companies delivering only their own beer... %]
+
+\begin{center}\textbf{Direct delivery \& collection}\end{center}
+
+\begin{multicols}{2}
+
+\fontsize{24}{30}
+\selectfont
+
+[% FOR b IN nondistrib %]
+  [% b.key | latexify %]
+[% END %]
+
+\end{multicols}
+
+%% \null\newpage
+
+\end{document}
+
