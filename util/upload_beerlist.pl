@@ -324,7 +324,6 @@ sub update_brewery_info {
         abv         => 'abv',
         style       => 'style',
         long_description => 'notes',
-        css_status  => 'css_status',
         allergens   => 'allergens',
         stillage_location => 'bar',
         dispense_method   => 'dispense',
@@ -380,6 +379,16 @@ sub update_brewery_info {
         $beer_info->{category} = $prodcat;
 
         push @{ $brewery_info->{ $id }{products} }, $beer_info;
+    }
+
+    # One last sort by product name.
+    foreach my $id ( keys %$brewery_info ) {
+	$brewery_info->{ $id }{products} = [ 
+	    map { $_->[0] }
+	    sort { $a->[1] cmp $b->[1] }
+	    map { [ $_, $_->{name} ] }
+	    @{ $brewery_info->{ $id }{products} }
+	];
     }
 }
 
@@ -444,7 +453,11 @@ sub upload_department {
 
     # Default version: generate a JSON-encoded string for upload.
     my $jwriter = JSON::DWIW->new();
-    my $output = $jwriter->to_json( { producers => [ values %$brewery_info ],
+    my @content = map { $_->[0] } # Schwartzian transform sorting by brewery name.
+                  sort { $a->[1] cmp $b->[1] }
+                  map { [ $_, $_->{name} ] }
+                  values %$brewery_info;
+    my $output = $jwriter->to_json( { producers => \@content,
 				      timestamp => get_timestamp() } );
 
     # Check for valid UTF-8 (don't just trust MySQL, although I've no reason to doubt it yet).
