@@ -71,30 +71,9 @@ sub _txn_preload_product_order {
     my $fest_id  = $festival->get_column('festival_id');
     my $product_id = $order->get_column('product_id');
 
-    # We need to go around the houses a bit here so that all the casks
-    # for a given product at the festival are counted.
-    my $product_max = max(
-
-        # Cask management entries associated with product order.
-        $order->search_related('product_id')
-              ->search_related('product_orders')
-              ->search_related('order_batch_id', { 'order_batch_id.festival_id' => $fest_id })
-              ->search_related('product_orders', { 'product_orders_2.product_id' => $product_id })
-              ->search_related('cask_managements')
-              ->get_column('internal_reference')->max() || 0,
-
-        # Cask management entries associated with instantiated casks.
-        $festival->search_related('festival_products', { product_id => $product_id })
-                 ->search_related('gyles')
-                 ->search_related('casks')
-                 ->search_related('cask_management_id')
-                 ->get_column('internal_reference')->max() || 0,
-    );
-
     my $previous_festival_max = $db->resultset('CaskManagement')
                                    ->search({ festival_id => $fest_id })
                                    ->get_column('cellar_reference')->max() || 0;
-
 
     my %order_details = (
         festival_id        => $fest_id,
@@ -133,7 +112,6 @@ sub _txn_preload_product_order {
             $db->resultset("CaskManagement")->create({
                 %order_details,
                 product_order_id   => $order->get_column("product_order_id"),
-                internal_reference => ++$product_max,
                 cellar_reference   => ++$previous_festival_max,
             });
         }
@@ -144,7 +122,7 @@ sub _txn_preload_product_order {
         # an error). Try to delete the higher-numbered casks first.
         my $existing = $order->search_related('cask_managements',
                                               undef,
-                                              { order_by => { -desc => 'internal_reference' } } );
+                                              { order_by => { -desc => 'cellar_reference' } } );
 
         CASKMAN_DELETE:
         while ( my $caskman = $existing->next() ) {

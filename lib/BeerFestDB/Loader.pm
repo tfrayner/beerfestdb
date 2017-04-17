@@ -540,7 +540,6 @@ sub _load_data {
                             stillage_bay           => $datahash->{$BAY_NUMBER},
                             bay_position_id        => $bay_position,
                             bar_id                 => $bar,
-                            internal_reference     => $n,
                             cellar_reference       => $datahash->{$CASK_FESTIVAL_ID},
                         },
                         'CaskManagement', 1) # 1 here forces creation of a new object.
