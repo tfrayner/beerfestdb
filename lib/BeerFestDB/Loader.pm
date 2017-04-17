@@ -33,6 +33,7 @@ use List::Util qw(first);
 use Scalar::Util qw(blessed);
 
 use BeerFestDB::ORM;
+use BeerFestDB::Web;
 
 has 'database' => ( is       => 'ro',
                     isa      => 'DBIx::Class::Schema',
@@ -63,9 +64,16 @@ has '_error_count' => ( is       => 'rw',
                         required => 1,
                         default  => 0 );
 
+has '_preload_casks' => ( is       => 'rw',
+                          isa      => 'Bool',
+                          required => 1,
+                          default  => 0 );
+
 with 'BeerFestDB::DBHashRefValidator';
 
 with 'BeerFestDB::MenuSelector';
+
+with 'BeerFestDB::CaskPreloader';
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -227,9 +235,29 @@ sub add_protection_error {
     $self->_error_count( $self->_error_count + 1 );
 }
 
+sub _confirm_preload_casks {
+
+    my ( $self ) = @_;
+
+    if ( not $self->_preload_casks ) {
+        print "Warning: Casks are marked as having arrived; do you really wish"
+            . " to prepopulate the database with arrived casks (y/N)? ";
+        chomp(my $answer = <STDIN>);
+        unless ( lc($answer) eq 'y' ) {
+            die("User canceled script execution.\n");
+        }
+
+        $self->_preload_casks(1);
+    }
+
+    return $self->_preload_casks;
+}
+
 sub _load_data {
 
     my ( $self, $datahash ) = @_;
+
+    my $config = BeerFestDB::Web->config();
 
     # Each of these calls defines the column to be used from the input
     # file.
@@ -324,24 +352,14 @@ sub _load_data {
         },
         'ContainerMeasure');
 
-    # FIXME why are we reiterating the description here?
-    my $sale_volume = $self->_load_column_value(
-        {
-            container_measure_id    => $pint_size,
-            description             => 'pint',
-        },
-        'SaleVolume');
+    # Just use the configured currency and sale volumes for now.
+    my $currency = $self->database->resultset('Currency')->find({
+        currency_code => $config->{'default_currency'},
+    }) or die("Unable to retrieve default currency; check config settings.");
 
-    # FIXME this also needs to be much more flexible (see http://en.wikipedia.org/wiki/ISO_4217).
-    my $currency = $self->_load_column_value(
-        {
-            currency_code   => 'GBP',
-            currency_number => 826,
-            currency_format => '#,###,###,###,##0.00',
-            exponent        => 2,
-            currency_symbol => '£',
-        },
-        'Currency');
+    my $sale_volume = $self->database->resultset('SaleVolume')->find({
+        description => $config->{'default_sale_volume'},
+    }) or die("Unable to retrieve default sale volume; check config settings.");
 
     my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
 
@@ -389,7 +407,7 @@ sub _load_data {
     ## N.B. Will fail if not already present in the database; we don't
     ## want to support all the iso2, iso3, num3 data for a simple
     ## product order load.
-    my $country   
+    my $country
         = $self->value_is_acceptable( $datahash->{$CONTACT_COUNTRY} )
         ? $self->_load_column_value(
             {
@@ -449,15 +467,26 @@ sub _load_data {
                 currency_id            => $currency,
                 advertised_price       => $cask_price,
                 is_final               => $datahash->{$ORDER_FINALISED},
-
-# I'm Deactivating this because it's rarely what's actually wanted;
-# FIXME instead consider the CaskManagement autogeneration step here.
-#                is_received            => $datahash->{$ORDER_RECEIVED},
+                is_received            => $datahash->{$ORDER_RECEIVED},
                 comment                => $datahash->{$ORDER_COMMENT},
                 is_sale_or_return      => $datahash->{$ORDER_SALE_OR_RETURN} || 0, # Part of a DB key
             },
             'ProductOrder',
         );
+
+        # Preload casks into the database if they are marked as having
+        # arrived. This step is tricky to undo, so we ask for
+        # confirmation.
+        if ( $datahash->{$ORDER_RECEIVED} ) {
+            if ( $self->_confirm_preload_casks() ) {
+
+                $product_order->set_column('is_final', 1); # This is implied.
+
+                # FIXME add $self->protected support here, on principle.
+                $self->preload_product_order($product_order, $sale_volume, $currency);
+            }
+        }
+
         $contact
             = $contact_type
             ? $self->_load_column_value(
@@ -469,7 +498,7 @@ sub _load_data {
             : undef;
     }
     else {  # FestivalProduct
-        
+
         my $festival_product;
         if ( $product && $festival ) {
             $festival_product = $self->_load_column_value(
@@ -504,13 +533,22 @@ sub _load_data {
         # We need to support adding casks in multiple loads; cask count
         # becomes an issue so we check against the database here.
         my $preexist = 0;
-        if ( $gyle && $festival ) { 
+        if ( $gyle && $festival ) {
             $preexist = $gyle->search_related(
                 'casks',
                 { 'cask_management_id.festival_id' => $festival->id },
                 { join => 'cask_management_id'} )->count();
             $count += $preexist;
         }
+
+        # We only use this if CASK_FESTIVAL_ID not present, to fill in
+        # a field which we want to make NOT NULL at some point in the
+        # future.
+        my $previous_festival_max
+            = $festival
+            ? $festival->search_related('cask_managements')
+                       ->get_column('cellar_reference')->max() || 0
+            : undef;
 
         my @wanted_casks = ($preexist+1)..$count;
         if ( $has_cask_identifiers ) {
@@ -519,8 +557,13 @@ sub _load_data {
             }
             @wanted_casks = $datahash->{$CASK_CELLAR_ID};
         }
-        
+
         foreach my $n ( @wanted_casks ) {
+
+            my $cellar_ref
+                = defined $datahash->{$CASK_FESTIVAL_ID}
+                ? $datahash->{$CASK_FESTIVAL_ID}
+                : ++$previous_festival_max;
 
             # In the absence of product order data, cask_management
             # has no link to product when it's initially created. This
@@ -540,7 +583,7 @@ sub _load_data {
                             stillage_bay           => $datahash->{$BAY_NUMBER},
                             bay_position_id        => $bay_position,
                             bar_id                 => $bar,
-                            cellar_reference       => $datahash->{$CASK_FESTIVAL_ID},
+                            cellar_reference       => $cellar_ref,
                         },
                         'CaskManagement', 1) # 1 here forces creation of a new object.
                         : undef;

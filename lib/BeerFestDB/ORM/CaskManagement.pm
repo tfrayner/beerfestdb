@@ -115,7 +115,7 @@ __PACKAGE__->table("cask_management");
 =head2 cellar_reference
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 is_sale_or_return
 
@@ -157,7 +157,7 @@ __PACKAGE__->add_columns(
   "internal_reference",
   { data_type => "integer", is_nullable => 1 },
   "cellar_reference",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "is_sale_or_return",
   { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
@@ -316,8 +316,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oh83mGFCCK5WRCdjuiu0GQ
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-17 16:29:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LQuQV0Ro+7fyBkDCyiaR8w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -170,7 +170,7 @@ CREATE TABLE `cask_management` (
   `stillage_y_location` int(6) unsigned DEFAULT NULL,
   `stillage_z_location` int(6) unsigned DEFAULT NULL,
   `internal_reference` int(6) DEFAULT NULL,
-  `cellar_reference` int(6) DEFAULT NULL,
+  `cellar_reference` int(6) NOT NULL,
   `is_sale_or_return` tinyint(1) DEFAULT '0', -- web json list drops this silently if NULL (a problem for our R code).
   PRIMARY KEY (`cask_management_id`),
   UNIQUE KEY `festival_cellar_ref` (`festival_id`,`cellar_reference`),
