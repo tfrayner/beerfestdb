@@ -159,47 +159,7 @@ sub _save_records : Private {
         my $po = $rs->find( $rec->{ 'product_order_id' } )
             or die("Unable to retrieve loaded product order");
 
-        my $default_currency = $c->model('DB::Currency')->find({
-            currency_code => $c->config->{'default_currency'},
-        }) or die("Unable to retrieve default currency; check config settings.");
-
-        my $default_sale_vol = $c->model('DB::SaleVolume')->find({
-            description => $c->config->{'default_sale_volume'},
-        }) or die("Unable to retrieve default sale volume; check config settings.");
-
-        my $festival_id = $po->order_batch_id()->get_column('festival_id');
-        my $product_id  = $po->get_column('product_id');
-        my $currency_id = $default_currency->get_column('currency_id');
-
-        my $fp = $c->model('DB::FestivalProduct')->find_or_create({
-            festival_id      => $festival_id,
-            sale_volume_id   => $default_sale_vol->get_column('sale_volume_id'),
-            sale_currency_id => $currency_id,
-            product_id       => $product_id,
-        });
-        my $fp_id = $fp->get_column('festival_product_id');
-
-        # This should really be constrained somehow to control the
-        # number of gyles created; I'm not sure how though - we might
-        # need to actually track gyle information, which is not always
-        # available. FIXME?
-        my $gyle = $c->model('DB::Gyle')->find_or_create({
-            company_id          => $po->product_id()->get_column('company_id'),
-            festival_product_id => $fp_id,
-            internal_reference  => 'auto-generated',
-            comment             => 'Gyle automatically generated upon cask receipt.',
-        });
-
-        $self->preload_product_order( $po );
-
-        # If we get here we must have synchronised product_order and
-        # cask_management.
-        foreach my $caskman ( $po->cask_managements() ) {
-            $c->model('DB::Cask')->find_or_create({
-                cask_management_id => $caskman,
-                gyle_id            => $gyle,
-            });
-        }
+        $self->preload_product_order($po);
     }
 
     return;

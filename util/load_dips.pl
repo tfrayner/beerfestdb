@@ -88,22 +88,23 @@ sub load {
                                . qq{not found.\n});
 
                     # Avoid total nonsense dips.
-                    if ( $line->[1] > $cask->container_size_id->container_volume ) {
-                        die(sprintf("Dip figure of %.1f for cask %i larger than cask size %i.",
-                                    $line->[1], $line->[0],
-                                    $cask->container_size_id->container_volume))
+                    my $caskvol = $cask->cask_management_id->container_size_id->container_volume;
+                    if ( $line->[1] > $caskvol ) {
+                        die(sprintf("Dip figure of %.1f for cask %i larger than cask size %i.\n",
+                                    $line->[1], $line->[0], $caskvol))
                     }
 
                     # Warn on oddities.
                     my @dips =
-                        $cask->search_related('cask_measurements',
-                                              undef,
-                                              { join => 'measurement_batch_id',
-                                                order_by => {
-                                                    -desc => 'measurement_batch_id.datetime'
-                                                },
-                                            }
-                                          );
+                        $cask->search_related(
+                            'cask_measurements',
+                            undef,
+                            { join => 'measurement_batch_id',
+                              order_by => {
+                                  -desc => 'measurement_batch_id.measurement_time'
+                              },
+                          }
+                        );
                     if ( scalar @dips > 0 ) {
                         if ( $line->[1] > $dips[0]->volume ) {
                             warn(sprintf("Dip figure for cask %i (%.1f) is higher than the previous dip (%.1f).",
@@ -123,7 +124,7 @@ sub load {
         );
     };
     if ( $@ ) {
-        die(qq{Errors encountered during load:\n\n$@});
+        die(qq{Errors encountered during load:\n\n$@\n});
     }
     else {
         

@@ -62,7 +62,7 @@ sub _preload_order_batch {
     my ( $self, $batch ) = @_;
 
     foreach my $order ( $batch->search_related('product_orders')->all() ) {
-        $self->preload_product_order($order)
+        $self->preload_cask_managements($order)
     }
 
     return;
