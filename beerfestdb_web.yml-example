@@ -64,11 +64,12 @@ OODoc:
 
 status_query:
   departments:
-    - product_category:
-      public_site_clientid:
+    - beer
+    - foreign beer
+    - cider
   beerfestdb_uri:
   public_site_upload_uri:
-  public_site_key:
+  public_festival_tag:
 
 ## Set the following if you need to set up the application to run
 ##  behind an Apache reverse proxy setup. Note that you will also need
