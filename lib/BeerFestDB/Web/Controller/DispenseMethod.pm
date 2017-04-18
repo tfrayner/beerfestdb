@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2017 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,15 +19,15 @@
 #
 # $Id$
 
-package BeerFestDB::Web::Controller::CompanyRegion;
+package BeerFestDB::Web::Controller::DispenseMethod;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
+BEGIN { extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
-BeerFestDB::Web::Controller::CompanyRegion - Catalyst Controller
+BeerFestDB::Web::Controller::DispenseMethod - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -42,11 +42,11 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     $self->model_view_map({
-        company_region_id  => 'company_region_id',
-        description        => 'description',
+        dispense_method_id   => 'dispense_method_id',
+        description          => 'description',
     });
 
-    $self->model_name('DB::CompanyRegion');
+    $self->model_name('DB::DispenseMethod');
 }
 
 =head1 COPYRIGHT AND LICENSE

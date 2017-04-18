@@ -1,0 +1,5 @@
+[% META title = 'Container Size listing' %]
+
+[% js_link( src = '/static/js/grids/container_size.js' ) %]
+
+<div id="datagrid"></div>

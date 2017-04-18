@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::ContainerSize;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
@@ -47,24 +47,13 @@ sub BUILD {
         measure_id        => 'container_measure_id',
         description       => 'description',
     });
-}
 
-=head2 list
-
-=cut
-
-sub list : Local {
-
-    my ( $self, $c ) = @_;
-
-    my $rs = $c->model( 'DB::ContainerSize' );
-
-    $self->generate_json_and_detach( $c, $rs );
+    $self->model_name('DB::ContainerSize');
 }
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2017 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

@@ -19,34 +19,71 @@
 #
 # $Id$
 
-package BeerFestDB::Web::Controller::CompanyRegion;
+package BeerFestDB::Web::Controller;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
+BEGIN {extends 'BeerFestDB::Web::Controller'; }
+
+with 'BeerFestDB::DBHashRefValidator';
+
+has 'model_name' => ( is  => 'rw',
+                      isa => 'Str' );
 
 =head1 NAME
 
-BeerFestDB::Web::Controller::CompanyRegion - Catalyst Controller
+BeerFestDB::Web::GenericGrid - Base class for all CV grid controllers
 
 =head1 DESCRIPTION
 
-Catalyst Controller.
+Base class for those controllers used to manage simple CV
+classes. Provides the basic actions for list, grid, submit, delete.
 
 =head1 METHODS
 
+=head2 list
+
 =cut
 
-sub BUILD {
+sub list : Local {
 
-    my ( $self, $params ) = @_;
+    my ( $self, $c ) = @_;
 
-    $self->model_view_map({
-        company_region_id  => 'company_region_id',
-        description        => 'description',
-    });
+    my $rs = $c->model( $self->model_name() );
 
-    $self->model_name('DB::CompanyRegion');
+    $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 grid
+
+=cut
+
+sub grid : Local {}
+
+=head2 submit
+
+=cut
+
+sub submit : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( $self->model_name() );
+
+    $self->write_to_resultset( $c, $rs );
+}
+
+=head2 delete
+
+=cut
+
+sub delete : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( $self->model_name() );
+
+    $self->delete_from_resultset( $c, $rs );
 }
 
 =head1 COPYRIGHT AND LICENSE

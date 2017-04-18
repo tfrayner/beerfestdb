@@ -1,12 +1,5 @@
-[% META title = 'Product Style listing' %]
+[% META title = 'Product Category listing' %]
 
-<script type="text/javascript">
-   var url_object_list    = '[% c.uri_for( "/productstyle/list_by_category/$category.id" ) %]';
-   var url_category_view  = '[% c.uri_for( "/productcategory" ) %]';
-   var categoryname       = '[% category.description | xml %]';
-   var category_id        = '[% category.id | xml %]';
-</script>
-
-[% js_link( src = '/static/js/grids/product_styles.js' ) %]
+[% js_link( src = '/static/js/grids/product_categories.js' ) %]
 
 <div id="datagrid"></div>

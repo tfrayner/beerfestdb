@@ -1,0 +1,5 @@
+[% META title = 'Dispense Method listing' %]
+
+[% js_link( src = '/static/js/grids/dispense_methods.js' ) %]
+
+<div id="datagrid"></div>

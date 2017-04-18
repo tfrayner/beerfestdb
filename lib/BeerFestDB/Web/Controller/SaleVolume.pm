@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::SaleVolume;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
@@ -47,19 +47,8 @@ sub BUILD {
         description          => 'description',
         volume               => 'volume',
     });
-}
 
-=head2 list
-
-=cut
-
-sub list : Local {
-
-    my ( $self, $c ) = @_;
-
-    my $rs = $c->model( 'DB::SaleVolume' );
-
-    $self->generate_json_and_detach( $c, $rs );
+    $self->model_name('DB::SaleVolume');
 }
 
 =head1 COPYRIGHT AND LICENSE

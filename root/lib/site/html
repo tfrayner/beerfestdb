@@ -38,8 +38,10 @@
    var url_company_list         = '[% c.uri_for( "/company/list" ) %]';
    var url_company_region_list  = '[% c.uri_for( "/companyregion/list" ) %]';
    var url_currency_list        = '[% c.uri_for( "/currency/list" ) %]';
+   var url_dispense_method_list = '[% c.uri_for( "/dispensemethod/list" ) %]';
    var url_festival_list        = '[% c.uri_for( "/festival/list" ) %]';
    var url_product_list         = '[% c.uri_for( "/product/list" ) %]';
+   var url_product_allergen_list = '[% c.uri_for( "/productallergentype/list" ) %]';
    var url_product_style_list   = '[% c.uri_for( "/productstyle/list" ) %]';
    var url_sale_volume_list     = '[% c.uri_for( "/salevolume/list" ) %]';
    var url_bay_position_list    = '[% c.uri_for( "/bayposition/list" ) %]';
@@ -51,6 +53,8 @@
 
    var url_cask_delete          = '[% c.uri_for( "/cask/delete" ) %]';
    var url_cask_submit          = '[% c.uri_for( "/cask/submit" ) %]';
+   var url_cask_size_delete     = '[% c.uri_for( "/containersize/delete" ) %]';
+   var url_cask_size_submit     = '[% c.uri_for( "/containersize/submit" ) %]';
    var url_caskmeasurement_delete = '[% c.uri_for( "/caskmeasurement/delete" ) %]';
    var url_caskmeasurement_submit = '[% c.uri_for( "/caskmeasurement/submit" ) %]';
    var url_category_submit      = '[% c.uri_for( "/productcategory/submit" ) %]';
@@ -59,6 +63,10 @@
    var url_contact_submit       = '[% c.uri_for( "/contact/submit" ) %]';
    var url_company_delete       = '[% c.uri_for( "/company/delete" ) %]';
    var url_company_submit       = '[% c.uri_for( "/company/submit" ) %]';
+   var url_companyregion_delete = '[% c.uri_for( "/companyregion/delete" ) %]';
+   var url_companyregion_submit = '[% c.uri_for( "/companyregion/submit" ) %]';
+   var url_dispensemethod_delete = '[% c.uri_for( "/dispensemethod/delete" ) %]';
+   var url_dispensemethod_submit = '[% c.uri_for( "/dispensemethod/submit" ) %]';
    var url_festival_delete      = '[% c.uri_for( "/festival/delete" ) %]';
    var url_festival_submit      = '[% c.uri_for( "/festival/submit" ) %]';
    var url_festivalproduct_delete = '[% c.uri_for( "/festivalproduct/delete" ) %]';
@@ -71,10 +79,14 @@
    var url_measurement_batch_delete = '[% c.uri_for( "/measurementbatch/delete" ) %]';
    var url_product_submit       = '[% c.uri_for( "/product/submit" ) %]';
    var url_product_delete       = '[% c.uri_for( "/product/delete" ) %]';
+   var url_productallergen_delete = '[% c.uri_for( "/productallergentype/delete" ) %]';
+   var url_productallergen_submit = '[% c.uri_for( "/productallergentype/submit" ) %]';
    var url_productorder_delete  = '[% c.uri_for( "/productorder/delete" ) %]';
    var url_productorder_submit  = '[% c.uri_for( "/productorder/submit" ) %]';
    var url_productstyle_submit  = '[% c.uri_for( "/productstyle/submit" ) %]';
    var url_productstyle_delete  = '[% c.uri_for( "/productstyle/delete" ) %]';
+   var url_sale_volume_submit   = '[% c.uri_for( "/salevolume/submit" ) %]';
+   var url_sale_volume_delete   = '[% c.uri_for( "/salevolume/delete" ) %]';
    var url_stillageloc_submit   = '[% c.uri_for( "/stillagelocation/submit" ) %]';
    var url_stillageloc_delete   = '[% c.uri_for( "/stillagelocation/delete" ) %]';
    var url_telephone_submit     = '[% c.uri_for( "/telephone/submit" ) %]';

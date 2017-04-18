@@ -1,0 +1,5 @@
+[% META title = 'Company Region listing' %]
+
+[% js_link( src = '/static/js/grids/company_regions.js' ) %]
+
+<div id="datagrid"></div>
