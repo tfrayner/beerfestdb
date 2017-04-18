@@ -41,6 +41,7 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'company_region_id', type: 'int' },
                      { name: 'description',       type: 'string'}],
+        idProperty: 'company_region_id',
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
@@ -54,6 +55,7 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'contact_type_id', type: 'int' },
                      { name: 'description',     type: 'string'}],
+        idProperty: 'contact_type_id',
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
@@ -79,6 +81,7 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'country_id',        type: 'int' },
                      { name: 'country_code_iso3', type: 'string'}],
+        idProperty: 'country_id',
         sortInfo:   {
             field:     'country_code_iso3',
             direction: 'ASC',
@@ -99,67 +102,13 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
     });
 
-    /* Contact list */
-    var contact_store = new Ext.data.JsonStore({
-        url:        url_contact_list,
-        root:       'objects',
-        fields:     [{ name: 'contact_id',       type: 'int'    },
-                     { name: 'contact_type_id',  type: 'int'    },
-                     { name: 'company_id',       type: 'int'    },
-                     { name: 'first_name',       type: 'string' },
-                     { name: 'last_name',        type: 'string' },
-                     { name: 'street_address',   type: 'string' },
-                     { name: 'postcode',         type: 'string' },
-                     { name: 'country_id',       type: 'int'    },
-                     { name: 'email',            type: 'string' },
-                     { name: 'comment',          type: 'string' }],
-        sortInfo:   {
-            field:     'last_name',
-            direction: 'ASC',
-        },
-    });
-    contact_store.load();
-
-    var product_store = new Ext.data.JsonStore({
-        url:        url_product_list,
-        root:       'objects',
-        fields:     [{ name: 'product_id',       type: 'int' },
-                     { name: 'company_id',       type: 'int' },
-                     { name: 'name',             type: 'string',   allowBlank: false },
-                     { name: 'description',      type: 'string' },
-                     { name: 'comment',          type: 'string' },
-                     { name: 'nominal_abv',      type: 'float' },
-                     { name: 'product_category_id', type: 'int' },
-                     { name: 'product_style_id', type: 'int' }],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-        defaultData: { product_category_id: default_product_category },
-    });
-    product_store.load();
-
-    var festprod_store = new Ext.data.JsonStore({
-        url:        url_festival_product_list,
-        root:       'objects',
-        fields:     [{ name: 'festival_product_id', type: 'int' },
-                     { name: 'product_name',        type: 'string' },
-                     { name: 'festival_name',       type: 'string' },
-                     { name: 'festival_year',       type: 'string' },
-                     { name: 'comment',             type: 'string' }],
-        sortInfo:   {
-            field:     'festival_year',
-            direction: 'ASC',
-        },
-    });
-    festprod_store.load();
-
     /* Product Style drop-down */
     var style_store = new Ext.data.JsonStore({
         url:        url_product_style_list,
         root:       'objects',
         fields:     [{ name: 'product_style_id', type: 'int'    },
                      { name: 'description',      type: 'string' }],
+	idProperty: 'product_style_id',
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
@@ -186,6 +135,7 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'product_category_id', type: 'int'    },
                      { name: 'description',         type: 'string' }],
+        idProperty: 'product_category_id',
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
@@ -204,6 +154,64 @@ Ext.onReady(function(){
         lazyRender:     true,
         listClass:      'x-combo-list-small',
     });
+
+    /* Contact list */
+    var contact_store = new Ext.data.JsonStore({
+        url:        url_contact_list,
+        root:       'objects',
+        fields:     [{ name: 'contact_id',       type: 'int'    },
+                     { name: 'contact_type_id',  type: 'int', sortType: myMakeSortTypeFun(contact_type_store, 'description') },
+                     { name: 'company_id',       type: 'int'    },
+                     { name: 'first_name',       type: 'string' },
+                     { name: 'last_name',        type: 'string' },
+                     { name: 'street_address',   type: 'string' },
+                     { name: 'postcode',         type: 'string' },
+                     { name: 'country_id',       type: 'int', sortType: myMakeSortTypeFun(country_store, 'country_code_iso3') },
+                     { name: 'email',            type: 'string' },
+                     { name: 'comment',          type: 'string' }],
+        idProperty: 'contact_id',
+        sortInfo:   {
+            field:     'last_name',
+            direction: 'ASC',
+        },
+    });
+    contact_store.load();
+
+    var product_store = new Ext.data.JsonStore({
+        url:        url_product_list,
+        root:       'objects',
+        fields:     [{ name: 'product_id',       type: 'int' },
+                     { name: 'company_id',       type: 'int' },
+                     { name: 'name',             type: 'string',   allowBlank: false },
+                     { name: 'description',      type: 'string' },
+                     { name: 'comment',          type: 'string' },
+                     { name: 'nominal_abv',      type: 'float' },
+                     { name: 'product_category_id', type: 'int', sortType: myMakeSortTypeFun(category_store, 'description') },
+                     { name: 'product_style_id', type: 'int', sortType: myMakeSortTypeFun(style_store, 'description')  }],
+        idProperty: 'product_id',
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+        defaultData: { product_category_id: default_product_category },
+    });
+    product_store.load();
+
+    var festprod_store = new Ext.data.JsonStore({
+        url:        url_festival_product_list,
+        root:       'objects',
+        fields:     [{ name: 'festival_product_id', type: 'int' },
+                     { name: 'product_name',        type: 'string' },
+                     { name: 'festival_name',       type: 'string' },
+                     { name: 'festival_year',       type: 'string' },
+                     { name: 'comment',             type: 'string' }],
+        idProperty: 'festival_product_id',
+        sortInfo:   {
+            field:     'festival_year',
+            direction: 'ASC',
+        },
+    });
+    festprod_store.load();
 
     /* Company form */
     var coForm = new MyFormPanel({

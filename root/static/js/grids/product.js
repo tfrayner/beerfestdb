@@ -25,14 +25,42 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
+    /* Supplier lookups */
+    var supplier_store = new Ext.data.JsonStore({
+        url:        url_company_list,
+        root:       'objects',
+        fields:     [{ name: 'company_id', type: 'int' },
+                     { name: 'name',       type: 'string'}],
+        idProperty: 'company_id',
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+    });
+    supplier_store.load();
+
+    /* Product Style lookups */
+    var style_store = new Ext.data.JsonStore({
+        url:        url_product_style_list,
+        root:       'objects',
+        fields:     [{ name: 'product_style_id', type: 'int'    },
+                     { name: 'description',      type: 'string' }],
+        idProperty: 'product_style_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    style_store.load();
+
     var Product = Ext.data.Record.create([
         { name: 'product_id',       type: 'int' },
-        { name: 'company_id',       type: 'int' },
+        { name: 'company_id',       type: 'int', sortType: myMakeSortTypeFun(supplier_store, 'name') },
         { name: 'name',             type: 'string',   allowBlank: false },
         { name: 'description',      type: 'string' },
         { name: 'comment',          type: 'string' },
         { name: 'nominal_abv',      type: 'float' },
-        { name: 'product_style_id', type: 'int' },
+        { name: 'product_style_id', type: 'int', sortType: myMakeSortTypeFun(style_store, 'description') },
     ]);
 
     var store = new Ext.data.JsonStore({
@@ -42,17 +70,6 @@ Ext.onReady(function(){
     });
 
     /* Supplier drop-down */
-    var supplier_store = new Ext.data.JsonStore({
-        url:        url_company_list,
-        root:       'objects',
-        fields:     [{ name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-    supplier_store.load();
     var brewer_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -67,17 +84,6 @@ Ext.onReady(function(){
     });
 
     /* Product Style drop-down */
-    var style_store = new Ext.data.JsonStore({
-        url:        url_product_style_list,
-        root:       'objects',
-        fields:     [{ name: 'product_style_id', type: 'int'    },
-                     { name: 'description',      type: 'string' }],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-    style_store.load();
     var style_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',

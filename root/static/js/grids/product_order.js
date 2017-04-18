@@ -25,15 +25,88 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
 
+    /* Brewer lookups */
+    var brewer_store = new Ext.data.JsonStore({
+        url:        url_company_list,
+        root:       'objects',
+        fields:     [{ name: 'company_id', type: 'int' },
+                     { name: 'name',       type: 'string'}],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+        idProperty: 'company_id',
+        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
+    });
+    brewer_store.load({ params: { brewer_order_batch_id: order_batch_id } });
+
+    /* Product lookups */
+    var product_store = new Ext.data.JsonStore({
+        url:        url_product_list,
+        root:       'objects',
+        fields:     [{ name: 'product_id', type: 'int'    },
+                     { name: 'company_id', type: 'int'    },
+                     { name: 'name',       type: 'string' }],
+        idProperty: 'product_id',
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+    });
+
+    /* Distributor lookups */
+    var distributor_store = new Ext.data.JsonStore({
+        url:        url_company_list,
+        root:       'objects',
+        fields:     [{ name: 'company_id', type: 'int'    },
+                     { name: 'name',       type: 'string' }],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+        idProperty: 'company_id',
+        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
+    });
+    distributor_store.load({ params: { supplier_order_batch_id: order_batch_id } });
+
+    /* Currency lookups */
+    var currency_store = new Ext.data.JsonStore({
+        url:        url_currency_list,
+        root:       'objects',
+        fields:     [{ name: 'currency_id',   type: 'int'    },
+                     { name: 'currency_code', type: 'string' }],
+        idProperty: 'currency_id',
+        sortInfo:   {
+            field:     'currency_code',
+            direction: 'ASC',
+        },
+    });
+    currency_store.load();
+
+    /* Cask size lookups */
+    var cask_size_store = new Ext.data.JsonStore({
+        url:        url_cask_size_list,
+        root:       'objects',
+        fields:     [{ name: 'container_size_id', type: 'int'    },
+                     { name: 'description',       type: 'string' }],
+        idProperty: 'container_size_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    cask_size_store.load();
+
+    /* Main product order records and store */
     var ProductOrder = Ext.data.Record.create([
         { name: 'product_order_id',       type: 'int' },
-        { name: 'company_id',             type: 'int' },
-        { name: 'product_id',             type: 'int' },
+        { name: 'company_id',             type: 'int', sortType: myMakeSortTypeFun(brewer_store, 'name') },
+        { name: 'product_id',             type: 'int', sortType: myMakeSortTypeFun(product_store, 'name') },
         { name: 'order_batch_id',         type: 'int' },
-        { name: 'distributor_id',         type: 'int' },
+        { name: 'distributor_id',         type: 'int', sortType: myMakeSortTypeFun(distributor_store, 'name') },
         { name: 'cask_count',             type: 'int' },
-        { name: 'container_size_id',      type: 'int' },
-        { name: 'currency_id',            type: 'int' },
+        { name: 'container_size_id',      type: 'int', sortType: myMakeSortTypeFun(cask_size_store, 'description') },
+        { name: 'currency_id',            type: 'int', sortType: myMakeSortTypeFun(currency_store, 'currency_code') },
         { name: 'price',                  type: 'int' },
         { name: 'is_final',               type: 'int' },
         { name: 'is_received',            type: 'int' },
@@ -49,19 +122,6 @@ Ext.onReady(function(){
     });
 
     /* Brewer drop-down */
-    var brewer_store = new Ext.data.JsonStore({
-        url:        url_company_list,
-        root:       'objects',
-        fields:     [{ name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-        idProperty: 'name',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
-    });
-    brewer_store.load({ params: { brewer_order_batch_id: order_batch_id } });
     var brewer_combo = new Ext.form.ComboBox({
         triggerAction:  'all',
         mode:           'local',
@@ -92,19 +152,6 @@ Ext.onReady(function(){
     });
 
     /* Product drop-down */
-    var product_store = new Ext.data.JsonStore({
-        url:        url_product_list,
-        root:       'objects',
-        fields:     [{ name: 'product_id', type: 'int'    },
-                     { name: 'company_id', type: 'int'    },
-                     { name: 'name',       type: 'string' }],
-        idProperty: 'product_id',
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-
     /* We need this to reload upon brewer reselection.
        See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
     var product_combo = new Ext.form.ComboBox({
@@ -133,19 +180,6 @@ Ext.onReady(function(){
     });
     
     /* Distributor drop-down */
-    var distributor_store = new Ext.data.JsonStore({
-        url:        url_company_list,
-        root:       'objects',
-        fields:     [{ name: 'company_id', type: 'int'    },
-                     { name: 'name',       type: 'string' }],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-        idProperty: 'name',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
-    });
-    distributor_store.load({ params: { supplier_order_batch_id: order_batch_id } });
     var distributor_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -169,17 +203,6 @@ Ext.onReady(function(){
     });
     
     /* Currency drop-down */
-    var currency_store = new Ext.data.JsonStore({
-        url:        url_currency_list,
-        root:       'objects',
-        fields:     [{ name: 'currency_id',   type: 'int'    },
-                     { name: 'currency_code', type: 'string' }],
-        sortInfo:   {
-            field:     'currency_code',
-            direction: 'ASC',
-        },
-    });
-    currency_store.load();
     var currency_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -194,17 +217,6 @@ Ext.onReady(function(){
     });
     
     /* Cask size drop-down */
-    var cask_size_store = new Ext.data.JsonStore({
-        url:        url_cask_size_list,
-        root:       'objects',
-        fields:     [{ name: 'container_size_id', type: 'int'    },
-                     { name: 'description',       type: 'string' }],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-    cask_size_store.load();
     var cask_size_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,

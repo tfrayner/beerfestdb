@@ -61,6 +61,21 @@ function simpleClone(obj) {
     return copy;
 }
 
+/* Quick lookup function used to create sortType attributes on
+ * fields. Required for sorting grid comboboxes by display, rather
+ * than key value */
+function myMakeSortTypeFun(store, value) {
+    return function(id) {
+        var ix = store.findExact(store.idProperty, id);
+        if ( ix >= 0 ) { // handle blank (optional) fields.
+            return store.getAt(ix).get(value);
+        }
+        else {
+            return ''; // assumes our desired sort field is always a string.
+        }
+    }
+}
+
 NewButton = Ext.extend(Ext.Button, {
 
     text:    'New Row',

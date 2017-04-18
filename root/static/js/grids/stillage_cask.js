@@ -25,6 +25,20 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
+    /* Bay position lookups */
+    var bay_position_store = new Ext.data.JsonStore({
+        url:        url_bay_position_list,
+        root:       'objects',
+        fields:     [{ name: 'bay_position_id', type: 'int' },
+                     { name: 'description',     type: 'string'}],
+        idProperty: 'bay_position_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    bay_position_store.load();
+
     var Cask = Ext.data.Record.create([
         { name: 'cask_id',           type: 'int' },
         { name: 'cask_management_id',  type: 'int' },
@@ -34,7 +48,7 @@ Ext.onReady(function(){
         { name: 'container_size_id', type: 'int' },
         { name: 'stillage_location_id', type: 'int' },
         { name: 'stillage_bay',      type: 'string' }, // allows undef to be displayed correctly.
-        { name: 'bay_position_id',   type: 'int' },
+        { name: 'bay_position_id',   type: 'int', sortType: myMakeSortTypeFun(bay_position_store, 'description') },
         { name: 'gyle_id',           type: 'int' },
         { name: 'int_reference',     type: 'string' },
         { name: 'ext_reference',     type: 'string' },
@@ -54,17 +68,6 @@ Ext.onReady(function(){
     });
 
     /* Bay position drop-down */
-    var bay_position_store = new Ext.data.JsonStore({
-        url:        url_bay_position_list,
-        root:       'objects',
-        fields:     [{ name: 'bay_position_id', type: 'int' },
-                     { name: 'description',     type: 'string'}],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-    bay_position_store.load();
     var bay_position_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
