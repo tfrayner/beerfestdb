@@ -25,9 +25,40 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
+    /* Dispense method lookups */
+    var dispense_store = new Ext.data.JsonStore({
+        url:        url_dispense_method_list,
+        root:       'objects',
+        fields:     [{ name: 'dispense_method_id', type: 'int'    },
+                     { name: 'description',        type: 'string' }],
+        idProperty: 'dispense_method_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    dispense_store.load();
+
+    /* Container measure lookups */
+    var measure_store = new Ext.data.JsonStore({
+        url:        url_container_measure_list,
+        root:       'objects',
+        fields:     [{ name: 'container_measure_id',  type: 'int'    },
+                     { name: 'description', type: 'string' }],
+        idProperty: 'container_measure_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    measure_store.load();
+
     var ContainerSize = Ext.data.Record.create([
-        { name: 'container_size_id', type: 'int' },
-        { name: 'description',       type: 'string' },
+        { name: 'container_size_id',  type: 'int' },
+        { name: 'description',        type: 'string' },
+        { name: 'volume',             type: 'float' },
+        { name: 'container_measure_id', type: 'int', sortType: myMakeSortTypeFun(measure_store,  'description') },
+        { name: 'dispense_method_id',   type: 'int', sortType: myMakeSortTypeFun(dispense_store, 'description') },
     ]);
 
     var store = new Ext.data.JsonStore({
@@ -35,7 +66,33 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     ContainerSize
     });
-    
+
+    /* Dispense method drop-down */
+    var dispense_combo = new Ext.form.ComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        mode:           'local',
+        store:          dispense_store,
+        forceSelection: true,
+        valueField:     'dispense_method_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
+    });
+
+    /* Container measure drop-down */
+    var measure_combo = new Ext.form.ComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        mode:           'local',
+        store:          measure_store,
+        forceSelection: true,
+        valueField:     'container_measure_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
+    });
+
     var content_cols = [
         { id:         'description',
           header:     'Description',
@@ -44,6 +101,25 @@ Ext.onReady(function(){
           editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
+        { id:         'volume',
+          header:     'Volume',
+          dataIndex:  'volume',
+          width:      40,
+          editor:     new Ext.form.NumberField({
+              allowBlank:     false,
+          })},
+        { id:         'container_measure_id',
+          header:     'Measure',
+          dataIndex:  'container_measure_id',
+          width:      100,
+          renderer:   MyComboRenderer(measure_combo),
+          editor:     measure_combo },
+        { id:         'dispense_method_id',
+          header:     'Dispense Method',
+          dataIndex:  'dispense_method_id',
+          width:      100,
+          renderer:   MyComboRenderer(dispense_combo),
+          editor:     dispense_combo },
     ];
 
     function viewLink (grid, record, action, row, col) {

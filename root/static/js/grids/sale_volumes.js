@@ -25,9 +25,25 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
+    /* Container measure lookups */
+    var measure_store = new Ext.data.JsonStore({
+        url:        url_container_measure_list,
+        root:       'objects',
+        fields:     [{ name: 'container_measure_id',  type: 'int'    },
+                     { name: 'description', type: 'string' }],
+        idProperty: 'container_measure_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+    measure_store.load();
+
     var SaleVolume = Ext.data.Record.create([
         { name: 'sale_volume_id', type: 'int' },
         { name: 'description',    type: 'string' },
+        { name: 'volume',         type: 'float' },
+        { name: 'container_measure_id', type: 'int', sortType: myMakeSortTypeFun(measure_store, 'description') },
     ]);
 
     var store = new Ext.data.JsonStore({
@@ -36,6 +52,19 @@ Ext.onReady(function(){
         fields:     SaleVolume
     });
     
+    /* Container measure drop-down */
+    var measure_combo = new Ext.form.ComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        mode:           'local',
+        store:          measure_store,
+        forceSelection: true,
+        valueField:     'container_measure_id',
+        displayField:   'description',
+        lazyRender:     true,
+        listClass:      'x-combo-list-small',
+    });
+
     var content_cols = [
         { id:         'description',
           header:     'Description',
@@ -44,6 +73,19 @@ Ext.onReady(function(){
           editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
+        { id:         'volume',
+          header:     'Volume',
+          dataIndex:  'volume',
+          width:      40,
+          editor:     new Ext.form.NumberField({
+              allowBlank:     false,
+          })},
+        { id:         'container_measure_id',
+          header:     'Measure',
+          dataIndex:  'container_measure_id',
+          width:      100,
+          renderer:   MyComboRenderer(measure_combo),
+          editor:     measure_combo },
     ];
 
     function viewLink (grid, record, action, row, col) {

@@ -1,8 +1,8 @@
 #
 # This file is part of BeerFestDB, a beer festival product management
 # system.
-# 
-# Copyright (C) 2010 Tim F. Rayner
+#
+# Copyright (C) 2017 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #
 # $Id$
 
-package BeerFestDB::Web::Controller::ContainerSize;
+package BeerFestDB::Web::Controller::ContainerMeasure;
 use Moose;
 use namespace::autoclean;
 
@@ -27,7 +27,7 @@ BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
-BeerFestDB::Web::Controller::ContainerSize - Catalyst Controller
+BeerFestDB::Web::Controller::ContainerMeasure - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -42,14 +42,12 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     $self->model_view_map({
-        container_size_id    => 'container_size_id',
-        volume               => 'container_volume',
         container_measure_id => 'container_measure_id',
         description          => 'description',
-        dispense_method_id   => 'dispense_method_id',
+        litre_multiplier     => 'litre_multiplier',
     });
 
-    $self->model_name('DB::ContainerSize');
+    $self->model_name('DB::ContainerMeasure');
 }
 
 =head1 COPYRIGHT AND LICENSE

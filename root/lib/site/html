@@ -37,6 +37,7 @@
    var url_category_list        = '[% c.uri_for( "/productcategory/list" ) %]';
    var url_company_list         = '[% c.uri_for( "/company/list" ) %]';
    var url_company_region_list  = '[% c.uri_for( "/companyregion/list" ) %]';
+   var url_container_measure_list = '[% c.uri_for( "/containermeasure/list" ) %]';
    var url_currency_list        = '[% c.uri_for( "/currency/list" ) %]';
    var url_dispense_method_list = '[% c.uri_for( "/dispensemethod/list" ) %]';
    var url_festival_list        = '[% c.uri_for( "/festival/list" ) %]';

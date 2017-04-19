@@ -110,7 +110,7 @@ foreach my $path ( qw(bar caskmeasurement cask company
 }
 
 # Controlled vocabs only editable by admin (but which must be listable by all users).
-foreach my $path ( qw(bayposition companyregion contacttype
+foreach my $path ( qw(bayposition companyregion contacttype containermeasure
                       containersize country currency dispensemethod
                       productallergentype productcategory productstyle
                       salevolume telephonetype) ) {
