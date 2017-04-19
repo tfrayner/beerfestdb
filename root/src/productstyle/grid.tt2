@@ -2,7 +2,7 @@
 
 <script type="text/javascript">
    var url_object_list    = '[% c.uri_for( "/productstyle/list_by_category/$category.id" ) %]';
-   var url_category_view  = '[% c.uri_for( "/productcategory" ) %]';
+   var url_category_view  = '[% c.uri_for( "/productcategory/grid" ) %]';
    var categoryname       = '[% category.description | xml %]';
    var category_id        = '[% category.id | xml %]';
 </script>

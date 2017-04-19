@@ -1,5 +1,5 @@
 [% META title = 'Sale Volume listing' %]
 
-[% js_link( src = '/static/js/grids/sale_volume.js' ) %]
+[% js_link( src = '/static/js/grids/sale_volumes.js' ) %]
 
 <div id="datagrid"></div>

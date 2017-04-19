@@ -19,13 +19,11 @@
 #
 # $Id$
 
-package BeerFestDB::Web::Controller;
+package BeerFestDB::Web::GenericGrid;
 use Moose;
 use namespace::autoclean;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
-
-with 'BeerFestDB::DBHashRefValidator';
 
 has 'model_name' => ( is  => 'rw',
                       isa => 'Str' );

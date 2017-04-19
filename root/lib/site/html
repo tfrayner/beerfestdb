@@ -63,10 +63,10 @@
    var url_contact_submit       = '[% c.uri_for( "/contact/submit" ) %]';
    var url_company_delete       = '[% c.uri_for( "/company/delete" ) %]';
    var url_company_submit       = '[% c.uri_for( "/company/submit" ) %]';
-   var url_companyregion_delete = '[% c.uri_for( "/companyregion/delete" ) %]';
-   var url_companyregion_submit = '[% c.uri_for( "/companyregion/submit" ) %]';
-   var url_dispensemethod_delete = '[% c.uri_for( "/dispensemethod/delete" ) %]';
-   var url_dispensemethod_submit = '[% c.uri_for( "/dispensemethod/submit" ) %]';
+   var url_company_region_delete = '[% c.uri_for( "/companyregion/delete" ) %]';
+   var url_company_region_submit = '[% c.uri_for( "/companyregion/submit" ) %]';
+   var url_dispense_method_delete = '[% c.uri_for( "/dispensemethod/delete" ) %]';
+   var url_dispense_method_submit = '[% c.uri_for( "/dispensemethod/submit" ) %]';
    var url_festival_delete      = '[% c.uri_for( "/festival/delete" ) %]';
    var url_festival_submit      = '[% c.uri_for( "/festival/submit" ) %]';
    var url_festivalproduct_delete = '[% c.uri_for( "/festivalproduct/delete" ) %]';
@@ -79,8 +79,8 @@
    var url_measurement_batch_delete = '[% c.uri_for( "/measurementbatch/delete" ) %]';
    var url_product_submit       = '[% c.uri_for( "/product/submit" ) %]';
    var url_product_delete       = '[% c.uri_for( "/product/delete" ) %]';
-   var url_productallergen_delete = '[% c.uri_for( "/productallergentype/delete" ) %]';
-   var url_productallergen_submit = '[% c.uri_for( "/productallergentype/submit" ) %]';
+   var url_product_allergen_delete = '[% c.uri_for( "/productallergentype/delete" ) %]';
+   var url_product_allergen_submit = '[% c.uri_for( "/productallergentype/submit" ) %]';
    var url_productorder_delete  = '[% c.uri_for( "/productorder/delete" ) %]';
    var url_productorder_submit  = '[% c.uri_for( "/productorder/submit" ) %]';
    var url_productstyle_submit  = '[% c.uri_for( "/productstyle/submit" ) %]';

@@ -102,19 +102,18 @@ __PACKAGE__->log->levels( qw/info warn error fatal/ ) unless __PACKAGE__->debug;
 # (product category level authorization handled in the Controller base
 # class).
 foreach my $path ( qw(bar caskmeasurement cask company
-                      contact festival
-                      festivalproduct gyle measurementbatch orderbatch
-                      productorder product stillagelocation
-                      telephone) ) {
+                      contact festival festivalproduct gyle
+                      measurementbatch orderbatch productorder
+                      product stillagelocation telephone) ) {
     __PACKAGE__->allow_access_if( '/' . $path, [ qw( user ) ] );
     __PACKAGE__->deny_access( '/' . $path );
 }
 
 # Controlled vocabs only editable by admin (but which must be listable by all users).
-foreach my $path ( qw(bayposition companyregion dispensemethod
-                      contacttype containersize country currency
-                      productcategory productstyle salevolume
-                      telephonetype) ) {
+foreach my $path ( qw(bayposition companyregion contacttype
+                      containersize country currency dispensemethod
+                      productallergentype productcategory productstyle
+                      salevolume telephonetype) ) {
     __PACKAGE__->allow_access_if( "/$path/list", [ qw( user ) ] );
     __PACKAGE__->allow_access_if( '/' . $path, [ qw( admin ) ] );
     __PACKAGE__->deny_access( '/' . $path );
