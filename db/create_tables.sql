@@ -1210,7 +1210,7 @@ CREATE TABLE `sale_volume` (
   `sale_volume_id` int(6) NOT NULL AUTO_INCREMENT,
   `container_measure_id` int(6) NOT NULL,
   `description` varchar(30) NOT NULL,
-  `volume` decimal(4,2) DEFAULT NULL,
+  `volume` decimal(4,2) NOT NULL,
   PRIMARY KEY (`sale_volume_id`),
   UNIQUE KEY `description` (`description`),
   KEY `FK_SV_cmid_CM_cmid` (`container_measure_id`),

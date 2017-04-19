@@ -44,7 +44,7 @@ __PACKAGE__->table("sale_volume");
 =head2 volume
 
   data_type: 'decimal'
-  is_nullable: 1
+  is_nullable: 0
   size: [4,2]
 
 =cut
@@ -57,7 +57,7 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "varchar", is_nullable => 0, size => 30 },
   "volume",
-  { data_type => "decimal", is_nullable => 1, size => [4, 2] },
+  { data_type => "decimal", is_nullable => 0, size => [4, 2] },
 );
 
 =head1 PRIMARY KEY
@@ -118,8 +118,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e2xxg05sszJfuw2EK9mUrg
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-19 14:38:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SRDzV9sDxTeJixtJ8RmgNw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
