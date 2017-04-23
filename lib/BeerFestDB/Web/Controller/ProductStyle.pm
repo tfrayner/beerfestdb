@@ -50,6 +50,21 @@ sub BUILD {
     $self->model_name('DB::ProductStyle');
 }
 
+=head2 list
+
+=cut
+
+sub list : Local {
+
+    my ( $self, $c ) = @_;
+
+    if ( my $category_id = $c->req()->params()->{ product_category_id } ) {
+        $c->res->redirect( $c->uri_for('list_by_category', $category_id) );
+    } else {
+        $self->SUPER::list($c);
+    }
+}
+
 =head2 list_by_category
 
 =cut

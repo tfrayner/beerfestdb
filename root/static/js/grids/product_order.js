@@ -169,7 +169,7 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
         listeners: {
             beforeQuery: function(query) { 
-                currentRowId = myGrid.getSelectionModel().getSelected().data.company_id;
+                var currentRowId = myGrid.getSelectionModel().getSelected().data.company_id;
                 this.store.reload( { params: { company_id: currentRowId }, add: true } );
                 this.store.clearFilter();
                 this.store.filter( { property:   'company_id',

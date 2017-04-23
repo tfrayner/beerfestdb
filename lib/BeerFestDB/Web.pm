@@ -110,6 +110,9 @@ foreach my $path ( qw(bar caskmeasurement cask company
 }
 
 # Controlled vocabs only editable by admin (but which must be listable by all users).
+foreach my $path ( qw(productstyle) ) {
+    __PACKAGE__->allow_access_if( "/$path/list_by_category", [ qw( user ) ] );
+}
 foreach my $path ( qw(bayposition companyregion contacttype containermeasure
                       containersize country currency dispensemethod
                       productallergentype productcategory productstyle

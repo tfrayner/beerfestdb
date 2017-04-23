@@ -119,7 +119,9 @@ Ext.onReady(function(){
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',
-        forceSelection: true,
+        lastQuery:      '',  /* to make sure the filter in the store
+                                is not cleared the first time the ComboBox trigger is used */
+        typeAhead:      false, // bypasses the filter; FIXME in future?
         store:          style_store,
         valueField:     'product_style_id',
         displayField:   'description',
@@ -127,6 +129,16 @@ Ext.onReady(function(){
         allowBlank:     true,
         noSelection:    emptySelect,
         listClass:      'x-combo-list-small',
+        listeners: {
+            beforeQuery: function(query) { 
+                var currentRowId = productGrid.getSelectionModel().getSelected().data.product_category_id;
+                this.store.reload( { params: { product_category_id: currentRowId }, add: true } );
+                this.store.clearFilter();
+                this.store.filter( { property:   'product_category_id',
+                                     value:      currentRowId,
+                                     exactMatch: true } );
+            }
+        }, 
     });
 
     /* Product Category drop-down */
@@ -153,10 +165,20 @@ Ext.onReady(function(){
         displayField:   'description',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
+        listeners: {
+            change: function(evt, t, o) {
+                /* t is the reference to the category_combo.
+                   We have evt.record available only because we copied it in
+                   the beforeEdit event from productGrid */
+                evt.record.set('product_style_id', null);
+                evt.render();
+            },
+        },
     });
 
     /* Contact list */
     var contact_store = new Ext.data.JsonStore({
+
         url:        url_contact_list,
         root:       'objects',
         fields:     [{ name: 'contact_id',       type: 'int'    },
@@ -360,6 +382,9 @@ Ext.onReady(function(){
         }
     );
 
+    var reloadStores = new Array();
+    reloadStores.push( style_store ); // needed to blank style on category change.
+
     /* Product grid */
     var productGrid = new MyEditorGrid(
         {
@@ -427,6 +452,18 @@ Ext.onReady(function(){
                     product_id: record.get('product_id'),
                 })
             },
+            listeners: {
+                beforeedit: function(e) {
+
+                    // reference to the currently clicked cell
+                    var ed = e.grid.getColumnModel().getCellEditor(e.column, e.row);    
+                    if (ed && ed.field) {
+                        // copy these references to the current editor (category_combo in our case)
+                        Ext.copyTo(ed.field, e, 'grid,record,field,row,column');
+                    }
+                },
+            },
+            reloadableStores: reloadStores,
         }
     );
 
