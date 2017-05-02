@@ -68,7 +68,7 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    my $filters = {};
+    my $filters = [];
     if ( $filterstr ) {
         $filters = [ map { [ split /=/, $_ ] } split /,/, $filterstr ];
     }
