@@ -70,7 +70,7 @@ sub parse_args {
 
     my $filters = {};
     if ( $filterstr ) {
-        $filters = { map { split /=/, $_ } split /,/, $filterstr };
+        $filters = [ map { [ split /=/, $_ ] } split /,/, $filterstr ];
     }
 
     return( $templatefile, $logofile, $config, $objectlevel, $outdir, $split, $force, $filters );

@@ -59,9 +59,9 @@ has 'logos'      => ( is       => 'ro',
                       default  => sub { [] } );
 
 has 'filters'    => ( is       => 'ro',
-                      isa      => 'HashRef',
+                      isa      => 'ArrayRef',
                       required => 1,
-                      default  => sub { {} } );
+                      default  => sub { [] } );
 
 has 'dump_class'  => ( is       => 'ro',
                        isa      => 'Str',
@@ -332,8 +332,15 @@ sub is_user_filtered {
 
     my ( $self, $objhash ) = @_;
 
-    return any { exists($objhash->{$_}) && $objhash->{$_} eq $self->filters->{$_} }
-               keys %{ $self->filters };
+    # Filters are stored as an arrayref of arrayrefs.
+    foreach my $filter ( @{ $self->filters } ) {
+        my ( $key, $value, $count ) = @$filter;
+        if ( exists($objhash->{ $key }) && $objhash->{ $key } eq $value ) {
+            $filter->[2]++;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 sub dump {
@@ -440,6 +447,12 @@ sub dump {
     foreach my $stillage_name ( keys %stillage ) {
         $stillage{ $stillage_name } = [ grep { ! $self->is_user_filtered($_) }
                                             @{ $stillage{ $stillage_name } } ];
+    }
+    foreach my $filter ( @{ $self->filters } ) {
+        my ( $key, $value, $count ) = @$filter;
+        if ( (not defined($count)) || $count == 0 ) {
+            warn("Warning: Filter expression did not remove any entries: $key=$value\n");
+        }
     }
 
     # We define some custom filters for convenience.
