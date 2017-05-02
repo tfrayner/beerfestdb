@@ -53,6 +53,7 @@
     [%- END -%]
   [%- END -%]
   [%- SET casksize = caskman.size -%]
+  [%- IF brewcask.$casksize == '' -%][%- SET brewcask.$casksize = 0 -%][%- END -%]
   [%- SET brewcask.$casksize = brewcask.$casksize + 1 -%]
   [%- SET cum_cask_count  = cum_cask_count + 1 -%]
   [%- SET cum_cask_volume = cum_cask_volume + casksize -%]

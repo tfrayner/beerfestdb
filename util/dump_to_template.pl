@@ -33,7 +33,7 @@ use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $templatefile, $logofile, $objectlevel, $split, $outdir, $force, $want_help );
+    my ( $templatefile, $logofile, $objectlevel, $split, $outdir, $force, $filterstr, $want_help );
 
     GetOptions(
         "t|template=s" => \$templatefile,
@@ -43,6 +43,7 @@ sub parse_args {
         "s|split-output" => \$split,
         "d|output-dir=s" => \$outdir,
         "f|force-overwrite" => \$force,
+        "filters=s"      => \$filterstr,
     );
 
     if ($want_help) {
@@ -67,14 +68,20 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    return( $templatefile, $logofile, $config, $objectlevel, $outdir, $split, $force );
+    my $filters = {};
+    if ( $filterstr ) {
+        $filters = { map { split /=/, $_ } split /,/, $filterstr };
+    }
+
+    return( $templatefile, $logofile, $config, $objectlevel, $outdir, $split, $force, $filters );
 }
 
 ########
 # MAIN #
 ########
 
-my ( $templatefile, $logofile, $config, $objectlevel, $outdir, $split, $force ) = parse_args();
+my ( $templatefile, $logofile, $config, $objectlevel,
+     $outdir, $split, $force, $filters ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
@@ -86,6 +93,7 @@ my $dumper = BeerFestDB::Dumper::Template->new(
     split_output => $split,
     output_dir   => $outdir,
     overwrite    => $force,
+    filters      => $filters,
 );
 
 $dumper->dump();
@@ -140,6 +148,19 @@ Generate output latex files split by the object level used for dumping
 =item -f
 
 Force overwriting of pre-existing output files when the -s option is used.
+
+=item --filters
+
+An optional set of filters defining objects to be removed from the
+dumped data. These filters must be specified as a comma-separated list
+of key=value pairs, like so:
+
+ --filters 'cask_size_name=30L KeyKeg,cask_size_name=20L KeyKeg,category=cider'
+
+Beware of spaces in the filter string; all spaces are interpreted
+literally and will not be stripped from the applied filters. The
+filter names are defined by the code in BeerFestDB::Dumper::Template;
+please see that module's documentation for details.
 
 =back
 

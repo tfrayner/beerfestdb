@@ -30,7 +30,7 @@ use Moose;
 
 use Carp;
 use Scalar::Util qw(looks_like_number);
-use List::Util qw(first);
+use List::Util qw(first any);
 use Storable qw(dclone);
 use Cwd;
 use File::Spec::Functions qw(catfile);
@@ -57,6 +57,11 @@ has 'logos'      => ( is       => 'ro',
                       isa      => 'ArrayRef',
                       required => 1,
                       default  => sub { [] } );
+
+has 'filters'    => ( is       => 'ro',
+                      isa      => 'HashRef',
+                      required => 1,
+                      default  => sub { {} } );
 
 has 'dump_class'  => ( is       => 'ro',
                        isa      => 'Str',
@@ -309,6 +314,8 @@ sub update_caskman_hash {
     $caskmanhash->{festival_id} = $caskman->cellar_reference();
     $caskmanhash->{size}        = $caskman->container_size_id
           ? $caskman->container_size_id->container_volume() : q{};
+    $caskmanhash->{cask_size_name} = $caskman->container_size_id
+          ? $caskman->container_size_id->description() : q{};
     $caskmanhash->{is_sale_or_return} = $caskman->is_sale_or_return();
     $caskmanhash->{stillage_bay} = $caskman->stillage_bay();
     $caskmanhash->{bay_position} = $caskman->bay_position_id
@@ -319,6 +326,14 @@ sub update_caskman_hash {
   	  ? $caskman->product_order_id->order_batch_id->description() : 'Unknown';
 
     return $caskmanhash;
+}
+
+sub is_user_filtered {
+
+    my ( $self, $objhash ) = @_;
+
+    return any { exists($objhash->{$_}) && $objhash->{$_} eq $self->filters->{$_} }
+               keys %{ $self->filters };
 }
 
 sub dump {
@@ -419,7 +434,14 @@ sub dump {
     else {
         confess(sprintf(qq{Attempt to dump data from unsupported class "%s"}, $self->dump_class));
     }
-    
+
+    # The user may have specified some object properties to filter out of the dump.
+    @template_data = grep { ! $self->is_user_filtered($_) } @template_data;
+    foreach my $stillage_name ( keys %stillage ) {
+        $stillage{ $stillage_name } = [ grep { ! $self->is_user_filtered($_) }
+                                            @{ $stillage{ $stillage_name } } ];
+    }
+
     # We define some custom filters for convenience.
     my $template = Template->new(
 	ABSOLUTE => 1,
@@ -640,6 +662,10 @@ The name of the beer, cider, or whatever.
 =item size
 
 (Cask-level export only). The size of the cask (units not currently reported).
+
+=item cask_size_name
+
+(Cask-level export only). The cask size name in the database (e.g. "firkin").
 
 =item category
 
