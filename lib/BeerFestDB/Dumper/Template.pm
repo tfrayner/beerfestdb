@@ -190,13 +190,24 @@ sub order_hash {
 
     my $fest = $self->festival();
 
-    # N.B. Changes here need to be documented in the POD. FIXME this is not documented at all yet.
+    my $config = BeerFestDB::Web->config();
+    my $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
+        description => $config->{'default_measurement_unit'},
+    }) or die("Unable to retrieve default measurement unit; check config settings.");
+
+    my $local_cask_size = $order->container_size_id->container_volume();
+    my $cask_measure    = $order->container_size_id->container_measure_id();
+
     my %orderhash = (
         brewery     => $order->product_id->company_id->name(),
         product     => $order->product_id->name(),
         distributor => $order->distributor_company_id->name(),
-        cask_size   => $order->container_size_id->container_volume(),
+        cask_size   => $local_cask_size,
+        cask_size_unit => $cask_measure->symbol(),
         cask_size_name => $order->container_size_id->description(),
+        cask_size_std  => $local_cask_size
+                        * ( $cask_measure->litre_multiplier() /
+                            $default_meas_unit->litre_multiplier() ),
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
         nominal_abv => $order->product_id->nominal_abv(),
@@ -307,15 +318,25 @@ sub update_caskman_hash {
 
     my ( $self, $caskmanhash, $caskman ) = @_;
 
+    my $config = BeerFestDB::Web->config();
+    my $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
+        description => $config->{'default_measurement_unit'},
+    }) or die("Unable to retrieve default measurement unit; check config settings.");
+
+    my $local_cask_size = $caskman->container_size_id->container_volume();
+    my $cask_measure    = $caskman->container_size_id->container_measure_id();
+
     # N.B. Changes here need to be documented in the POD.
     $caskmanhash ||= {};
     $caskmanhash->{_split_export_tag} = $caskman->cask_management_id();
     $caskmanhash->{number}      = $caskman->internal_reference();
     $caskmanhash->{festival_id} = $caskman->cellar_reference();
-    $caskmanhash->{size}        = $caskman->container_size_id
-          ? $caskman->container_size_id->container_volume() : q{};
-    $caskmanhash->{cask_size_name} = $caskman->container_size_id
-          ? $caskman->container_size_id->description() : q{};
+    $caskmanhash->{cask_size}   = $local_cask_size;
+    $caskmanhash->{cask_size_unit} = $cask_measure->symbol();
+    $caskmanhash->{cask_size_name} = $caskman->container_size_id->description();
+    $caskmanhash->{cask_size_std}  = $local_cask_size
+                                   * ( $cask_measure->litre_multiplier() /
+                                       $default_meas_unit->litre_multiplier() ),
     $caskmanhash->{is_sale_or_return} = $caskman->is_sale_or_return();
     $caskmanhash->{stillage_bay} = $caskman->stillage_bay();
     $caskmanhash->{bay_position} = $caskman->bay_position_id
@@ -672,13 +693,26 @@ The name of the beer, cider, or whatever.
 
 (Cask-level export only). The unique festival ID for the cask.
 
-=item size
+=item cask_size
 
-(Cask-level export only). The size of the cask (units not currently reported).
+(Cask-level export only). The size of the cask.
+
+=item cask_size_unit
+
+(Cask-level export only). The units in which cask_size is reported.
+
+=item cask_size_std
+
+(Cask-level export only). The size of the cask in the currently
+configured default_measurement_unit (e.g., gallons).
 
 =item cask_size_name
 
 (Cask-level export only). The cask size name in the database (e.g. "firkin").
+
+=item cask_count
+
+(Product-order-level export only). The number of casks in the order.
 
 =item category
 
@@ -694,7 +728,12 @@ A description of the product (e.g., beer tasting notes).
 
 =item abv
 
-The ABV, obviously.
+The ABV, obviously. Depending on context, this is either the nominal
+ABV or the actual ABV as linked to a specific product gyle.
+
+=item nominal_abv
+
+(Product-order-level export only). The nominal ABV as advertised.
 
 =item currency
 

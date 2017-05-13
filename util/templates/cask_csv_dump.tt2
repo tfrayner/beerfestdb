@@ -11,7 +11,7 @@
 ",[% cask.abv -%]
 ,"[% cask.style -%]
 ","[% cask.order_batch -%]
-",[% cask.size -%]
+",[% cask.cask_size -%]
 ,[% IF cask.is_condemned %]Yes[% END -%]
 ,[% IF cask.is_sale_or_return %]Yes[% END -%]
 ,"[% cask.comment %]"

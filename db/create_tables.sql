@@ -429,6 +429,7 @@ CREATE TABLE `container_measure` (
   `container_measure_id` int(6) NOT NULL AUTO_INCREMENT,
   `litre_multiplier` decimal(15,12) NOT NULL,
   `description` varchar(50) NOT NULL,
+  `symbol` varchar(16) NOT NULL,
   PRIMARY KEY (`container_measure_id`),
   UNIQUE KEY `description` (`description`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

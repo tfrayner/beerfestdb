@@ -1,7 +1,7 @@
 INSERT INTO `bay_position` (`bay_position_id`, `description`) VALUES (8,'Bottom Back'),(6,'Bottom Front'),(7,'Bottom Middle'),(5,'Middle Back'),(4,'Middle Front'),(9,'On Floor'),(3,'Top Back'),(1,'Top Front'),(2,'Top Middle');
 INSERT INTO `company_region` (`company_region_id`, `description`) VALUES (5,'Cambridgeshire'),(4,'East Anglia'),(8,'Midlands'),(6,'North England'),(3,'Northern Ireland'),(2,'Scotland'),(7,'South England'),(1,'Wales');
 INSERT INTO `contact_type` (`contact_type_id`, `description`) VALUES (2,'Customer Service'),(1,'Main');
-INSERT INTO `container_measure` (`container_measure_id`, `litre_multiplier`, `description`) VALUES (1,1.000000000000,'litre'),(2,4.546091880000,'gallon'),(3,0.568200000000,'pint'),(4,0.284100000000,'half pint');
+INSERT INTO `container_measure` (`container_measure_id`, `litre_multiplier`, `description`, `symbol`) VALUES (1,1.000000000000,'litre','L'),(2,4.546091880000,'gallon','gal'),(3,0.568200000000,'pint','pt'),(4,0.284100000000,'half pint','hp');
 INSERT INTO `dispense_method` (`dispense_method_id`, `description`) VALUES (1,'cask'),(2,'key keg'),(3,'cider tub'),(4,'bottle');
 INSERT INTO `container_size` (`container_size_id`, `container_volume`, `container_measure_id`, `dispense_method_id`, `description`) VALUES (1,9.00,2,1,'firkin'),(2,18.00,2,1,'kilderkin'),(3,22.00,2,1,'22 gallon'),(4,36.00,2,1,'barrel');
 INSERT INTO `country` (`country_id`, `country_code_iso2`, `country_code_iso3`, `country_code_num3`, `country_name`) VALUES (1,'GB','GBR','826','Great Britain'),(2,'IE','IRL','372','Ireland'),(3,'NL','NLD','528','Netherlands'),(4,'DE','DEU','276','Germany'),(5,'BE','BEL','056','Belgium'),(6,'CZ','CZE','203','Czech Republic');

@@ -21,6 +21,7 @@ current_festival: 39th Cambridge Beer Festival
 #default_currency:    GBP
 #default_sale_volume: pint
 #default_product_category: beer
+#default_measurement_unit: gallon
 
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:

@@ -591,7 +591,10 @@ sub _amount_remaining : Private {
     # This will need to convert everything into litres (both
     # ContainerSize and CaskMeasurement) via the ContainerMeasure
     # table, then convert back into whatever the ContainerSize units
-    # are. Great fun.
+    # are. Great fun. Does not currently use the
+    # default_measurement_unit config setting, because the returned
+    # values are compared to each other and so further complication is
+    # unnecessary.
     my $cask_rs = $fp->festival_id->search_related(
         'cask_managements',
         { 'container_size_id.dispense_method_id' => $dispense->id },

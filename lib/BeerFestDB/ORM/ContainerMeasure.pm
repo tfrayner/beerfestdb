@@ -41,6 +41,12 @@ __PACKAGE__->table("container_measure");
   is_nullable: 0
   size: 50
 
+=head2 symbol
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 16
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -50,6 +56,8 @@ __PACKAGE__->add_columns(
   { data_type => "decimal", is_nullable => 0, size => [15, 12] },
   "description",
   { data_type => "varchar", is_nullable => 0, size => 50 },
+  "symbol",
+  { data_type => "varchar", is_nullable => 0, size => 16 },
 );
 
 =head1 PRIMARY KEY
@@ -126,8 +134,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:f5Ing4GR3zRsurXcZBJqKw
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-05-13 17:36:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AT/iwiaxovO9CXcLGDTP+g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

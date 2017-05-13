@@ -159,7 +159,11 @@ sub status : Local {
         $c->stash->{ 'success' } = JSON->false();
         $c->forward( 'View::JSON' );
     }
-    
+
+    my $default_meas_unit = $c->model('DB::ContainerMeasure')->find({
+        description => $c->config->{'default_measurement_unit'},
+    }) or die("Unable to retrieve default measurement unit; check config settings.");
+
     # Here we're going to be a bit cheeky and hard-code a
     # ProductCategory (beer) and ContainerSize
     # (kilderkin). Alternatively we could (and should) create new
@@ -186,7 +190,12 @@ sub status : Local {
     my $order_tot = 0;
     my $sor_order_tot = 0;
     while ( my $order = $orders->next() ) {
-        my $vol = $order->container_size_id()->container_volume() * $order->cask_count();
+        my $local_cask_size = $order->container_size_id->container_volume();
+        my $cask_measure    = $order->container_size_id->container_measure_id();
+        my $vol = $order->cask_count()
+                * $local_cask_size
+                * ( $cask_measure->litre_multiplier() /
+                    $default_meas_unit->litre_multiplier() );
         $order_tot += $vol;
         if ( $order->is_sale_or_return() ) {
             $sor_order_tot += $vol;
@@ -218,19 +227,33 @@ sub status : Local {
             }
         );
         if ( my $latest = $meas[0] ) {
-            $remaining_tot += $latest->volume();
+
+            my $cask_measure = $latest->container_measure_id();
+            my $vol = $latest->volume()
+                    * ( $cask_measure->litre_multiplier() /
+                        $default_meas_unit->litre_multiplier() );
+            $remaining_tot += $vol;
             if ( $latest->volume() > 0 ) {
                 $product_available{ $cask->gyle_id->get_column('festival_product_id') }++;
             }
         }
         else {
-            $remaining_tot += $cask->cask_management_id()
-                                   ->container_size_id()
-                                   ->container_volume();
+
+            my $cask_size    = $cask->cask_management_id->container_size_id();
+            my $cask_measure = $cask_size->container_measure_id();
+            my $vol = $cask_size->container_volume()
+                    * ( $cask_measure->litre_multiplier() /
+                        $default_meas_unit->litre_multiplier() );
+            $remaining_tot += $vol;
             $product_available{ $cask->gyle_id->get_column('festival_product_id') }++;
         }
     }
-    my $kilvol = $kilsize->container_volume();
+
+    # This is the reporting volume unit (kil) in
+    # default_measurement_units (gallons).
+    my $kilvol = $kilsize->container_volume()
+               * ( $kilsize->container_measure_id()->litre_multiplier() /
+                   $default_meas_unit->litre_multiplier() );
     my $ko = $order_tot     / $kilvol;
     my $ks = $sor_order_tot / $kilvol;
     my $kr = $remaining_tot / $kilvol;

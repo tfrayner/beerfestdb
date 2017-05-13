@@ -3,6 +3,8 @@
 %
 [% IF dump_class != 'cask_management' %][% THROW bad_dump_class "Use the cask_management dump class.\n" %][% END %]
 
+[% USE String %]
+
 \documentclass[english,a4paper]{article}
 
 \usepackage[a4paper, portrait, top=1.0cm, bottom=1.0cm, left=1cm, right=1cm]{geometry}
@@ -39,7 +41,7 @@
   [%- NEXT IF caskman.stillage_location.search('Brewery') -%][%# Brewery bars %]
   [%- IF caskman.brewery != running_brewery || caskman.product != running_product -%]
     [% FOREACH pair IN brewcask.pairs -%]
-      [%- running_brewery | truncate(20) | latexify %] & [% running_product | truncate(25) | latexify %] & [% pair.key | format("%.0f") %] & [% pair.value %] & [% cum_cask_count %] & [% cum_cask_volume / 9 | format("%.0f") %] \\
+      [%- running_brewery | truncate(20) | latexify %] & [% running_product | truncate(25) | latexify %] & [% pair.key | latexify %] & [% pair.value %] & [% cum_cask_count %] & [% cum_cask_volume / 9 | format("%.0f") %] \\
       [%- line_counter = line_counter + 1 -%]
     [% END %]
     [%- SET running_brewery = caskman.brewery -%]
@@ -52,11 +54,13 @@
       [% PROCESS table_header %]
     [%- END -%]
   [%- END -%]
-  [%- SET casksize = caskman.size -%]
+  [%- SET casksizenum = String.new(caskman.cask_size).format("%.0f") -%]
+  [%- SET casksize = casksizenum _ caskman.cask_size_unit  -%]
+  [%- SET casksizestd = caskman.cask_size_std -%]
   [%- IF brewcask.$casksize == '' -%][%- SET brewcask.$casksize = 0 -%][%- END -%]
   [%- SET brewcask.$casksize = brewcask.$casksize + 1 -%]
   [%- SET cum_cask_count  = cum_cask_count + 1 -%]
-  [%- SET cum_cask_volume = cum_cask_volume + casksize -%]
+  [%- SET cum_cask_volume = cum_cask_volume + casksizestd -%]
 [%- END %]
 
 [% PROCESS table_end %]
