@@ -47,7 +47,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    category_store.load();
 
     /* Product Style drop-down */
     var style_store = new Ext.data.JsonStore({
@@ -61,7 +60,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    style_store.load();
 
     var festival_product_store = new Ext.data.JsonStore({
         url:        url_festival_product_list,
@@ -77,7 +75,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    festival_product_store.load();
 
     function updateStyleList(query) { // Listener function to update style dropdown.
         var currentRowId = prodForm.getForm().findField('product_category_id').getValue();

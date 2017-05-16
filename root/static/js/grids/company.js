@@ -37,7 +37,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    region_store.load();
 
     /* Main company records and store */
     var Company = Ext.data.Record.create([
@@ -137,6 +136,7 @@ Ext.onReady(function(){
                 idField:            'company_id',
                 autoExpandColumn:   'name',
                 store:              store,
+                comboStores:        [ region_store ],
                 contentCols:        content_cols,
                 viewLink:           viewLink,
                 deleteUrl:          url_company_delete,

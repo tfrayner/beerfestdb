@@ -37,7 +37,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    measure_store.load();
 
     var SaleVolume = Ext.data.Record.create([
         { name: 'sale_volume_id', type: 'int' },
@@ -108,6 +107,7 @@ Ext.onReady(function(){
                 idField:            'sale_volume_id',
                 autoExpandColumn:   'description',
                 store:              store,
+                comboStores:        [ measure_store ],
                 contentCols:        content_cols,
                 viewLink:           viewLink,
                 deleteUrl:          url_sale_volume_delete,

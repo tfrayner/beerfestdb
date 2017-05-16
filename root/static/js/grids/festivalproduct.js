@@ -28,6 +28,7 @@ Ext.onReady(function(){
     /* Supplier lookups */
     var brewer_store = new Ext.data.JsonStore({
         url:        url_company_list,
+        myLoadParams:   { brewer_festival_id: festival_id },
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}],
@@ -38,7 +39,6 @@ Ext.onReady(function(){
         idProperty: 'company_id',
         isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
-    brewer_store.load({ params: { brewer_festival_id: festival_id } });
 
     /* Product lookups */
     var product_store = new Ext.data.JsonStore({
@@ -66,7 +66,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    volume_store.load();
 
     /* Currency lookups */
     var currency_store = new Ext.data.JsonStore({
@@ -79,7 +78,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    currency_store.load();
 
     var FestivalProduct = Ext.data.Record.create([
         { name: 'festival_product_id', type: 'int' },
@@ -253,6 +251,7 @@ Ext.onReady(function(){
             deleteUrl:          url_festivalproduct_delete,
             submitUrl:          url_festivalproduct_submit,
             recordChanges:      recordChanges,
+            comboStores:        [ brewer_store, product_store, volume_store, currency_store ],
             listeners: {
                 beforeedit: function(e) {
                     // reference to the currently clicked cell

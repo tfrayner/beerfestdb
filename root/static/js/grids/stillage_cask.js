@@ -37,7 +37,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    bay_position_store.load();
 
     var Cask = Ext.data.Record.create([
         { name: 'cask_id',           type: 'int' },
@@ -194,6 +193,7 @@ Ext.onReady(function(){
                 idField:            'cask_id',
                 autoExpandColumn:   'name',
                 store:              store,
+                comboStores:        [ bay_position_store ],
                 contentCols:        content_cols,
                 viewLink:           viewLink,
                 deleteUrl:          url_cask_delete,

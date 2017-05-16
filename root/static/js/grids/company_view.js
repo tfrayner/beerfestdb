@@ -47,7 +47,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    region_store.load();
 
     /* Contact type drop-down */
     var contact_type_store = new Ext.data.JsonStore({
@@ -61,7 +60,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    contact_type_store.load();
+
     var contact_type_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -87,7 +86,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    country_store.load();
+
     var country_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     true,
@@ -114,7 +113,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    style_store.load();
+
     var style_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
@@ -153,7 +152,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    category_store.load();
+
     var category_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
@@ -197,7 +196,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    contact_store.load();
 
     var product_store = new Ext.data.JsonStore({
         url:        url_product_list,
@@ -217,7 +215,6 @@ Ext.onReady(function(){
         },
         defaultData: { product_category_id: default_product_category },
     });
-    product_store.load();
 
     var festprod_store = new Ext.data.JsonStore({
         url:        url_festival_product_list,
@@ -233,7 +230,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    festprod_store.load();
 
     /* Company form */
     var coForm = new MyFormPanel({
@@ -317,6 +313,7 @@ Ext.onReady(function(){
                 return(fields);
             },
             store:              contact_store,
+            comboStores:        [ contact_type_store, country_store ],
             contentCols: [
                 { id:         'contact_type_id',
                   header:     'Contact Type',
@@ -402,6 +399,7 @@ Ext.onReady(function(){
                 return(fields);
             },
             store:              product_store,
+            comboStores:        [ category_store, style_store ],
             contentCols:
             [
                 { id:         'name',

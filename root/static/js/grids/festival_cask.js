@@ -37,7 +37,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    casksize_store.load();
 
     /* Stillage lookups */
     var stillage_store = new Ext.data.JsonStore({
@@ -51,7 +50,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    stillage_store.load();
 
     var Cask = Ext.data.Record.create([
         { name: 'cask_id',              type: 'int' },
@@ -181,6 +179,7 @@ Ext.onReady(function(){
             idField:            'cask_id',
             autoExpandColumn:   'product_id',
             store:              store,
+            comboStores:        [ casksize_store, stillage_store ],
             contentCols:        content_cols,
             viewLink:           viewLink,
             deleteUrl:          url_cask_delete,

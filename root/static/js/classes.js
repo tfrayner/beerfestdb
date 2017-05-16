@@ -239,6 +239,7 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     stripeRows:         true,
     trackMouseOver:     true,
     loadMask:           true,
+    comboStores:        [],
     viewConfig: new Ext.grid.GridView({
         autoFill: true,
         forceFit: true,
@@ -305,23 +306,36 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                                   idField:      this.idField,
                                   deleteUrl:    this.deleteUrl}),
             ],
-            listeners: {
-                beforerender: function() {
-                    var reloadable = this.reloadableStores;
-                    if ( reloadable ) {
-                        for ( var n=0; n < reloadable.length; n++) {
-                            reloadable[n].load();
-                        }
-                    }
-                    return true
-                },
-            },
         });
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
     },
     
     onRender: function() {
-        this.store.load();
+        var mask = new Ext.LoadMask(Ext.getBody());
+        mask.show();
+        allStores = this.comboStores.concat([ this.store ]);
+        numStores = allStores.length;
+        if ( numStores == 0 ) {
+            mask.hide();
+        }
+        else {
+            var loadedStores = 0;
+            Ext.each(allStores,
+                     function (storeCur, index, storearray) {
+                storeCur.load({
+                    params:    this.myLoadParams, // defined in store config (unofficial).
+                    callback: function (r, options, success) {
+                        if (success === true) {
+                            loadedStores = loadedStores + 1;
+                            if (loadedStores == numStores) {
+                                mask.hide();
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
         MyEditorGrid.superclass.onRender.apply(this, arguments);
     }
 });

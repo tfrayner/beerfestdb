@@ -46,7 +46,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    stillage_store.load();
 
     /* Bay position drop-down */
     var bay_position_store = new Ext.data.JsonStore({
@@ -59,7 +58,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    bay_position_store.load();
 
     /* Cask size drop-down */
     var casksize_store = new Ext.data.JsonStore({
@@ -72,7 +70,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    casksize_store.load();
 
     /* Distributor drop-down */
     var dist_store = new Ext.data.JsonStore({
@@ -85,7 +82,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    dist_store.load();
 
     var dip_store = new Ext.data.JsonStore({
         url:        url_cask_measurement_list,
@@ -99,7 +95,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    dip_store.load();
 
     /* Dip batch drop-down */
     var dipbatch_store = new Ext.data.JsonStore({
@@ -112,7 +107,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    dipbatch_store.load();
+
     var dipbatch_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
@@ -256,6 +251,7 @@ Ext.onReady(function(){
                 return(fields);
             },
             store:              dip_store,
+            comboStores:        [ dipbatch_store ],
             contentCols: [
                 { id:         'measurement_batch_id',
                   header:     'Dip Time',

@@ -37,7 +37,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    dispense_store.load();
 
     /* Container measure lookups */
     var measure_store = new Ext.data.JsonStore({
@@ -51,7 +50,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    measure_store.load();
 
     var ContainerSize = Ext.data.Record.create([
         { name: 'container_size_id',  type: 'int' },
@@ -142,6 +140,7 @@ Ext.onReady(function(){
                 idField:            'container_size_id',
                 autoExpandColumn:   'description',
                 store:              store,
+                comboStores:        [ dispense_store, measure_store ],
                 contentCols:        content_cols,
                 viewLink:           viewLink,
                 deleteUrl:          url_cask_size_delete,

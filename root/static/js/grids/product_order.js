@@ -28,6 +28,7 @@ Ext.onReady(function(){
     /* Brewer lookups */
     var brewer_store = new Ext.data.JsonStore({
         url:        url_company_list,
+        myLoadParams: { brewer_order_batch_id: order_batch_id },
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}],
@@ -38,7 +39,6 @@ Ext.onReady(function(){
         idProperty: 'company_id',
         isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
-    brewer_store.load({ params: { brewer_order_batch_id: order_batch_id } });
 
     /* Product lookups */
     var product_store = new Ext.data.JsonStore({
@@ -57,6 +57,7 @@ Ext.onReady(function(){
     /* Distributor lookups */
     var distributor_store = new Ext.data.JsonStore({
         url:        url_company_list,
+        myLoadParams: { supplier_order_batch_id: order_batch_id },
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int'    },
                      { name: 'name',       type: 'string' }],
@@ -67,7 +68,6 @@ Ext.onReady(function(){
         idProperty: 'company_id',
         isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
-    distributor_store.load({ params: { supplier_order_batch_id: order_batch_id } });
 
     /* Currency lookups */
     var currency_store = new Ext.data.JsonStore({
@@ -81,7 +81,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    currency_store.load();
 
     /* Cask size lookups */
     var cask_size_store = new Ext.data.JsonStore({
@@ -95,7 +94,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    cask_size_store.load();
 
     /* Main product order records and store */
     var ProductOrder = Ext.data.Record.create([
@@ -327,6 +325,8 @@ Ext.onReady(function(){
             idField:            'product_order_id',
             autoExpandColumn:   'product_id',
             store:              store,
+            comboStores:        [ distributor_store, brewer_store, product_store,
+                                  cask_size_store, currency_store ],
             contentCols:        content_cols,
             viewLink:           viewLink,
             deleteUrl:          url_productorder_delete,

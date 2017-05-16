@@ -37,7 +37,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    supplier_store.load();
 
     /* Product Style lookups */
     var style_store = new Ext.data.JsonStore({
@@ -51,7 +50,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    style_store.load();
 
     var Product = Ext.data.Record.create([
         { name: 'product_id',       type: 'int' },
@@ -161,6 +159,7 @@ Ext.onReady(function(){
                 idField:            'product_id',
                 autoExpandColumn:   'name',
                 store:              store,
+                comboStores:        [ supplier_store, style_store ],
                 contentCols:        content_cols,
                 viewLink:           viewLink,
                 deleteUrl:          url_product_delete,

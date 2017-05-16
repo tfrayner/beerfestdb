@@ -41,7 +41,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    role_store.load();
 
     /* User form */
     var userForm = new MyFormPanel({

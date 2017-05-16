@@ -36,7 +36,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    category_store.load();
 
     var myGrid = new MyViewGrid(
         {

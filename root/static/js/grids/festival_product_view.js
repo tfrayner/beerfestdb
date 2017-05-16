@@ -37,7 +37,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    company_store.load();
+
     var company_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -63,7 +63,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    volume_store.load();
 
     /* Currency drop-down */
     var currency_store = new Ext.data.JsonStore({
@@ -77,7 +76,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    currency_store.load();
+
     var currency_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -103,7 +102,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    casksize_store.load();
+
     var casksize_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -134,7 +133,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    gyle_store.load();
+
     var gyle_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -173,7 +172,6 @@ Ext.onReady(function(){
         },
         defaultData: { currency_id: default_currency },
     });
-    cask_store.load();
 
     /* FestivalProduct form */
     var fpForm = new MyFormPanel({
@@ -259,6 +257,7 @@ Ext.onReady(function(){
                 return(fields);
             },
             store:              gyle_store,
+            comboStores:        [ company_store ],
             contentCols: [
                 { id:        'int_reference',
                   header:    'Festival Gyle ID',
@@ -321,6 +320,7 @@ Ext.onReady(function(){
                 return(fields);
             },
             store:              cask_store,
+            comboStores:        [ casksize_store, currency_store, gyle_store, company_store ],
             contentCols: [
                 { id:        'festival_ref',
                   header:    'Festival Cask ID',
