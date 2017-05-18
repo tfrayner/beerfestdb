@@ -139,8 +139,15 @@ When beer comes
 	  use this query:  select max(cm.cellar_reference) from cask_management cm, festival f where f.festival_id=cm.festival_id and f.name='41st Cambridge Beer Festival';
 	NOTE: new casks added at this point should NOT have an order batch assigned
   Prices go in Products Received tab, sale price column
-
-For dip sheets: manually enter "Measurement batches" -- otherwise no dip data slots print out!
+  
+For dip sheets:
+  Manually enter "Measurement batches" -- otherwise no dip data slots print out!
+  Assign each cask to a bar
+        interface: All casks received - Stillage column
+	OR
+        use update_cask_details.pl - cask ID & location ID in file
+          headers cask_festival_id, stillage_location (use name for stillage location, e.g. DMZ)
+          handy way to get cask IDs: take relevant columns from index card data	see below)
 
 Info for cask index cards: This query retrieves certain details for every cask for which (a) the order is finalized and (b) has its "virtual cask" in the db, i.e. preload_festival_casks has been run.
   Details: cask ID, beer, brewery, ABV, style, cask size
