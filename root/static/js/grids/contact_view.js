@@ -162,6 +162,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ country_store, contact_type_store ],
         loadUrl:     url_contact_load_form,
         idParams:    { contact_id: contact_id },
         waitMsg:     'Loading Contact details...',

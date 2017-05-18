@@ -237,6 +237,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ currency_store, volume_store ],
         loadUrl:     url_fp_load_form,
         idParams:    { festival_product_id: festival_product_id },
         waitMsg:     'Loading Festival Product details...',

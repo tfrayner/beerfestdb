@@ -167,6 +167,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ category_store, style_store ],
         loadUrl:     url_product_load_form,
         idParams:    { product_id: product_id },
         waitMsg:     'Loading Product details...',

@@ -231,6 +231,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ dist_store, casksize_store, stillage_store, bay_position_store ],
         loadUrl:     url_cask_load_form,
         idParams:    { cask_id: cask_id },
         waitMsg:     'Loading Cask details...',

@@ -41,7 +41,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    role_store.load();
 
     /* User form */
     var userForm = new MyFormPanel({
@@ -88,6 +87,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ role_store ],
         loadUrl:     url_user_load_form,
         idParams:    { user_id: user_id },
         waitMsg:     'Loading User details...',

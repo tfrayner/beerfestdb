@@ -238,7 +238,7 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     columnLines:        true,
     stripeRows:         true,
     trackMouseOver:     true,
-    loadMask:           true,
+    loadMask:           true, // seems not to work in extjs 3.4
     comboStores:        [],
     viewConfig: new Ext.grid.GridView({
         autoFill: true,
@@ -313,8 +313,8 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     onRender: function() {
         var mask = new Ext.LoadMask(Ext.getBody());
         mask.show();
-        allStores = this.comboStores.concat([ this.store ]);
-        numStores = allStores.length;
+        var allStores = this.comboStores.concat([ this.store ]);
+        var numStores = allStores.length;
         if ( numStores == 0 ) {
             mask.hide();
         }
@@ -345,7 +345,7 @@ MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
     columnLines:        true,
     stripeRows:         true,
     trackMouseOver:     true,
-    loadMask:           true,
+    loadMask:           true, // seems not to work in extjs 3.4
     viewConfig: new Ext.grid.GridView({
         autoFill: true,
         forceFit: true,
@@ -385,7 +385,16 @@ MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
     },
     
     onRender: function() {
-        this.store.load();
+        var mask = new Ext.LoadMask(Ext.getBody());
+        mask.show();
+        this.store.load({
+            params:    this.myLoadParams, // defined in store config (unofficial).
+            callback: function (r, options, success) {
+                if (success === true) {
+                    mask.hide();
+                }
+            }
+        });
         MyEditorGrid.superclass.onRender.apply(this, arguments);
     }
 });
@@ -414,6 +423,7 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
     width:       500,
     defaults:    {width: 300}, // field box width
     defaultType: 'textfield',
+    comboStores: [],
             
     initComponent: function() {
 
@@ -451,6 +461,29 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
     },
     
     onRender: function() {
+        var mask = new Ext.LoadMask(Ext.getBody());
+        mask.show();
+        var numStores = this.comboStores.length;
+        if ( numStores == 0 ) {
+            mask.hide();
+        }
+        else {
+            var loadedStores = 0;
+            Ext.each(this.comboStores,
+                     function (storeCur, index, storearray) {
+                storeCur.load({
+                    params:    this.myLoadParams, // defined in store config (unofficial).
+                    callback: function (r, options, success) {
+                        if (success === true) {
+                            loadedStores = loadedStores + 1;
+                            if (loadedStores == numStores) {
+                                mask.hide();
+                            }
+                        }
+                    }
+                });
+            });
+        }
         this.load({
             url:     this.loadUrl,
             params:  this.idParams,

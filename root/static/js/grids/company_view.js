@@ -293,6 +293,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ region_store ],
         loadUrl:     url_company_load_form,
         idParams:    { company_id: company_id },
         waitMsg:     'Loading Company details...',
