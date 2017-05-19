@@ -213,7 +213,7 @@
           [%- cask.price | price_format | format('%.2f') -%]/[% cask.sale_volume %]}
 
   \textbf{[% cask.currency | latexify -%]
-          [%- cask.price | price_format(7/5) | format('%.2f') -%]/125ml glass}
+          [%- cask.price | price_format(1.4) | format('%.2f') -%]/125ml glass}
 
 \end{textblock}
 
