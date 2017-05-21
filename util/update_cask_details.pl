@@ -53,25 +53,13 @@ with 'BeerFestDB::MenuSelector';
 
 sub assign_cellar_number {
 
-    my ( $self, $cask, $id ) = @_;
+    my ( $self, $caskman, $id ) = @_;
 
     if ( defined $id ) {
         if ( ! looks_like_number( $id ) ) {
             die("Error: This cask_cellar_id doesn't look like a number: $id\n");
         }
-        
-        # Remove the cellar number from the cask that
-        # currently has it.
-        my $altcask = $self->database->resultset('Cask')
-                           ->find({ festival_id => $self->festival->id(),
-                                    gyle_id     => $cask->get_column('gyle_id'),
-                                    internal_reference => $id });
-        if ( $altcask && $altcask->cellar_reference != $cask->cellar_reference ) {
-            $altcask->set_column('internal_reference', undef);
-            $altcask->update();
-        }
-        
-        $cask->set_column('internal_reference', $id);
+	$caskman->set_column('internal_reference', $id);
     }
 
     return;
@@ -79,23 +67,23 @@ sub assign_cellar_number {
 
 sub assign_stillage_location {
 
-    my ( $self, $cask, $loc ) = @_;
+    my ( $self, $caskman, $loc ) = @_;
 
     my $stillage = $self->database->resultset('StillageLocation')
                                   ->find({ festival_id => $self->festival->id(),
                                            description => $loc })
                                       or die(qq{Error: Stillage location "$loc" }.
                                                  qq{not found.\n});
-    my $caskloc = $cask->get_column('stillage_location_id');
+    my $caskloc = $caskman->get_column('stillage_location_id');
     if ( ! defined $caskloc || $caskloc != $stillage->stillage_location_id ) {
         if ( $self->allow_stillage_move ) { # Initial stillage assignment only.
-            $cask->set_column('stillage_location_id',
+            $caskman->set_column('stillage_location_id',
                               $stillage->stillage_location_id());
         }
         else {
             push @{ $self->_errors },
                 sprintf("Error: Attempting to move cask %s between stillages.",
-                        $cask->cellar_reference);
+                        $caskman->cellar_reference);
         }
     }
 
