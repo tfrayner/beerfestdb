@@ -141,7 +141,9 @@ sub allergen_hash {
 
 sub product_hash {
 
-    my ( $self, $product ) = @_;
+    my ( $self, $product, $prodhash ) = @_;
+
+    $prodhash ||= {};
 
     my $fest = $self->festival();
     my $fp   = $product->search_related('festival_products',
@@ -152,36 +154,34 @@ sub product_hash {
                                                 $product->name()));
 
     # N.B. Changes here need to be documented in the POD.
-    my %prodhash = (
-        brewery  => $product->company_id->name(),
-	location => $product->company_id->loc_desc(),
-        product  => $product->name(),
-        style    => $product->product_style_id()
-                    ? $product->product_style_id()->description() : q{},
-        category => $product->product_category_id()->description(),
-        abv      => $product->nominal_abv(),
-        notes    => $product->description(),
-        allergens => $self->allergen_hash( $product ),
-        _split_export_tag => $tag,
-    );
+    $prodhash->{brewery}  = $product->company_id->name();
+    $prodhash->{location} = $product->company_id->loc_desc();
+    $prodhash->{product}  = $product->name();
+    $prodhash->{style}    = $product->product_style_id()
+	                ? $product->product_style_id()->description() : q{};
+    $prodhash->{category} = $product->product_category_id()->description();
+    $prodhash->{abv}      = $product->nominal_abv();
+    $prodhash->{notes}    = $product->description();
+    $prodhash->{allergens} = $self->allergen_hash( $product );
+    $prodhash->{_split_export_tag} = $tag;
 
     # Handle FestivalProduct data here.
     if ( $fp ) {
-        $prodhash{sale_volume} = $fp->sale_volume_id()->description();
+        $prodhash->{sale_volume} = $fp->sale_volume_id()->description();
         my $currency = $fp->sale_currency_id();
         my $format   = $currency->currency_format();
-        $prodhash{currency} = $currency->currency_symbol();
+        $prodhash->{currency} = $currency->currency_symbol();
 
         # The formatted_price option is great if you just want to display
         # the price in the local format. However, if you need to do any
         # calculations then use price and the price_format filter
         # below. This reduces the risk of floating-point errors.
 	# UPDATE: commented out this line as the formatting code breaks on large price values.
-#        $prodhash{formatted_price} = $self->format_price( $fp->sale_price(), $format );
-        $prodhash{price} = $fp->sale_price(); # typically in pennies (GBP).
+#        $prodhash->{formatted_price} = $self->format_price( $fp->sale_price(), $format );
+        $prodhash->{price} = $fp->sale_price(); # typically in pennies (GBP).
     }
 
-    return \%prodhash;
+    return $prodhash;
 }
 
 sub order_hash {
@@ -208,6 +208,7 @@ sub order_hash {
         cask_size_std  => $local_cask_size
                         * ( $cask_measure->litre_multiplier() /
                             $default_meas_unit->litre_multiplier() ),
+	dispense_method => $order->container_size_id->dispense_method_id->description(),
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
         nominal_abv => $order->product_id->nominal_abv(),
@@ -336,7 +337,8 @@ sub update_caskman_hash {
     $caskmanhash->{cask_size_name} = $caskman->container_size_id->description();
     $caskmanhash->{cask_size_std}  = $local_cask_size
                                    * ( $cask_measure->litre_multiplier() /
-                                       $default_meas_unit->litre_multiplier() ),
+                                       $default_meas_unit->litre_multiplier() );
+    $caskmanhash->{dispense_method} = $caskman->container_size_id->dispense_method_id->description();
     $caskmanhash->{is_sale_or_return} = $caskman->is_sale_or_return();
     $caskmanhash->{stillage_bay} = $caskman->stillage_bay();
     $caskmanhash->{bay_position} = $caskman->bay_position_id
@@ -450,6 +452,7 @@ sub dump {
     elsif ( $self->dump_class eq 'product_order' ) {
         foreach my $order ( @{ $self->festival_orders() } ) {
             my $orderhash = $self->order_hash( $order );
+	    $self->product_hash( $order->product_id(), $orderhash );
             push @template_data, $orderhash;
         }
     }
@@ -709,6 +712,10 @@ configured default_measurement_unit (e.g., gallons).
 =item cask_size_name
 
 (Cask-level export only). The cask size name in the database (e.g. "firkin").
+
+=item dispense_method
+
+(Cask-level export only). The cask dispense method (e.g. "cask", "keykeg").
 
 =item cask_count
 

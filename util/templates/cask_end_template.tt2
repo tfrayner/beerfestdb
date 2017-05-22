@@ -3,8 +3,14 @@
 %
 % Example LaTeX template for use with cask_end_signs_latex.pl
 
-[% IF dump_class != 'gyle' && dump_class != 'product' -%]
-  [%- THROW bad_dump_class "Use the gyle or product dump classes.\n" -%]
+[% IF dump_class != 'gyle' && dump_class != 'product' && dump_class != 'product_order' -%]
+  [%- THROW bad_dump_class "Use the gyle, product or product_order dump classes.\n" -%]
+[%- END %]
+
+[% IF dump_class == 'product_order' -%]
+[%- FILTER stderr -%]
+Note that cask end signs created using product_order dump class info may be inaccurate, due to discrepancies with actual cask delivery.
+[% END -%]
 [%- END %]
 
 \documentclass[english,a4paper]{article}
@@ -174,7 +180,7 @@
 
 [% ELSE %]
 
-  [% THROW category "Unrecognised product category (should be beer, foreign beer, cider, mead, perry or apple juice):" %]
+  [% THROW category "Unrecognised product category (should be beer, foreign beer, cider, mead, wine, perry or apple juice): $cask.category" %]
   
 [% END %]
 
