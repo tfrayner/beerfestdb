@@ -3,7 +3,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2012-2013 Tim F. Rayner
+# Copyright (C) 2012-2017 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -255,7 +255,7 @@ sub parse_args {
     my ( $datafile, $allow_stillage_move, $want_help );
 
     GetOptions(
-	"f|file=s"     => \$datafile,
+	"i|input=s"    => \$datafile,
 	"a|allow"      => \$allow_stillage_move,
         "h|help"       => \$want_help,
     );
@@ -299,7 +299,7 @@ update_cask_details.pl
 
 =head1 SYNOPSIS
 
- update_cask_details.pl -f tab_delimited_file.csv
+ update_cask_details.pl -i tab_delimited_file.csv
 
 =head1 DESCRIPTION
 
@@ -313,7 +313,7 @@ location, bay number and position once stillaging is complete.
 A flag indicating whether or not to allow casks to be automatically
 moved between stillages (default: no).
 
-=head2 -f
+=head2 -i
 
 The file containing cask details. This should be in tab-delimited
 format and contain the following headings:
@@ -376,7 +376,7 @@ Tim F. Rayner, E<lt>tfrayner@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2012-2013 by Tim F. Rayner
+Copyright (C) 2012-2017 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
