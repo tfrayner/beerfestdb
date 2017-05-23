@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::FestivalProduct;
 use Moose;
 use namespace::autoclean;
 
-use List::Util qw( min );
+use List::Util qw( min first );
 use Digest::SHA qw( sha1_hex );
 use Carp;
 use JSON::MaybeXS;
@@ -491,22 +491,30 @@ sub _derive_status_report_by_dispense_method : Private {
         $prodhash->{'abv'}             = $abv;
         $prodhash->{'dispense_method'} = $dispense->description;
 
-        if ( $festival_open ) {
-            my ( $status, $css_status, $starting, $stillage ) =
-                $self->_obfuscated_amount_remaining($fp, $dispense);
-            $prodhash->{'status'}          = $status;
-            $prodhash->{'css_status'}      = $css_status;
-            $prodhash->{'starting_volume'} = $starting;
-            if ( $stillage ) {
-                $prodhash->{'stillage_location'} = $stillage->description;
-            }
-        } else {
+	# Some defaults here.prior to opening, "Arrived" is all we
+	# really want.
+	$prodhash->{'status'}     = 'Arrived';
+	$prodhash->{'css_status'} = 'arrived';
+	$prodhash->{'starting_volume'}   = undef;
+	$prodhash->{'stillage_location'} = undef;
 
-            # Prior to opening, "Arrived" is all we really want.
-            $prodhash->{'status'}     = 'Arrived';
-            $prodhash->{'css_status'} = 'arrived';
-            $prodhash->{'starting_volume'}   = undef;
-            $prodhash->{'stillage_location'} = undef;
+        if ( $festival_open ) {
+	    my $catname = $fp->product_id->product_category_id->description();
+	    if ( first { $catname eq $_ } @{ $c->config->{'stock_control_departments'} } ) {
+		my ( $status, $css_status, $starting, $stillage ) =
+		    $self->_obfuscated_amount_remaining($fp, $dispense);
+		$prodhash->{'status'}          = $status;
+		$prodhash->{'css_status'}      = $css_status;
+		$prodhash->{'starting_volume'} = $starting;
+
+		# While we could in theory use stillage info from
+		# non-stock-controlled departments, in practice it
+		# would add many more db queries and currently it adds
+		# nothing.
+		if ( $stillage ) {
+		    $prodhash->{'stillage_location'} = $stillage->description;
+		}
+	    }
         }
 
         $festprod{ $prodkey } = $prodhash;

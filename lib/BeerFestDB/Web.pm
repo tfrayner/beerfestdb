@@ -91,6 +91,7 @@ __PACKAGE__->config(
     default_sale_volume => 'pint',
     default_product_category => 'beer',
     default_measurement_unit => 'gallon',
+    stock_control_departments => [],
  );
 
 # Start the application
