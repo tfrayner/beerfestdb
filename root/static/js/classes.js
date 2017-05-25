@@ -306,38 +306,51 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                                   idField:      this.idField,
                                   deleteUrl:    this.deleteUrl}),
             ],
+            listeners: {
+                beforerender: function(myGrid) {
+                    myGrid.suspendEvents(true);
+                    myGrid.ownerCt.suspendLayout = true;
+                    var myMask = new Ext.LoadMask(Ext.getBody());
+                    myMask.show();
+                    var allStores = myGrid.comboStores.concat([ myGrid.store ]);
+                    var numStores = allStores.length;
+                    if ( numStores == 0 ) {
+                        myMask.hide();
+                        myGrid.resumeEvents();
+                        myGrid.ownerCt.suspendLayout = false;
+                        myGrid.ownerCt.doLayout();
+                    }
+                    else {
+                        var loadedStores = 0;
+                        Ext.each(allStores,
+                                 function (storeCur, index, storearray) {
+                            storeCur.load({
+                                // defined in store config (unofficial).
+                                params:    this.myLoadParams,
+                                callback: function (r, options, success) {
+                                    if (success === true) {
+                                       loadedStores = loadedStores + 1;
+                                        if (loadedStores == numStores) {
+                                            myMask.hide();
+                                            myGrid.resumeEvents();
+                                            myGrid.ownerCt.suspendLayout = false;
+                                            myGrid.ownerCt.doLayout();
+                                        }
+                                    }
+                                }
+                           });
+                       });
+                    }
+                },
+             }
         });
+
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
     },
-    
-    onRender: function() {
-        var mask = new Ext.LoadMask(Ext.getBody());
-        mask.show();
-        var allStores = this.comboStores.concat([ this.store ]);
-        var numStores = allStores.length;
-        if ( numStores == 0 ) {
-            mask.hide();
-        }
-        else {
-            var loadedStores = 0;
-            Ext.each(allStores,
-                     function (storeCur, index, storearray) {
-                storeCur.load({
-                    params:    this.myLoadParams, // defined in store config (unofficial).
-                    callback: function (r, options, success) {
-                        if (success === true) {
-                            loadedStores = loadedStores + 1;
-                            if (loadedStores == numStores) {
-                                mask.hide();
-                            }
-                        }
-                    }
-                });
-            });
-        }
 
+    onRender: function() {
         MyEditorGrid.superclass.onRender.apply(this, arguments);
-    }
+    },
 });
 
 MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
@@ -379,22 +392,32 @@ MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
         
         Ext.apply(this, {
             cm:                 col_model,
-            plugins:            action,            
+            plugins:            action,
+            listeners: {
+                beforerender: function(myGrid) {
+                    myGrid.suspendEvents(true);
+                    myGrid.ownerCt.suspendLayout = true;
+                    var myMask = new Ext.LoadMask(Ext.getBody());
+                    myMask.show();
+                    myGrid.store.load({
+                        // defined in store config (unofficial).
+                        params:    myGrid.myLoadParams,
+                        callback: function (r, options, success) {
+                            if (success === true) {
+                                myMask.hide();
+                                myGrid.resumeEvents();
+                                myGrid.ownerCt.suspendLayout = false;
+                                myGrid.ownerCt.doLayout();
+                            }
+                        }
+                    });
+                },
+            },
         });
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
     },
     
     onRender: function() {
-        var mask = new Ext.LoadMask(Ext.getBody());
-        mask.show();
-        this.store.load({
-            params:    this.myLoadParams, // defined in store config (unofficial).
-            callback: function (r, options, success) {
-                if (success === true) {
-                    mask.hide();
-                }
-            }
-        });
         MyEditorGrid.superclass.onRender.apply(this, arguments);
     }
 });
@@ -456,34 +479,42 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
             initialConfig: {
                 trackResetOnLoad: true,
             },
+            listeners: {
+                beforerender: function(myForm) {
+                    myForm.suspendEvents(true);
+                    var myMask = new Ext.LoadMask(Ext.getBody());
+                    myMask.show();
+                    var numStores = myForm.comboStores.length;
+                    if ( numStores == 0 ) {
+                        myMask.hide();
+                        myForm.resumeEvents();
+                    }
+                    else {
+                        var loadedStores = 0;
+                        Ext.each(myForm.comboStores,
+                                 function (storeCur, index, storearray) {
+                            storeCur.load({
+                                // defined in store config (unofficial).
+                                params:    myForm.myLoadParams,
+                                callback: function (r, options, success) {
+                                    if (success === true) {
+                                        loadedStores = loadedStores + 1;
+                                        if (loadedStores == numStores) {
+                                            myMask.hide();
+                                            myForm.resumeEvents();
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    }
+                },
+            },
         });
         MyFormPanel.superclass.initComponent.apply(this, arguments);
     },
     
     onRender: function() {
-        var mask = new Ext.LoadMask(Ext.getBody());
-        mask.show();
-        var numStores = this.comboStores.length;
-        if ( numStores == 0 ) {
-            mask.hide();
-        }
-        else {
-            var loadedStores = 0;
-            Ext.each(this.comboStores,
-                     function (storeCur, index, storearray) {
-                storeCur.load({
-                    params:    this.myLoadParams, // defined in store config (unofficial).
-                    callback: function (r, options, success) {
-                        if (success === true) {
-                            loadedStores = loadedStores + 1;
-                            if (loadedStores == numStores) {
-                                mask.hide();
-                            }
-                        }
-                    }
-                });
-            });
-        }
         this.load({
             url:     this.loadUrl,
             params:  this.idParams,
