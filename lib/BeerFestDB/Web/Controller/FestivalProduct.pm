@@ -329,21 +329,17 @@ sub _build_allergen_data : Private {
 
     my %allergen_data;
 
-    foreach my $allergen ( $c->model('DB::ProductAllergenType')->all() ) {
-        my $pa = $allergen->search_related(
-            'product_allergens',
-            { product_id => $product->product_id })->first();
-        if ( $pa && defined $pa->present ) {
-            $allergen_data{ $allergen->description() } = $pa->present
-                                                       ? JSON->true()
-                                                       : JSON->false();
+    foreach my $pa ( $product->search_related('product_allergens')->all() ) {
+        if ( defined $pa->present ) {
+            $allergen_data{ $pa->product_allergen_type_id->description() }
+                = $pa->present
+                ? JSON->true()
+                : JSON->false();
         }
     }
 
     return \%allergen_data;
 }
-
-
 
 sub _build_product_data : Private {
 
@@ -401,10 +397,6 @@ sub _derive_status_report : Private {
     my ( $festival, $cond, $attr ) = $self->_retrieve_festival_plus_cond_attr(
         $c, $festival_id, $category_id );
 
-    my $po_rs = $festival->search_related('order_batches')
-                         ->search_related('product_orders',
-                                          { %$cond, is_final => 1 }, $attr);
-
     # Figure out whether the festival is open or not.
     my @timeparts = gmtime();
     my $datenow = sprintf( "%04d%02d%02d",
@@ -420,6 +412,24 @@ sub _derive_status_report : Private {
 
     # Don't check the order table once we're open.
     if ( ! $festival_open ) {
+        my $po_rs = $festival->search_related('order_batches')
+            ->search_related(
+                'product_orders',
+                { %$cond, is_final => 1 },
+                { join => $attr->{join},
+                  prefetch => { %{ $attr->{join} },
+                                container_size_id => 'dispense_method_id',
+                                product_id => [
+                                    {
+                                        product_allergens => 'product_allergen_type_id',
+                                    },
+                                    'company_id',
+                                    'product_style_id',
+                                ],
+                            },
+              },
+            );
+
         while ( my $po = $po_rs->next() ) {
             my $product  = $po->product_id();
             my $prodhash = $self->_build_product_data( $product, $c );
@@ -462,6 +472,20 @@ sub _derive_status_report_by_dispense_method : Private {
                         casks => {
                             cask_management_id => {
                                 container_size_id => 'dispense_method_id' }}}},
+          prefetch => { %{ $attr->{join} },
+                        gyles => {
+                            casks => {
+                                cask_management_id => {
+                                    container_size_id => 'dispense_method_id' }}
+                        },
+                        product_id => [
+                            {
+                                product_allergens => 'product_allergen_type_id',
+                            },
+                            'company_id',
+                            'product_style_id',
+                        ],
+                    },
         }
     );
 
@@ -526,7 +550,6 @@ sub _obfuscated_amount_remaining : Private {
         { 'container_size_id.dispense_method_id' => $dispense->id },
         {
             join     => { container_size_id => 'dispense_method_id' },
-            prefetch => { container_size_id => 'dispense_method_id' },
         },
     )->search_related(
         'casks',
@@ -534,6 +557,17 @@ sub _obfuscated_amount_remaining : Private {
             gyle_id => {
                 'in' => [ map { $_->get_column('gyle_id') } $fp->gyles() ],
             },
+        },
+        {
+            prefetch => [
+                { cask_management_id =>
+                      [
+                          { container_size_id => 'dispense_method_id' },
+                          'stillage_location_id',
+                      ],
+                  cask_measurements => 'container_measure_id',
+              },
+            ],
         },
     );
 
@@ -556,7 +590,9 @@ sub _obfuscated_amount_remaining : Private {
 
             # If not condemned, get the amount remaining.
             my ( $amt_remaining, $measure );
-            ( $amt_remaining, $starting, $measure ) = $self->_amount_remaining( $fp, $dispense );
+            $cask_rs->reset();
+            ( $amt_remaining, $starting, $measure ) = $self->_amount_remaining(
+                $cask_rs, $dispense );
             if ( ! ( defined $amt_remaining && defined $measure ) ) {
 
                 # Shouldn't happen.
@@ -586,7 +622,7 @@ sub _obfuscated_amount_remaining : Private {
 
 sub _amount_remaining : Private {
 
-    my ( $self, $fp, $dispense ) = @_;
+    my ( $self, $cask_rs, $dispense ) = @_;
 
     # This will need to convert everything into litres (both
     # ContainerSize and CaskMeasurement) via the ContainerMeasure
@@ -595,21 +631,6 @@ sub _amount_remaining : Private {
     # default_measurement_unit config setting, because the returned
     # values are compared to each other and so further complication is
     # unnecessary.
-    my $cask_rs = $fp->festival_id->search_related(
-        'cask_managements',
-        { 'container_size_id.dispense_method_id' => $dispense->id },
-        {
-            join     => { container_size_id => 'dispense_method_id' },
-            prefetch => { container_size_id => 'dispense_method_id' },
-        },
-    )->search_related(
-        'casks',
-        {
-            gyle_id => {
-                'in' => [ map { $_->get_column('gyle_id') } $fp->gyles() ],
-            },
-        },
-    );
 
     # The output volume and measurement unit.
     my ( $remaining, $overall_measure );
@@ -628,13 +649,13 @@ sub _amount_remaining : Private {
             if ( $cask->cask_measurements()->count() ) {
                 my @dip_vols;
                 foreach my $dip ( $cask->cask_measurements() ) {
-                    push @dip_vols, $dip->volume() * $dip->container_measure_id()->litre_multiplier();
+                    push @dip_vols,
+                        $dip->volume() * $dip->container_measure_id()->litre_multiplier();
                 }
                 $vol = min @dip_vols;
             }
             $running_volume += $vol;
         }
-        
         $remaining = $running_volume / $overall_measure->litre_multiplier();
     }
 
