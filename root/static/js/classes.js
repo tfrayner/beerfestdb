@@ -309,16 +309,14 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
             listeners: {
                 beforerender: function(myGrid) {
                     myGrid.suspendEvents(true);
-                    myGrid.ownerCt.suspendLayout = true;
                     var myMask = new Ext.LoadMask(Ext.getBody());
                     myMask.show();
-                    var allStores = myGrid.comboStores.concat([ myGrid.store ]);
+                    var allStores = myGrid.comboStores;
                     var numStores = allStores.length;
                     if ( numStores == 0 ) {
+			myGrid.store.load();
                         myMask.hide();
                         myGrid.resumeEvents();
-                        myGrid.ownerCt.suspendLayout = false;
-                        myGrid.ownerCt.doLayout();
                     }
                     else {
                         var loadedStores = 0;
@@ -331,10 +329,9 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                                     if (success === true) {
                                        loadedStores = loadedStores + 1;
                                         if (loadedStores == numStores) {
+					    myGrid.store.load();
                                             myMask.hide();
                                             myGrid.resumeEvents();
-                                            myGrid.ownerCt.suspendLayout = false;
-                                            myGrid.ownerCt.doLayout();
                                         }
                                     }
                                 }
@@ -396,7 +393,6 @@ MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
             listeners: {
                 beforerender: function(myGrid) {
                     myGrid.suspendEvents(true);
-                    myGrid.ownerCt.suspendLayout = true;
                     var myMask = new Ext.LoadMask(Ext.getBody());
                     myMask.show();
                     myGrid.store.load({
@@ -406,19 +402,17 @@ MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
                             if (success === true) {
                                 myMask.hide();
                                 myGrid.resumeEvents();
-                                myGrid.ownerCt.suspendLayout = false;
-                                myGrid.ownerCt.doLayout();
                             }
                         }
                     });
                 },
             },
         });
-        MyEditorGrid.superclass.initComponent.apply(this, arguments);
+        MyViewGrid.superclass.initComponent.apply(this, arguments);
     },
     
     onRender: function() {
-        MyEditorGrid.superclass.onRender.apply(this, arguments);
+        MyViewGrid.superclass.onRender.apply(this, arguments);
     }
 });
 
@@ -486,6 +480,11 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
                     myMask.show();
                     var numStores = myForm.comboStores.length;
                     if ( numStores == 0 ) {
+			myForm.load({
+			    url:     myForm.loadUrl,
+			    params:  myForm.idParams,
+			    waitMsg: myForm.waitMsg,
+			});
                         myMask.hide();
                         myForm.resumeEvents();
                     }
@@ -500,6 +499,11 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
                                     if (success === true) {
                                         loadedStores = loadedStores + 1;
                                         if (loadedStores == numStores) {
+					    myForm.load({
+						url:     myForm.loadUrl,
+						params:  myForm.idParams,
+						waitMsg: myForm.waitMsg,
+					    });
                                             myMask.hide();
                                             myForm.resumeEvents();
                                         }
@@ -515,11 +519,6 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
     },
     
     onRender: function() {
-        this.load({
-            url:     this.loadUrl,
-            params:  this.idParams,
-            waitMsg: this.waitMsg,
-        });
         MyFormPanel.superclass.onRender.apply(this, arguments);
     }
 });
