@@ -182,11 +182,14 @@ sub status : Local {
     }
 
     # kils_ordered
-    my $orders = $festival->search_related('order_batches')
-                          ->search_related('product_orders',
-                                           { 'product_id.product_category_id' => $beercat->id(),
-                                             'is_final'                       => 1 },
-                                           { join => 'product_id' } );
+    my $orders = $festival
+        ->search_related('order_batches')
+        ->search_related('product_orders',
+                         { 'product_id.product_category_id' => $beercat->id(),
+                           'is_final'                       => 1 },
+                         { join => 'product_id',
+                           prefetch => {
+                               container_size_id => 'container_measure_id' } } );
     my $order_tot = 0;
     my $sor_order_tot = 0;
     while ( my $order = $orders->next() ) {
@@ -202,32 +205,53 @@ sub status : Local {
         }
     }
 
-    # kils_remaining and num_beers_available
-    my $casks  = $festival->search_related('cask_managements')
-                          ->search_related('casks',
-        { 'product_id.product_category_id' => $beercat->id() },
-        { join => {
-            gyle_id => { festival_product_id => 'product_id' }
-        }
-      }
-    );
-    
+    # kils_remaining and num_beers_available. Lots of prefetching and
+    # joining here to reduce the downstream DB queries and speed the
+    # calculation up.
+    my $casks  = $festival
+        ->search_related('cask_managements')
+        ->search_related('casks',
+                         {
+                             'product_id.product_category_id' => $beercat->id()
+                         },
+                         {
+                             join => {
+                                 gyle_id => { festival_product_id => 'product_id' },
+                                 cask_measurements => 'measurement_batch_id',
+                             },
+                             prefetch => [
+                                 {
+                                     cask_measurements => [
+                                         'measurement_batch_id',
+                                         'container_measure_id',
+                                     ],
+                                     cask_management_id => { # Used when querying full casks.
+                                         container_size_id => 'container_measure_id',
+                                     },
+                                 },
+                                 'gyle_id',
+                             ],
+                             order_by =>
+                                 [
+                                     { # Needed for DBIx::Class prefetch to work safely.
+                                         -asc  => 'casks.cask_id',
+                                     },
+                                     { # Used later to select the latest dip for each cask.
+                                         -desc => 'measurement_batch_id.measurement_time',
+                                     }
+                                 ],
+                         }
+                     );
+
     my $remaining_tot = 0;
     my %product_available;
 
     CASK:
     while ( my $cask = $casks->next() ) {
         next CASK if $cask->is_condemned();
-        my @meas = $cask->search_related(
-            'cask_measurements',
-            undef,
-            {
-                join     => 'measurement_batch_id',
-                order_by => { -desc => 'measurement_batch_id.measurement_time' },
-            }
-        );
-        if ( my $latest = $meas[0] ) {
 
+        my $meas = $cask->search_related('cask_measurements');
+        if ( my $latest = $meas->first() ) {
             my $cask_measure = $latest->container_measure_id();
             my $vol = $latest->volume()
                     * ( $cask_measure->litre_multiplier() /
@@ -238,7 +262,6 @@ sub status : Local {
             }
         }
         else {
-
             my $cask_size    = $cask->cask_management_id->container_size_id();
             my $cask_measure = $cask_size->container_measure_id();
             my $vol = $cask_size->container_volume()
