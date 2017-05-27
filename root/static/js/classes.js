@@ -314,9 +314,14 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                     var allStores = myGrid.comboStores;
                     var numStores = allStores.length;
                     if ( numStores == 0 ) {
-			myGrid.store.load();
-                        myMask.hide();
-                        myGrid.resumeEvents();
+			myGrid.store.load({
+                            callback: function (r, options, success) {
+                                if (success === true) {
+                                    myMask.hide();
+                                    myGrid.resumeEvents();
+                                }
+                            }
+                        });
                     }
                     else {
                         var loadedStores = 0;
