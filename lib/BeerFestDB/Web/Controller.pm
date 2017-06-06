@@ -507,6 +507,10 @@ sub delete_database_object : Private {
 
     my ( $self, $c, $rec ) = @_;
 
+    # Note that this will raise an exception to derail the enclosing
+    # transaction if the user is not authorised to make changes.
+    $self->_confirm_category_authorisation($c, $rec);
+
     eval {
         $rec->delete();
     };

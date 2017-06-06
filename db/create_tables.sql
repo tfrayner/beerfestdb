@@ -1286,7 +1286,7 @@ CREATE TABLE `user` (
   `username` varchar(255) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
-  `password` varchar(40) NOT NULL,
+  `password` varchar(40) NOT NULL DEFAULT '*',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
