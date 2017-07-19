@@ -47,6 +47,9 @@ sub BUILD {
         container_measure_id => 'container_measure_id',
         description          => 'description',
         dispense_method_id   => 'dispense_method_id',
+        litre_multiplier     => {
+            'container_measure_id' => 'litre_multiplier',
+        },
     });
 
     $self->model_name('DB::ContainerSize');

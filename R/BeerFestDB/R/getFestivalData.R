@@ -53,8 +53,14 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
 
     sizes <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                        'ContainerSize', 'list',
-                       columns=c('container_size_id','volume'))
+                       columns=c('container_size_id','volume','litre_multiplier','description'))
     colnames(sizes)[2] <- 'cask_volume'
+    for ( n in 2:3 )
+        sizes[,n] <- as.numeric(sizes[,n])
+    default_cask_measure <- with(sizes, cask_volume[ description == 'gallon' ])
+    stopifnot(length(default_cask_measure) == 1)
+    sizes$cask_volume <- with(sizes, cask_volume * litre_multiplier) / default_cask_measure
+    sizes <- sizes[,1:2]
     cp <- merge(cask, sizes, by='container_size_id')
 
     product <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
