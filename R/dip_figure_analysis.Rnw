@@ -45,7 +45,7 @@
 
 # Edit these:
 baseuri  <- 'https://beerfestdb.cambridgebeerfestival.uk/'
-festname <- '43rd Cambridge Beer Festival'
+festname <- '44th Cambridge Beer Festival'
 prodcat  <- 'beer'
 author   <- ''
 # End of editable section.
@@ -152,7 +152,8 @@ colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])
 
 stopifnot( colnames(cp)[w][1] == 'cask_volume' )
 
-pd <- cp[,w][,-sum(w)] - cp[,w][,-1]
+## The rounding here is to try and address floating point errors upstream. Not Ideal (FIXME).
+pd <- round(cp[,w][,-sum(w)] - cp[,w][,-1], 6)
 colnames(pd) <- colnames(cp)[w][-1]
 if ( ! all(pd >= 0) ) {
     stop("Negative per diem dips found: probable dip data error in the database.")
