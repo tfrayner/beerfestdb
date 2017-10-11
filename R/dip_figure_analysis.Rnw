@@ -142,10 +142,7 @@ if ( nrow(ob) > 1 ) {  ## Don't bother enumerating order batches if there was on
 
 cp <- cp[ cp$is_condemned == 0, ]
 
-bad.abv <- is.na(cp$nominal_abv)
-cp[ bad.abv, 'nominal_abv' ] <- cp[ bad.abv, 'gyle_abv' ]
-    
-cp$abv_class <- cut(cp$nominal_abv, breaks=c(2,3.5,4,4.5,5,7,12))
+cp$abv_class <- cut(cp$abv, breaks=c(2,3.5,4,4.5,5,7,12))
 levels(cp$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cp$abv_class)))
     
 colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])

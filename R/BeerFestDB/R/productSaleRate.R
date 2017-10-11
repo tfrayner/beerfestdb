@@ -21,17 +21,22 @@
 
 productSaleRate <- function(y) {
 
+    ## Trim off initial non-sale period.
     y <- c(y[1], y[ y!=y[1] ])
 
-    if ( y[ length(y) ] == 0 )
-        y <- c( y[ y!=0 ], 0 )
+    ## Trim off trailing non-sale period.
+    n <- length(y)
+    y <- c(y[ y!=y[n] ], y[n])
 
-    n <- 1:length(y) - 1
+    ## Normalise to zero at end of sale period.
+    y <- y - y[length(y)]
 
-    l <- lm( y~n )
+    m <- 1:length(y) - 1
+
+    l <- lm( y ~ m )
 
     ## FIXME we could also return the std. error here.
-    r <- summary(l)$coefficients[-1, c(1,2)]
+    suppressWarnings(r <- summary(l)$coefficients[-1, c(1,2)])
     return( c(-r[1], r[2] ) )
 }
 

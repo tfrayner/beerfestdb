@@ -81,6 +81,12 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
     colnames(gyle)[2] <- 'gyle_abv'
     cp <- merge(cp, gyle, by='gyle_id')
 
+    ## Sort out ABVs. If a gyle ABV is present, use it preferentially.
+    suppressWarnings(cp$nominal_abv <- as.numeric(cp$nominal_abv))
+    suppressWarnings(cp$gyle_abv    <- as.numeric(cp$gyle_abv))
+    cp$abv <- ifelse(is.na(cp$gyle_abv), cp$nominal_abv, cp$gyle_abv)
+    cp <- cp[, ! colnames(cp) %in% c('nominal_abv', 'gyle_abv') ]
+
     style <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                        'ProductStyle', 'list',
                        columns=c('product_style_id','description'))
@@ -132,8 +138,6 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
     w <- grepl('^dip\\.', colnames(cp))
     cp[,w] <- apply(cp[,w], 2, as.numeric)
     cp$cask_volume <- as.numeric(cp$cask_volume)
-    suppressWarnings(cp$nominal_abv <- as.numeric(cp$nominal_abv))
-    suppressWarnings(cp$gyle_abv    <- as.numeric(cp$gyle_abv))
 
     return(cp)
 }
