@@ -83,6 +83,11 @@ has 'overwrite'   => ( is       => 'ro',
                        required => 1,
                        default  => 0 );
 
+has 'skip_unpriced' => ( is       => 'ro',
+                         isa      => 'Bool',
+                         required => 1,
+                         default  => 0 );
+
 sub BUILD {
 
     my ( $self, $params ) = @_;
@@ -419,10 +424,9 @@ sub dump {
     }
     elsif ( $self->dump_class eq 'gyle' ) {
         foreach my $product ( @{ $self->festival_products } ) {
-	    my @gyles =
-		$product->search_related('festival_products',
-					 { festival_id => $self->festival->id() })
-                        ->search_related('gyles');
+            my @gyles = $product->search_related('festival_products',
+                                                 { festival_id => $self->festival->id() })
+                                ->search_related('gyles');
             foreach my $gyle ( @gyles ) {
                 my $gylehash = $self->product_hash( $gyle->festival_product_id()->product_id() );
                 $self->update_gyle_hash( $gylehash, $gyle );
@@ -479,6 +483,15 @@ sub dump {
         }
     }
 
+    # Filter out objects without a price available, if desired.
+    if ( $self->skip_unpriced ) {
+        @template_data = grep { has_nonzero_price($_) } @template_data;
+        foreach my $stillage_name ( keys %stillage ) {
+            $stillage{ $stillage_name } = [ grep { has_nonzero_price($_) }
+                                                @{ $stillage{ $stillage_name } } ];
+        }
+    }
+
     # We define some custom filters for convenience.
     my $template = Template->new(
 	ABSOLUTE => 1,
@@ -523,6 +536,15 @@ sub dump {
     }
 
     return;
+}
+
+sub has_nonzero_price {
+
+    my ( $hashref ) = @_;
+
+    # In case we use a dump class which has no price data, detect that
+    # here to reduce potential confusion.
+    return ! (exists $hashref->{'price'}) || $hashref->{'price'};
 }
 
 sub rounded_fraction_factory {

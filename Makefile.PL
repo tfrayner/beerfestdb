@@ -55,6 +55,8 @@ requires 'HTTP::Cookies';
 requires 'Term::ReadLine';
 requires 'Term::ReadKey';
 
+requires 'String::Range::Expand';
+
 recommends 'YAML::XS';  # YAML::Syck is deprecated.
 recommends 'DateTime';  # CBF-specific web site upload script.
 recommends 'JSON::XS';  # Seems to work a bit more reliably than JSON::PP in this context.
