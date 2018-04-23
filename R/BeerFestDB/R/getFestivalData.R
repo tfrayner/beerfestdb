@@ -27,20 +27,21 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
     ## Begin building the main data frame.
     fest <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                       'Festival', 'list')
+    festival_id <- fest[ fest$name==festname, 'festival_id']
 
     batch <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                        'MeasurementBatch', 'list',
-                       params=fest[ fest$name==festname, 'festival_id'])
+                       params=festival_id)
     batch$measurement_time <- as.Date(batch$measurement_time)
     batch <- batch[ order(batch$measurement_time), ]
 
     cat <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                      'ProductCategory', 'list')
+    prodcat_id <- cat[cat$description==prodcat, 'product_category_id']
 
     cask <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                       'Cask', 'list',
-                      params=c(fest[ fest$name==festname, 'festival_id'],
-                          cat[cat$description==prodcat, 'product_category_id']),
+                      params=c(festival_id, prodcat_id),
                       columns=c('cask_id','product_id','container_size_id',
                           'order_batch_id','gyle_id','stillage_location_id',
                           'festival_ref','is_condemned','is_sale_or_return','comment'))
@@ -68,7 +69,8 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
     cp <- merge(cask, sizes, by='container_size_id')
 
     product <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
-                         'Product', 'list',
+                         'Product', 'list_by_festival',
+                         params=c(festival_id, prodcat_id),
                          columns=c('product_id','company_id','nominal_abv',
                              'name','product_style_id'))
     colnames(product)[4]<-'product_name'
@@ -76,7 +78,7 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
 
     gyle <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                       'Gyle', 'list_by_festival',
-                      params=fest[ fest$name==festname, 'festival_id'],
+                      params=festival_id,
                       columns=c('gyle_id','abv'))
     colnames(gyle)[2] <- 'gyle_abv'
     cp <- merge(cp, gyle, by='gyle_id')
@@ -107,14 +109,14 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
 
     stillage <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                           'StillageLocation', 'list',
-                          params=fest[ fest$name==festname, 'festival_id'],
+                          params=festival_id,
                           columns=c('stillage_location_id','description'))
     colnames(stillage)[2] <- 'stillage'
     cp <- merge(cp, stillage, by='stillage_location_id', all.x=TRUE)
 
     orderbatch <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                             'OrderBatch', 'list',
-                            params=fest[ fest$name==festname, 'festival_id'],
+                            params=festival_id,
                             columns=c('order_batch_id','description'))
     colnames(orderbatch)[2] <- 'order_batch'
     cp <- merge(cp, orderbatch, by='order_batch_id', all.x=TRUE)
