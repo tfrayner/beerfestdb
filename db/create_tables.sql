@@ -445,6 +445,7 @@ DROP TABLE IF EXISTS `dispense_method`;
 CREATE TABLE `dispense_method` (
   `dispense_method_id` int(6) NOT NULL AUTO_INCREMENT,
   `description` varchar(100) NOT NULL,
+  `is_disposable` tinyint(1) DEFAULT '0', -- containers are not returned to vendor (keykeg vs. keg).
   PRIMARY KEY (`dispense_method_id`),
   UNIQUE KEY `description` (`description`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

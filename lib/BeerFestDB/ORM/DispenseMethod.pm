@@ -35,6 +35,12 @@ __PACKAGE__->table("dispense_method");
   is_nullable: 0
   size: 100
 
+=head2 is_disposable
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -42,6 +48,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "description",
   { data_type => "varchar", is_nullable => 0, size => 100 },
+  "is_disposable",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -88,8 +96,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-04 18:03:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MOArNBdg0Ckz+C0bV3yB6w
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-04-24 22:06:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/vTX40u/bLxze+B99P5qaA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
