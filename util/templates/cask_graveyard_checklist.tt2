@@ -1,0 +1,104 @@
+%
+% $Id$
+%
+[% IF dump_class != 'cask' %][% THROW bad_dump_class "Use the cask dump class.\n" %][% END %]
+
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, portrait, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+
+\usepackage[british]{babel}
+\usepackage{palatino}
+
+\pagestyle{empty}
+\renewcommand\familydefault{\sfdefault} % makes it use sans serif
+
+\begin{document}
+
+[% SET disthash = {} %]
+[% SET sizehash = {} %]
+
+[%# First we summarise our cask listing into a multilevel hash %]
+[% FOREACH cask = objects -%]
+  [%- SET company  = cask.brewery -%]
+  [%- SET distrib  = cask.distributor -%]
+  [%- SET casksize = cask.cask_size_name -%]
+  [%- IF ! disthash.$distrib.$company.$casksize.defined -%][%# avoids undef var warning %]
+    [%- SET disthash.$distrib.$company.$casksize = 0 -%]
+  [%- END -%]
+  [%- SET disthash.$distrib.$company.$casksize = disthash.$distrib.$company.$casksize + 1 -%]
+  [%- IF ! cask.is_disposable -%][%# we filter out polypins and keykegs here %]
+    [%- SET sizehash.$casksize = 1 -%]
+  [%- END -%]
+[%- END %]
+
+[% SET sizes = sizehash.sort %]
+[% SET nondistrib = {} %]
+[% SET headersuffix = '' %]
+
+[% BLOCK table_header -%]
+  \fontsize{16}{24}
+  \selectfont
+  
+  \begin{center}\textbf{Cask Graveyard Checklist[% headersuffix %]}\end{center}
+
+  \fontsize{10}{12}
+  \selectfont
+
+  \begin{tabular}{ | l | l [% FOR size = sizes %] | r [% END %] | }
+  \textbf{Distributor} &
+  \textbf{Brewery} [% FOR size=sizes %] & \textbf{[% size | latexify %]} [% END %] \\ \hline
+[%- END %]
+
+[% BLOCK table_end -%]
+  \hline
+  \end{tabular}
+[%- END %]
+
+[% SET headersuffix = ': Distributors' %]
+[% PROCESS table_header %]
+
+[% SET counter = 0 %]
+[% SET countmax = 55 %]
+
+[% FOREACH dist = disthash.pairs %]
+  [% IF dist.value.keys.size == 1 -%]
+    [%- SET brewery = dist.key -%]
+    [%- SET nondistrib.$brewery = dist.value -%]
+    [%- NEXT -%]
+  [%- END %]
+  [% FOREACH company = dist.value.pairs %]
+    [% counter = counter + 1 %]
+    [% dist.key | latexify %] & [% company.key | latexify %][% FOR size = sizes %] & [% company.value.$size %] [% END %] \\
+    [% IF counter > countmax %]
+      [% counter = 0 %]
+      [% PROCESS table_end %]
+      \null\newpage
+      [% PROCESS table_header %]
+    [% END %]
+  [% END %]
+  \hline
+[% END %]
+
+[% counter = 0 %]
+[% PROCESS table_end %]
+\null\newpage
+[% SET headersuffix = ': Direct' %]
+[% PROCESS table_header %]
+
+[% FOREACH brewery = nondistrib.pairs %]
+  [% FOREACH company = brewery.value.pairs %]
+    [% counter = counter + 1 %]
+    [% brewery.key | latexify %] & [% company.key | latexify %][% FOR size = sizes %] & [% company.value.$size %] [% END %] \\
+    [% IF counter > countmax %]
+      [% counter = 0 %]
+      [% PROCESS table_end %]
+      \null\newpage
+      [% PROCESS table_header %]
+    [% END %]
+  [% END %]
+[% END %]
+
+[% PROCESS table_end %]
+
+\end{document}

@@ -216,6 +216,7 @@ sub order_hash {
 	dispense_method => $order->container_size_id->dispense_method_id->description(),
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
+        is_disposable     => $order->container_size_id->dispense_method_id->is_disposable(),
         nominal_abv => $order->product_id->nominal_abv(),
         _split_export_tag => $order->product_order_id(),
     );
@@ -344,6 +345,7 @@ sub update_caskman_hash {
                                    * ( $cask_measure->litre_multiplier() /
                                        $default_meas_unit->litre_multiplier() );
     $caskmanhash->{dispense_method} = $caskman->container_size_id->dispense_method_id->description();
+    $caskmanhash->{is_disposable} = $caskman->container_size_id->dispense_method_id->is_disposable();
     $caskmanhash->{is_sale_or_return} = $caskman->is_sale_or_return();
     $caskmanhash->{stillage_bay} = $caskman->stillage_bay();
     $caskmanhash->{bay_position} = $caskman->bay_position_id
@@ -352,6 +354,8 @@ sub update_caskman_hash {
     $caskmanhash->{stillage_location} = $stillage_loc ? $stillage_loc->description() : q{};
     $caskmanhash->{order_batch}  = $caskman->product_order_id
   	  ? $caskman->product_order_id->order_batch_id->description() : 'Unknown';
+    $caskmanhash->{distributor}  = $caskman->distributor_company_id
+          ? $caskman->distributor_company_id->name() : 'Untracked';
 
     return $caskmanhash;
 }
