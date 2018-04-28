@@ -22,6 +22,7 @@
 [% BLOCK table_end %]
   \hline
   \end{tabular}
+  \null\newpage
 [% END %]
 
 [% SET cum_cask_count = 0 %]
@@ -50,7 +51,6 @@
     [%- IF line_counter > 60 -%]
       [% line_counter = 0 %]
       [% PROCESS table_end %]
-      \null\newpage
       [% PROCESS table_header %]
     [%- END -%]
   [%- END -%]
@@ -62,6 +62,12 @@
   [%- SET cum_cask_count  = cum_cask_count + 1 -%]
   [%- SET cum_cask_volume = cum_cask_volume + casksizestd -%]
 [%- END %]
+
+[%# Take care of the last running_brewery/running_product pair %]
+[% FOREACH pair IN brewcask.pairs -%]
+  [%- running_brewery | truncate(20) | latexify %] & [% running_product | truncate(25) | latexify %] & [% pair.key | latexify %] & [% pair.value %] & [% cum_cask_count %] & [% cum_cask_volume / 9 | format("%.0f") %] \\
+  [%- line_counter = line_counter + 1 -%]
+[% END %]
 
 [% PROCESS table_end %]
 
