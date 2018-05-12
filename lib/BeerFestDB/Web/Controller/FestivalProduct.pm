@@ -382,7 +382,9 @@ sub _retrieve_festival_plus_cond_attr : Private {
     my ( $cond, $attr );
     if ( $category_id ) {
         $cond = { 'product_id.product_category_id' => $category_id };
-        $attr = {  # Works on both FestivalProduct and ProductOrder.
+        $attr = {  # Works on both FestivalProduct and
+		   # ProductOrder. Beware overwriting this in the
+		   # calling code.
             join => { product_id => 'product_category_id' }
         };
     }
@@ -464,15 +466,12 @@ sub _derive_status_report_by_dispense_method : Private {
     my ( $festival, $cond, $attr ) = $self->_retrieve_festival_plus_cond_attr(
         $c, $festival_id, $category_id );
 
-    my $fp_rs = $festival->search_related(
-        'festival_products',
-        { %$cond, 'container_size_id.dispense_method_id' => $dispense->id },
-        { join => { %{ $attr->{join} },
+    my $join     = { %{ $attr->{join} },
                     gyles => {
                         casks => {
                             cask_management_id => {
-                                container_size_id => 'dispense_method_id' }}}},
-          prefetch => { %{ $attr->{join} },
+                                container_size_id => 'dispense_method_id' }}}};
+    my $prefetch = { %{ $attr->{join} },
                         gyles => {
                             casks => {
                                 cask_management_id => {
@@ -484,15 +483,25 @@ sub _derive_status_report_by_dispense_method : Private {
                             },
                             'company_id',
                             'product_style_id',
-                        ],
-                    },
-        }
+			    'product_category_id',
+                        ]};
+    my $condition = { %$cond, 'container_size_id.dispense_method_id' => $dispense->id };
+
+    my $fp_rs = $festival->search_related(
+        'festival_products',
+        $condition,
+        { join => $join }, # prefetch => $prefetch }, # FIXME prefetch currently fails on product_category != 1.
     );
+
+    $c->log->debug(sprintf("Retrieved %d objects for festival %d, product_category %d, dispense_method %d",
+			   $fp_rs->count(), $festival_id, $category_id, $dispense->id));
 
     my %festprod;
 
     FP:
     while ( my $fp = $fp_rs->next() ) {
+
+	$c->log->debug(sprintf("Processing data for festival_product %d", $fp->id));
         my %gyleabv;
         foreach my $gyle ( $fp->gyles() ) {
             $gyleabv{ $gyle->abv }++ if defined $gyle->abv;
@@ -523,6 +532,9 @@ sub _derive_status_report_by_dispense_method : Private {
 	$prodhash->{'stillage_location'} = undef;
 
         if ( $festival_open ) {
+
+	    $c->log->debug("Updating dispense method status report for open festival.");
+
 	    my $catname = $fp->product_id->product_category_id->description();
 	    if ( first { $catname eq $_ } @{ $c->config->{'stock_control_departments'} } ) {
 		my ( $status, $css_status, $starting, $stillage ) =
