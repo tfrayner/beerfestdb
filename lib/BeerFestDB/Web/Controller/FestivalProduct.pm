@@ -419,16 +419,14 @@ sub _derive_status_report : Private {
                 'product_orders',
                 { %$cond, is_final => 1 },
                 { join => $attr->{join},
-                  prefetch => { %{ $attr->{join} },
-                                container_size_id => 'dispense_method_id',
-                                product_id => [
-                                    {
-                                        product_allergens => 'product_allergen_type_id',
-                                    },
-                                    'company_id',
-                                    'product_style_id',
-                                ],
-                            },
+		  # Prefetch should only pull out *required*
+		  # relationships. Optional relationships behave
+		  # unexpectedly.
+                  prefetch => {
+		      %{ $attr->{join} },
+		      container_size_id => 'dispense_method_id',
+		      product_id        => 'company_id',
+		  },
               },
             );
 
@@ -471,6 +469,9 @@ sub _derive_status_report_by_dispense_method : Private {
                         casks => {
                             cask_management_id => {
                                 container_size_id => 'dispense_method_id' }}}};
+    # Prefetch should only pull out *required*
+    # relationships. Optional relationships behave
+    # unexpectedly.
     my $prefetch = { %{ $attr->{join} },
                         gyles => {
                             casks => {
@@ -478,19 +479,15 @@ sub _derive_status_report_by_dispense_method : Private {
                                     container_size_id => 'dispense_method_id' }}
                         },
                         product_id => [
-                            {
-                                product_allergens => 'product_allergen_type_id',
-                            },
                             'company_id',
-                            'product_style_id',
-			    'product_category_id',
+    			    'product_category_id',
                         ]};
     my $condition = { %$cond, 'container_size_id.dispense_method_id' => $dispense->id };
 
     my $fp_rs = $festival->search_related(
         'festival_products',
         $condition,
-        { join => $join }, # prefetch => $prefetch }, # FIXME prefetch currently fails on product_category != 1.
+        { join => $join, prefetch => $prefetch },
     );
 
     $c->log->debug(sprintf("Retrieved %d objects for festival %d, product_category %d, dispense_method %d",
