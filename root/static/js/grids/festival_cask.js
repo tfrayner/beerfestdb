@@ -58,7 +58,7 @@ Ext.onReady(function(){
         { name: 'company_name',         type: 'string' },
         { name: 'stillage_location_id', type: 'int', sortType: myMakeSortTypeFun(stillage_store, 'description') },
         { name: 'int_reference',        type: 'string' },
-        { name: 'festival_ref',         type: 'string' },
+        { name: 'festival_ref',         type: 'int' },
         { name: 'container_size_id',    type: 'int', sortType: myMakeSortTypeFun(casksize_store, 'description') },
         { name: 'bar_id',               type: 'int' },
         { name: 'gyle_id',              type: 'int' },

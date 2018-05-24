@@ -361,6 +361,7 @@ sub _build_product_data : Private {
         abv          => $product->nominal_abv(),
         style        => $style ? $style->description() : undef,
         description  => $product->description(),
+	long_description => $product->long_description(),
         allergens    => $self->_build_allergen_data( $product, $c ),
     };
 
