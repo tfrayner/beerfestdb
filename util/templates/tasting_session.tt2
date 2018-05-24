@@ -1,0 +1,53 @@
+%
+% $Id$
+%
+
+% reminder: this template uses dump classes that apply to things that have arrived
+
+[% IF dump_class != 'gyle' && dump_class != 'product' -%]
+  [%- THROW bad_dump_class "Use the gyle or product dump classes.\n" -%]
+[%- END %]
+
+[% IF dump_class == 'product' -%]
+[%- FILTER stderr -%]
+Note that ABVs output using product dump class info may be inaccurate, as updates may have been made at the gyle_abv level.
+[% END -%]
+[%- END %]
+
+\documentclass[english,a4paper]{article}
+
+\usepackage[a4paper, portrait, top=1.5cm, bottom=1.5cm, left=2cm, right=2cm]{geometry}
+
+%% CHECK - may not need all of these
+\usepackage[british]{babel}
+\usepackage{palatino}[14pt]
+\usepackage{fix-cm}
+
+%% EDIT HERE: The author(s) and title
+\title{Beer tasting at CAMRA Festival}
+\author{Cambridge Cellar Team \& Helpers}
+
+\begin{document}
+
+%% suppress page number(s)
+\pagenumbering{gobble}
+
+\maketitle
+
+\begin{enumerate}
+
+[% FOR beer = objects.sort('brewery', 'product', 'abv', 'style', 'notes') %]
+
+[% IF beer.style == 'UNKNOWN' %][% SET beer.style = '' %][% END %]
+
+\item \textbf{[% beer.brewery | latexify %] --- [% beer.product | latexify %]} \\
+ [% beer.abv | latexify %]\% \hspace{3mm} [% beer.style | latexify %] \\
+ [% beer.notes | latexify %]
+
+[% END %]
+
+\end{enumerate}
+
+
+\end{document}
+
