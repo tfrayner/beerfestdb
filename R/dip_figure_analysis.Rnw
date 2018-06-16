@@ -156,7 +156,10 @@ stopifnot( colnames(cp)[w][1] == 'cask_volume' )
 pd <- round(cp[,w][,-sum(w)] - cp[,w][,-1], 6)
 colnames(pd) <- colnames(cp)[w][-1]
 if ( ! all(pd >= 0) ) {
-    stop("Negative per diem dips found: probable dip data error in the database.")
+    bad <- apply(pd, 1, function(x) any(x < 0))
+    badstr <- paste(apply(cp[bad, c('company_name', 'product_name', 'festival_ref')], 1,
+                          function(x) do.call('sprintf', as.list(c("%s %s (cask %s)", x)))), collapse=', ')
+    stop(sprintf("Negative per diem dips found: probable dip data error in the database for the following: %s", badstr))
 }
 
 cols <- brewer.pal(9, 'Set1')
