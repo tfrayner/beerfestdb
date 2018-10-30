@@ -337,6 +337,12 @@ sub update_caskman_hash {
     $caskmanhash ||= {};
     $caskmanhash->{_split_export_tag} = $caskman->cask_management_id();
     $caskmanhash->{number}      = $caskman->internal_reference();
+    $caskmanhash->{count}       = $caskman->search_related('casks')
+                                          ->search_related('gyle_id')
+                                          ->search_related('festival_product_id')
+                                          ->search_related('gyles')
+                                          ->search_related('casks')
+                                          ->search_related('cask_management_id')->count();
     $caskmanhash->{festival_id} = $caskman->cellar_reference();
     $caskmanhash->{cask_size}   = $local_cask_size;
     $caskmanhash->{cask_size_unit} = $cask_measure->symbol();
