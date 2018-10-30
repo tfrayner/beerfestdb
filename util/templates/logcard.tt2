@@ -64,7 +64,6 @@ Empty    & & & & & \\ \hline
 [% BLOCK table_end %]
   \hline
   \end{tabularx}
-  \null\newpage
 [% END %]
 
 
