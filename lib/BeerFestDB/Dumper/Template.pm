@@ -661,13 +661,14 @@ sub filter_to_latex {
     $text =~ s/ (?: Ö | \x{d6} ) /\\"{O}/gxms;
     $text =~ s/ (?: Ü | \x{dc} ) /\\"{U}/gxms;
 
-    # Misc.
+    # Misc. (brewers can be such smartarses).
     $text =~ s/ (?: \£ | \x{a3} ) /\\pounds/gxms;
     $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
     $text =~ s/ (?: ß  | \x{df} ) /\\ss/gxms;
     $text =~ s/ (?: ø  | \x{f8} ) /\\o /gxms;
     $text =~ s/ (?: π  | \x{3c0} ) /\$\\pi\$/gxms;
     $text =~ s/ (?: °  | \x{b0} ) /\$\^\{\\circ\}\$/gxms;
+    $text =~ s/ (?: ·  | \x{b7} ) /\\textperiodcentered/gxms;
 
     return $text;
 }
