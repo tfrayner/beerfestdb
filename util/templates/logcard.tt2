@@ -1,0 +1,79 @@
+%
+% $Id$
+%
+
+% reminder: this template uses dump classes that apply to things that have arrived
+
+
+[% IF dump_class != 'cask' -%]
+  [%- THROW bad_dump_class "Use the cask dump classes.\n" -%]
+[%- END %]
+
+%% copied tex top matter from NCT version
+
+\documentclass[11pt]{article}
+\usepackage[a6paper, landscape, margin=0.6cm]{geometry}
+\setlength{\hoffset}{-0.5cm}
+\renewcommand{\arraystretch}{1.4}
+\usepackage{tabularx}
+\usepackage{textcomp}
+\pagestyle{empty}
+
+%% CHECK - may not need all of these
+\usepackage[british]{babel}
+\usepackage{palatino}
+\usepackage{fix-cm}
+
+\begin{document}
+
+%% suppress page number(s)
+\pagenumbering{gobble}
+
+
+[% BLOCK table_header %]
+\begin{tabularx}{13.8cm}{|l|c|c|Xll|@{}}
+\hline
+[% END %]
+
+%% NCT tex had stillage date & time hard-coded:
+%%  Stillage &Th 17 &18h & & & \\ \hline
+%% could fill in similar manually
+
+[% BLOCK table_body %]
+[% IF cask.bay_position.defined %] [% cask.bay_position | latexify %] [% END %]
+ & \multicolumn{3}{l|}{\Large{[% cask.brewery | latexify %]}} & [% cask.abv %] \% & 
+[% IF cask.number.defined %] [% cask.number %][% END -%]
+[%- IF cask.is_sale_or_return %] \S[% END -%]
+ / [% cask.count %]\\ \cline{5-6}
+Bay [% IF cask.stillage_bay.defined %] [% cask.stillage_bay  %] [% END %]
+ & \multicolumn{3}{l|}{\Large{[% cask.product | latexify %]}} & \footnotesize{ID} [% cask.festival_id %] & [% cask.cask_size | format('%d') %] $^{g}$ \\ \cline{2-6}
+~ & DATE & TIME & \multicolumn{3}{c|}{NOTES}\\ \hline
+Stillage & & & & & \\ \hline
+Vent     & & & & & \\ \hline
+~        & & & & & \\ \hline
+~        & & & & & \\ \hline
+Tap      & & & & & \\ \hline
+~        & & & & & \\ \hline
+~        & & & & & \\ \hline
+Ready    & & & & & \\ \hline
+~        & & & & & \\ \hline
+On Sale  & & & & & \\ \hline
+Empty    & & & & & \\ \hline
+[% END %]
+
+[% BLOCK table_end %]
+  \hline
+  \end{tabularx}
+[% END %]
+
+
+[% FOREACH cask = objects.sort('category', 'brewery', 'product') %]
+
+[% PROCESS table_header %]
+[% PROCESS table_body %]
+[% PROCESS table_end %]
+
+[% END %]	% end of foreach
+
+
+\end{document}
