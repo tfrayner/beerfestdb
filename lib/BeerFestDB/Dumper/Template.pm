@@ -668,7 +668,7 @@ sub filter_to_latex {
     $text =~ s/ (?: ø  | \x{f8} ) /\\o /gxms;
     $text =~ s/ (?: π  | \x{3c0} ) /\$\\pi\$/gxms;
     $text =~ s/ (?: °  | \x{b0} ) /\$\^\{\\circ\}\$/gxms;
-    $text =~ s/ (?: ·  | \x{b7} ) /\\textperiodcentered/gxms;
+    $text =~ s/ (?: ·  | \x{b7} ) /\\textperiodcentered /gxms;
 
     return $text;
 }
