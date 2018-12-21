@@ -45,7 +45,7 @@
 
 # Edit these:
 baseuri  <- 'https://secure.cambridge-camra.org.uk/beerfestdb'
-festname <- '42nd Cambridge Beer Festival'
+festname <- '43rd Cambridge Beer Festival'
 prodcat  <- 'beer'
 author   <- ''
 # End of editable section.
@@ -67,6 +67,9 @@ library(RColorBrewer)
 library(gplots)
 
 library(BeerFestDB)
+
+library(tcltk)
+addTclPath('/usr/local/lib')
 
 cp <- getFestivalData(baseuri, festname, prodcat)
 w  <- nchar(cp$stillage) > 12
