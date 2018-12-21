@@ -9,11 +9,16 @@ library(gplots)
 
 library(BeerFestDB)
 
+args <- commandArgs(trailingOnly=TRUE)
+
+if ( is.null(args[1]) || args[1] == '' )
+  stop("Please provide a Festival name to process.")
+
 if ( ! interactive() ) {
 
     ## Ideally these would be set either by config or command-line arguments.
-    baseuri  <- 'https://secure.cambridge-camra.org.uk/beerfestdb'
-    festname <- '42nd Cambridge Beer Festival'
+    baseuri  <- 'https://beerfestdb.cambridgebeerfestival.uk/'
+    festname <- args[1]
     prodcat  <- 'beer'
 
     cp <- getFestivalData(baseuri, festname, prodcat)

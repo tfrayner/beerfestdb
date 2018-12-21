@@ -181,6 +181,31 @@ sub list_by_company : Local {
     $self->generate_json_and_detach( $c, $rs );
 }
 
+=head2 list_by_festival
+
+=cut
+
+sub list_by_festival : Local {
+
+    my ( $self, $c, $festival_id, $category_id ) = @_;
+
+    my $rs;
+    if ( defined $festival_id ) {
+        my %query = ( 'festival_product_id.festival_id' => $festival_id );
+        if ( defined $category_id ) {
+            $query{ product_category_id } = $category_id;
+        }
+        $rs = $c->model( 'DB::Product' )->search_rs( \%query, { join => 'festival_product_id' } );
+    }
+    else {
+        $c->stash->{error} = 'Festival ID not provided.';
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
 =head2 list_by_order_batch
 
 =cut

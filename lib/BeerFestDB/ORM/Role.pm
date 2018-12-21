@@ -116,4 +116,8 @@ __PACKAGE__->many_to_many(
     "categories" => "category_auths", "product_category_id"
 );
 
+sub repr {
+    my ( $self ) = @_; return $self->rolename;
+}
+
 1;

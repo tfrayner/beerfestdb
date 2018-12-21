@@ -18,9 +18,10 @@ current_festival: 39th Cambridge Beer Festival
 # sale_volume.sale_volume_description and
 # product_category.description database columns.
 #
-#default_currency:    GBP
-#default_sale_volume: pint
-#default_product_category: beer
+# default_currency:    GBP
+# default_sale_volume: pint
+# default_product_category: beer
+# default_measurement_unit: gallon
 
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:
@@ -62,18 +63,26 @@ OODoc:
 #  - ProductOrder
 #  - OrderBatch
 
+# Departments who use the database for stock control (i.e., enter dip
+# data). Activates more detailed (and computationally costly)
+# reporting levels.
+#
+# stock_control_departments:
+#   - beer
+
 status_query:
   departments:
-    - product_category:
-      public_site_clientid:
+    - beer
+    - foreign beer
+    - cider
   beerfestdb_uri:
   public_site_upload_uri:
-  public_site_key:
+  public_festival_tag:
 
 ## Set the following if you need to set up the application to run
 ##  behind an Apache reverse proxy setup. Note that you will also need
 ##  to set "RequestHeader set X-Forwarded-Port 443" in the main Apache
 ##  configuration for your site.
 #
-#using_frontend_proxy: 1
-#base_path: /beerfestdb
+# using_frontend_proxy: 1
+# base_path: /beerfestdb

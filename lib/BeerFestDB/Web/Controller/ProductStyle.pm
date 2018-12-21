@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::ProductStyle;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
@@ -46,6 +46,8 @@ sub BUILD {
         product_category_id   => 'product_category_id',
         description           => 'description',
     });
+
+    $self->model_name('DB::ProductStyle');
 }
 
 =head2 list
@@ -56,9 +58,11 @@ sub list : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( 'DB::ProductStyle' );
-
-    $self->generate_json_and_detach( $c, $rs );
+    if ( my $category_id = $c->req()->params()->{ product_category_id } ) {
+        $c->res->redirect( $c->uri_for('list_by_category', $category_id) );
+    } else {
+        $self->SUPER::list($c);
+    }
 }
 
 =head2 list_by_category
@@ -69,40 +73,33 @@ sub list_by_category : Local {
 
     my ( $self, $c, $id ) = @_;
 
-    my $rs = $c->model( 'DB::ProductStyle' )->search({ product_category_id => $id });
+    my $rs = $c->model( $self->model_name() )->search({ product_category_id => $id });
 
     $self->generate_json_and_detach( $c, $rs );
 }
 
-=head2 submit
+=head2 grid
 
 =cut
 
-sub submit : Local {
+sub grid : Local {
 
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $category_id ) = @_;
 
-    my $rs = $c->model( 'DB::ProductStyle' );
-
-    $self->write_to_resultset( $c, $rs );
-}
-
-=head2 delete
-
-=cut
-
-sub delete : Local {
-
-    my ( $self, $c ) = @_;
-
-    my $rs = $c->model( 'DB::ProductStyle' );
-
-    $self->delete_from_resultset( $c, $rs );
+    if ( defined $category_id ) {
+        my $category = $c->model( 'DB::ProductCategory' )->find($category_id);
+        unless ( $category ) {
+            $c->flash->{error} = "Error: Product Category not found.";
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();
+        }
+        $c->stash->{category} = $category;
+    }
 }
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2017 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

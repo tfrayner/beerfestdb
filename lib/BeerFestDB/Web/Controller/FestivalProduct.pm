@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::FestivalProduct;
 use Moose;
 use namespace::autoclean;
 
-use List::Util qw( min );
+use List::Util qw( min first );
 use Digest::SHA qw( sha1_hex );
 use Carp;
 use JSON::MaybeXS;
@@ -49,9 +49,9 @@ sub BUILD {
     $self->model_view_map({
         festival_product_id => 'festival_product_id',
         product_id          => 'product_id',
-	product_name        => {
-	    product_id          => 'name',
-	},
+        product_name        => {
+            product_id          => 'name',
+        },
         festival_id         => 'festival_id',
         festival_name       => {
             festival_id         => 'name',
@@ -67,8 +67,8 @@ sub BUILD {
         },
         company_name        => {
             product_id          => {
-		company_id          => 'name',
-	    },
+                company_id          => 'name',
+            },
         },
         comment             => 'comment',
     });
@@ -319,9 +319,31 @@ sub _sha1_hash : Private {
     return $sha1->hexdigest();
 }
 
+sub _build_allergen_data : Private {
+
+    my ( $self, $product, $c ) = @_;
+
+    # Return a hashref keyed by allergen; values are either true or
+    # false. Allergens with unknown applicability to the product are
+    # omitted.
+
+    my %allergen_data;
+
+    foreach my $pa ( $product->search_related('product_allergens')->all() ) {
+        if ( defined $pa->present ) {
+            $allergen_data{ $pa->product_allergen_type_id->description() }
+                = $pa->present
+                ? JSON->true()
+                : JSON->false();
+        }
+    }
+
+    return \%allergen_data;
+}
+
 sub _build_product_data : Private {
 
-    my ( $self, $product ) = @_;
+    my ( $self, $product, $c ) = @_;
 
     my $company = $product->company_id();
     my $year    = $company->year_founded();
@@ -339,12 +361,14 @@ sub _build_product_data : Private {
         abv          => $product->nominal_abv(),
         style        => $style ? $style->description() : undef,
         description  => $product->description(),
+	long_description => $product->long_description(),
+        allergens    => $self->_build_allergen_data( $product, $c ),
     };
 
     return( $data );
 }
 
-sub _derive_status_report : Private {
+sub _retrieve_festival_plus_cond_attr : Private {
 
     my ( $self, $c, $festival_id, $category_id ) = @_;
 
@@ -359,15 +383,22 @@ sub _derive_status_report : Private {
     my ( $cond, $attr );
     if ( $category_id ) {
         $cond = { 'product_id.product_category_id' => $category_id };
-        $attr = {  # Works on both FestivalProduct and ProductOrder.
+        $attr = {  # Works on both FestivalProduct and
+		   # ProductOrder. Beware overwriting this in the
+		   # calling code.
             join => { product_id => 'product_category_id' }
         };
     }
 
-    my $fp_rs = $festival->search_related('festival_products', $cond, $attr);
-    my $po_rs = $festival->search_related('order_batches')
-                          ->search_related('product_orders',
-                                           { %$cond, is_final => 1 }, $attr);
+    return( $festival, $cond, $attr );
+}
+
+sub _derive_status_report : Private {
+
+    my ( $self, $c, $festival_id, $category_id ) = @_;
+
+    my ( $festival, $cond, $attr ) = $self->_retrieve_festival_plus_cond_attr(
+        $c, $festival_id, $category_id );
 
     # Figure out whether the festival is open or not.
     my @timeparts = gmtime();
@@ -384,115 +415,240 @@ sub _derive_status_report : Private {
 
     # Don't check the order table once we're open.
     if ( ! $festival_open ) {
+        my $po_rs = $festival->search_related('order_batches')
+            ->search_related(
+                'product_orders',
+                { %$cond, is_final => 1 },
+                { join => $attr->{join},
+		  # Prefetch should only pull out *required*
+		  # relationships. Optional relationships behave
+		  # unexpectedly.
+                  prefetch => {
+		      %{ $attr->{join} },
+		      container_size_id => 'dispense_method_id',
+		      product_id        => 'company_id',
+		  },
+              },
+            );
+
         while ( my $po = $po_rs->next() ) {
             my $product  = $po->product_id();
-            my $prodhash = $self->_build_product_data( $product );
+            my $prodhash = $self->_build_product_data( $product, $c );
             $prodhash->{'status'}     = 'Ordered';
             $prodhash->{'css_status'} = 'ordered';
-            $festprod{ $po->get_column('product_id') } = $prodhash;
+            my $dispense = $po->container_size_id
+                              ->dispense_method_id;
+
+            # The format for this key and the FestivalProduct version should
+            # be kept in sync.
+            my $prodkey = $po->get_column('product_id') . ":" . $dispense->id;
+            $prodhash->{'dispense_method'} = $dispense->description;
+            $festprod{ $prodkey } = $prodhash;
         }
     }
 
-    FP:
-    while ( my $fp = $fp_rs->next() ) {
-	my %gyleabv;
-	foreach my $gyle ( $fp->gyles() ) {
-	    $gyleabv{ $gyle->abv }++ if defined $gyle->abv;
-	}
-	my @gyleabvs = keys %gyleabv;
-	
-        my $product_id = $fp->get_column('product_id');
-        my $product = $fp->product_id();
-
-	# Gyles having multiple ABVs is a little beyond us here. Not
-	# interested in taking an average. Similarly we fall back to
-	# the nominal ABV if gyle ABV not known/recorded.
-	my $abv = scalar @gyleabvs == 1
-                ? $gyleabvs[0]
-		: $product->nominal_abv();	    
-
-        my $prodhash = $self->_build_product_data( $product );
-        $prodhash->{'abv'}        = $abv;
-        $prodhash->{'status'}     = 'Arrived';
-        $prodhash->{'css_status'} = 'arrived';
-        $festprod{ $product_id }{starting_volume} = undef;
-        $festprod{ $product_id } = $prodhash;
-
-        # Prior to opening, "Arrived" is all we really want.
-        next FP unless $festival_open;
-
-        my $cask_rs = $festival->search_related('cask_managements')
-                               ->search_related('casks',
-            { gyle_id => {
-                'in' => [ map { $_->get_column('gyle_id') } $fp->gyles() ]
-            }
-          }
-        );
-
-        if ( my $not_condemned = $cask_rs->count() ) {
-
-            # Check for condemned casks and ABVs deviated from nominal.
-            while ( my $cask = $cask_rs->next() ) {
-                my $abv = $cask->gyle_id()->abv();
-                $festprod{ $product_id }{abv} = $abv if defined $abv;
-                $not_condemned-- if ( $cask->is_condemned );
-            }
-
-            if ( $not_condemned == 0 ) {
-
-                # All casks condemned. Totally non-committal, this
-                # description is for public consumption.
-                $festprod{ $product_id }{status}     = 'Sold Out';
-                $festprod{ $product_id }{css_status} = 'sold_out';
-            }
-            else {
-
-                # If not condemned, get the amount remaining.
-                my ( $amt_remaining, $starting, $measure ) = $self->_amount_remaining( $fp );
-                $festprod{ $product_id }{starting_volume} = $starting;
-                if ( ! ( defined $amt_remaining && defined $measure ) ) {
-
-                    # Shouldn't happen.
-                    confess("Error: undef return from amount calculation.");
-                }
-                elsif ( $amt_remaining == 0 ) {
-                    $festprod{ $product_id }{status}     = 'Sold Out';
-                    $festprod{ $product_id }{css_status} = 'sold_out'; 
-                }
-                elsif ( $amt_remaining > 0 ) {
-
-                    # FIXME proper plural inflections.
-                    $festprod{ $product_id }{status}
-                        = sprintf("%d %ss Remaining", $amt_remaining, $measure->description());
-                    $festprod{ $product_id }{css_status} = 'product_remaining'; 
-                }
-                else {
-
-                    # Again, shouldn't happen.
-                    confess("Error: negative return from amount calculation.");
-                }
-            }
-        }
+    # Loop through all dispense methods in turn, retrieving the
+    # festival product data for each.
+    foreach my $dispense ( $c->model('DB::DispenseMethod')->all() ) {
+        my $openfestprod = $self->_derive_status_report_by_dispense_method(
+            $c, $festival_id, $category_id, $dispense, $festival_open );
+        @festprod{ keys %$openfestprod } = values %$openfestprod
     }
 
     return [ values %festprod ];
 }
 
+sub _derive_status_report_by_dispense_method : Private {
+
+    my ( $self, $c, $festival_id, $category_id, $dispense, $festival_open ) = @_;
+
+    my ( $festival, $cond, $attr ) = $self->_retrieve_festival_plus_cond_attr(
+        $c, $festival_id, $category_id );
+
+    my $join     = { %{ $attr->{join} },
+                    gyles => {
+                        casks => {
+                            cask_management_id => {
+                                container_size_id => 'dispense_method_id' }}}};
+    # Prefetch should only pull out *required*
+    # relationships. Optional relationships behave
+    # unexpectedly.
+    my $prefetch = { %{ $attr->{join} },
+                        gyles => {
+                            casks => {
+                                cask_management_id => {
+                                    container_size_id => 'dispense_method_id' }}
+                        },
+                        product_id => [
+                            'company_id',
+    			    'product_category_id',
+                        ]};
+    my $condition = { %$cond, 'container_size_id.dispense_method_id' => $dispense->id };
+
+    my $fp_rs = $festival->search_related(
+        'festival_products',
+        $condition,
+        { join => $join, prefetch => $prefetch },
+    );
+
+    $c->log->debug(sprintf("Retrieved %d objects for festival %d, product_category %d, dispense_method %d",
+			   $fp_rs->count(), $festival_id, $category_id, $dispense->id));
+
+    my %festprod;
+
+    FP:
+    while ( my $fp = $fp_rs->next() ) {
+
+	$c->log->debug(sprintf("Processing data for festival_product %d", $fp->id));
+        my %gyleabv;
+        foreach my $gyle ( $fp->gyles() ) {
+            $gyleabv{ $gyle->abv }++ if defined $gyle->abv;
+        }
+        my @gyleabvs = keys %gyleabv;
+
+        # The format for this key and the ProductOrder version should
+        # be kept in sync.
+        my $prodkey = $fp->get_column('product_id') . ":" . $dispense->id;
+        my $product = $fp->product_id();
+
+        # Gyles having multiple ABVs is a little beyond us here. Not
+        # interested in taking an average. Similarly we fall back to
+        # the nominal ABV if gyle ABV not known/recorded.
+        my $abv = scalar @gyleabvs == 1
+                ? $gyleabvs[0]
+                : $product->nominal_abv();
+
+        my $prodhash = $self->_build_product_data( $product, $c );
+        $prodhash->{'abv'}             = $abv;
+        $prodhash->{'dispense_method'} = $dispense->description;
+
+	# Some defaults here.prior to opening, "Arrived" is all we
+	# really want.
+	$prodhash->{'status'}     = 'Arrived';
+	$prodhash->{'css_status'} = 'arrived';
+	$prodhash->{'starting_volume'}   = undef;
+	$prodhash->{'stillage_location'} = undef;
+
+        if ( $festival_open ) {
+
+	    $c->log->debug("Updating dispense method status report for open festival.");
+
+	    my $catname = $fp->product_id->product_category_id->description();
+	    if ( first { $catname eq $_ } @{ $c->config->{'stock_control_departments'} } ) {
+		my ( $status, $css_status, $starting, $stillage ) =
+		    $self->_obfuscated_amount_remaining($fp, $dispense);
+		$prodhash->{'status'}          = $status;
+		$prodhash->{'css_status'}      = $css_status;
+		$prodhash->{'starting_volume'} = $starting;
+
+		# While we could in theory use stillage info from
+		# non-stock-controlled departments, in practice it
+		# would add many more db queries and currently it adds
+		# nothing.
+		if ( $stillage ) {
+		    $prodhash->{'stillage_location'} = $stillage->description;
+		}
+	    }
+        }
+
+        $festprod{ $prodkey } = $prodhash;
+    }
+
+    return \%festprod;
+}
+
+sub _obfuscated_amount_remaining : Private {
+
+    my ( $self, $fp, $dispense ) = @_;
+
+    my ( $status, $css_status, $starting, $stillage );
+
+    my $cask_rs = $fp->festival_id->search_related(
+        'cask_managements',
+        { 'container_size_id.dispense_method_id' => $dispense->id },
+        {
+            join     => { container_size_id => 'dispense_method_id' },
+        },
+    )->search_related(
+        'casks',
+        {
+            gyle_id => {
+                'in' => [ map { $_->get_column('gyle_id') } $fp->gyles() ],
+            },
+        },
+        {
+            prefetch => [
+                { cask_management_id =>
+                      [
+                          { container_size_id => 'dispense_method_id' },
+                          'stillage_location_id',
+                      ],
+                  cask_measurements => 'container_measure_id',
+              },
+            ],
+        },
+    );
+
+    if ( my $not_condemned = $cask_rs->count() ) {
+
+        # Check for condemned casks.
+        while ( my $cask = $cask_rs->next() ) {
+            $not_condemned-- if ( $cask->is_condemned );
+            $stillage = $cask->cask_management_id->stillage_location_id;
+        }
+
+        if ( $not_condemned == 0 ) {
+
+            # All casks condemned. Totally non-committal, this
+            # description is for public consumption.
+            $status     = 'Sold Out';
+            $css_status = 'sold_out';
+        }
+        else {
+
+            # If not condemned, get the amount remaining.
+            my ( $amt_remaining, $measure );
+            $cask_rs->reset();
+            ( $amt_remaining, $starting, $measure ) = $self->_amount_remaining(
+                $cask_rs, $dispense );
+            if ( ! ( defined $amt_remaining && defined $measure ) ) {
+
+                # Shouldn't happen.
+                confess("Error: undef return from amount calculation.");
+            }
+            elsif ( $amt_remaining == 0 ) {
+                $status     = 'Sold Out';
+                $css_status = 'sold_out';
+            }
+            elsif ( $amt_remaining > 0 ) {
+
+                # FIXME proper plural inflections.
+                $status
+                    = sprintf("%d %ss Remaining", $amt_remaining, $measure->description());
+                $css_status = 'product_remaining';
+            }
+            else {
+
+                # Again, shouldn't happen.
+                confess("Error: negative return from amount calculation.");
+            }
+        }
+    }
+
+    return( $status, $css_status, $starting, $stillage );
+}
+
 sub _amount_remaining : Private {
 
-    my ( $self, $fp ) = @_;
+    my ( $self, $cask_rs, $dispense ) = @_;
 
     # This will need to convert everything into litres (both
     # ContainerSize and CaskMeasurement) via the ContainerMeasure
     # table, then convert back into whatever the ContainerSize units
-    # are. Great fun.
-    my $cask_rs = $fp->festival_id()->search_related('cask_managements')
-                                    ->search_related('casks',
-        { gyle_id => {
-            'in' => [ map { $_->get_column('gyle_id') } $fp->gyles() ]
-        }
-      }
-    );
+    # are. Great fun. Does not currently use the
+    # default_measurement_unit config setting, because the returned
+    # values are compared to each other and so further complication is
+    # unnecessary.
 
     # The output volume and measurement unit.
     my ( $remaining, $overall_measure );
@@ -511,13 +667,13 @@ sub _amount_remaining : Private {
             if ( $cask->cask_measurements()->count() ) {
                 my @dip_vols;
                 foreach my $dip ( $cask->cask_measurements() ) {
-                    push @dip_vols, $dip->volume() * $dip->container_measure_id()->litre_multiplier();
+                    push @dip_vols,
+                        $dip->volume() * $dip->container_measure_id()->litre_multiplier();
                 }
                 $vol = min @dip_vols;
             }
             $running_volume += $vol;
         }
-        
         $remaining = $running_volume / $overall_measure->litre_multiplier();
     }
 

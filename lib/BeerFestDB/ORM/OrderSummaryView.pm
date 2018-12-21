@@ -71,7 +71,7 @@ __PACKAGE__->table("order_summary_view");
 
   data_type: 'decimal'
   is_nullable: 1
-  size: [36,1]
+  size: [43,1]
 
 =cut
 
@@ -91,12 +91,12 @@ __PACKAGE__->add_columns(
   "abv",
   { data_type => "decimal", is_nullable => 1, size => [3, 1] },
   "kils",
-  { data_type => "decimal", is_nullable => 1, size => [36, 1] },
+  { data_type => "decimal", is_nullable => 1, size => [43, 1] },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 18:02:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zIuog0L6hEthXqfmoiv4JA
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-17 16:29:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Nk0ZNRnVjynoP8sC+bXCOg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -36,7 +36,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    category_store.load();
 
     /* Stillage listing */
     var stillage_store = new Ext.data.JsonStore({
@@ -49,7 +48,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    stillage_store.load();
     
     /* Order Batch listing */
     var order_batch_store = new Ext.data.JsonStore({
@@ -63,7 +61,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    order_batch_store.load();
     
     /* Measurement Batch listing */
     var measurement_batch_store = new Ext.data.JsonStore({
@@ -77,7 +74,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    measurement_batch_store.load();
     
     var measurementBatchGrid = new MyEditorGrid(
         {

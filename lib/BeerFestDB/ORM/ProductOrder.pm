@@ -260,4 +260,11 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s (%s)",
+				      $self->order_batch_id->repr(),
+				      $self->product_id->repr(),
+				      $self->container_size_id->repr());
+}
+
 1;

@@ -3,7 +3,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2012-2013 Tim F. Rayner
+# Copyright (C) 2012-2017 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,25 +53,13 @@ with 'BeerFestDB::MenuSelector';
 
 sub assign_cellar_number {
 
-    my ( $self, $cask, $id ) = @_;
+    my ( $self, $caskman, $id ) = @_;
 
     if ( defined $id ) {
         if ( ! looks_like_number( $id ) ) {
             die("Error: This cask_cellar_id doesn't look like a number: $id\n");
         }
-        
-        # Remove the cellar number from the cask that
-        # currently has it.
-        my $altcask = $self->database->resultset('Cask')
-                           ->find({ festival_id => $self->festival->id(),
-                                    gyle_id     => $cask->get_column('gyle_id'),
-                                    internal_reference => $id });
-        if ( $altcask && $altcask->cellar_reference != $cask->cellar_reference ) {
-            $altcask->set_column('internal_reference', undef);
-            $altcask->update();
-        }
-        
-        $cask->set_column('internal_reference', $id);
+	$caskman->set_column('internal_reference', $id);
     }
 
     return;
@@ -79,23 +67,23 @@ sub assign_cellar_number {
 
 sub assign_stillage_location {
 
-    my ( $self, $cask, $loc ) = @_;
+    my ( $self, $caskman, $loc ) = @_;
 
     my $stillage = $self->database->resultset('StillageLocation')
                                   ->find({ festival_id => $self->festival->id(),
                                            description => $loc })
                                       or die(qq{Error: Stillage location "$loc" }.
                                                  qq{not found.\n});
-    my $caskloc = $cask->get_column('stillage_location_id');
+    my $caskloc = $caskman->get_column('stillage_location_id');
     if ( ! defined $caskloc || $caskloc != $stillage->stillage_location_id ) {
         if ( $self->allow_stillage_move ) { # Initial stillage assignment only.
-            $cask->set_column('stillage_location_id',
+            $caskman->set_column('stillage_location_id',
                               $stillage->stillage_location_id());
         }
         else {
             push @{ $self->_errors },
                 sprintf("Error: Attempting to move cask %s between stillages.",
-                        $cask->cellar_reference);
+                        $caskman->cellar_reference);
         }
     }
 
@@ -267,7 +255,7 @@ sub parse_args {
     my ( $datafile, $allow_stillage_move, $want_help );
 
     GetOptions(
-	"f|file=s"     => \$datafile,
+	"i|input=s"    => \$datafile,
 	"a|allow"      => \$allow_stillage_move,
         "h|help"       => \$want_help,
     );
@@ -311,7 +299,7 @@ update_cask_details.pl
 
 =head1 SYNOPSIS
 
- update_cask_details.pl -f tab_delimited_file.csv
+ update_cask_details.pl -i tab_delimited_file.csv
 
 =head1 DESCRIPTION
 
@@ -325,7 +313,7 @@ location, bay number and position once stillaging is complete.
 A flag indicating whether or not to allow casks to be automatically
 moved between stillages (default: no).
 
-=head2 -f
+=head2 -i
 
 The file containing cask details. This should be in tab-delimited
 format and contain the following headings:
@@ -388,7 +376,7 @@ Tim F. Rayner, E<lt>tfrayner@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2012-2013 by Tim F. Rayner
+Copyright (C) 2012-2017 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

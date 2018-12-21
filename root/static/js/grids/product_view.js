@@ -35,18 +35,31 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
 
+    /* Product Category drop-down */
+    var category_store = new Ext.data.JsonStore({
+        url:        url_category_list,
+        root:       'objects',
+        fields:     [{ name: 'product_category_id', type: 'int'    },
+                     { name: 'description',         type: 'string' }],
+        idProperty: 'product_category_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+
     /* Product Style drop-down */
     var style_store = new Ext.data.JsonStore({
         url:        url_product_style_list,
         root:       'objects',
         fields:     [{ name: 'product_style_id', type: 'int'    },
                      { name: 'description',      type: 'string' }],
+        idProperty: 'product_style_id',
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
         },
     });
-    style_store.load();
 
     var festival_product_store = new Ext.data.JsonStore({
         url:        url_festival_product_list,
@@ -56,12 +69,22 @@ Ext.onReady(function(){
                      { name: 'product_id',          type: 'int' },
                      { name: 'festival_id',         type: 'int' },
                      { name: 'comment',             type: 'string' }],
+        idProperty: 'festival_product_id',
         sortInfo:   {
             field:     'festival_name',
             direction: 'ASC',
         },
     });
-    festival_product_store.load();
+
+    function updateStyleList(query) { // Listener function to update style dropdown.
+        var currentRowId = prodForm.getForm().findField('product_category_id').getValue();
+        this.store.reload( { params: { product_category_id: currentRowId }, add: true } );
+        this.store.clearFilter();
+        this.store.filter( { property:   'product_category_id',
+                             value:      currentRowId,
+                             exactMatch: true } );
+        this.render()
+    }
 
     /* Product form */
     var prodForm = new MyFormPanel({
@@ -82,15 +105,32 @@ Ext.onReady(function(){
               xtype:          'textfield',
               allowBlank:     false, },
 
-            { name:           'category_name',
+            { name:           'product_category_id',
               fieldLabel:     'Category',
+              typeAhead:      true,
+              triggerAction:  'all',
+              mode:           'local',
+              store:          category_store,
+              valueField:     'product_category_id',
+              displayField:   'description',
               lazyRender:     true,
-              xtype:          'textfield',
-              readOnly:       false, },
+              noSelection:    emptySelect,
+              forceSelection: true,
+              xtype:          'mycombo',
+              allowBlank:     false,
+              readOnly:       false,
+              listeners: {
+                  change: function(evt, t, o) {
+                      /* t is the reference to the category_combo */
+                      stylefield = prodForm.getForm().findField('product_style_id');
+                      stylefield.setValue(null);
+                      evt.render();
+                  },
+              }, },
 
             { name:           'product_style_id',
               fieldLabel:     'Style',
-              typeAhead:      true,
+              typeAhead:      false,
               triggerAction:  'all',
               mode:           'local',
               store:          style_store,
@@ -99,7 +139,11 @@ Ext.onReady(function(){
               lazyRender:     true,
               xtype:          'mycombo',
               noSelection:    emptySelect,
-              allowBlank:     true, },
+              allowBlank:     true,
+              listeners: {
+                  focus:  updateStyleList, // both listeners appear to be needed.
+                  expand: updateStyleList,
+              }, },
 
             { name:           'nominal_abv',
               fieldLabel:     'Advertised ABV',
@@ -123,6 +167,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ category_store, style_store ],
         loadUrl:     url_product_load_form,
         idParams:    { product_id: product_id },
         waitMsg:     'Loading Product details...',

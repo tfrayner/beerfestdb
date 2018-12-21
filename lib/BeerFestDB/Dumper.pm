@@ -36,6 +36,13 @@ has 'database'  => ( is       => 'ro',
                      isa      => 'DBIx::Class::Schema',
                      required => 1 );
 
+# Used to filter the objects to be dumped (only cask_management at the
+# moment; gyle filtering may be implemented in subclasses).
+has 'cask_ids'   => ( is       => 'ro',
+                      isa      => 'ArrayRef',
+                      required => 1,
+                      default  => sub { [] } );
+
 has '_order_batch' => ( is       => 'rw',
                         isa      => 'BeerFestDB::ORM::OrderBatch' );
 
@@ -47,8 +54,10 @@ sub festival_casks {
 
     my $fest = $self->festival();
 
-    my @casks = $fest->search_related('cask_managements')
-                     ->search_related('casks')->all();
+    my $cmset = (scalar grep { defined $_ } @{ $self->cask_ids })
+        ? $fest->search_related_rs('cask_managements', { cellar_reference => $self->cask_ids } )
+        : $fest->search_related_rs('cask_managements');
+    my @casks = $cmset->search_related_rs('casks')->all();
 
     return \@casks;
 }
@@ -59,7 +68,10 @@ sub festival_cask_managements {
 
     my $fest = $self->festival();
 
-    my @caskmans = $fest->search_related('cask_managements')->all();
+    my $cmset = (scalar grep { defined $_ } @{ $self->cask_ids })
+        ? $fest->search_related_rs('cask_managements', { cellar_reference => $self->cask_ids } )
+        : $fest->search_related_rs('cask_managements');
+    my @caskmans = $cmset->all();
 
     return \@caskmans
 }
@@ -70,8 +82,8 @@ sub festival_products {
 
     my $fest = $self->festival();
 
-    my @products = $fest->search_related('festival_products')
-                        ->search_related('product_id')->all();
+    my @products = $fest->search_related_rs('festival_products')
+                        ->search_related_rs('product_id')->all();
 
     return \@products;
 }

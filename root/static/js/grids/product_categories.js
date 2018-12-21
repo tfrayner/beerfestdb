@@ -47,7 +47,7 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'productcategory/grid/{product_category_id}');
+        var t = new Ext.XTemplate(url_base + 'productstyle/grid/{product_category_id}');
         window.location=t.apply({product_category_id: record.get('product_category_id')});
     };
 

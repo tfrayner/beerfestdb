@@ -31,12 +31,13 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}],
+	idProperty: 'company_id',
         sortInfo:   {
             field:     'name',
             direction: 'ASC',
         },
     });
-    company_store.load();
+
     var company_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -56,12 +57,12 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'sale_volume_id', type: 'int' },
                      { name: 'description',    type: 'string'}],
+	idProperty: 'sale_volume_id',
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
         },
     });
-    volume_store.load();
 
     /* Currency drop-down */
     var currency_store = new Ext.data.JsonStore({
@@ -69,12 +70,13 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'currency_id',   type: 'int'    },
                      { name: 'currency_code', type: 'string' }],
+	idProperty: 'currency_id',
         sortInfo:   {
             field:     'currency_code',
             direction: 'ASC',
         },
     });
-    currency_store.load();
+
     var currency_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -94,12 +96,13 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'container_size_id',   type: 'int'    },
                      { name: 'description', type: 'string' }],
+	idProperty: 'container_size_id',
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
         },
     });
-    casksize_store.load();
+
     var casksize_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -118,18 +121,19 @@ Ext.onReady(function(){
         url:        url_gyle_list,
         root:       'objects',
         fields:     [{ name: 'gyle_id',       type: 'int'    },
-                     { name: 'company_id',    type: 'int' },
+                     { name: 'company_id',    type: 'int', sortType: myMakeSortTypeFun(company_store, 'name') },
                      { name: 'festival_product_id',    type: 'int' },
                      { name: 'abv',           type: 'float' },
                      { name: 'comment',       type: 'string' },
                      { name: 'ext_reference', type: 'string' },
                      { name: 'int_reference', type: 'string' }],
+	idProperty: 'gyle_id',
         sortInfo:   {
             field:     'int_reference',
             direction: 'ASC',
         },
     });
-    gyle_store.load();
+
     var gyle_combo = new Ext.form.ComboBox({
         forceSelection: true,
         allowBlank:     false,
@@ -150,11 +154,11 @@ Ext.onReady(function(){
         fields:     [{ name: 'cask_id',           type: 'int' },
                      { name: 'cask_management_id', type: 'int' },
                      { name: 'festival_id',       type: 'int' },
-                     { name: 'gyle_id',           type: 'int' },
-                     { name: 'distributor_id',    type: 'int' },
+                     { name: 'gyle_id',           type: 'int', sortType: myMakeSortTypeFun(gyle_store, 'int_reference') },
+                     { name: 'distributor_id',    type: 'int', sortType: myMakeSortTypeFun(company_store, 'name') },
                      { name: 'order_batch_name',  type: 'string' },
-                     { name: 'container_size_id', type: 'int' },
-                     { name: 'currency_id',       type: 'int' },
+                     { name: 'container_size_id', type: 'int', sortType: myMakeSortTypeFun(casksize_store, 'description') },
+                     { name: 'currency_id',       type: 'int', sortType: myMakeSortTypeFun(currency_store, 'currency_code') },
                      { name: 'price',             type: 'int' },
                      { name: 'int_reference',     type: 'string' },
                      { name: 'ext_reference',     type: 'string' },
@@ -168,7 +172,6 @@ Ext.onReady(function(){
         },
         defaultData: { currency_id: default_currency },
     });
-    cask_store.load();
 
     /* FestivalProduct form */
     var fpForm = new MyFormPanel({
@@ -234,6 +237,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ currency_store, volume_store ],
         loadUrl:     url_fp_load_form,
         idParams:    { festival_product_id: festival_product_id },
         waitMsg:     'Loading Festival Product details...',
@@ -254,6 +258,7 @@ Ext.onReady(function(){
                 return(fields);
             },
             store:              gyle_store,
+            comboStores:        [ company_store ],
             contentCols: [
                 { id:        'int_reference',
                   header:    'Festival Gyle ID',
@@ -316,13 +321,14 @@ Ext.onReady(function(){
                 return(fields);
             },
             store:              cask_store,
+            comboStores:        [ casksize_store, currency_store, gyle_store, company_store ],
             contentCols: [
                 { id:        'festival_ref',
                   header:    'Festival Cask ID',
                   dataIndex: 'festival_ref',
                   width:      50,
                   editor:     new Ext.form.TextField({
-                      allowBlank: true,
+                      allowBlank: false,
                   })},
                 { id:        'int_reference',
                   header:    'Cellar Cask ID',

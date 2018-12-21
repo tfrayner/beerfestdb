@@ -117,4 +117,11 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s - %s",
+				      $self->festival_id->repr(),
+				      $self->op_start_date,
+				      $self->op_end_date);
+}
+
 1;

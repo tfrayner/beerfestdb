@@ -27,20 +27,21 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
     ## Begin building the main data frame.
     fest <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                       'Festival', 'list')
+    festival_id <- fest[ fest$name==festname, 'festival_id']
 
     batch <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                        'MeasurementBatch', 'list',
-                       params=fest[ fest$name==festname, 'festival_id'])
+                       params=festival_id)
     batch$measurement_time <- as.Date(batch$measurement_time)
     batch <- batch[ order(batch$measurement_time), ]
 
     cat <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                      'ProductCategory', 'list')
+    prodcat_id <- cat[cat$description==prodcat, 'product_category_id']
 
     cask <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                       'Cask', 'list',
-                      params=c(fest[ fest$name==festname, 'festival_id'],
-                          cat[cat$description==prodcat, 'product_category_id']),
+                      params=c(festival_id, prodcat_id),
                       columns=c('cask_id','product_id','container_size_id',
                           'order_batch_id','gyle_id','stillage_location_id',
                           'festival_ref','is_condemned','is_sale_or_return','comment'))
@@ -51,14 +52,25 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
     cask[ is.na(cask$is_sale_or_return), 'is_sale_or_return' ] <- 0
     cask[ is.na(cask$comment), 'comment' ] <- ''
 
+    measures <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
+                          'ContainerMeasure', 'list',
+                          columns=c('description', 'litre_multiplier'))
+    default_cask_measure <- as.numeric(with(measures, litre_multiplier[ description == 'gallon' ]))
+    stopifnot(length(default_cask_measure) == 1)
+
     sizes <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                        'ContainerSize', 'list',
-                       columns=c('container_size_id','volume'))
+                       columns=c('container_size_id','volume','litre_multiplier','description'))
     colnames(sizes)[2] <- 'cask_volume'
+    for ( n in 2:3 )
+        sizes[,n] <- as.numeric(sizes[,n])
+    sizes$cask_volume <- with(sizes, cask_volume * litre_multiplier) / default_cask_measure
+    sizes <- sizes[,1:2]
     cp <- merge(cask, sizes, by='container_size_id')
 
     product <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
-                         'Product', 'list',
+                         'Product', 'list_by_festival',
+                         params=c(festival_id, prodcat_id),
                          columns=c('product_id','company_id','nominal_abv',
                              'name','product_style_id'))
     colnames(product)[4]<-'product_name'
@@ -66,10 +78,16 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
 
     gyle <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                       'Gyle', 'list_by_festival',
-                      params=fest[ fest$name==festname, 'festival_id'],
+                      params=festival_id,
                       columns=c('gyle_id','abv'))
     colnames(gyle)[2] <- 'gyle_abv'
     cp <- merge(cp, gyle, by='gyle_id')
+
+    ## Sort out ABVs. If a gyle ABV is present, use it preferentially.
+    suppressWarnings(cp$nominal_abv <- as.numeric(cp$nominal_abv))
+    suppressWarnings(cp$gyle_abv    <- as.numeric(cp$gyle_abv))
+    cp$abv <- ifelse(is.na(cp$gyle_abv), cp$nominal_abv, cp$gyle_abv)
+    cp <- cp[, ! colnames(cp) %in% c('nominal_abv', 'gyle_abv') ]
 
     style <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                        'ProductStyle', 'list',
@@ -91,14 +109,14 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
 
     stillage <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                           'StillageLocation', 'list',
-                          params=fest[ fest$name==festname, 'festival_id'],
+                          params=festival_id,
                           columns=c('stillage_location_id','description'))
     colnames(stillage)[2] <- 'stillage'
     cp <- merge(cp, stillage, by='stillage_location_id', all.x=TRUE)
 
     orderbatch <- getBFData(baseuri=baseuri, auth=auth, .opts=.opts,
                             'OrderBatch', 'list',
-                            params=fest[ fest$name==festname, 'festival_id'],
+                            params=festival_id,
                             columns=c('order_batch_id','description'))
     colnames(orderbatch)[2] <- 'order_batch'
     cp <- merge(cp, orderbatch, by='order_batch_id', all.x=TRUE)
@@ -122,8 +140,6 @@ getFestivalData <- function( baseuri, festname, prodcat, auth=NULL, .opts=list()
     w <- grepl('^dip\\.', colnames(cp))
     cp[,w] <- apply(cp[,w], 2, as.numeric)
     cp$cask_volume <- as.numeric(cp$cask_volume)
-    suppressWarnings(cp$nominal_abv <- as.numeric(cp$nominal_abv))
-    suppressWarnings(cp$gyle_abv    <- as.numeric(cp$gyle_abv))
 
     return(cp)
 }

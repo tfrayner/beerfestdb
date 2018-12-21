@@ -230,8 +230,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-01 13:24:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:57CSCEAcZVhS2cPHalHqbw
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-04 18:03:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IRhT8BT5kE8zRidXyBrxFA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
@@ -253,5 +253,9 @@ __PACKAGE__->many_to_many(
     "allergens_unknown" => "product_allergens", "product_allergen_type_id",
     { where => { present => undef } },
 );
+
+sub repr {
+    my ( $self ) = @_; return $self->name;
+}
 
 1;

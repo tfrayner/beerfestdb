@@ -8,7 +8,7 @@
 ",[% cask.abv -%]
 ,"[% cask.style -%]
 ","[% cask.order_batch -%]
-",[% cask.size -%]
+",[% cask.cask_size -%]
 ,[% FOREACH batch = dip_batches -%]
 [%- SET bid = batch.id -%]
  [%- cask.dips.$bid | format('%.1f') | replace('\.0$','') %],

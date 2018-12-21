@@ -31,16 +31,16 @@ rankProducts <- function( cp, drop, w ) {
     ## of the festival; note that some beers lose out in this case.
     x <- cp[,w]
     x <- x[, ! colnames(x) %in% drop ]
-    x <- cbind(cp[, c('company_name','product_name')], x)
+    x <- cbind(cp[, c('company_name','product_name','style','abv')], x)
 
     ## Have to throw out all those beers which never changed in the query period.
-    x <- x[apply(x[,-c(1:2)], 1, function(x) { sum(x != x[1]) }) != 0,]
+    x <- x[apply(x[,-c(1:4)], 1, function(x) { sum(x != x[1]) }) != 0,]
 
-    z <- as.data.frame(t(apply(x[,-c(1:2)], 1, productSaleRate)))
-    z <- aggregate(z$Estimate, list(x$company_name, x$product_name), median)
+    z <- as.data.frame(t(apply(x[,-c(1:4)], 1, productSaleRate)))
+    z <- aggregate(z$Estimate, list(x$company_name, x$product_name, x$style, x$abv), mean)
     z <- z[order(z$x),]
 
-    colnames(z) <- c('company_name','product_name','gallons_per_session')
+    colnames(z) <- c('company_name','product_name','style','abv','gallons_per_session')
 
     return(z)
 }

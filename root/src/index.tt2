@@ -23,11 +23,16 @@
 
   <div class="heading"><h1>BeerfestDB Database Administration</h1></div>
 
-  <p class="textblock">This area is used to make changes to the way the database is organised. Assuming you know what you're doing, please follow the links below:</p>
+  <p class="textblock">This area is used to make changes to the way the database is organised. Access to the following pages is restricted to admin-level users:</p>
 
   <ul class="linkslist">
-    <li><a href="[% c.uri_for('/productcategory') %]">Product categorisation</a></li>
-    <li><a href="[% c.uri_for('/user/grid') %]">Database users (admin access only)</a></li>
+    <li><a href="[% c.uri_for('/user/grid') %]">Database users and roles</a></li>
+    <li><a href="[% c.uri_for('/productcategory/grid') %]">Product categorisation</a></li>
+    <li><a href="[% c.uri_for('/productallergentype/grid') %]">Allergen types</a></li>
+    <li><a href="[% c.uri_for('/dispensemethod/grid') %]">Dispense methods</a></li>
+    <li><a href="[% c.uri_for('/containersize/grid') %]">Cask and other container sizes</a></li>
+    <li><a href="[% c.uri_for('/salevolume/grid') %]">Sale volume sizes</a></li>
+    <li><a href="[% c.uri_for('/companyregion/grid') %]">Company geographic regions</a></li>
   </ul>
 
 </div>

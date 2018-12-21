@@ -24,15 +24,30 @@ Ext.onReady(function(){
 
     // Enable tooltips
     Ext.QuickTips.init();
-    
+
+    /* Company region lookups */
+    var region_store = new Ext.data.JsonStore({
+        url:        url_company_region_list,
+        root:       'objects',
+        fields:     [{ name: 'company_region_id', type: 'int'    },
+                     { name: 'description',       type: 'string' }],
+        idProperty: 'company_region_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+
+    /* Main company records and store */
     var Company = Ext.data.Record.create([
         { name: 'company_id',        type: 'int' },
         { name: 'name',              type: 'string',   allowBlank: false },
         { name: 'full_name',         type: 'string' },
         { name: 'loc_desc',          type: 'string' },
-        { name: 'company_region_id', type: 'int'},
+        { name: 'company_region_id', type: 'int', sortType: myMakeSortTypeFun(region_store, 'description') },
         { name: 'year_founded',      type: 'int' },
         { name: 'url',               type: 'string' },
+        { name: 'awrs_urn',          type: 'string' },
         { name: 'comment',           type: 'string' },
     ]);
 
@@ -47,17 +62,6 @@ Ext.onReady(function(){
     });
 
     /* Company region drop-down */
-    var region_store = new Ext.data.JsonStore({
-        url:        url_company_region_list,
-        root:       'objects',
-        fields:     [{ name: 'company_region_id', type: 'int'    },
-                     { name: 'description',       type: 'string' }],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-    region_store.load();
     var region_combo = new Ext.form.ComboBox({
         typeAhead:      true,
         triggerAction:  'all',
@@ -132,6 +136,7 @@ Ext.onReady(function(){
                 idField:            'company_id',
                 autoExpandColumn:   'name',
                 store:              store,
+                comboStores:        [ region_store ],
                 contentCols:        content_cols,
                 viewLink:           viewLink,
                 deleteUrl:          url_company_delete,

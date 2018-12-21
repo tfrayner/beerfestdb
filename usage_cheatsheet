@@ -44,21 +44,58 @@ Info gathering spreadsheet --> load_data input
 6. Correct columns headers as needed (see list below)
 7. Add remaining required columns: festival name & year, product category, order batch, is-final ('1' for yes). Example header row:
     brewery_name	product_name	product_abv	product_style	cask_size	cask_count	order_sor	distributor_name	order_batch	product_category	festival_name	festival_year	order_finalized
+    	a. For cask_size, use one of the text descriptions from the database (see list below). Watch for typos, especially if a load fails. (New 2017-04; previously used number of gallons)
 8. Feed to load_data.pl with default beerfestdb.yml (i.e. default protected categories including company, product)
 	a. if it squawks "Protection error (ProductOrder):" uncomment ProductOrder to create (wait for it) this product order
-9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things (make sure nothing is missing or mangled)
+9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things
+   9a. Make sure nothing got missed out, duplicated, or otherwise mangled!
 10. Unprotect company & product in beerfestdb.yml; load!
 11. Spawn 'n' send orders as above
-Alternative to steps 1-6: Copy just columns A-F from spreadsheet GUI; don't forget to repeat with updated quantities for any SOR casks. Paste into file destined to be input for load_data.pl.
+
+Alternative to steps 1-6: Copy just columns A-F from spreadsheet GUI; don't forget to repeat with updated quantities for any SOR casks. Paste into file destined to be input for load_data.pl, add remaining column, and edit container size descriptions as indicated above.
+
 Note that either approach is error-prone, so check carefully to avoid duplications and omissions.
+
+Container size descriptions from beerfestdb:
+
++----------------------+
+| description          |
++----------------------+
+| 10 gallon            |
+| 10L polypin          |
+| 11 gallon            |
+| 12 x 750 mL case     |
+| 20L keg              |
+| 20L KeyKeg           |
+| 20L polypin          |
+| 22 gallon            |
+| 25 cL bottle         |
+| 30L keg              |
+| 30L KeyKeg           |
+| 33 cL bottle         |
+| 35.5 cl bottle       |
+| 37.5 cL bottle       |
+| 4.37gal cider tub    |
+| 5 gallon             |
+| 50 cL bottle         |
+| 50L keg              |
+| 6 gallon KeyKeg/cask |
+| 6 x 750 mL case      |
+| 70 cL bottle         |
+| 75 cL bottle         |
+| barrel               |
+| firkin               |
+| kilderkin            |
+| pin                  |
++----------------------+
 
 To load mead or wine data using load_data.pl
   punt and
-    1. load everything as some tidy n-gallon measure, e.g. 9 for firkin
+    1. load everything as some tidy n-gallon measure, e.g. firkin
     2. change to correct measure in web interface
   OR really punt and just
     a. load up everything as though there's just one of each product/size combo
-    b. update quantities in web interface upon arrival, or later (if later, add new lines in web interface or use load_data.pl -- if scripted, don't forget to subtract 1 from each qty)
+    b. Optional (and only worth doing if db used for stock control): update quantities in web interface upon arrival, or later (if later, add new lines in web interface or use load_data.pl -- if scripted, don't forget to subtract 1 from each qty)
   (tried this:
     one. include a cask_unit column, set to 'litre'
     two. put number of L in cask_size column; hope no floating point problems bite us
@@ -66,20 +103,17 @@ To load mead or wine data using load_data.pl
 
 Cider, perry, apple juice
   - Ciderdom may or may not provide container sizes and quantities. If they don't, there are two options:
-        a. include order_batch column, and dummy values for cask_size and cask_quantity (e.g. size 5, qty 1); OR
+        a. include order_batch column, and dummy values for cask_size and cask_quantity (e.g. size 5 gallon, qty 1); OR
         b. omit order_batch, cask_size and cask_quantity, and unprotect FestivalProduct in beerfestdb.yml
   - Handle cider & perry ABVs at gyle level (and load correspondingly, and annoyingly, late in proceedings)
         use load-data.pl once to get companies and product names in and connected to the festival, then prepare a second file for gyle ABVs.
-        - for the first round, include these columns: brewery_name, product_name, product_style, cask_size, cask_count,\
- distributor_name, order_sor, order_batch, product_category, festival_name, festival_year, order_finalized (it shouldn'\
-t require product_abv, but if it does, include a blank column)
-        - in the second round, include: gyle_ABV, brewery_name, product_name, product_category, product_sale_price, fes\
-tival_name, festival_year
+        - for the first round, include these columns: brewery_name, product_name, product_style, cask_size, cask_count, distributor_name, order_sor, order_batch, product_category, festival_name, festival_year, order_finalized (it shouldn't require product_abv, but if it does, include a blank column)
+        - in the second round, include: gyle_ABV, brewery_name, product_name, product_category, product_sale_price, festival_name, festival_year
 
 Foreign beer
   Managers will send .csv file basically ready to load; fill in festival name
-  Also copy product_abv to a gyle_abv column - that will create a gyle, which in turn will generate cask end sign output when dump_to_template.pl is run with -o\
- gyle
+  Also copy product_abv to a gyle_abv column - that will create a gyle, which in turn will generate cask end sign output when dump_to_template.pl is run with -o gyle
+  To add a product after the bulk load, see the "if there's a reorder" section; just use the parts about adding FestivalProduct, gyle and cask.
 
 To get new info to replace old (e.g. improved tasting notes), use load_data.pl overwrite mode (-o option).
 
@@ -98,7 +132,10 @@ For cask lists (delivery & stillage plan checklists; cask labels)
   2. Use dump_to_template.pl with options:
      a. delivery checklist: -t templates/delivery_checklist.tt2 -o distributor
         optional: manually edit .tex to split by day (because of course not quite everything arrives on the specified Wednesday)
-     b. cask list for stillage plan: -t templates/stillage_planning.tt2 -o cask_management
+
+     b. cask list for stillage plan: dump_to_template.pl -t ~tfrayner/beerfestdb/util/templates/stillage_planning.tt2 -o cask_management --filters "cask_size_name=30L KeyKeg,cask_size_name=20L KeyKeg,brewery=Adnams,brewery=Grain,brewery=Bexar County,brewery=Three Blind Mice,brewery=Woodforde's" > filtered_cask_list.tex
+	- the above assumes a separate KeyKeg bar
+	- include a brewery=[name] key/value pair for each brewery bar (example is from CBF44 in 2017)
      c. cask labels (21 per page; J8160 / L7160 or equivalent): -t templates/cask_labels_no_barcode.tt2 -o cask_management
         optional: get a little barcode on each label with -t templates/cask_labels.tt2 -o cask_management
 	this also requires you to run pdflatex with the -shell-escape argument
@@ -109,12 +146,31 @@ When beer comes
   For discrepancies
 	can edit size of existing casks
 	to add cask, need existing gyle for the beer
+	  to add a gyle, type "auto-generated" as its ID, and select the brewery from the pulldown in the "actual brewer" column
 	manually assign cask ID, preferably next available in sequence
 	  use this query:  select max(cm.cellar_reference) from cask_management cm, festival f where f.festival_id=cm.festival_id and f.name='41st Cambridge Beer Festival';
+	  for "new cask", mandatory columns are Festival cask ID, Cask size, Gyle, and Distributor
 	NOTE: new casks added at this point should NOT have an order batch assigned
+	if there are fewer casks than expected, mark all as "arrived", then go to Products Received to delete one (or more, as needed)
   Prices go in Products Received tab, sale price column
+	in web interface, enter prices in pence
+	BUT load_data.pl takes pounds
+  
+For dip sheets:
+  Manually enter "Measurement batches" -- otherwise no dip data slots print out!
+  Assign each cask to a bar
+        interface: All casks received - Stillage column
+	OR
+	use update_cask_details.pl -a -f $file (cask ID & location ID in $file)
+	  headers cask_festival_id, stillage_location (use name for stillage location, e.g. DMZ)
+	  need the -a flag to get it to "move a cask", i.e. change its location assignment, even from nothing to something
+	  handy way to get cask IDs: take relevant columns from index card data see below)
 
-For dip sheets: manually enter "Measurement batches" -- otherwise no dip data slots print out!
+For cask end signs, can have festival logo in upper right corner (use
+the -l [logo] option) or leave the space for something else, such as a
+style-code sticker (omit -l). Example from USAGE.txt:
+  % dump_to_template.pl -t templates/cask_end_template.tt2 \
+                      -l images/cake.png -o gyle > cask_ends.tex
 
 Info for cask index cards: This query retrieves certain details for every cask for which (a) the order is finalized and (b) has its "virtual cask" in the db, i.e. preload_festival_casks has been run.
   Details: cask ID, beer, brewery, ABV, style, cask size
@@ -154,45 +210,49 @@ If there's a reorder
    2b. don't forget the order_finalized column, set to '1'
 3. Unprotect ProductOrder in beerfestdb.yml, then load & go!
    3a. also don't forget to flag them as arrived in the interface.
+4. The interface is OK for adding the odd beer or two. It'll bleat if you try to tick "arrived" when adding a line; instead, add all he other details, save, and then tick arrived.
 
 Dip spreadsheet
-  If anyone wants the dip data in spreadsheet format, use dump_to_template.pl with dip_csv_dump.tt2 and -o cask	to gene\
-rate a .csv file that should load into Excel, OpenOffice, etc.
+  If anyone wants the dip data in spreadsheet format, use dump_to_template.pl with dip_csv_dump.tt2 and -o cask	to generate a .csv file that should load into Excel, OpenOffice, etc.
 
 Wine & Mead
   To make signs come out with "glass" (not "pint"), use web interface:
     Festival -> Products Received -> Wine|Mead ->
     set Sale volume column to glass
 
+Report Graphs
+  Requires local beerfestdb installation, R and package - see Appendix 6
+  The dip_figure_analysis.Rnw script spawns a .tex file to produce the graphs, but the festival name has to be updated manually in the file. The file location is [pathto]/beerfestdb/R/dip_figure_analysis.Rnw, editing instructions are in the header, and the bit to change is helpfully flagged "# Edit these:". Issue the command (also provided	in the file header):
+    % SWEAVE_STYLEPATH_DEFAULT=TRUE R CMD Sweave dip_figure_analysis.Rnw
+  Generates output file dip_figure_analysis.tex and a bunch of .pdf files (for the figures) if all has gone well
+  If it spits out an error message about "negative per diem dips found", it means there's a case where a cask magically has more beer at a later dip than it did at an earlier dip. Correct the dip data rather than the laws of physics.
+   easiest way is to regenerate the dip sheets (see above) and eyeball them
+   copy dip_figure_analysis.Rnw into local directory in one's ~ if necessary for write-access reasons
 
 October & Winter festivals
   Cellar isn't involved in ordering, so we just do most of the db stuff once beer has arrived.
 
 1. Create festival in web interface.
 2. Create file(s) to feed to load_data.pl, much as for summer but with less fuss about SOR. Include columns for both order_finalized and order_received.
+	Set order_received to 0, and tick things as "arrived" in the web interface (or bad things happen).
 	expect to unprotect Gyle and FestivalProduct
 	don't forget the bit about updating the festival name
-3. Use dump_to_oodoc.pl to spawn programme; the output will almost certainly need some manual tweaking.
+3. Use dump_to_oodoc.pl to spawn programme; the output will almost certainly need some manual tweaking (including landscape orientation, 3 column layout, fonts, etc.).
 	watch out: if you run it more than once with the same output filename, it'll append to the existing file rather than overwrite
+	interesting note: you can use an existing .odt, such as a previous program file, as the template
 
-Logo
+Logo (if used for anything printed)
   reduce to ~150 pixels, and flatten (no alpha channel)
-  
-Allergens
-- Script: load_allergens.pl runs in either of two modes
-	a. load_allergens.pl --interactive asks what to do if it encounters an allergen not previously loaded
-        b. --force-allergens automatically loads new allergens found as column headers (more convenient for early runs, but more dangerous, as it would happily all\
-ow misspellings in)
-- Loading behaves in a manner analogous to "protect/unprotect", but using command-line options instead of beerfestdb.yaml (like other scripts, do % load_allergens.\
-pl -h to see options)
-- Database allows present (Y, yes, 1), absent (N, no, 0), unknown (NA, n/a, ND, or leave NULL)
-        recommend noting presence or absence that we're told about, and leave unknown/null for anything not specifically mentioned
-- Allergen list in Appendix 2
+
+Uploading to the web site
+  in the yaml file, make sure the public_festival_tag at the bottom is set to the current festival
+	e.g. public_festival_tag:      cbf44
+  upload_beerlist.pl takes no arguments. Any beerfestdb username/password combination should work, as it only requires read access.
 
 General hint for dump_to_template.pl: each template (.tt2) file has its allowed dump class(es) at the top.
 
-Appendix 1
 
+Appendix 1
 column headings for files to load (using load_data.pl):
   copied & human-friendlied from beerfestdb/lib/BeerFestDB/Loader.pm
   script also accepts space or - instead of _
@@ -255,20 +315,97 @@ column headings for files to load (using load_data.pl):
 
 To load companies using load_data.pl, use the brewery_* column headers, and unprotect Company in the .yaml file.
 
-Appendix 2: List of reportable allergens
-- List of allergens:
+Appendix 2
+useful to preserve sanity: for any user, the mysql password is NOT the same as the beerfestdb web interface password
+Appendix 3 - Allergens
+- Script: load_allergens.pl runs in either of two modes
+	a. load_allergens.pl --interactive asks what to do if it encounters an allergen not previously loaded
+	b. --force-allergens automatically loads new allergens found as column headers (more convenient for early runs, but more dangerous, as it would happily allow misspellings in)
+- Loading behaves in a manner analogous to "protect/unprotect", but using command-line options instead of beerfestdb.yaml (like other scripts, do % load_allergens.pl -h to see options)
+- Database allows present (Y, yes, 1), absent (N, no, 0), unknown (NA, n/a, ND, or leave NULL)
+	recommend noting presence or absence that we're told about, and leave unknown/null for anything not specifically mentioned
+
+- List of reportable allergens:
 	celery
-        crustaceans
-        egg
-        fish (but isinglass finings don't count; apparently it's sufficiently purified away from the allergen(s))
-        gluten (it's "allergies and intolerances", not just conditions that are technically allergies)
+	crustaceans
+	egg
+	fish (but isinglass finings don't count; apparently it's sufficiently purified away from the allergen(s))
+	gluten (yeah, yeah)
 	lupins
 	milk
-        molluscs
-        mustard
+	molluscs
+	mustard
 	nuts
-        peanuts
-        sesame
-        soybeans
-        sulphites
+	peanuts
+	sesame
+	soybeans
+	sulphites
+
+Appendix 4 - Things not directly beerfestdb
+
+Stillage plan constraints
+ - Each bay deck holds 8 kils or 15 firkins
+ - Some hate back feeders, but are willing to pull firkins through on top
+ - Other teams prefer back feeders to moving casks on upper deck
+ - Prefer beers with 3 or 4 kil for back feeders
+ - Avoid splitting breweries between cellar teams if possible
+ - REALLY avoid splitting a single beer between teams!
+
+Stillage plan idea
+ - calculate firkin equivalents, total and per usable bay
+ - team firkin count = firkins/bay x assigned bays
+   - round tent end stretches down, and middle stretches up
+ - use with cask list running total to find sensible divisions/break points
+   - don't forget to skip brewery bar & keykeg bar casks
+ - may help to get overview of:
+   - positions needed for kils
+   - sets of 3 vs. single or 2x firkins
+
+Appendix 5 - That index card query shell command all on one line (using 43rd fest; update that as needed)
+
+echo 'select cm.cellar_reference as cask_id, c.name as brewery, p.name as beer, p.nominal_abv as abv, ps.description as style, cs.description as size from cask_management cm, product p, company c, product_style ps, container_size cs, product_category pc, product_order po, order_batch ob, festival f where f.name="43rd Cambridge Beer Festival" and f.festival_id=ob.festival_id and ob.order_batch_id=po.order_batch_id and po.product_order_id=cm.product_order_id and cm.container_size_id=cs.container_size_id and po.product_id=p.product_id and p.company_id=c.company_id and p.product_style_id=ps.product_style_id and p.product_category_id=pc.product_category_id and pc.description="beer"' | mysql -p beerfestdb > index_card_data.txt
+
+
+Appendix 6 - setting up beerfestdb R to run the graph-generating script
+
+  get R from cran.org (follow instructions there)
+  get beerfestdb from GitHub
+  aim is to run this command:
+    % cd beerfestdb/R/
+    % R CMD INSTALL BeerFestDB/
+  But first, there are some dependencies* to deal with. You'll see them if you issue the command.
+  We recommend installing Bioconductor, which is bioinformatics geekery but just happens to cover the dependencies beerfestdb needs (certainly not the only way to get them, but it's one we know works).
+    go to http://bioconductor.org/install/, and run the commands there, i.e.
+      % R
+      > source("https://bioconductor.org/biocLite.R")
+      > biocLite()
+    Don't fret about the cryptic status messages; if the '>' prompt reappears, all is well.
+    For each package in the list, run biocLite('packagename'), e.g.
+      > biocLite('rjson')
+    Then quit R:
+      > q()
+
+  On a Mac you'll also have to install XQuartz from xquartz.macosforge.org
+
+  Now we're ready to install the beerfestdb R package for real
+    % R CMD INSTALL BeerFestDB/
+
+*(2016-07-02 output was "ERROR: dependencies ‘rjson’, ‘RCurl’, ‘RColorBrewer’, ‘gplots’ are not available for package ‘BeerFestDB’", so installed rjson, RCurl, RColorBrewer and gplots as above)
+
+
+Appendix 7 - AWRS URN checking site
+https://www.tax.service.gov.uk/check-the-awrs-register
+e.g. https://www.tax.service.gov.uk/check-the-awrs-register?query=XMAW00000103404
+
+% echo 'select name, awrs_urn from company where awrs_urn is not null;' | mysql -p beerfestdb > awrs_file
+% for each in `cut -f2 awrs_file`; do open "https://www.tax.service.gov.uk/check-the-awrs-register?query=$each" ; done
+
+Appendix 8 - how many casks/kils/firkins ordered?
+
+Query to get a count of casks of each size ordered (but not yet arrived):
+
+select cs.description, sum(po.cask_count) from festival f, container_size cs, order_batch ob, product_order po  where ob.festival_id=f.festival_id and ob.order_batch_id=po.order_batch_id and po.container_size_id=cs.container_size_id and f.name='43rd Cambridge Beer Festival' group by cs.description;
+
+This doesn't filter by product category, but for casks it doesn't need to - only beer comes in kils or firkins.
+
 

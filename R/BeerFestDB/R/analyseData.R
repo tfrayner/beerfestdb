@@ -23,7 +23,7 @@ analyseData <- function(cp) {
 
     cp <- cp[ cp$is_condemned == 0, ]
     
-    cp$abv_class <- cut(cp$nominal_abv, breaks=c(2,3.5,4,4.5,5,7,12))
+    cp$abv_class <- cut(cp$abv, breaks=c(2,3.5,4,4.5,5,7,12))
     levels(cp$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cp$abv_class)))
     
     w  <- colnames(cp) == 'cask_volume' | grepl('^dip\\.', colnames(cp))
@@ -33,7 +33,13 @@ analyseData <- function(cp) {
 
     pd <- cp[,w][,-sum(w)] - cp[,w][,-1]
     colnames(pd) <- colnames(cp)[w][-1]
-    stopifnot( all(pd >= 0 ) )
+
+    ## The rounding here is to try and address floating point errors upstream. Not Ideal (FIXME).
+    pd <- round(cp[,w][,-sum(w)] - cp[,w][,-1], 6)
+    colnames(pd) <- colnames(cp)[w][-1]
+    if ( ! all(pd >= 0) ) {
+        stop("Negative per diem dips found: probable dip data error in the database.")
+    }
 
     plotToFile( 'total_beer_sales.pdf', plotTotalBeerSales, pd )
 

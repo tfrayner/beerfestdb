@@ -25,15 +25,41 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
+    /* Cask size lookups */
+    var casksize_store = new Ext.data.JsonStore({
+        url:        url_cask_size_list,
+        root:       'objects',
+        fields:     [{ name: 'container_size_id', type: 'int' },
+                     { name: 'description',    type: 'string'}],
+        idProperty: 'container_size_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+
+    /* Stillage lookups */
+    var stillage_store = new Ext.data.JsonStore({
+        url:        url_stillage_list,
+        root:       'objects',
+        fields:     [{ name: 'stillage_location_id', type: 'int' },
+                     { name: 'description',          type: 'string'}],
+        idProperty: 'stillage_location_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+
     var Cask = Ext.data.Record.create([
         { name: 'cask_id',              type: 'int' },
         { name: 'cask_management_id',   type: 'int' },
         { name: 'product_name',         type: 'string' },
         { name: 'company_name',         type: 'string' },
-        { name: 'stillage_location_id', type: 'int' },
+        { name: 'stillage_location_id', type: 'int', sortType: myMakeSortTypeFun(stillage_store, 'description') },
         { name: 'int_reference',        type: 'string' },
-        { name: 'festival_ref',         type: 'string' },
-        { name: 'container_size_id',    type: 'int' },
+        { name: 'festival_ref',         type: 'int' },
+        { name: 'container_size_id',    type: 'int', sortType: myMakeSortTypeFun(casksize_store, 'description') },
         { name: 'bar_id',               type: 'int' },
         { name: 'gyle_id',              type: 'int' },
         { name: 'stillage_bay',         type: 'int' },
@@ -47,17 +73,6 @@ Ext.onReady(function(){
     });
 
     /* Cask size drop-down */
-    var casksize_store = new Ext.data.JsonStore({
-        url:        url_cask_size_list,
-        root:       'objects',
-        fields:     [{ name: 'container_size_id', type: 'int' },
-                     { name: 'description',    type: 'string'}],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-    casksize_store.load();
     var casksize_combo = new Ext.form.ComboBox({
         store:          casksize_store,
         valueField:     'container_size_id',
@@ -71,17 +86,6 @@ Ext.onReady(function(){
     });
 
     /* Stillage drop-down */
-    var stillage_store = new Ext.data.JsonStore({
-        url:        url_stillage_list,
-        root:       'objects',
-        fields:     [{ name: 'stillage_location_id', type: 'int' },
-                     { name: 'description',          type: 'string'}],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-    stillage_store.load();
     var stillage_combo = new MyComboBox({
         store:          stillage_store,
         valueField:     'stillage_location_id',
@@ -175,6 +179,7 @@ Ext.onReady(function(){
             idField:            'cask_id',
             autoExpandColumn:   'product_id',
             store:              store,
+            comboStores:        [ casksize_store, stillage_store ],
             contentCols:        content_cols,
             viewLink:           viewLink,
             deleteUrl:          url_cask_delete,

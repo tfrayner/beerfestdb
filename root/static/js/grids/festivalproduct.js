@@ -25,13 +25,67 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
+    /* Supplier lookups */
+    var brewer_store = new Ext.data.JsonStore({
+        url:        url_company_list,
+        myLoadParams:   { brewer_festival_id: festival_id },
+        root:       'objects',
+        fields:     [{ name: 'company_id', type: 'int' },
+                     { name: 'name',       type: 'string'}],
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+        idProperty: 'company_id',
+        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
+    });
+
+    /* Product lookups */
+    var product_store = new Ext.data.JsonStore({
+        url:        url_product_list,
+        root:       'objects',
+        fields:     [{ name: 'product_id', type: 'int' },
+                     { name: 'company_id', type: 'int' },
+                     { name: 'name',       type: 'string'}],
+        idProperty: 'product_id',
+        sortInfo:   {
+            field:     'name',
+            direction: 'ASC',
+        },
+    });
+
+    /* Sale volume lookups */
+    var volume_store = new Ext.data.JsonStore({
+        url:        url_sale_volume_list,
+        root:       'objects',
+        fields:     [{ name: 'sale_volume_id', type: 'int' },
+                     { name: 'description',    type: 'string'}],
+        idProperty: 'sale_volume_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+
+    /* Currency lookups */
+    var currency_store = new Ext.data.JsonStore({
+        url:        url_currency_list,
+        root:       'objects',
+        fields:     [{ name: 'currency_id',   type: 'int'    },
+                     { name: 'currency_code', type: 'string' }],
+        sortInfo:   {
+            field:     'currency_code',
+            direction: 'ASC',
+        },
+    });
+
     var FestivalProduct = Ext.data.Record.create([
         { name: 'festival_product_id', type: 'int' },
-        { name: 'product_id',          type: 'int' },
-        { name: 'company_id',          type: 'int' },
+        { name: 'product_id',          type: 'int', sortType: myMakeSortTypeFun(product_store, 'name') },
+        { name: 'company_id',          type: 'int', sortType: myMakeSortTypeFun(brewer_store, 'name') },
         { name: 'sale_price',          type: 'float' },
-        { name: 'sale_volume_id',      type: 'int' },
-        { name: 'sale_currency_id',    type: 'int' },
+        { name: 'sale_volume_id',      type: 'int', sortType: myMakeSortTypeFun(volume_store, 'description') },
+        { name: 'sale_currency_id',    type: 'int', sortType: myMakeSortTypeFun(currency_store, 'currency_code') },
         { name: 'comment',             type: 'string' },
     ]);
 
@@ -44,19 +98,6 @@ Ext.onReady(function(){
     });
 
     /* Supplier drop-down */
-    var brewer_store = new Ext.data.JsonStore({
-        url:        url_company_list,
-        root:       'objects',
-        fields:     [{ name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-        idProperty: 'name',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
-    });
-    brewer_store.load({ params: { brewer_festival_id: festival_id } });
     var brewer_combo = new Ext.form.ComboBox({
         triggerAction:  'all',
         mode:           'local',
@@ -86,20 +127,6 @@ Ext.onReady(function(){
     });
 
     /* Product drop-down */
-    var product_store = new Ext.data.JsonStore({
-        url:        url_product_list,
-        root:       'objects',
-        fields:     [{ name: 'product_id', type: 'int' },
-                     { name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        idProperty: 'product_id',
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-
-
     /* We need this to reload upon brewer reselection.
        See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
     var product_combo = new Ext.form.ComboBox({
@@ -117,7 +144,7 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
         listeners: {
             beforeQuery: function(query) { 
-                currentRowId = myGrid.getSelectionModel().getSelected().data.company_id;
+                var currentRowId = myGrid.getSelectionModel().getSelected().data.company_id;
                 this.store.reload( { params: { company_id: currentRowId }, add: true } );
                 this.store.clearFilter();
                 this.store.filter( { property:   'company_id',
@@ -128,17 +155,6 @@ Ext.onReady(function(){
     });
 
     /* Sale volume drop-down */
-    var volume_store = new Ext.data.JsonStore({
-        url:        url_sale_volume_list,
-        root:       'objects',
-        fields:     [{ name: 'sale_volume_id', type: 'int' },
-                     { name: 'description',    type: 'string'}],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-    volume_store.load();
     var volume_combo = new Ext.form.ComboBox({
         allowBlank:     false,
         typeAhead:      true,
@@ -153,17 +169,6 @@ Ext.onReady(function(){
     });
 
     /* Currency drop-down */
-    var currency_store = new Ext.data.JsonStore({
-        url:        url_currency_list,
-        root:       'objects',
-        fields:     [{ name: 'currency_id',   type: 'int'    },
-                     { name: 'currency_code', type: 'string' }],
-        sortInfo:   {
-            field:     'currency_code',
-            direction: 'ASC',
-        },
-    });
-    currency_store.load();
     var currency_combo = new Ext.form.ComboBox({
         allowBlank:     false,
         typeAhead:      true,
@@ -246,6 +251,7 @@ Ext.onReady(function(){
             deleteUrl:          url_festivalproduct_delete,
             submitUrl:          url_festivalproduct_submit,
             recordChanges:      recordChanges,
+            comboStores:        [ brewer_store, product_store, volume_store, currency_store ],
             listeners: {
                 beforeedit: function(e) {
                     // reference to the currently clicked cell

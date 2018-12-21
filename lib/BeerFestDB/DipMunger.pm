@@ -23,6 +23,8 @@ package BeerFestDB::DipMunger;
 use Moose::Role;
 use namespace::autoclean;
 
+use BeerFestDB::Web;
+
 =head1 NAME
 
 BeerFestDB::DipMunger - Utility functions for CaskMeasurements.
@@ -56,6 +58,12 @@ sub munge_dips {
 
     return [] unless $latest_batch_id;
 
+    my $config = BeerFestDB::Web->config();
+    my $db = $cask->result_source()->schema();
+    my $default_meas_unit = $db->resultset('ContainerMeasure')->find({
+        description => $config->{'default_measurement_unit'},
+    }) or die("Unable to retrieve default measurement unit; check config settings.");
+
     my @batches = $festival->measurement_batches(
         undef,
         { order_by => { -asc => 'measurement_time' }},
@@ -76,18 +84,19 @@ sub munge_dips {
         );
 
     my %ongoing;
-    my $latest = $caskman->container_size_id->container_volume();
-    my $denom  = $caskman->container_size_id->container_measure_id->litre_multiplier();
+    my $denom  = $default_meas_unit->litre_multiplier();
+    my $latest = $caskman->container_size_id->container_volume() *
+	( $caskman->container_size_id->container_measure_id()->litre_multiplier / $denom );
 
     DIP:
     foreach my $batch ( @batches ) {
         my $d = $dip{ $batch->measurement_time() };
         if ( defined $d && defined $d->{'volume'} ) {
 
-            # Convert $vol into the same units used by the cask
-            # container_size (in practice the units are generally
-            # identical in any case). Beware floating point shennanigans here.
+            # Convert $vol into the same units used by the default cask
+            # container_measurement. Beware floating point shennanigans here.
             my $vol = $d->{'volume'} * ( $d->{'multiplier'} / $denom );
+
             $ongoing{ $batch->id } = $vol;
             $latest = $vol;
         }

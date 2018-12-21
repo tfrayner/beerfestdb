@@ -169,4 +169,10 @@ __PACKAGE__->belongs_to("gyle_id", "BeerFestDB::ORM::Gyle", { gyle_id => "gyle_i
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return sprintf("%s: %s",
+				      $self->gyle_id->festival_product_id->repr(),
+				      $self->cask_management_id->repr());
+}
+
 1;

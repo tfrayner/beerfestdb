@@ -1,0 +1,5 @@
+[% META title = 'Product Allergen Type listing' %]
+
+[% js_link( src = '/static/js/grids/product_allergen_types.js' ) %]
+
+<div id="datagrid"></div>

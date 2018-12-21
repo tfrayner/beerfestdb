@@ -36,7 +36,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    contact_type_store.load();
 
     /* Country drop-down */
     var country_store = new Ext.data.JsonStore({
@@ -49,7 +48,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    country_store.load();
 
     /* Telephone type drop-down */
     var phone_type_store = new Ext.data.JsonStore({
@@ -62,7 +60,7 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    phone_type_store.load();
+
     var phone_type_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     true,
@@ -93,7 +91,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
     });
-    phone_store.load();
 
     /* Contact form */
     var contactForm = new MyFormPanel({
@@ -165,6 +162,7 @@ Ext.onReady(function(){
             
         ],
 
+        comboStores: [ country_store, contact_type_store ],
         loadUrl:     url_contact_load_form,
         idParams:    { contact_id: contact_id },
         waitMsg:     'Loading Contact details...',
@@ -185,6 +183,7 @@ Ext.onReady(function(){
                 return(fields);
             },
             store:              phone_store,
+            comboStores:        [ phone_type_store ],
             contentCols: [
                 { id:         'telephone_type_id',
                   header:     'Telephone Type',

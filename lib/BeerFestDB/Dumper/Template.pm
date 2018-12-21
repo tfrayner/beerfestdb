@@ -30,7 +30,7 @@ use Moose;
 
 use Carp;
 use Scalar::Util qw(looks_like_number);
-use List::Util qw(first);
+use List::Util qw(first any);
 use Storable qw(dclone);
 use Cwd;
 use File::Spec::Functions qw(catfile);
@@ -58,6 +58,11 @@ has 'logos'      => ( is       => 'ro',
                       required => 1,
                       default  => sub { [] } );
 
+has 'filters'    => ( is       => 'ro',
+                      isa      => 'ArrayRef',
+                      required => 1,
+                      default  => sub { [] } );
+
 has 'dump_class'  => ( is       => 'ro',
                        isa      => 'Str',
                        required => 1,
@@ -77,6 +82,11 @@ has 'overwrite'   => ( is       => 'ro',
                        isa      => 'Bool',
                        required => 1,
                        default  => 0 );
+
+has 'skip_unpriced' => ( is       => 'ro',
+                         isa      => 'Bool',
+                         required => 1,
+                         default  => 0 );
 
 sub BUILD {
 
@@ -136,7 +146,9 @@ sub allergen_hash {
 
 sub product_hash {
 
-    my ( $self, $product ) = @_;
+    my ( $self, $product, $prodhash ) = @_;
+
+    $prodhash ||= {};
 
     my $fest = $self->festival();
     my $fp   = $product->search_related('festival_products',
@@ -147,36 +159,34 @@ sub product_hash {
                                                 $product->name()));
 
     # N.B. Changes here need to be documented in the POD.
-    my %prodhash = (
-        brewery  => $product->company_id->name(),
-	location => $product->company_id->loc_desc(),
-        product  => $product->name(),
-        style    => $product->product_style_id()
-                    ? $product->product_style_id()->description() : q{},
-        category => $product->product_category_id()->description(),
-        abv      => $product->nominal_abv(),
-        notes    => $product->description(),
-        allergens => $self->allergen_hash( $product ),
-        _split_export_tag => $tag,
-    );
+    $prodhash->{brewery}  = $product->company_id->name();
+    $prodhash->{location} = $product->company_id->loc_desc();
+    $prodhash->{product}  = $product->name();
+    $prodhash->{style}    = $product->product_style_id()
+	                ? $product->product_style_id()->description() : q{};
+    $prodhash->{category} = $product->product_category_id()->description();
+    $prodhash->{abv}      = $product->nominal_abv();
+    $prodhash->{notes}    = $product->description();
+    $prodhash->{allergens} = $self->allergen_hash( $product );
+    $prodhash->{_split_export_tag} = $tag;
 
     # Handle FestivalProduct data here.
     if ( $fp ) {
-        $prodhash{sale_volume} = $fp->sale_volume_id()->description();
+        $prodhash->{sale_volume} = $fp->sale_volume_id()->description();
         my $currency = $fp->sale_currency_id();
         my $format   = $currency->currency_format();
-        $prodhash{currency} = $currency->currency_symbol();
+        $prodhash->{currency} = $currency->currency_symbol();
 
         # The formatted_price option is great if you just want to display
         # the price in the local format. However, if you need to do any
         # calculations then use price and the price_format filter
         # below. This reduces the risk of floating-point errors.
 	# UPDATE: commented out this line as the formatting code breaks on large price values.
-#        $prodhash{formatted_price} = $self->format_price( $fp->sale_price(), $format );
-        $prodhash{price} = $fp->sale_price(); # typically in pennies (GBP).
+#        $prodhash->{formatted_price} = $self->format_price( $fp->sale_price(), $format );
+        $prodhash->{price} = $fp->sale_price(); # typically in pennies (GBP).
     }
 
-    return \%prodhash;
+    return $prodhash;
 }
 
 sub order_hash {
@@ -185,14 +195,28 @@ sub order_hash {
 
     my $fest = $self->festival();
 
-    # N.B. Changes here need to be documented in the POD. FIXME this is not documented at all yet.
+    my $config = BeerFestDB::Web->config();
+    my $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
+        description => $config->{'default_measurement_unit'},
+    }) or die("Unable to retrieve default measurement unit; check config settings.");
+
+    my $local_cask_size = $order->container_size_id->container_volume();
+    my $cask_measure    = $order->container_size_id->container_measure_id();
+
     my %orderhash = (
         brewery     => $order->product_id->company_id->name(),
         product     => $order->product_id->name(),
         distributor => $order->distributor_company_id->name(),
-        cask_size   => $order->container_size_id->container_volume(),
+        cask_size   => $local_cask_size,
+        cask_size_unit => $cask_measure->symbol(),
+        cask_size_name => $order->container_size_id->description(),
+        cask_size_std  => $local_cask_size
+                        * ( $cask_measure->litre_multiplier() /
+                            $default_meas_unit->litre_multiplier() ),
+	dispense_method => $order->container_size_id->dispense_method_id->description(),
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
+        is_disposable     => $order->container_size_id->dispense_method_id->is_disposable(),
         nominal_abv => $order->product_id->nominal_abv(),
         _split_export_tag => $order->product_order_id(),
     );
@@ -301,13 +325,33 @@ sub update_caskman_hash {
 
     my ( $self, $caskmanhash, $caskman ) = @_;
 
+    my $config = BeerFestDB::Web->config();
+    my $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
+        description => $config->{'default_measurement_unit'},
+    }) or die("Unable to retrieve default measurement unit; check config settings.");
+
+    my $local_cask_size = $caskman->container_size_id->container_volume();
+    my $cask_measure    = $caskman->container_size_id->container_measure_id();
+
     # N.B. Changes here need to be documented in the POD.
     $caskmanhash ||= {};
     $caskmanhash->{_split_export_tag} = $caskman->cask_management_id();
     $caskmanhash->{number}      = $caskman->internal_reference();
+    $caskmanhash->{count}       = $caskman->search_related('casks')
+                                          ->search_related('gyle_id')
+                                          ->search_related('festival_product_id')
+                                          ->search_related('gyles')
+                                          ->search_related('casks')
+                                          ->search_related('cask_management_id')->count();
     $caskmanhash->{festival_id} = $caskman->cellar_reference();
-    $caskmanhash->{size}        = $caskman->container_size_id
-          ? $caskman->container_size_id->container_volume() : q{};
+    $caskmanhash->{cask_size}   = $local_cask_size;
+    $caskmanhash->{cask_size_unit} = $cask_measure->symbol();
+    $caskmanhash->{cask_size_name} = $caskman->container_size_id->description();
+    $caskmanhash->{cask_size_std}  = $local_cask_size
+                                   * ( $cask_measure->litre_multiplier() /
+                                       $default_meas_unit->litre_multiplier() );
+    $caskmanhash->{dispense_method} = $caskman->container_size_id->dispense_method_id->description();
+    $caskmanhash->{is_disposable} = $caskman->container_size_id->dispense_method_id->is_disposable();
     $caskmanhash->{is_sale_or_return} = $caskman->is_sale_or_return();
     $caskmanhash->{stillage_bay} = $caskman->stillage_bay();
     $caskmanhash->{bay_position} = $caskman->bay_position_id
@@ -316,8 +360,25 @@ sub update_caskman_hash {
     $caskmanhash->{stillage_location} = $stillage_loc ? $stillage_loc->description() : q{};
     $caskmanhash->{order_batch}  = $caskman->product_order_id
   	  ? $caskman->product_order_id->order_batch_id->description() : 'Unknown';
+    $caskmanhash->{distributor}  = $caskman->distributor_company_id
+          ? $caskman->distributor_company_id->name() : 'Untracked';
 
     return $caskmanhash;
+}
+
+sub is_user_filtered {
+
+    my ( $self, $objhash ) = @_;
+
+    # Filters are stored as an arrayref of arrayrefs.
+    foreach my $filter ( @{ $self->filters } ) {
+        my ( $key, $value, $count ) = @$filter;
+        if ( exists($objhash->{ $key }) && $objhash->{ $key } eq $value ) {
+            $filter->[2]++;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 sub dump {
@@ -373,10 +434,9 @@ sub dump {
     }
     elsif ( $self->dump_class eq 'gyle' ) {
         foreach my $product ( @{ $self->festival_products } ) {
-	    my @gyles =
-		$product->search_related('festival_products',
-					 { festival_id => $self->festival->id() })
-                        ->search_related('gyles');
+            my @gyles = $product->search_related('festival_products',
+                                                 { festival_id => $self->festival->id() })
+                                ->search_related('gyles');
             foreach my $gyle ( @gyles ) {
                 my $gylehash = $self->product_hash( $gyle->festival_product_id()->product_id() );
                 $self->update_gyle_hash( $gylehash, $gyle );
@@ -406,6 +466,7 @@ sub dump {
     elsif ( $self->dump_class eq 'product_order' ) {
         foreach my $order ( @{ $self->festival_orders() } ) {
             my $orderhash = $self->order_hash( $order );
+	    $self->product_hash( $order->product_id(), $orderhash );
             push @template_data, $orderhash;
         }
     }
@@ -418,7 +479,29 @@ sub dump {
     else {
         confess(sprintf(qq{Attempt to dump data from unsupported class "%s"}, $self->dump_class));
     }
-    
+
+    # The user may have specified some object properties to filter out of the dump.
+    @template_data = grep { ! $self->is_user_filtered($_) } @template_data;
+    foreach my $stillage_name ( keys %stillage ) {
+        $stillage{ $stillage_name } = [ grep { ! $self->is_user_filtered($_) }
+                                            @{ $stillage{ $stillage_name } } ];
+    }
+    foreach my $filter ( @{ $self->filters } ) {
+        my ( $key, $value, $count ) = @$filter;
+        if ( (not defined($count)) || $count == 0 ) {
+            warn("Warning: Filter expression did not remove any entries: $key=$value\n");
+        }
+    }
+
+    # Filter out objects without a price available, if desired.
+    if ( $self->skip_unpriced ) {
+        @template_data = grep { has_nonzero_price($_) } @template_data;
+        foreach my $stillage_name ( keys %stillage ) {
+            $stillage{ $stillage_name } = [ grep { has_nonzero_price($_) }
+                                                @{ $stillage{ $stillage_name } } ];
+        }
+    }
+
     # We define some custom filters for convenience.
     my $template = Template->new(
 	ABSOLUTE => 1,
@@ -463,6 +546,15 @@ sub dump {
     }
 
     return;
+}
+
+sub has_nonzero_price {
+
+    my ( $hashref ) = @_;
+
+    # In case we use a dump class which has no price data, detect that
+    # here to reduce potential confusion.
+    return ! (exists $hashref->{'price'}) || $hashref->{'price'};
 }
 
 sub rounded_fraction_factory {
@@ -569,13 +661,14 @@ sub filter_to_latex {
     $text =~ s/ (?: Ö | \x{d6} ) /\\"{O}/gxms;
     $text =~ s/ (?: Ü | \x{dc} ) /\\"{U}/gxms;
 
-    # Misc.
+    # Misc. (brewers can be such smartarses).
     $text =~ s/ (?: \£ | \x{a3} ) /\\pounds/gxms;
     $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
     $text =~ s/ (?: ß  | \x{df} ) /\\ss/gxms;
-    $text =~ s/ (?: ø  | \x{f8} ) /\\o/gxms;
+    $text =~ s/ (?: ø  | \x{f8} ) /\\o /gxms;
     $text =~ s/ (?: π  | \x{3c0} ) /\$\\pi\$/gxms;
     $text =~ s/ (?: °  | \x{b0} ) /\$\^\{\\circ\}\$/gxms;
+    $text =~ s/ (?: ·  | \x{b7} ) /\\textperiodcentered /gxms;
 
     return $text;
 }
@@ -636,9 +729,30 @@ The name of the beer, cider, or whatever.
 
 (Cask-level export only). The unique festival ID for the cask.
 
-=item size
+=item cask_size
 
-(Cask-level export only). The size of the cask (units not currently reported).
+(Cask-level export only). The size of the cask.
+
+=item cask_size_unit
+
+(Cask-level export only). The units in which cask_size is reported.
+
+=item cask_size_std
+
+(Cask-level export only). The size of the cask in the currently
+configured default_measurement_unit (e.g., gallons).
+
+=item cask_size_name
+
+(Cask-level export only). The cask size name in the database (e.g. "firkin").
+
+=item dispense_method
+
+(Cask-level export only). The cask dispense method (e.g. "cask", "keykeg").
+
+=item cask_count
+
+(Product-order-level export only). The number of casks in the order.
 
 =item category
 
@@ -654,7 +768,12 @@ A description of the product (e.g., beer tasting notes).
 
 =item abv
 
-The ABV, obviously.
+The ABV, obviously. Depending on context, this is either the nominal
+ABV or the actual ABV as linked to a specific product gyle.
+
+=item nominal_abv
+
+(Product-order-level export only). The nominal ABV as advertised.
 
 =item currency
 

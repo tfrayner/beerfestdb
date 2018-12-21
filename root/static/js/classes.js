@@ -61,6 +61,21 @@ function simpleClone(obj) {
     return copy;
 }
 
+/* Quick lookup function used to create sortType attributes on
+ * fields. Required for sorting grid comboboxes by display, rather
+ * than key value */
+function myMakeSortTypeFun(store, value) {
+    return function(id) {
+        var ix = store.findExact(store.idProperty, id);
+        if ( ix >= 0 ) { // handle blank (optional) fields.
+            return store.getAt(ix).get(value);
+        }
+        else {
+            return ''; // assumes our desired sort field is always a string.
+        }
+    }
+}
+
 NewButton = Ext.extend(Ext.Button, {
 
     text:    'New Row',
@@ -223,7 +238,8 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     columnLines:        true,
     stripeRows:         true,
     trackMouseOver:     true,
-    loadMask:           true,
+    loadMask:           true, // seems not to work in extjs 3.4
+    comboStores:        [],
     viewConfig: new Ext.grid.GridView({
         autoFill: true,
         forceFit: true,
@@ -291,24 +307,52 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                                   deleteUrl:    this.deleteUrl}),
             ],
             listeners: {
-                beforerender: function() {
-                    var reloadable = this.reloadableStores;
-                    if ( reloadable ) {
-                        for ( var n=0; n < reloadable.length; n++) {
-                            reloadable[n].load();
-                        }
+                beforerender: function(myGrid) {
+                    myGrid.suspendEvents(true);
+                    var myMask = new Ext.LoadMask(Ext.getBody());
+                    myMask.show();
+                    var allStores = myGrid.comboStores;
+                    var numStores = allStores.length;
+                    if ( numStores == 0 ) {
+			myGrid.store.load({
+                            callback: function (r, options, success) {
+                                if (success === true) {
+                                    myMask.hide();
+                                    myGrid.resumeEvents();
+                                }
+                            }
+                        });
                     }
-                    return true
+                    else {
+                        var loadedStores = 0;
+                        Ext.each(allStores,
+                                 function (storeCur, index, storearray) {
+                            storeCur.load({
+                                // defined in store config (unofficial).
+                                params:    this.myLoadParams,
+                                callback: function (r, options, success) {
+                                    if (success === true) {
+                                       loadedStores = loadedStores + 1;
+                                        if (loadedStores == numStores) {
+					    myGrid.store.load();
+                                            myMask.hide();
+                                            myGrid.resumeEvents();
+                                        }
+                                    }
+                                }
+                           });
+                       });
+                    }
                 },
-            },
+             }
         });
+
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
     },
-    
+
     onRender: function() {
-        this.store.load();
         MyEditorGrid.superclass.onRender.apply(this, arguments);
-    }
+    },
 });
 
 MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
@@ -316,7 +360,7 @@ MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
     columnLines:        true,
     stripeRows:         true,
     trackMouseOver:     true,
-    loadMask:           true,
+    loadMask:           true, // seems not to work in extjs 3.4
     viewConfig: new Ext.grid.GridView({
         autoFill: true,
         forceFit: true,
@@ -350,14 +394,30 @@ MyViewGrid = Ext.extend(Ext.grid.GridPanel, {
         
         Ext.apply(this, {
             cm:                 col_model,
-            plugins:            action,            
+            plugins:            action,
+            listeners: {
+                beforerender: function(myGrid) {
+                    myGrid.suspendEvents(true);
+                    var myMask = new Ext.LoadMask(Ext.getBody());
+                    myMask.show();
+                    myGrid.store.load({
+                        // defined in store config (unofficial).
+                        params:    myGrid.myLoadParams,
+                        callback: function (r, options, success) {
+                            if (success === true) {
+                                myMask.hide();
+                                myGrid.resumeEvents();
+                            }
+                        }
+                    });
+                },
+            },
         });
-        MyEditorGrid.superclass.initComponent.apply(this, arguments);
+        MyViewGrid.superclass.initComponent.apply(this, arguments);
     },
     
     onRender: function() {
-        this.store.load();
-        MyEditorGrid.superclass.onRender.apply(this, arguments);
+        MyViewGrid.superclass.onRender.apply(this, arguments);
     }
 });
 
@@ -385,6 +445,7 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
     width:       500,
     defaults:    {width: 300}, // field box width
     defaultType: 'textfield',
+    comboStores: [],
             
     initComponent: function() {
 
@@ -417,16 +478,52 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
             initialConfig: {
                 trackResetOnLoad: true,
             },
+            listeners: {
+                beforerender: function(myForm) {
+                    myForm.suspendEvents(true);
+                    var myMask = new Ext.LoadMask(Ext.getBody());
+                    myMask.show();
+                    var numStores = myForm.comboStores.length;
+                    if ( numStores == 0 ) {
+			myForm.load({
+			    url:     myForm.loadUrl,
+			    params:  myForm.idParams,
+			    waitMsg: myForm.waitMsg,
+			});
+                        myMask.hide();
+                        myForm.resumeEvents();
+                    }
+                    else {
+                        var loadedStores = 0;
+                        Ext.each(myForm.comboStores,
+                                 function (storeCur, index, storearray) {
+                            storeCur.load({
+                                // defined in store config (unofficial).
+                                params:    myForm.myLoadParams,
+                                callback: function (r, options, success) {
+                                    if (success === true) {
+                                        loadedStores = loadedStores + 1;
+                                        if (loadedStores == numStores) {
+					    myForm.load({
+						url:     myForm.loadUrl,
+						params:  myForm.idParams,
+						waitMsg: myForm.waitMsg,
+					    });
+                                            myMask.hide();
+                                            myForm.resumeEvents();
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    }
+                },
+            },
         });
         MyFormPanel.superclass.initComponent.apply(this, arguments);
     },
     
     onRender: function() {
-        this.load({
-            url:     this.loadUrl,
-            params:  this.idParams,
-            waitMsg: this.waitMsg,
-        });
         MyFormPanel.superclass.onRender.apply(this, arguments);
     }
 });

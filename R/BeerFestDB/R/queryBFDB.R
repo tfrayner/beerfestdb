@@ -44,7 +44,10 @@ getBFData <- function(dbclass, action, params=c(), columns=NULL, auth, .opts=lis
 
     if ( ! is.null(columns) ) {
         if ( nrow(res) > 0 ) {
-            stopifnot( all(columns %in% colnames(res)) )
+            if ( ! all(columns %in% colnames(res)) ) {
+	        stop(sprintf("Unexpected BFDB query result from class %s, action %s; missing columns: %s",
+ 		             dbclass, action, paste(setdiff(columns, colnames(res)), collapse=', ')))
+	    }
             res <- res[, columns]
         } else {
             res <- as.data.frame(matrix(nrow=0,

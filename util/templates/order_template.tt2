@@ -37,18 +37,19 @@
 \includegraphics[width=2.5cm]{images/camra_candd_lores.png}
 \end{textblock}
 
-\begin{textblock}{5}(33,1)
-\includegraphics[width=2.5cm]{images/caskman-ford-noglass.png}
-\end{textblock}
+%% commenting out logo for 2016 (and beyond?)
+%\begin{textblock}{5}(33,1)
+%\includegraphics[width=2.5cm]{images/caskman-ford-noglass.png}
+%\end{textblock}
 
 
 \begin{textblock}{30}(5,2)
-\center{\Huge{42\textsuperscript{nd} Cambridge Beer Festival}}
-\center{\Large{18--23 May 2015}}
+\center{\Huge{45\textsuperscript{th} Cambridge Beer Festival}}
+\center{\Large{21--26 May 2018}}
 \end{textblock}
 
 \begin{textblock}{22}(2,9)
-\Large{\textbf{ORDER} (Our reference: CBF-42-[% dist.id %]-[% dist.batch_id %])} % insert generated unique ref here
+\Large{\textbf{ORDER} (Our reference: CBF-45-[% dist.id %]-[% dist.batch_id %])} % insert generated unique ref here
 \end{textblock}
 
 \begin{textblock}{10}(26,9)
@@ -72,8 +73,8 @@ CB1 3RB
 \textbf{Deliver to:}\\
 Jesus Green (off Victoria Avenue---gate near bridge)\\
 Cambridge\\
-CB5 8AL\\
-Contact: before 11 May, voice mail to 01223 967808\\
+CB4 3BD\\
+Contact: before 16 May, voice mail to 01223 631413\\
 or email to \texttt{cellar@cambridgebeerfestival.com}\\
 Site contact for delivery: 07804 184948\\
 \vspace{3mm} 
@@ -81,9 +82,9 @@ Site contact for delivery: 07804 184948\\
 \end{textblock}
 
 \begin{textblock}{35}(2,20)
-\textbf{Please supply for delivery on Wednesday 13 May 2015:}
+\textbf{Please supply for delivery on Wednesday 16 May 2018:}
 
-[% BLOCK order_row %][% order.cask_count %] x [% order.cask_size | format('%i') %]s [% IF order.is_sale_or_return %](sale or return)[% END %][% END %]
+[% BLOCK order_row %][% order.cask_count %] x [% order.cask_size_name %]s [% IF order.is_sale_or_return %](sale or return)[% END %][% END %]
 
 \emph{Delivery will not be accepted on any other date unless prior arrangements have been made.}
 \end{textblock}
@@ -124,11 +125,11 @@ Site contact for delivery: 07804 184948\\
 \textbf{Terms and additional information:}
 
 \begin{my_itemize}
-\item \small{Please notify the festival at the above number no later than \textbf{Friday 1 May 2015} of any changes (beer availability, cask size, delivery, etc.) to this order. We cannot guarantee that we will be able to accommodate changes that are brought to our attention after this date, and may refuse delivery.}
+\item \small{Please notify the festival at the above number no later than \textbf{Friday 4 May 2018} of any changes (beer availability, cask size, delivery, etc.) to this order. We cannot guarantee that we will be able to accommodate changes that are brought to our attention after this date, and may refuse delivery.}
 
 \item \small{Please supply prior to or at time of unloading an inventory for items delivered with their replacement cost value, for inclusion on Festival Insurance. Any items not listed on an inventory will be classed as \textbf{LEFT AT OWNER'S OWN RISK} when signed for.}
 
-\item \small{Empty casks must be collected no later than \textbf{Tuesday 26 May 2015} unless special arrangements are made in advance (on or before 1 May).  After this date they will be removed to a secure location off-site and a storage fee will be charged.}   % usually Weds ok too, and FF often agrees Thurs in advance
+\item \small{Empty casks must be collected no later than \textbf{Tuesday 29 May 2018} unless special arrangements are made in advance (on or before 5 May).  After this date they will be removed to a secure location off-site and a storage fee will be charged.}   % usually Weds ok too, and FF often agrees Thurs in advance
 
 \item \small{No invoices for payment will be accepted without a quote reference.}
 
@@ -142,14 +143,14 @@ Site contact for delivery: 07804 184948\\
 \includegraphics[width=2.5cm]{images/camra_candd_lores.png}
 \end{textblock}
 
-\begin{textblock}{5}(33,1)
-\includegraphics[width=2.5cm]{images/caskman-ford-noglass.png}
-\end{textblock}
+%\begin{textblock}{5}(33,1)
+%\includegraphics[width=2.5cm]{images/caskman-ford-noglass.png}
+%\end{textblock}
 
 
 \begin{textblock}{30}(5,2)
-\center{\Huge{42\textsuperscript{nd} Cambridge Beer Festival}}
-\center{\Large{19--24 May 2014}}
+\center{\Huge{45\textsuperscript{th} Cambridge Beer Festival}}
+\center{\Large{21--26 May 2018}}
 \end{textblock}
 
 
@@ -158,7 +159,7 @@ Map to festival site:
 
 \vspace{5mm}
 
-\includegraphics[width=14.5cm]{images/vehicle_routes.pdf}
+\includegraphics[width=14.5cm]{images/cbf_vehicle_routes.pdf}
 
 \vspace{5mm}
 
@@ -172,11 +173,9 @@ Not to scale.
 
 \item Please arrange to approach the site from the north (red dashed arrow on map). This will allow waiting without blocking the road until the vehicle can enter onto Jesus Green. If you do approach from the other way you can turn round to enter from the correct direction by following the road around the Mitcham's Corner one-way system.
 
-\item On approaching the festival site, please phone \textbf{07804184948} to gain admittance, or park and walk to the site. It would be much appreciated if you can phone well ahead to arrange a time window when you will arrive.
+\item Please phone \textbf{07804184948} if you have questions about delivery or require assistance, or if you are likely to arrive before 9 AM or after 5 PM.
 
-\item \textbf{Articulated lorries and vehicles over 7.5t may be handled at the Midsummer Common hard standing area as shown on the map (blue dashed arrow). Please inform us by phoning ahead prior to approaching site if you fall into this category.}
-
-\item Please follow Festival Staff directions at all times.
+\item Please follow festival volunteer staff directions at all times.
 \end{itemize}
 
 \end{textblock}

@@ -58,7 +58,7 @@
 
   [% FOREACH cask = casks %]
 
-    [% SET latest = cask.size %]
+    [% SET latest = cask.cask_size %]
 
     [% NEXT IF cask.category != 'beer' %]
     [% cask.stillage_bay | latexify %] [% cask.bay_position | truncate(12) | latexify %] &
@@ -67,7 +67,7 @@
     [% cask.festival_id %] &
     [% cask.number %] &
     &  &  &
-    [% cask.size | format('%d') %] &
+    [% cask.cask_size | format('%d') %] &
 [%- FOREACH batch = dip_batches -%]
 [%- SET bid = batch.id -%]
  [%- cask.dips.$bid | format('%.1f') | replace('\.0$','') %] &

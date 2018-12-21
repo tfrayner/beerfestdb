@@ -64,6 +64,12 @@ __PACKAGE__->table("company");
   is_nullable: 1
   size: 255
 
+=head2 awrs_urn
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 31
+
 =head2 comment
 
   data_type: 'text'
@@ -86,6 +92,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "url",
   { data_type => "varchar", is_nullable => 1, size => 255 },
+  "awrs_urn",
+  { data_type => "varchar", is_nullable => 1, size => 31 },
   "comment",
   { data_type => "text", is_nullable => 1 },
 );
@@ -208,10 +216,13 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-20 17:33:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8qbKBR9bFDYMyaeudOL2WA
+# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-04 18:03:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bftST0OBm/aJbtqZ85C30g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+sub repr {
+    my ( $self ) = @_; return $self->name;
+}
 
 1;

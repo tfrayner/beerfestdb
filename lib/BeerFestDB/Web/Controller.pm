@@ -85,9 +85,12 @@ sub generate_object_viewhash : Private {
     my %obj_info;
     foreach my $key ( keys %mv_map ) {
         my $value = $self->viewhash_from_model($key, $obj);
-        if ( defined $value ) {
-            $obj_info{ $key } = $value;
-        }
+
+	# We used to constrain this to just output defined values, but
+	# that led to failures in the R package when querying
+	# e.g. lists of Casks, none of whom have a defined comment. So
+	# bear in mind that some of the following will be undef.
+	$obj_info{ $key } = $value;
     }
 
     return \%obj_info;
@@ -503,6 +506,10 @@ objects from the database.
 sub delete_database_object : Private {
 
     my ( $self, $c, $rec ) = @_;
+
+    # Note that this will raise an exception to derail the enclosing
+    # transaction if the user is not authorised to make changes.
+    $self->_confirm_category_authorisation($c, $rec);
 
     eval {
         $rec->delete();

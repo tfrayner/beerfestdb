@@ -170,7 +170,7 @@ CREATE TABLE `cask_management` (
   `stillage_y_location` int(6) unsigned DEFAULT NULL,
   `stillage_z_location` int(6) unsigned DEFAULT NULL,
   `internal_reference` int(6) DEFAULT NULL,
-  `cellar_reference` int(6) DEFAULT NULL,
+  `cellar_reference` int(6) NOT NULL,
   `is_sale_or_return` tinyint(1) DEFAULT '0', -- web json list drops this silently if NULL (a problem for our R code).
   PRIMARY KEY (`cask_management_id`),
   UNIQUE KEY `festival_cellar_ref` (`festival_id`,`cellar_reference`),
@@ -351,6 +351,7 @@ CREATE TABLE `company` (
   `company_region_id` int(6) DEFAULT NULL,
   `year_founded` int(4) DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
+  `awrs_urn` varchar(31) DEFAULT NULL,
   `comment` text,
   PRIMARY KEY (`company_id`),
   UNIQUE KEY `name` (`name`),
@@ -428,7 +429,24 @@ CREATE TABLE `container_measure` (
   `container_measure_id` int(6) NOT NULL AUTO_INCREMENT,
   `litre_multiplier` decimal(15,12) NOT NULL,
   `description` varchar(50) NOT NULL,
+  `symbol` varchar(16) NOT NULL,
   PRIMARY KEY (`container_measure_id`),
+  UNIQUE KEY `description` (`description`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dispense_method`
+--
+
+DROP TABLE IF EXISTS `dispense_method`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dispense_method` (
+  `dispense_method_id` int(6) NOT NULL AUTO_INCREMENT,
+  `description` varchar(100) NOT NULL,
+  `is_disposable` tinyint(1) DEFAULT '0', -- containers are not returned to vendor (keykeg vs. keg).
+  PRIMARY KEY (`dispense_method_id`),
   UNIQUE KEY `description` (`description`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -444,12 +462,15 @@ CREATE TABLE `container_size` (
   `container_size_id` int(6) NOT NULL AUTO_INCREMENT,
   `container_volume` decimal(4,2) NOT NULL,
   `container_measure_id` int(6) NOT NULL,
-  `description` varchar(100) DEFAULT NULL,
+  `dispense_method_id` int(6) NOT NULL,
+  `description` varchar(100) NOT NULL,
   PRIMARY KEY (`container_size_id`),
-  UNIQUE KEY `container_volume` (`container_volume`,`container_measure_id`),
+  UNIQUE KEY `container_volume` (`container_volume`,`container_measure_id`,`dispense_method_id`),
   UNIQUE KEY `description` (`description`),
   KEY `FK_CS_cmid_CM_cmid` (`container_measure_id`),
-  CONSTRAINT `container_size_ibfk_1` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION
+  KEY `FK_CS_dmid_DM_dmid` (`dispense_method_id`),
+  CONSTRAINT `container_size_ibfk_1` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION,
+  CONSTRAINT `container_size_ibfk_2` FOREIGN KEY (`dispense_method_id`) REFERENCES `dispense_method` (`dispense_method_id`) ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1191,7 +1212,7 @@ CREATE TABLE `sale_volume` (
   `sale_volume_id` int(6) NOT NULL AUTO_INCREMENT,
   `container_measure_id` int(6) NOT NULL,
   `description` varchar(30) NOT NULL,
-  `volume` decimal(4,2) DEFAULT NULL,
+  `volume` decimal(4,2) NOT NULL,
   PRIMARY KEY (`sale_volume_id`),
   UNIQUE KEY `description` (`description`),
   KEY `FK_SV_cmid_CM_cmid` (`container_measure_id`),
@@ -1266,7 +1287,7 @@ CREATE TABLE `user` (
   `username` varchar(255) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
-  `password` varchar(40) NOT NULL,
+  `password` varchar(40) NOT NULL DEFAULT '*',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -1296,16 +1317,17 @@ CREATE TABLE `user_role` (
 -- Final view structure for view `order_summary_view`
 --
 
+/*!50001 DROP TABLE IF EXISTS `order_summary_view`*/;
 /*!50001 DROP VIEW IF EXISTS `order_summary_view`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
-/*!50001 SET character_set_client      = latin1 */;
-/*!50001 SET character_set_results     = latin1 */;
-/*!50001 SET collation_connection      = latin1_swedish_ci */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `order_summary_view` AS (select `f`.`name` AS `festival`,`pc`.`description` AS `category`,`c`.`name` AS `brewery`,`p`.`name` AS `beer`,`st`.`description` AS `style`,if((`po`.`is_sale_or_return` = 1),'Yes','No') AS `sale_or_return`,`p`.`nominal_abv` AS `abv`,round(sum(((`po`.`cask_count` * `cs`.`container_volume`) / 18)),1) AS `kils` from ((((((`company` `c` join `product_category` `pc`) join (`product` `p` left join `product_style` `st` on((`p`.`product_style_id` = `st`.`product_style_id`)))) join `product_order` `po`) join `order_batch` `ob`) join `container_size` `cs`) join `festival` `f`) where ((`f`.`festival_id` = `ob`.`festival_id`) and (`ob`.`order_batch_id` = `po`.`order_batch_id`) and (`p`.`product_id` = `po`.`product_id`) and (`p`.`company_id` = `c`.`company_id`) and (`po`.`container_size_id` = `cs`.`container_size_id`) and (`p`.`product_category_id` = `pc`.`product_category_id`) and (`po`.`is_final` = 1)) group by `f`.`name`,`pc`.`description`,`c`.`name`,`p`.`name`,`st`.`description`,if((`po`.`is_sale_or_return` = 1),'Yes','No'),`p`.`nominal_abv`,(`po`.`cask_count` * `cs`.`container_volume`)) */;
+/*!50001 VIEW `order_summary_view` AS (select `f`.`name` AS `festival`,`pc`.`description` AS `category`,`c`.`name` AS `brewery`,`p`.`name` AS `beer`,`st`.`description` AS `style`,if((`po`.`is_sale_or_return` = 1),'Yes','No') AS `sale_or_return`,`p`.`nominal_abv` AS `abv`,round(sum((((`po`.`cask_count` * `cs`.`container_volume`) * `cm`.`litre_multiplier`) / (18 * 4.5461))),1) AS `kils` from (((((((`company` `c` join `product_category` `pc`) join (`product` `p` left join `product_style` `st` on((`p`.`product_style_id` = `st`.`product_style_id`)))) join `product_order` `po`) join `order_batch` `ob`) join `container_size` `cs`) join `container_measure` `cm`) join `festival` `f`) where ((`f`.`festival_id` = `ob`.`festival_id`) and (`ob`.`order_batch_id` = `po`.`order_batch_id`) and (`p`.`product_id` = `po`.`product_id`) and (`p`.`company_id` = `c`.`company_id`) and (`po`.`container_size_id` = `cs`.`container_size_id`) and (`cs`.`container_measure_id` = `cm`.`container_measure_id`) and (`p`.`product_category_id` = `pc`.`product_category_id`) and (`po`.`is_final` = 1)) group by `f`.`name`,`pc`.`description`,`c`.`name`,`p`.`name`,`st`.`description`,if((`po`.`is_sale_or_return` = 1),'Yes','No'),`p`.`nominal_abv`,((`po`.`cask_count` * `cs`.`container_volume`) * `cm`.`litre_multiplier`)) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -1323,7 +1345,7 @@ CREATE TABLE `user_role` (
 /*!50001 SET collation_connection      = latin1_swedish_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `programme_notes_view` AS (select distinct `f`.`name` AS `festival`,`pc`.`description` AS `category`,`c`.`name` AS `brewer`,`c`.`loc_desc` AS `location`,`c`.`year_founded` AS `year_established`,`p`.`name` AS `beer`,`p`.`nominal_abv` AS `abv`,`p`.`description` AS `tasting_notes`,`p`.`long_description` AS `tasting_essay`,`ps`.`description` AS `style` from (((((`company` `c` join (`product` `p` left join `product_style` `ps` on((`ps`.`product_style_id` = `p`.`product_style_id`)))) join `product_category` `pc`) join `product_order` `po`) join `order_batch` `ob`) join `festival` `f`) where ((`f`.`festival_id` = `ob`.`festival_id`) and (`ob`.`order_batch_id` = `po`.`order_batch_id`) and (`po`.`product_id` = `p`.`product_id`) and (`p`.`company_id` = `c`.`company_id`) and (`pc`.`product_category_id` = `p`.`product_category_id`) and (`po`.`is_final` = 1)) order by `f`.`name`,`pc`.`description`,`c`.`name`,`p`.`name`) */;
+/*!50001 VIEW `programme_notes_view` AS (select distinct `f`.`name` AS `festival`,`pc`.`description` AS `category`,`c`.`name` AS `brewer`,`c`.`loc_desc` AS `location`,`c`.`year_founded` AS `year_established`,`p`.`name` AS `beer`,`p`.`nominal_abv` AS `abv`,`p`.`description` AS `tasting_notes`,`p`.`long_description` AS `tasting_essay`,`ps`.`description` AS `style`,`dm`.`description` AS `dispense_method` from (((((((`company` `c` join (`product` `p` left join `product_style` `ps` on((`ps`.`product_style_id` = `p`.`product_style_id`)))) join `product_category` `pc`) join `product_order` `po`) join `order_batch` `ob`) join `festival` `f`) join `container_size` `cs`) join `dispense_method` `dm`) where ((`f`.`festival_id` = `ob`.`festival_id`) and (`ob`.`order_batch_id` = `po`.`order_batch_id`) and (`po`.`product_id` = `p`.`product_id`) and (`p`.`company_id` = `c`.`company_id`) and (`pc`.`product_category_id` = `p`.`product_category_id`) and (`po`.`container_size_id` = `cs`.`container_size_id`) and (`cs`.`dispense_method_id` = `dm`.`dispense_method_id`) and (`po`.`is_final` = 1)) order by `f`.`name`,`pc`.`description`,`c`.`name`,`p`.`name`,`dm`.`description`) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
