@@ -35,9 +35,10 @@ edit it to add the database connection details.
 Run script/beerfestdb_web_server.pl to test the application. You
 should now be able to connect to http://localhost:3000/ and look
 around the website. You can set up your production environment in a
-number of different ways (see the Catalyst project for more
-information on this. A typical setup might use Apache with FastCGI
-(via the beerfestdb_web_fastcgi.pl script). Please consult the Apache
+number of different ways (see the Catalyst project at
+http://www.catalystframework.org/ for more information on this). A
+typical setup might use the Apache webserver with FastCGI (via the
+beerfestdb_web_fastcgi.pl script). Please consult the Apache
 documentation for help with this configuration.
 
 
