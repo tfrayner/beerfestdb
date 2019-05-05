@@ -24,10 +24,10 @@ new database instance, and set up the database tables by loading in
 db/create_tables.sql and db/initialise_vocabs.sql, in that order. This
 sets up the following default accounts:
 
-Username    Password
---------    --------
-admin       admin
-cellar      cellar
+| Username | Password |
+| -------- | -------- |
+| admin    | admin    |
+| cellar   | cellar   |
 
 Make a copy of beerfestdb_web.yml-example as beerfestdb_web.yml and
 edit it to add the database connection details.
