@@ -37,19 +37,14 @@
 \includegraphics[width=2.5cm]{images/camra_candd_lores.png}
 \end{textblock}
 
-%% commenting out logo for 2016 (and beyond?)
-%\begin{textblock}{5}(33,1)
-%\includegraphics[width=2.5cm]{images/caskman-ford-noglass.png}
-%\end{textblock}
-
 
 \begin{textblock}{30}(5,2)
-\center{\Huge{45\textsuperscript{th} Cambridge Beer Festival}}
-\center{\Large{21--26 May 2018}}
+\center{\Huge{46\textsuperscript{th} Cambridge Beer Festival}}
+\center{\Large{20--25 May 2019}}
 \end{textblock}
 
 \begin{textblock}{22}(2,9)
-\Large{\textbf{ORDER} (Our reference: CBF-45-[% dist.id %]-[% dist.batch_id %])} % insert generated unique ref here
+\Large{\textbf{ORDER} (Our reference: CBF-46-[% dist.id %]-[% dist.batch_id %])} % insert generated unique ref here
 \end{textblock}
 
 \begin{textblock}{10}(26,9)
@@ -73,7 +68,7 @@ CB1 3RB
 \textbf{Deliver to:}\\
 Jesus Green (off Victoria Avenue---gate near bridge)\\
 Cambridge\\
-CB4 3BD\\
+CB4 1HA\\
 Contact: before 16 May, voice mail to 01223 631413\\
 or email to \texttt{cellar@cambridgebeerfestival.com}\\
 Site contact for delivery: 07804 184948\\
@@ -82,7 +77,7 @@ Site contact for delivery: 07804 184948\\
 \end{textblock}
 
 \begin{textblock}{35}(2,20)
-\textbf{Please supply for delivery on Wednesday 16 May 2018:}
+\textbf{Please supply for delivery on Wednesday 15 May 2019:}
 
 [% BLOCK order_row %][% order.cask_count %] x [% order.cask_size_name %]s [% IF order.is_sale_or_return %](sale or return)[% END %][% END %]
 
@@ -125,11 +120,11 @@ Site contact for delivery: 07804 184948\\
 \textbf{Terms and additional information:}
 
 \begin{my_itemize}
-\item \small{Please notify the festival at the above number no later than \textbf{Friday 4 May 2018} of any changes (beer availability, cask size, delivery, etc.) to this order. We cannot guarantee that we will be able to accommodate changes that are brought to our attention after this date, and may refuse delivery.}
+\item \small{Please notify the festival at the above number no later than \textbf{Friday 3 May 2019} of any changes (beer availability, cask size, delivery, etc.) to this order. We cannot guarantee that we will be able to accommodate changes that are brought to our attention after this date, and may refuse delivery.}
 
 \item \small{Please supply prior to or at time of unloading an inventory for items delivered with their replacement cost value, for inclusion on Festival Insurance. Any items not listed on an inventory will be classed as \textbf{LEFT AT OWNER'S OWN RISK} when signed for.}
 
-\item \small{Empty casks must be collected no later than \textbf{Tuesday 29 May 2018} unless special arrangements are made in advance (on or before 5 May).  After this date they will be removed to a secure location off-site and a storage fee will be charged.}   % usually Weds ok too, and FF often agrees Thurs in advance
+\item \small{Empty casks must be collected no later than \textbf{Tuesday 28 May 2019} unless special arrangements are made in advance (on or before 5 May).  After this date they will be removed to a secure location off-site and a storage fee will be charged.}   % usually Weds ok too, and FF often agrees Thurs in advance
 
 \item \small{No invoices for payment will be accepted without a quote reference.}
 
@@ -149,8 +144,8 @@ Site contact for delivery: 07804 184948\\
 
 
 \begin{textblock}{30}(5,2)
-\center{\Huge{45\textsuperscript{th} Cambridge Beer Festival}}
-\center{\Large{21--26 May 2018}}
+\center{\Huge{46\textsuperscript{th} Cambridge Beer Festival}}
+\center{\Large{20--25 May 2019}}
 \end{textblock}
 
 
