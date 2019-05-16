@@ -161,7 +161,7 @@ For dip sheets:
   Assign each cask to a bar
         interface: All casks received - Stillage column
 	OR
-	use update_cask_details.pl -a -f $file (cask ID & location ID in $file)
+	use update_cask_details.pl -a -i $file (cask ID & location ID in $file)
 	  headers cask_festival_id, stillage_location (use name for stillage location, e.g. DMZ)
 	  need the -a flag to get it to "move a cask", i.e. change its location assignment, even from nothing to something
 	  handy way to get cask IDs: take relevant columns from index card data see below)
