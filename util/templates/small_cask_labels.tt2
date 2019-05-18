@@ -1,0 +1,46 @@
+%
+% $Id$
+%
+
+[% IF dump_class != 'cask_management' %][% THROW bad_dump_class "Use the cask_management dump class.\n" %][% END %]
+
+\documentclass[a4paper,12pt]{article} 
+\usepackage[newdimens]{labels}
+%\usepackage{palatino}
+
+%% *** GET DIMENSIONS & LABEL COUNT ***
+
+\LabelCols=5 % Number of columns of labels per page
+\LabelRows=13 % Number of rows of labels per page
+\LabelInfotrue
+
+% These four parameters give the page gutter sizes. The outer edges of
+% the outer labels are the specified distances from the edge of the
+% paper.
+\LeftPageMargin=8mm
+\RightPageMargin=4mm
+\TopPageMargin=7mm
+\BottomPageMargin=7mm
+
+\InterLabelColumn=3mm % Gap between columns of labels
+\InterLabelRow=0mm % Gap between rows of labels
+
+% These four parameters give the extra space used around the text on
+% each actual label.
+\LeftLabelBorder=2mm
+\RightLabelBorder=1mm
+\TopLabelBorder=2mm
+\BottomLabelBorder=1mm
+
+\renewcommand\familydefault{\sfdefault} % makes it use sans serif
+
+\begin{document}% End of preamble
+
+\begin{labels}
+[% FOREACH cask = objects.sort('category', 'brewery', 'product') %]
+[% cask.brewery | truncate(20) | latexify %]
+[% cask.product | truncate(20) | latexify %]
+[% END %]
+\end{labels}
+
+\end{document}
