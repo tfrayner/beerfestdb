@@ -284,6 +284,8 @@ sub list_status : Local {
 
 =head2 html_status_list
 
+DEPRECATED
+
 =cut
 
 sub html_status_list : Local {

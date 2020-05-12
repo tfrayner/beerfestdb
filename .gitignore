@@ -1,5 +1,18 @@
 # Ignore main site config file, for obvious security reasons.
 beerfestdb_web.yml
 
-# Ignore emacs backup files.
+# Other random temp files
 *~
+Makefile
+t/testing.db
+t/pristine_testing.db
+blib
+inc
+META.yml
+MYMETA.json
+MYMETA.yml
+pm_to_blib
+.Rhistory
+.RData
+R/.Rhistory
+R/.RData

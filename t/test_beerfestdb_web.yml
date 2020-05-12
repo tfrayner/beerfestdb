@@ -1,0 +1,62 @@
+# Main database configuration.
+Model::DB:
+  connect_info:
+    - DBI:SQLite:dbname=t/testing.db
+    -
+    -
+    - RaiseError: 1
+      AutoCommit: 1
+
+current_festival:   'TestFestival'
+
+# Configuration options specific to generation of a OpenOffice beer listing.
+OODoc:
+
+  # The named styles below must be defined in the ODT template document used.
+  styles:
+    bar_name:         'Bar Name'
+    beer_name:        'Beer'
+    beer_notes:       'Tasting Notes'
+    brewery_name:     'Brewery'
+    brewery_location: 'Brewery Location'
+
+  dump_tasting_notes: 1
+
+# A list of classes which will not auto-create upon database
+# loading. Good for maintaining some control over typos.
+protected_classes:
+  - Company
+  - Product
+  - ProductStyle
+  - ProductCategory
+  - Currency
+  - CompanyRegion
+  - ContactType
+  - ContainerMeasure
+  - ContainerSize
+  - Country
+  - ProductCharacteristicType
+  - SaleVolume
+  - TelephoneType
+  - Festival
+  - FestivalProduct
+  - Cask
+  - CaskManagement
+  - Gyle
+  - StillageLocation
+  - BayPosition
+  - OrderBatch
+  - ProductOrder
+
+status_query:
+  departments:
+    - beer
+    - foreign beer
+    - cider
+    - apple juice
+    - perry
+    - wine
+    - mead
+  beerfestdb_uri:          'http://localhost:3000'
+  public_site_upload_uri:  'file://localhost/www/data/push'
+  public_festival_tag:      test

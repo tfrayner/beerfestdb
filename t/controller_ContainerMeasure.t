@@ -2,9 +2,16 @@ use strict;
 use warnings;
 use Test::More;
 
+use lib 't/lib';
+use TestFestivalDB qw(authenticated_user);
+use TestGenericGrid qw(generic_grid_tests);
 
-use Catalyst::Test 'BeerFestDB::Web';
-use BeerFestDB::Web::Controller::ContainerMeasure;
+BEGIN { use_ok 'Catalyst::Test', 'BeerFestDB::Web' }
+BEGIN { use_ok 'BeerFestDB::Web::Controller::ContainerMeasure' }
 
-ok( request('/containermeasure')->is_success, 'Request should succeed' );
+my $ua = authenticated_user("admin", "admin");
+
+# grid not yet implemented FIXME if needed.
+generic_grid_tests("containermeasure", "ContainerMeasure", $ua, 1);
+
 done_testing();

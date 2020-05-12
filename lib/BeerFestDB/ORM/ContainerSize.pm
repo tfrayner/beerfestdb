@@ -41,17 +41,17 @@ __PACKAGE__->table("container_size");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 dispense_method_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 description
 
   data_type: 'varchar'
   is_nullable: 0
   size: 100
+
+=head2 dispense_method_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
 
 =cut
 
@@ -62,10 +62,10 @@ __PACKAGE__->add_columns(
   { data_type => "decimal", is_nullable => 0, size => [4, 2] },
   "container_measure_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "dispense_method_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "description",
   { data_type => "varchar", is_nullable => 0, size => 100 },
+  "dispense_method_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -178,8 +178,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07045 @ 2017-04-07 20:32:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ntyHyIIqJvMaBoDbvf+M/A
+# Created by DBIx::Class::Schema::Loader v0.07048 @ 2020-05-11 19:15:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tjCYLlYWxgiscR8jIj7zyQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -2,9 +2,15 @@ use strict;
 use warnings;
 use Test::More;
 
+use lib 't/lib';
+use TestFestivalDB qw(authenticated_user);
+use TestGenericGrid qw(generic_grid_tests);
 
-use Catalyst::Test 'BeerFestDB::Web';
-use BeerFestDB::Web::Controller::DispenseMethod;
+BEGIN { use_ok 'Catalyst::Test', 'BeerFestDB::Web' }
+BEGIN { use_ok 'BeerFestDB::Web::Controller::DispenseMethod' }
 
-ok( request('/dispensemethod')->is_success, 'Request should succeed' );
+my $ua = authenticated_user("admin", "admin");
+
+generic_grid_tests("dispensemethod", "DispenseMethod", $ua);
+
 done_testing();

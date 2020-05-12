@@ -191,11 +191,11 @@ sub list_by_festival : Local {
 
     my $rs;
     if ( defined $festival_id ) {
-        my %query = ( 'festival_product_id.festival_id' => $festival_id );
+        my %query = ( 'festival_products.festival_id' => $festival_id );
         if ( defined $category_id ) {
             $query{ product_category_id } = $category_id;
         }
-        $rs = $c->model( 'DB::Product' )->search_rs( \%query, { join => 'festival_product_id' } );
+        $rs = $c->model( 'DB::Product' )->search_rs( \%query, { join => 'festival_products' } );
     }
     else {
         $c->stash->{error} = 'Festival ID not provided.';

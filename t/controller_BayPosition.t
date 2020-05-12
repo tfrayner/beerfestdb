@@ -2,9 +2,14 @@ use strict;
 use warnings;
 use Test::More;
 
+use lib 't/lib';
+use TestFestivalDB qw(authenticated_user);
 
-use Catalyst::Test 'BeerFestDB::Web';
-use BeerFestDB::Web::Controller::BayPosition;
+BEGIN { use_ok 'Catalyst::Test', 'BeerFestDB::Web' }
+BEGIN { use_ok 'BeerFestDB::Web::Controller::BayPosition' }
 
-ok( request('/bayposition')->is_success, 'Request should succeed' );
+my $ua = authenticated_user("admin", "admin");
+
+$ua->get_ok('/bayposition/list', 'BayPosition list should succeed' );
+
 done_testing();
