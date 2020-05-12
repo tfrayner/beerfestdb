@@ -46,7 +46,7 @@ use Catalyst qw/ConfigLoader
                 Authorization::Roles
                 Authorization::ACL
                /;
-our $VERSION = '0.01';
+our $VERSION = '1.0';
 
 # Configure the application. 
 #
