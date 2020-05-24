@@ -15,6 +15,13 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- Current Database: `beerfestdb`
+--
+
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `beerfestdb` /*!40100 DEFAULT CHARACTER SET utf8 */;
+
+USE `beerfestdb`;
+
 --
 -- Table structure for table `bar`
 --

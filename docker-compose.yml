@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  mysql:
+    image: 'mysql:5.7'
+    volumes: 
+      - 'beerfestdb_mysql:/var/lib/mysql'
+      - './db:/docker-entrypoint-initdb.d'
+    env_file: 
+      - '.env'
+      - '.mysql_env'
+    expose:
+      - 3306
+
+  app:
+    image: 'beerfestdb:1.0'
+    env_file:
+      - '.app_env'
+    volumes:
+      - './:/usr/src/Beerfestdb'
+    command: >
+            beerfestdb_web_fastcgi.pl -l :3000 -n 5 -e
+    expose: 
+      - 3000
+
+  web:
+    image: 'nginx:1.15.7-perl'
+    depends_on: 
+      - 'app'
+    ports:
+      - '8080:80'
+    volumes:
+      - './nginx:/etc/nginx/conf.d'
+
+volumes:
+  'beerfestdb_mysql': {}

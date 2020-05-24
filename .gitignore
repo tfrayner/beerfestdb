@@ -1,6 +1,3 @@
-# Ignore main site config file, for obvious security reasons.
-beerfestdb_web.yml
-
 # Other random temp files
 *~
 Makefile
