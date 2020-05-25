@@ -68,5 +68,7 @@ requires 'OpenOffice::OODoc';
 catalyst;
 
 install_script glob('script/*.pl');
+install_script glob('util/*.pl');
+
 auto_install;
 WriteAll;

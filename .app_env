@@ -1,2 +1,3 @@
-# The following line should be removed for production deployments.
+# The following two lines should be removed for production deployments:
 PERL5LIB=/usr/src/BeerFestDB/lib
+BEERFESTDB_WEB_CONFIG=/usr/src/BeerFestDB/beerfestdb_web_site.yml

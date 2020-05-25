@@ -33,7 +33,7 @@ OODoc:
 
 # A list of classes which will not auto-create upon database
 # loading. Good for maintaining some control over typos.
-protected_classes: {}
+protected_classes: []
 #  - Company
 #  - Product
 #  - ProductStyle

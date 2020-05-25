@@ -13,6 +13,7 @@ services:
 
   app:
     image: 'beerfestdb:1.0'
+    user: nobody
     env_file:
       - '.app_env'
     volumes:
