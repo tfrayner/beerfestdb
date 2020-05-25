@@ -24,11 +24,12 @@ provided Docker container with docker-compose. There are just three
 steps to get started:
 
 1. Edit beerfestdb_web.yml and db/create_dbuser_account.sql to change
-the default database connection password. This step is technically
-optional, but highly recommended.
+the default database connection password. This step is optional, but
+highly recommended.
 
-2. Run this command to build the Docker container:
+2. Run these commands to build the Docker container:
 
+        docker build -t catalyst:1.0 -f Dockerfile-catalyst .
         docker build -t beerfestdb:1.0 .
 
 3. Run this command to initialise the database and start the application:
