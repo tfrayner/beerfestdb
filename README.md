@@ -29,11 +29,11 @@ optional, but highly recommended.
 
 2. Run this command to build the Docker container:
 
-  docker build -t beerfestdb:1.0 .
+    docker build -t beerfestdb:1.0 .
 
 3. Run this command to initialise the database and start the application:
 
-  docker-compose up
+    docker-compose up
 
 You should now be able to navigate to http://localhost:8080/ in your
 web browser and log in (see below for default account details).
@@ -50,7 +50,7 @@ To run command-line scripts in the development environment, you can
 use commands such as this (perhaps as part of an alias) to read and
 write files within the project directory:
 
-  docker-compose run -w /usr/src/BeerFestDB --rm app load_data.pl -i example_data/producers.csv
+    docker-compose run -w /usr/src/BeerFestDB --rm app load_data.pl -i example_data/producers.csv
 
 Files will be created as owned by the 'nobody' user; if desired, this can
 be changed in the docker-compose.yml file.
@@ -79,11 +79,11 @@ using a MySQL database running on localhost with the default accounts
 set up in the previous step, this is as simple as changing the
 following line:
 
-  DBI:mysql:beerfestdb:mysql:3306
+    DBI:mysql:beerfestdb:mysql:3306
 
 to this:
 
-  DBI:mysql:beerfestdb:localhost:3306
+    DBI:mysql:beerfestdb:localhost:3306
 
 3. Run script/beerfestdb_web_server.pl to test the application. You
 should now be able to connect to http://localhost:3000/ and look
