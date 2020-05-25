@@ -1,0 +1,2 @@
+# The following line should be removed for production deployments.
+PERL5LIB=/usr/src/BeerFestDB/lib
