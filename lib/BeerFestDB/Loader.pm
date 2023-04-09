@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010-2013 Tim F. Rayner
+# Copyright (C) 2010-2023 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -789,9 +789,9 @@ sub _load_column_value {
              && defined $value && $value ne $old ) {
             warn(
                 sprintf(
-                    qq{WARNING: Will not overwrite old %s.%s value with new data}
+                    qq{WARNING: Will not overwrite old %s.%s value (dbid: %d; %s) with new data}
                     . qq{ (consider overwrite mode?):\nOLD: %s\nNEW: %s\n\n},
-                    $class, $col, $old, $value))
+                    $class, $col, $object->id, $self->_value_repr($object), $old, $value))
         }
     }
     $object->update();
@@ -940,7 +940,7 @@ sub load {
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2023 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
