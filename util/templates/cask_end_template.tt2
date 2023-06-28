@@ -213,7 +213,7 @@ Note that cask end signs created using product_order dump class info may be inac
 
 [% IF cask.category == 'mead' || cask.category == 'wine' %]
 
-\begin{textblock}{0.3}(0.50,0.70)
+\begin{textblock}{0.35}(0.50,0.70)
 
   \textbf{[% cask.currency | latexify -%]
           [%- cask.price | price_format | format('%.2f') -%]/[% cask.sale_volume %]}
