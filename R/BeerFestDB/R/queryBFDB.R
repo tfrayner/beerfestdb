@@ -232,100 +232,13 @@ setMethod('queryBFDB', signature(auth='list', baseuri='missing'), .queryBFDBErro
 }
 
 ################################################################################
-## Fairly generic method to open a Tcl/Tk dialog and ask the user for
-## login credentials.
+## Simple user query for login credentials. Replaces old tcl/tk version.
 ##
-## Code copied from
-## http://bioinf.wehi.edu.au/~wettenhall/RTclTkExamples/modalDialog.html
-## and modified.
-.getCredentials <- function(title='BeerFestDB Authentication',
-                            entryWidth=30, returnValOnCancel=NA, parent) {
+.getCredentials <- function() {
 
-    ## Previous versions checked X11 here but that doesn't make sense
-    ## for the MS Windows version of R, which pushes tcltk through the
-    ## internal R graphics device.
-    if ( ! capabilities()['tcltk'] )
-        stop("Error: tcltk windowing system is not available.")
-
-    require(tcltk)
-
-    username <- returnValOnCancel
-    password <- returnValOnCancel
-    username.tcl <- tclVar('')
-    password.tcl <- tclVar('')
-
-    if ( missing(parent) ) {
-        dlg <- tktoplevel()
-
-        tkwm.geometry(dlg, .calcTkWmGeometry(350,130))
-        tkwm.geometry(dlg, '') # Shrink back to default size
-        tkwm.deiconify(dlg)
-        tkgrab.set(dlg)
-        tkfocus(dlg)
-        tkwm.title(dlg,title)
-    }
-    else {
-        dlg <- tkframe(parent)
-        tkpack(dlg, expand=TRUE)
-    }
-
-    onOK <- function() {
-        username <<- tclvalue(username.tcl)
-        password <<- tclvalue(password.tcl)
-        tkgrab.release(dlg)
-        tkdestroy(dlg)
-    }
-
-    onCancel <- function() {
-        username <<- returnValOnCancel
-        password <<- returnValOnCancel
-        tkgrab.release(dlg)
-        tkdestroy(dlg)
-    }
-
-    # Put our buttons into a frame.
-    f.buttons <- tkframe(dlg, borderwidth=15)
-    b.OK     <- tkbutton(f.buttons, text="   OK   ", command=onOK)
-    b.cancel <- tkbutton(f.buttons, text=" Cancel ", command=onCancel)
-    tkpack(b.OK, b.cancel, side='right')
-
-    # Text entry fields belong in a grid inside a frame.
-    f.entries <- tkframe(dlg, borderwidth=15)
-
-    e.user       <- tkentry(f.entries, width=paste(entryWidth),
-                            textvariable=username.tcl)
-    l.user       <- tklabel(f.entries, text='Username: ')
-    e.pass       <- tkentry(f.entries, width=paste(entryWidth),
-                            textvariable=password.tcl, show='*')
-    l.pass       <- tklabel(f.entries, text='Password: ')
-    
-    tkgrid(l.user, e.user)
-    tkgrid(l.pass, e.pass)
-
-    # Line the fields and labels up in the middle.
-    tkgrid.configure(e.user, e.pass, sticky='w')
-    tkgrid.configure(l.user, l.pass, sticky='e')
-
-    tkpack(f.entries, side='top')
-    tkpack(f.buttons, anchor='se')
-    
-    tkfocus(e.user)
-    tkbind(dlg, "<Destroy>", function() tkgrab.release(dlg))
-    tkbind(e.user, "<Return>", onOK)
-    tkbind(e.pass, "<Return>", onOK)
-    tkwait.window(dlg)
+    username <- readline(prompt = "Username: ")
+    password <- getPass(msg = "Password: ", noblank = TRUE)
 
     return(list(username=username, password=password))
 }
 
-################################################################################
-## Simply calculate where to draw the dialog box relative to the
-## parent viewpane/window. This function determines the placement of a
-## subwindow in the center of the parent.
-.calcTkWmGeometry <- function( width, height ) {
-
-    px <- as.numeric(tkwinfo('screenwidth', '.'))
-    py <- as.numeric(tkwinfo('screenheight', '.'))
-
-    sprintf('%dx%d+%d+%d', width, height, (px/2)-(width/2), (py/2)-(height/2))
-}
