@@ -665,7 +665,7 @@ sub filter_to_latex {
     # Misc. (brewers can be such smartarses).
     $text =~ s/ (?: \£ | \x{a3} ) /\\pounds/gxms;
     $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
-    $text =~ s/ (?: ß  | \x{df} ) /\{\ss}/gxms;
+    $text =~ s/ (?: ß  | \x{df} ) /\{\\ss}/gxms;
     $text =~ s/ (?: ø  | \x{f8} ) /\\o /gxms;
     $text =~ s/ (?: π  | \x{3c0} ) /\$\\pi\$/gxms;
     $text =~ s/ (?: °  | \x{b0} ) /\$\^\{\\circ\}\$/gxms;
