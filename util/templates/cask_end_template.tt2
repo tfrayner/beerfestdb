@@ -82,7 +82,7 @@ Note that cask end signs created using product_order dump class info may be inac
 
 [% IF cask.brewery == 'UNKNOWN' %][% SET cask.brewery = '' %][% END %]
 
-[% IF cask.category == 'beer' || cask.category == 'foreign beer' %]
+[% IF cask.category == 'beer' || cask.category == 'foreign beer' || cask.category == 'low-no' %]
 
   [% IF cask.product.length > 55 %]
     [% product_font_size = 48 %]
@@ -180,7 +180,7 @@ Note that cask end signs created using product_order dump class info may be inac
 
 [% ELSE %]
 
-  [% THROW category "Unrecognised product category (should be beer, foreign beer, cider, mead, wine, perry or apple juice): $cask.category" %]
+  [% THROW category "Unrecognised product category (should be beer, foreign beer, low-no, cider, mead, wine, perry or apple juice): $cask.category" %]
   
 [% END %]
 
