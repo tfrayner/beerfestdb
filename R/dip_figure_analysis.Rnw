@@ -68,9 +68,6 @@ library(gplots)
 
 library(BeerFestDB)
 
-library(tcltk)
-addTclPath('/usr/local/lib')
-
 cp <- getFestivalData(baseuri, festname, prodcat)
 cp$stillage[ is.na(cp$stillage) ] <- "Unassigned"
 w  <- nchar(cp$stillage) > 12
