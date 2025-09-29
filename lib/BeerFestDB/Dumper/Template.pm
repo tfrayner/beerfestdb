@@ -634,6 +634,7 @@ sub filter_to_latex {
     $text =~ s/ (?: í | \x{ed} ) /\\'{\\i}/gxms;
     $text =~ s/ (?: ó | \x{f3} ) /\\'{o}/gxms;
     $text =~ s/ (?: ú | \x{fa} ) /\\'{u}/gxms;
+    $text =~ s/ (?: ý | \x{fd} ) /\\'{y}/gxms;
 
     $text =~ s/ (?: Á | \x{c1} ) /\\'{A}/gxms;
     $text =~ s/ (?: É | \x{c9} ) /\\'{E}/gxms;
@@ -664,11 +665,14 @@ sub filter_to_latex {
     # Misc. (brewers can be such smartarses).
     $text =~ s/ (?: \£ | \x{a3} ) /\\pounds/gxms;
     $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
-    $text =~ s/ (?: ß  | \x{df} ) /\\ss/gxms;
+    $text =~ s/ (?: ß  | \x{df} ) /\{\\ss}/gxms;
     $text =~ s/ (?: ø  | \x{f8} ) /\\o /gxms;
     $text =~ s/ (?: π  | \x{3c0} ) /\$\\pi\$/gxms;
     $text =~ s/ (?: °  | \x{b0} ) /\$\^\{\\circ\}\$/gxms;
     $text =~ s/ (?: ·  | \x{b7} ) /\\textperiodcentered /gxms;
+    $text =~ s/ (?: ž | \x{17e} ) /\\v{z}/gxms;
+    $text =~ s/ (?: Ā | \x{100} ) /\\={A}/gxms;
+    $text =~ s/ (?: ě | \x{11b} ) /\\v{A}/gxms;
 
     return $text;
 }

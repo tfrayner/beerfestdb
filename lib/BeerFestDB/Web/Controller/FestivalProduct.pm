@@ -536,7 +536,7 @@ sub _derive_status_report_by_dispense_method : Private {
 	    $c->log->debug("Updating dispense method status report for open festival.");
 
 	    my $catname = $fp->product_id->product_category_id->description();
-	    if ( first { $catname eq $_ } @{ $c->config->{'stock_control_departments'} } ) {
+	    if ( first { $catname eq $_ } @{ $c->config->{'stock_control_departments'} || [] } ) {
 		my ( $status, $css_status, $starting, $stillage ) =
 		    $self->_obfuscated_amount_remaining($fp, $dispense);
 		$prodhash->{'status'}          = $status;
