@@ -2,4 +2,16 @@ importFrom(RCurl, getURLContent, curlEscape, getURI)
 
 importFrom(getPass, getPass)
 
+importFrom(dplyr, "%>%")
+importFrom(dplyr, "rename")
+importFrom(dplyr, "mutate")
+importFrom(dplyr, "select")
+importFrom(dplyr, "left_join")
+importFrom(dplyr, "inner_join")
+importFrom(dplyr, "pull")
+importFrom(dplyr, "arrange")
+importFrom(tidyr, "replace_na")
+importFrom(dplyr, "any_of")
+importFrom(dplyr, "matches")
+
 exportPattern("^[[:alpha:]]+")
