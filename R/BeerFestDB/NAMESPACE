@@ -14,4 +14,6 @@ importFrom(tidyr, "replace_na")
 importFrom(dplyr, "any_of")
 importFrom(dplyr, "matches")
 
+importFrom(purrr, "as_mapper")
+
 exportPattern("^[[:alpha:]]+")

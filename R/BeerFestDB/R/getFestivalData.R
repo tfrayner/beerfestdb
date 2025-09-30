@@ -60,11 +60,13 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
     mutate(
       festival_ref = as.integer(festival_ref),
       is_condemned = as.integer(is_condemned),
-      is_sale_or_return = as.integer(is_sale_or_return)
+      is_sale_or_return = as.integer(is_sale_or_return),
+      cask_price = as.numeric(cask_price)
     ) %>%
     replace_na(list(is_condemned = 0, is_sale_or_return = 0, comment = ""))
 
-  # FIXME we want to map between sale_price_currency and cask_price_currency, with similar treatment for sale_volume and cask_volume as well. Skipped for now for speed.
+  # FIXME we want to map between sale_price_currency and cask_price_currency, with
+  # similar treatment for sale_volume and cask_volume as well. Skipped for now for convenience.
   cask <- cask %>%
     left_join(
       getBFData(
@@ -77,7 +79,8 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
         )
       ),
       by = "product_id"
-    )
+    ) %>%
+    mutate(sale_price = as.numeric(sale_price))
 
   default_cask_measure <- getBFData(
     baseuri = baseuri, auth = auth, .opts = .opts,

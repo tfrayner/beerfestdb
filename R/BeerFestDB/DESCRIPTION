@@ -16,4 +16,5 @@ Depends:
   gplots,
   getPass,
   dplyr,
-  tidyr
+  tidyr,
+  purrr
