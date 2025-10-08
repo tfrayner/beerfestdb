@@ -18,7 +18,7 @@ format:
     execute:
       warning: false
       cache: false
-date: '2025-09-30'
+date: '2025-10-08'
 ---
 
 ## Introduction
@@ -78,6 +78,14 @@ write.csv(cp, "full_dip_dump.csv", row.names = FALSE)
 Here we run the calculation of mean sales volumes and costs across container types and ABV ranges:
 
 ```{r calculation}
+# Function to fess up to all-NA values but to optionally gloss over partial-NA values (unreceived invoices)
+mysum <- function(x, ...) {
+  if (all(is.na(x))) {
+    return(NA)
+  } else {
+    return(sum(x, ...))
+  }
+}
 agg <- cp %>%
   group_by(
     company_name, product_name, cask_volume, size_name,
@@ -87,7 +95,7 @@ agg <- cp %>%
     pints_sold = sum(volume_sold) * 8, # Assumes volumes in gallons
     pints_lost = sum(volume_lost) * 8,
     pints_total = sum(cask_volume) * 8,
-    cost_total = sum(cask_price),
+    cost_total = mysum(cask_price, na.rm = TRUE), # na.rm=TRUE would ideally not be needed here (invoice issue)
     .groups = "drop"
   ) %>%
   mutate(
@@ -101,15 +109,16 @@ agg <- cp %>%
     pints_unsold = round(sum(pints_lost), 2),
     pints_total = round(sum(pints_total), 2),
     sales_total = round(sum(sales_total), 2),
-    cost_total = round(sum(cost_total), 2),
-    .groups = "drop"
+    cost_total = round(mysum(cost_total, na.rm = TRUE), 2)
   ) %>%
   mutate(
-    average_sale_price = round(sales_total / pints_sold, 2),
-    cost_per_pint = round(cost_total / pints_total, 2)
+    average_sale_price = ifelse(pints_sold > 0, round(sales_total / pints_sold, 2), NA),
+    cost_per_pint = ifelse(pints_total > 0, round(cost_total / pints_total, 2), NA)
   ) %>%
   arrange(size_name, is_sale_or_return, abv_class) %>%
-  select(-any_of(c("sales_total", "cost_total")))
+  select(-any_of(c("sales_total", "cost_total"))) %>%
+  mutate(across(c(average_sale_price, cost_per_pint), function(x) sprintf("%.2f", x))) %>%
+  ungroup()
 
 levels(agg$abv_class) <- sub(",", " - ", sub("\\[", "", sub("\\)", "%", levels(agg$abv_class))))
 ```

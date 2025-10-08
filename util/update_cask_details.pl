@@ -44,12 +44,31 @@ has 'allow_stillage_move' => ( is       => 'ro',
                                default  => 0,
                                required => 1 );
 
+has 'require_stillage_loc' => ( is       => 'ro',
+                                isa      => 'Bool',
+                                default  => 1,
+                                required => 1 );
+
 has '_errors'   => ( is       => 'ro',
                      isa      => 'ArrayRef',
                      required => 1,
                      default  => sub { [] } );
 
 with 'BeerFestDB::MenuSelector';
+
+sub assign_cask_price {
+
+    my ( $self, $caskman, $price ) = @_;
+
+    if ( defined $price ) {
+        if ( ! looks_like_number( $price ) ) {
+            die("Error: This cask_price doesn't look like a number: $price\n");
+        }
+	$caskman->set_column('price', $price);
+    }
+
+    return;
+}
 
 sub assign_cellar_number {
 
@@ -99,9 +118,16 @@ sub update_caskman {
     # inadvertently screwing with another stillage's info.
     my $loc = $row->{ 'stillage_location' };
     if ( ! defined $loc ) {
-        die("Error: stillage_location not defined.");
+        die("Error: stillage_location not defined.") if $self->require_stillage_loc;
     }
-    $self->assign_stillage_location( $caskman, $loc );
+    else {
+	$self->assign_stillage_location( $caskman, $loc );
+    }
+
+    # Cask price.
+    if ( my $price = $row->{ 'cask_price' } ) {
+        $self->assign_cask_price($caskman, $price);
+    }
     
     # Cellar id ("internal_reference").
     if ( my $id = $row->{ 'cask_cellar_id' } ) {
@@ -186,7 +212,7 @@ sub load {
         unless ( first { $col eq $_ } qw(cask_festival_id cask_cellar_id
                                          stillage_location stillage_bay
                                          bay_position vented tapped ready
-                                         condemned) ) {
+                                         condemned cask_price) ) {
             die("Unrecognised column heading: $col\n");
         }
     }
@@ -252,11 +278,12 @@ package main;
 
 sub parse_args {
 
-    my ( $datafile, $allow_stillage_move, $want_help );
+    my ( $datafile, $allow_stillage_move, $force_load, $want_help );
 
     GetOptions(
 	"i|input=s"    => \$datafile,
 	"a|allow"      => \$allow_stillage_move,
+	"f|force"      => \$force_load,
         "h|help"       => \$want_help,
     );
 
@@ -279,15 +306,16 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    return( $config, $datafile, $allow_stillage_move );
+    return( $config, $datafile, $allow_stillage_move, $force_load );
 }
 
-my ( $config, $datafile, $allow_stillage_move ) = parse_args();
+my ( $config, $datafile, $allow_stillage_move, $force_load ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
 my $updater = CaskUpdater->new( database            => $schema,
-                                allow_stillage_move => $allow_stillage_move );
+                                allow_stillage_move => $allow_stillage_move,
+                                require_stillage_loc => not $force_load );
 
 $updater->load( $datafile );
 
@@ -312,6 +340,11 @@ location, bay number and position once stillaging is complete.
 
 A flag indicating whether or not to allow casks to be automatically
 moved between stillages (default: no).
+
+=head2 -f
+
+A flag indicating that load should be attempted in the absence of the
+stillage location info. Not recommended for general use (default: no).
 
 =head2 -i
 
