@@ -10,7 +10,7 @@ from .models import Festival
 class FestivalCRUDTests(APITestCase):
 	def test_festival_crud_lifecycle(self):
 		# list is empty
-		url = reverse('festivals-list')
+		url = reverse('festival-list')
 		r = self.client.get(url)
 		self.assertEqual(r.status_code, status.HTTP_200_OK)
 
@@ -29,7 +29,7 @@ class FestivalCRUDTests(APITestCase):
 		fid = r.data['id'] if 'id' in r.data else r.data.get('festival_id', None)
 
 		# retrieve
-		detail = reverse('festivals-detail', args=[fid])
+		detail = reverse('festival-detail', args=[fid])
 		r = self.client.get(detail)
 		self.assertEqual(r.status_code, status.HTTP_200_OK)
 		self.assertEqual(r.data['name'], 'UnitTestFest')
@@ -47,9 +47,9 @@ class FestivalCRUDTests(APITestCase):
 class BasicEndpointSmokeTests(APITestCase):
 	def test_some_endpoints_exist(self):
 		endpoints = [
-			reverse('companies-list'),
-			reverse('products-list'),
-			reverse('casks-list'),
+			reverse('company-list'),
+			reverse('product-list'),
+			reverse('cask-list'),
 		]
 		for ep in endpoints:
 			r = self.client.get(ep)
@@ -57,6 +57,6 @@ class BasicEndpointSmokeTests(APITestCase):
 
 	def test_create_requires_auth(self):
 		# POST on a protected endpoint should require auth
-		url = reverse('companies-list')
+		url = reverse('company-list')
 		r = self.client.post(url, {'name': 'AcmeCo'}, format='json')
 		self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
