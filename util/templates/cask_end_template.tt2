@@ -48,10 +48,13 @@ Note that cask end signs created using product_order dump class info may be inac
 \end{textblock}
 [%- END %]
 
-% Allergen data (replaces old hardcoded CAMRA logo)
-\fontsize{10}{12}
+% Vegan flag and Allergen data (replaces old hardcoded CAMRA logo)
+\fontsize{14}{16}
 \selectfont
 \begin{textblock}{0.15}(0.80,0.04)
+
+[% IF cask.is_vegan %]\textbf{Suitable for Vegans}[% END %]
+
 [% SET allergens = cask.allergens %]
 [% SET started   = 0 %]
 \textbf{Contains:}
@@ -62,16 +65,6 @@ Note that cask end signs created using product_order dump class info may be inac
   [%- SET started = 1 -%]
   [%- END -%]
 [% END %] \\
-
-[% SET started   = 0 %]
-\textbf{Does not contain:}
-[% FOREACH allergen IN allergens.pairs -%]
-  [%- IF allergen.value.defined && allergen.value == 0 -%]
-  [%- IF started == 1 -%], [%- END -%]
-  [% allergen.key -%] 
-  [%- SET started = 1 -%]
-  [%- END -%]
-[% END %]
 
 \end{textblock}
 

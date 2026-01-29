@@ -41,6 +41,7 @@ Cask ID: \textbf{[% IF cask.festival_id.defined %][% cask.festival_id %][% ELSE 
 [% cask.product | truncate(20) | latexify %]
 ABV: [% cask.abv %]\%~~~([% cask.cask_size | format('%d') %])
 [% IF cask.is_sale_or_return %]SALE OR RETURN[% END %]
+Graveyard: [% cask.cask_graveyard | truncate(10) | latexify %]
 [% END %]
 \end{labels}
 

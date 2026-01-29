@@ -136,6 +136,8 @@ Readonly my $CASK_UNIT                 => 55;
 Readonly my $PRODUCT_LONG_DESCRIPTION  => 56;
 Readonly my $BREWER_AWRS_URN           => 57;
 Readonly my $DISTRIBUTOR_AWRS_URN      => 58;
+Readonly my $CASK_GRAVEYARD_LOCATION   => 59;
+Readonly my $PRODUCT_IS_VEGAN          => 60;
 
 ########
 # SUBS #
@@ -377,6 +379,7 @@ sub _load_data {
                 product_category_id => $category,
                 product_style_id    => $style,
                 nominal_abv         => $nominal_abv,
+                is_vegan         => $datahash->{$PRODUCT_IS_VEGAN},
             },
             'Product')
         : undef;
@@ -584,6 +587,7 @@ sub _load_data {
                             bay_position_id        => $bay_position,
                             bar_id                 => $bar,
                             cellar_reference       => $cellar_ref,
+                            cask_graveyard         => $datahash->{$CASK_GRAVEYARD_LOCATION},
                         },
                         'CaskManagement', 1) # 1 here forces creation of a new object.
                         : undef;
@@ -821,6 +825,7 @@ sub _coerce_headings {
         qr/brewery? [_ -]* awrs [_ -]* urn/ixms        => $BREWER_AWRS_URN,
         qr/product [_ -]* name/ixms                    => $PRODUCT_NAME,
         qr/product [_ -]* style/ixms                   => $PRODUCT_STYLE,
+        qr/product [_ -]* is [_ -]* vegan/ixms         => $PRODUCT_IS_VEGAN,
         qr/product [_ -]* description/ixms             => $PRODUCT_DESCRIPTION,
         qr/product [_ -]* long [_ -]* description/ixms => $PRODUCT_LONG_DESCRIPTION,
         qr/product [_ -]* comment/ixms                 => $PRODUCT_COMMENT,
@@ -842,6 +847,7 @@ sub _coerce_headings {
         qr/cask [_ -]* unit/ixms                       => $CASK_UNIT,
         qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
         qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,
+        qr/cask [_ -]* graveyard (?:[_ -]* location)/ixms  => $CASK_GRAVEYARD_LOCATION,
         qr/cask [_ -]* measurement [_ -]* date/ixms    => $CASK_MEASUREMENT_DATE,
         qr/cask [_ -]* measurement [_ -]* volume/ixms  => $CASK_MEASUREMENT_VOLUME,
         qr/cask [_ -]* measurement [_ -]* comment/ixms => $CASK_MEASUREMENT_COMMENT,
@@ -940,7 +946,7 @@ sub load {
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2023 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

@@ -179,6 +179,7 @@ CREATE TABLE `cask_management` (
   `internal_reference` int(6) DEFAULT NULL,
   `cellar_reference` int(6) NOT NULL,
   `is_sale_or_return` tinyint(1) DEFAULT '0', -- web json list drops this silently if NULL (a problem for our R code).
+  `cask_graveyard` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`cask_management_id`),
   UNIQUE KEY `festival_cellar_ref` (`festival_id`,`cellar_reference`),
   KEY `IDX_CSKMAN_dfid` (`distributor_company_id`),
@@ -841,6 +842,7 @@ CREATE TABLE `product` (
   `description` text,
   `long_description` text,
   `comment` text,
+  `is_vegan` tinyint(1) DEFAULT NULL, // nullable so we can record 'known unknowns' positively
   PRIMARY KEY (`product_id`),
   UNIQUE KEY `company_id` (`company_id`,`name`),
   KEY `IDX_pdc_pcid` (`product_category_id`),

@@ -48,7 +48,7 @@
 \begin{labels}
 [% FOREACH cask = objects.sort('category', 'brewery', 'product') %]
 \begin{tabular}{ l l }
-\multirow{5}{*}{
+\multirow{6}{*}{
 [% IF cask.festival_id.defined -%]
    \begin{pspicture}(0.5in, 0.5in)
      \psbarcode{[% cask.festival_id %]}{includetext width=0.5 height=0.3}{code128}
@@ -59,6 +59,7 @@
 & [% cask.product | truncate(20) | latexify %] \\
 & ABV: [% cask.abv %]\%~~~([% cask.cask_size | format('%d') %]) \\
 & [% IF cask.is_sale_or_return %]SALE OR RETURN[% END %] \\
+& Graveyard: [% cask.cask_graveyard | truncate(10) | latexify %] \\
 \end{tabular}
 [% END %]
 \end{labels}

@@ -139,6 +139,9 @@ sub BUILD {
         is_sale_or_return => {
             cask_management_id => 'is_sale_or_return',
         },
+        cask_graveyard    => {
+            cask_management_id => 'cask_graveyard',
+        }
     });
 }
 

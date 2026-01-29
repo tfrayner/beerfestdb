@@ -224,6 +224,11 @@ Ext.onReady(function(){
               noSelection:    emptySelect,
               allowBlank:     true, },
 
+            { name:           'cask_graveyard',
+              fieldLabel:     'Cask Graveyard',
+              xtype:          'textfield',
+              allowBlank:     false, },
+
             { name:           'comment',
               fieldLabel:     'Comment',
               xtype:          'textarea',
