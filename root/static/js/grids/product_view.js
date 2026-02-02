@@ -151,10 +151,10 @@ Ext.onReady(function(){
               allowBlank:     true, },
 
             { name:           'is_vegan',
-  	          fieldLabel:     'Is Vegan',
-	          lazyRender:     true,
-	          xtype:          'checkbox',
-	          allowBlank:     true },
+              fieldLabel:     'Is Vegan',
+              lazyRender:     true,
+              xtype:          'checkbox',
+              allowBlank:     true },
 
             { name:           'description',
               fieldLabel:     'Short Description',

@@ -227,7 +227,7 @@ Ext.onReady(function(){
             { name:           'cask_graveyard',
               fieldLabel:     'Cask Graveyard',
               xtype:          'textfield',
-              allowBlank:     false, },
+              allowBlank:     true, },
 
             { name:           'comment',
               fieldLabel:     'Comment',
