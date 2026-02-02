@@ -189,10 +189,10 @@ Ext.onReady(function(){
               allowBlank:     true},
             
             { name:           'is_sale_or_return',
-	      fieldLabel:     'Is SOR',
-	      lazyRender:     true,
-	      xtype:          'checkbox',
-	      allowBlank:     true },
+              fieldLabel:     'Is SOR',
+              lazyRender:     true,
+              xtype:          'checkbox',
+              allowBlank:     true },
 
             { name:           'stillage_location_id',
               fieldLabel:     'Stillage',
@@ -234,6 +234,9 @@ Ext.onReady(function(){
               xtype:          'textarea',
               allowBlank:     true, },
             
+            { name:           'cask_management_id',
+              value:          cask_management_id,
+              xtype:          'hidden', },
         ],
 
         comboStores: [ dist_store, casksize_store, stillage_store, bay_position_store ],

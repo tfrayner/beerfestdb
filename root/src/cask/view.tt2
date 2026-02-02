@@ -9,6 +9,7 @@
    var url_measurement_batch_list = '[% c.uri_for( "/measurementbatch/list/$object.cask_management_id.festival_id.id" ) %]';
 
    var cask_id  = '[% object.id %]';
+   var cask_management_id  = '[% object.cask_management_id %]';
 </script>
 
 [% js_link( src = '/static/js/grids/cask_view.js' ) %]

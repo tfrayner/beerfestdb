@@ -28,6 +28,7 @@ use Carp;
 use utf8;
 use Encode;
 use JSON::MaybeXS;
+use Data::Dumper;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -209,14 +210,17 @@ sub _confirm_category_authorisation : Private {
 
     my ($self, $c, $dbobj) = @_;
 
+    my $classname = $dbobj->result_source()->source_name();
+
+    $c->log->debug("Confirming category authorisation for "
+                   . $classname
+                   . " object...");
     if ( ! $c->user ) {
         $self->raise_exception($c, "Error: user not logged in. How could this happen?!\n");
     }
 
     # Admin users get all the privs.
     return if $c->check_any_user_role('admin');
-
-    my $classname = $dbobj->result_source()->source_name();
 
     # Make sure this list matches the keys of %catmap, above.
     if ( first { $_ eq $classname } qw( Product FestivalProduct Gyle
@@ -229,6 +233,8 @@ sub _confirm_category_authorisation : Private {
         # of any link to product_category.
         return if ( ! defined $pcat && $classname eq 'CaskManagement' );
 
+        $c->log->debug("Located product_category " . $pcat->description());
+
         my $pcat_id = $pcat->get_column('product_category_id');
 
         # Test that pcat is in $c->user's roles->categories.
@@ -239,6 +245,10 @@ sub _confirm_category_authorisation : Private {
                             ->count();
 
         if ( ! $found ) {
+            $c->log->error("User " . $c->user->get_column('username')
+                          . " lacks authorisation for product_category "
+                          . $pcat->description() . " (ID "
+                          . $pcat_id . ")");
             $self->raise_exception($c,
                                    sprintf(qq{You do not have authorisation to}
                                          . qq{ make changes to the "%s" category.\n},
@@ -249,6 +259,9 @@ sub _confirm_category_authorisation : Private {
 
         # If it's anything else, the user needs to be an admin.
         if ( ! $c->check_any_user_role('manager') ) {
+            $c->log->error("User " . $c->user->get_column('username')
+                          . " lacks manager/admin privileges to edit "
+                          . $classname . " objects.");
             $self->raise_exception($c,
                                    "Attempting to edit an object which requires"
                                    . " manager or admin privileges\n");
@@ -309,10 +322,18 @@ sub _add_object_column_attributes : Private {
 sub _add_object_relationships : Private {
 
     my ( $self, $c, $rs, $dbobj, $rec, $hashrefs, $mv_map ) = @_;
-    
+
+    $c->log->debug("Processing relationships for "
+                   . $dbobj->result_source()->source_name()
+                   . " object...");
+
+    $c->log->debug("Adding hashrefs: " . Dumper $hashrefs);
+
     foreach my $view_key (@$hashrefs) {
 
         my $lookup ||= $mv_map->{ $view_key } || $view_key;
+        $c->log->debug("Processing relationship for view_key $view_key"
+                       . " with lookup " . Dumper $lookup);
         
         my @children = keys %$lookup;
 
@@ -334,6 +355,7 @@ sub _add_object_relationships : Private {
 
         # We have to use the related primary key to safely retrieve
         # the object.
+        $c->log->debug("Processing relationship $rel with ID $next_id");
         if ( defined $next_id ) {
             $next_rec->{ $rel } = $next_id;
         }
@@ -361,6 +383,7 @@ sub _add_object_relationships : Private {
             confess("Error: Unable to update relationship with table not having only one primary column.");
         }
         my $pk = $pks[0];
+        $c->log->debug("Setting relationship $rel to " . $value->$pk );
         $dbobj->set_column( $rel, $value->$pk );
     }
 
@@ -391,7 +414,10 @@ sub build_database_object : Private {
             $dbobj_info{ $pk } = $value;
         }
     }
+    $c->log->debug("Querying data: " . Dumper \%dbobj_info);
     my $dbobj = $rs->find_or_new( \%dbobj_info );
+    $c->log->debug("Found object: " . $dbobj->result_source()->source_name()
+                         . " with ID " . join(", ", $dbobj->id) );
 
     # Secondly, deal with simple table-based attributes.
     my $hashrefs = $self->_add_object_column_attributes($dbobj, $rec, \@primary_cols, $mv_map);
@@ -404,6 +430,9 @@ sub build_database_object : Private {
     $self->_confirm_category_authorisation($c, $dbobj) if $dbobj->is_changed();
 
     unless ( $no_update ) {
+        $c->log->debug("Saving "
+                       . $dbobj->result_source()->source_name()
+                       . " object...");
         eval {
             $dbobj->update_or_insert();
         };
@@ -412,6 +441,7 @@ sub build_database_object : Private {
 	    $c->log->error("DB transaction failure: $@");
 
 	    my @missing = $self->resultset_missing_requirements( $rec, $rs );
+        $c->log->debug("Missing required fields: " . join(", ", @missing) );
 
 	    my $message;
 	    if ( scalar @missing ) {
@@ -428,6 +458,7 @@ sub build_database_object : Private {
 	    }
          
   	    # Called within a transaction, we die hard.
+        $c->log->error("%s: %s", $message, $@);    
 	    $self->raise_exception( $c, $message . "\n" );
         }
     }

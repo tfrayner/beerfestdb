@@ -24,6 +24,7 @@ use Moose;
 use namespace::autoclean;
 
 use JSON::MaybeXS;
+use Data::Dumper;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -49,7 +50,7 @@ sub BUILD {
 
     $self->model_view_map({
         cask_id           => 'cask_id',
-        cask_management_id => 'cask_management_id', # FIXME try removing this at some point
+        cask_management_id => 'cask_management_id',
         festival_id       => {
             cask_management_id => 'festival_id'
         },
@@ -348,15 +349,19 @@ sub build_database_object : Private {
             }
         }
     }
+    $c->log->debug("Cask management references found in mv_map: " . Dumper $caskman_refs);
     if ( $caskman_refs && ! $rec->{ 'cask_management_id' } ) {
         $c->log->debug("Attempting to create cask_management object.");
         my ($caskman, $caskman_rec, $caskman_mvmap);
         ( $rec, $caskman_rec, $caskman_mvmap ) = $self->_extract_caskman_terms( $rec, $mv_map );
+        $c->log->debug("Cask management record data: " . Dumper $caskman_rec);
         $caskman = $self->build_database_object( $caskman_rec, $c,
                                                  $c->model( 'DB::CaskManagement' ),
                                                  $caskman_mvmap, $no_update );
         $rec->{ 'cask_management_id' } = $caskman->cask_management_id();
     }
+
+    $c->log->debug("Superclass call to build Cask object with record data: " . Dumper $rec);
 
     $self->next::method( $rec, $c, $rs, $mv_map, $no_update );
 }
