@@ -355,7 +355,7 @@ sub build_database_object : Private {
     }
     $c->log->debug("Cask management references found in mv_map: $caskman_refs");
     if ( $caskman_refs && ! $rec->{ 'cask_management_id' } ) {
-        $c->log->debug("Attempting to create cask_management object.");
+        $c->log->debug("Attempting to create CaskManagement object.");
         my ($caskman, $caskman_rec, $caskman_mvmap);
         ( $rec, $caskman_rec, $caskman_mvmap ) = $self->_extract_caskman_terms( $rec, $mv_map );
 
