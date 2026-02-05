@@ -212,9 +212,8 @@ sub _confirm_category_authorisation : Private {
 
     my $classname = $dbobj->result_source()->source_name();
 
-    $c->log->debug("Confirming category authorisation for "
-                   . $classname
-                   . " object...");
+    $c->log->debug(qq{"Confirming category authorisation for $classname object..."});
+
     if ( ! $c->user ) {
         $self->raise_exception($c, "Error: user not logged in. How could this happen?!\n");
     }
@@ -245,10 +244,12 @@ sub _confirm_category_authorisation : Private {
                             ->count();
 
         if ( ! $found ) {
-            $c->log->error("User " . $c->user->get_column('username')
-                          . " lacks authorisation for product_category "
-                          . $pcat->description() . " (ID "
-                          . $pcat_id . ")");
+            $c->log->error(sprintf(
+                qq{User %s lacks authorisation for product_category %s (ID %d)},
+                $c->user->get_column('username'),
+                $pcat->description(),
+                $pcat_id
+            ));
             $self->raise_exception($c,
                                    sprintf(qq{You do not have authorisation to}
                                          . qq{ make changes to the "%s" category.\n},
@@ -259,9 +260,9 @@ sub _confirm_category_authorisation : Private {
 
         # If it's anything else, the user needs to be an admin.
         if ( ! $c->check_any_user_role('manager') ) {
-            $c->log->error("User " . $c->user->get_column('username')
-                          . " lacks manager/admin privileges to edit "
-                          . $classname . " objects.");
+            $c->log->error(sprintf(qq{User %s lacks manager/admin privileges to edit %s objects.}),
+                            $c->user->get_column('username'),
+                            $classname);
             $self->raise_exception($c,
                                    "Attempting to edit an object which requires"
                                    . " manager or admin privileges\n");
@@ -323,17 +324,16 @@ sub _add_object_relationships : Private {
 
     my ( $self, $c, $rs, $dbobj, $rec, $hashrefs, $mv_map ) = @_;
 
-    $c->log->debug("Processing relationships for "
-                   . $dbobj->result_source()->source_name()
-                   . " object...");
+    $c->log->debug(sprintf(qq{Processing relationships for %s object...},
+                            $dbobj->result_source()->source_name()));
 
     $c->log->debug("Adding hashrefs: " . Dumper $hashrefs);
 
     foreach my $view_key (@$hashrefs) {
 
         my $lookup ||= $mv_map->{ $view_key } || $view_key;
-        $c->log->debug("Processing relationship for view_key $view_key"
-                       . " with lookup " . Dumper $lookup);
+        $c->log->debug(sprintf(qq{Processing relationship for view_key %s with lookup %s},
+                                $view_key, Dumper $lookup));
         
         my @children = keys %$lookup;
 
@@ -416,8 +416,9 @@ sub build_database_object : Private {
     }
     $c->log->debug("Querying data: " . Dumper \%dbobj_info);
     my $dbobj = $rs->find_or_new( \%dbobj_info );
-    $c->log->debug("Found object: " . $dbobj->result_source()->source_name()
-                         . " with ID " . join(", ", $dbobj->id) );
+    $c->log->debug(sprintf(qq{Found object: %s with ID %s},
+                            $dbobj->result_source()->source_name(),
+                            $dbobj->id));
 
     # Secondly, deal with simple table-based attributes.
     my $hashrefs = $self->_add_object_column_attributes($dbobj, $rec, \@primary_cols, $mv_map);
@@ -430,15 +431,13 @@ sub build_database_object : Private {
     $self->_confirm_category_authorisation($c, $dbobj) if $dbobj->is_changed();
 
     unless ( $no_update ) {
-        $c->log->debug("Saving "
-                       . $dbobj->result_source()->source_name()
-                       . " object...");
+        $c->log->debug(sprintf(qq{Saving %s object with ID %s...},
+                                $dbobj->result_source()->source_name(),
+                                $dbobj->id));
         eval {
             $dbobj->update_or_insert();
         };
         if ($@) {
-
-	    $c->log->error("DB transaction failure: $@");
 
 	    my @missing = $self->resultset_missing_requirements( $rec, $rs );
         $c->log->debug("Missing required fields: " . join(", ", @missing) );
@@ -451,10 +450,9 @@ sub build_database_object : Private {
 		  . join(", ", @bad) . ").";
 	    }
 	    else {
-
-		my $valstr = join(', ', map { $_ . ' => ' . $rec->{$_} } keys %$rec);
-		$message = sprintf("Unable to save %s object with values: %s",
-				   $rs->result_source->source_name(), $valstr);
+    		my $valstr = join(', ', map { $_ . ' => ' . $rec->{$_} } keys %$rec);
+	    	$message = sprintf("Unable to save %s object with values: %s",
+		                       $rs->result_source->source_name(), $valstr);
 	    }
          
   	    # Called within a transaction, we die hard.
