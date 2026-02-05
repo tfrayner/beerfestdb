@@ -323,6 +323,7 @@ sub update_brewery_info {
         status      => 'status_text',
         abv         => 'abv',
         style       => 'style',
+        is_vegan    => 'is_vegan',
         long_description => 'notes',
         allergens   => 'allergens',
         stillage_location => 'bar',
