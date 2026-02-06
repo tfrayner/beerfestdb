@@ -57,11 +57,13 @@ requires 'Term::ReadKey';
 
 requires 'String::Range::Expand';
 
-requires 'DBD::mysql'; # Or whatever you wish to use; beerfestdb has been extensively tested on mysql.
+requires 'DBD::MariaDB'; # Or whatever you wish to use; beerfestdb has been extensively tested on mysql.
 
 requires 'YAML::XS';  # YAML::Syck is deprecated.
 requires 'DateTime';  # CBF-specific web site upload script.
 requires 'JSON::XS';  # Seems to work a bit more reliably than JSON::PP in this context.
+requires 'JSON::DWIW'; # For the beerfestdb web site upload script, which needs to be able to handle JSON with embedded newlines.
+requires 'LWP::Protocol::https'; # For the beerfestdb web site upload script, which needs to be able to upload over HTTPS.
 
 requires 'OpenOffice::OODoc';
 

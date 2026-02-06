@@ -420,6 +420,18 @@ OPTIONAL. Whether the cask is ready to serve. See the notes under 'vented' for d
 
 OPTIONAL. Whether the cask has been condemned. See the notes under 'vented' for details.
 
+=item cask_price
+
+OPTIONAL. The original purchase price of the cask. This should
+be a value in pence. For example, a cask that cost £75.50 should be
+coded as 7550 in this column.
+
+=item cask_graveyard
+
+OPTIONAL. The location of the cask graveyard. This is a free text
+field, 32 characters or less. Using fewer characters is recommended
+to avoid truncation on the cask labels.
+
 =back
 
 =head1 AUTHOR
