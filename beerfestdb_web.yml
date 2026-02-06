@@ -2,13 +2,12 @@
 # Main database configuration.
 Model::DB:
   connect_info:
-    - DBI:mysql:beerfestdb:mysql:3306
+    - 'DBI:MariaDB:database=beerfestdb;host=mysql;port=3306'
     - 'beerfestdb'
     - 'vent&T4p'
-    - mysql_enable_utf8: 1
-      on_connect_call: set_strict_mode
-      RaiseError: 1
+    - RaiseError: 1
       AutoCommit: 1
+      limit_dialect: 'LimitXY' # until MariaDB is fully supported by DBIC, see https://github.com/Perl5/DBIx-Class/pull/151
 
 current_festival:   'TestFestival'
 

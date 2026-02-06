@@ -59,6 +59,7 @@ sub BUILD {
         category_name    => {
             product_category_id => 'description',
         },
+        is_vegan         => 'is_vegan',
     });
 }
 

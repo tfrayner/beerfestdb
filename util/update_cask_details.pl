@@ -109,6 +109,20 @@ sub assign_stillage_location {
     return;
 }
 
+sub assign_cask_graveyard {
+
+    my ( $self, $caskman, $graveyard ) = @_;
+
+    if ( defined $graveyard ) {
+        if ( length($graveyard) > 32 ) {
+            die("Error: cask_graveyard location too long (max 32 chars).\n");
+        }
+    	$caskman->set_column('cask_graveyard', $graveyard);
+    }
+
+    return;
+}
+
 sub update_caskman {
 
     my ( $self, $caskman, $row ) = @_;
@@ -127,6 +141,11 @@ sub update_caskman {
     # Cask price.
     if ( my $price = $row->{ 'cask_price' } ) {
         $self->assign_cask_price($caskman, $price);
+    }
+    
+    # Cask graveyard.
+    if ( my $graveyard = $row->{ 'cask_graveyard' } ) {
+        $self->assign_cask_graveyard($caskman, $graveyard);
     }
     
     # Cellar id ("internal_reference").
@@ -212,7 +231,7 @@ sub load {
         unless ( first { $col eq $_ } qw(cask_festival_id cask_cellar_id
                                          stillage_location stillage_bay
                                          bay_position vented tapped ready
-                                         condemned cask_price) ) {
+                                         condemned cask_price cask_graveyard) ) {
             die("Unrecognised column heading: $col\n");
         }
     }
@@ -400,6 +419,18 @@ OPTIONAL. Whether the cask is ready to serve. See the notes under 'vented' for d
 =item condemned
 
 OPTIONAL. Whether the cask has been condemned. See the notes under 'vented' for details.
+
+=item cask_price
+
+OPTIONAL. The original purchase price of the cask. This should
+be a value in pence. For example, a cask that cost £75.50 should be
+coded as 7550 in this column.
+
+=item cask_graveyard
+
+OPTIONAL. The location of the cask graveyard. This is a free text
+field, 32 characters or less. Using fewer characters is recommended
+to avoid truncation on the cask labels.
 
 =back
 

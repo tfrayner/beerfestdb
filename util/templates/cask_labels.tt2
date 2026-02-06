@@ -2,11 +2,10 @@
 % $Id$
 %
 
-% Note - to compile this LaTeX with pdflatex you will likely need to use the following:
+% Note - to compile this LaTeX you will likely need to use one of the following:
 %
-%   pdflatex -shell-escape <name of this file.tex>
-%
-% This activates "shell-escape" mode which is needed for barcode creation.
+% 1.  pdflatex -shell-escape <name of this file.tex>
+% 2.  xelatex <name of this file.tex>
 
 [% IF dump_class != 'cask_management' %][% THROW bad_dump_class "Use the cask_management dump class.\n" %][% END %]
 
@@ -48,7 +47,7 @@
 \begin{labels}
 [% FOREACH cask = objects.sort('category', 'brewery', 'product') %]
 \begin{tabular}{ l l }
-\multirow{5}{*}{
+\multirow{6}{*}{
 [% IF cask.festival_id.defined -%]
    \begin{pspicture}(0.5in, 0.5in)
      \psbarcode{[% cask.festival_id %]}{includetext width=0.5 height=0.3}{code128}
@@ -58,6 +57,7 @@
 & [% cask.brewery | truncate(20) | latexify %] \\
 & [% cask.product | truncate(20) | latexify %] \\
 & ABV: [% cask.abv %]\%~~~([% cask.cask_size | format('%d') %]) \\
+& Gvyd: [% cask.cask_graveyard | truncate(14) | latexify %] \\
 & [% IF cask.is_sale_or_return %]SALE OR RETURN[% END %] \\
 \end{tabular}
 [% END %]

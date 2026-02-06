@@ -36,10 +36,11 @@
 
 \begin{labels}
 [% FOREACH cask = objects.sort('category', 'brewery', 'product') %]
-Cask ID: \textbf{[% IF cask.festival_id.defined %][% cask.festival_id %][% ELSE %]NOT AVAILABLE[% END %]}
+Cask ID: {\LARGE\textbf{[% IF cask.festival_id.defined %][% cask.festival_id %][% ELSE %]NOT AVAILABLE[% END %]}}
 [% cask.brewery | truncate(20) | latexify %]
 [% cask.product | truncate(20) | latexify %]
 ABV: [% cask.abv %]\%~~~([% cask.cask_size | format('%d') %])
+Gvyd: [% cask.cask_graveyard | truncate(14) | latexify %]
 [% IF cask.is_sale_or_return %]SALE OR RETURN[% END %]
 [% END %]
 \end{labels}

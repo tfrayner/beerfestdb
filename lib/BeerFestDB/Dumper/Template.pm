@@ -168,6 +168,7 @@ sub product_hash {
     $prodhash->{abv}      = $product->nominal_abv();
     $prodhash->{notes}    = $product->description();
     $prodhash->{allergens} = $self->allergen_hash( $product );
+    $prodhash->{is_vegan}  = $product->is_vegan();
     $prodhash->{_split_export_tag} = $tag;
 
     # Handle FestivalProduct data here.
@@ -362,6 +363,7 @@ sub update_caskman_hash {
   	  ? $caskman->product_order_id->order_batch_id->description() : 'Unknown';
     $caskmanhash->{distributor}  = $caskman->distributor_company_id
           ? $caskman->distributor_company_id->name() : 'Untracked';
+    $caskmanhash->{cask_graveyard} = $caskman->cask_graveyard();
 
     return $caskmanhash;
 }

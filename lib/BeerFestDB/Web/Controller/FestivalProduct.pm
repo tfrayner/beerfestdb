@@ -365,6 +365,7 @@ sub _build_product_data : Private {
         description  => $product->description(),
 	long_description => $product->long_description(),
         allergens    => $self->_build_allergen_data( $product, $c ),
+        is_vegan     => $product->is_vegan(),
     };
 
     return( $data );

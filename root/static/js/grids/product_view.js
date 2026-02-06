@@ -150,6 +150,12 @@ Ext.onReady(function(){
               xtype:          'numberfield',
               allowBlank:     true, },
 
+            { name:           'is_vegan',
+              fieldLabel:     'Is Vegan',
+              lazyRender:     true,
+              xtype:          'checkbox',
+              allowBlank:     true },
+
             { name:           'description',
               fieldLabel:     'Short Description',
               xtype:          'textarea',

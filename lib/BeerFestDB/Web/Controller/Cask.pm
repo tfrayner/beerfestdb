@@ -24,6 +24,7 @@ use Moose;
 use namespace::autoclean;
 
 use JSON::MaybeXS;
+use Data::Dumper;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -49,7 +50,7 @@ sub BUILD {
 
     $self->model_view_map({
         cask_id           => 'cask_id',
-        cask_management_id => 'cask_management_id', # FIXME try removing this at some point
+        cask_management_id => 'cask_management_id',
         festival_id       => {
             cask_management_id => 'festival_id'
         },
@@ -139,6 +140,9 @@ sub BUILD {
         is_sale_or_return => {
             cask_management_id => 'is_sale_or_return',
         },
+        cask_graveyard    => {
+            cask_management_id => 'cask_graveyard',
+        }
     });
 }
 
@@ -332,11 +336,15 @@ sub build_database_object : Private {
 
     my ( $self, $rec, $c, $rs, $mv_map, $no_update ) = @_;
 
+    # This method is primarily used during the creation of *new* cask 
+    # objects. When updating existing casks, the cask_management_id will 
+    # already be set, so we won't need to create a new cask_management object.
+    # However, when creating a new cask, if any of the mv_map keys point to
+    # cask_management_id, we'll need to create a new cask_management object
+    # and point the new cask at it via its ID.
+
     $mv_map ||= $self->model_view_map();
 
-    # If any mv_map keys point to hashes containing cask_management_id
-    # as a key, build that caskman object; then build a cask pointing
-    # to that caskman via its ID.
     my $caskman_refs;
     if ( ref $mv_map eq 'HASH' ) {
         foreach my $subref ( values %$mv_map ) {
@@ -345,15 +353,24 @@ sub build_database_object : Private {
             }
         }
     }
+    $c->log->debug("Cask management references found in mv_map: $caskman_refs");
     if ( $caskman_refs && ! $rec->{ 'cask_management_id' } ) {
-        $c->log->debug("Attempting to create cask_management object.");
+        $c->log->debug("Attempting to create CaskManagement object.");
         my ($caskman, $caskman_rec, $caskman_mvmap);
         ( $rec, $caskman_rec, $caskman_mvmap ) = $self->_extract_caskman_terms( $rec, $mv_map );
-        $caskman = $self->build_database_object( $caskman_rec, $c,
-                                                 $c->model( 'DB::CaskManagement' ),
-                                                 $caskman_mvmap, $no_update );
+
+        $c->log->debug("Cask management model-view map: " . Dumper $caskman_mvmap);
+        $c->log->debug("Cask management record data: " . Dumper $caskman_rec);
+        $c->log->debug("Cleaned Cask record data: " . Dumper $rec);
+
+        $c->log->debug("Superclass call to build CaskManagement object with record data: " . Dumper $caskman_rec);
+        $caskman = $self->next::method( $caskman_rec, $c,
+                                        $c->model( 'DB::CaskManagement' ),
+                                        $caskman_mvmap, $no_update );
         $rec->{ 'cask_management_id' } = $caskman->cask_management_id();
     }
+
+    $c->log->debug("Superclass call to build Cask object with record data: " . Dumper $rec);
 
     $self->next::method( $rec, $c, $rs, $mv_map, $no_update );
 }

@@ -74,6 +74,11 @@ __PACKAGE__->table("product");
   data_type: 'text'
   is_nullable: 1
 
+=head2 is_vegan
+
+  data_type: 'tinyint'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -95,6 +100,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "long_description",
   { data_type => "text", is_nullable => 1 },
+  "is_vegan",
+  { data_type => "tinyint", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -230,8 +237,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07048 @ 2020-05-11 19:15:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TuTDHlNlpLBoRc5hCQmFLw
+# Created by DBIx::Class::Schema::Loader v0.07052 @ 2026-01-29 12:31:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:c0CvLoh47H/MUvUpsrnO5Q
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
