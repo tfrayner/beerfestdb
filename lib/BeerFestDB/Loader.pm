@@ -847,7 +847,7 @@ sub _coerce_headings {
         qr/cask [_ -]* unit/ixms                       => $CASK_UNIT,
         qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
         qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,
-        qr/cask [_ -]* graveyard (?:[_ -]* location)/ixms  => $CASK_GRAVEYARD_LOCATION,
+        qr/cask [_ -]* graveyard (?:[_ -]* location)?/ixms  => $CASK_GRAVEYARD_LOCATION,
         qr/cask [_ -]* measurement [_ -]* date/ixms    => $CASK_MEASUREMENT_DATE,
         qr/cask [_ -]* measurement [_ -]* volume/ixms  => $CASK_MEASUREMENT_VOLUME,
         qr/cask [_ -]* measurement [_ -]* comment/ixms => $CASK_MEASUREMENT_COMMENT,
