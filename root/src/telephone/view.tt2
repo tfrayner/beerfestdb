@@ -1,0 +1,14 @@
+[% META title = 'Telephone Details' %]
+
+<script type="text/javascript">
+   var url_company_view         = '[% c.uri_for( "/company/view/$object.contact_id.company_id.id" ) %]';
+   var url_contact_view         = '[% c.uri_for( "/contact/view/$object.contact_id.id" ) %]';
+   var url_telephone_load_form  = '[% c.uri_for( "/telephone/load_form" ) %]';
+   var url_telephone_type_list  = '[% c.uri_for( "/telephonetype/list" ) %]';
+   
+   var telephone_id  = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/telephone_view.js' ) %]
+
+<div id="datagrid"></div>

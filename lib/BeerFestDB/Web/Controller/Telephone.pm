@@ -44,6 +44,16 @@ sub BUILD {
     $self->model_view_map({
         telephone_id       => 'telephone_id',
         contact_id         => 'contact_id',
+        company_name    => {
+            contact_id => {
+                company_id => 'name',
+            },
+        },
+        contact_type_desc => {
+            contact_id => {
+                contact_type_id => 'description',
+            },
+        },
         telephone_type_id  => 'telephone_type_id',
         international_code => 'international_code',
         area_code          => 'area_code',
@@ -63,6 +73,40 @@ sub list_by_contact : Local {
     my $rs = $c->model( 'DB::Telephone' )->search({ contact_id => $contact_id });
 
     $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model('DB::Telephone');
+
+    $self->form_json_and_detach( $c, $rs, 'telephone_id' );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::Telephone')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: Telephone not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
 }
 
 =head2 submit
