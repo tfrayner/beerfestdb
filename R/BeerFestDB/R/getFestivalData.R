@@ -2,7 +2,7 @@
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
 ##
-## Copyright (C) 2011 Tim F. Rayner
+## Copyright (C) 2011-2025 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -60,8 +60,7 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
     mutate(
       festival_ref = as.integer(festival_ref),
       is_condemned = as.integer(is_condemned),
-      is_sale_or_return = as.integer(is_sale_or_return),
-      cask_price = as.numeric(cask_price)
+      is_sale_or_return = as.integer(is_sale_or_return)
     ) %>%
     replace_na(list(is_condemned = 0, is_sale_or_return = 0, comment = ""))
 
@@ -79,8 +78,7 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
         )
       ),
       by = "product_id"
-    ) %>%
-    mutate(sale_price = as.numeric(sale_price))
+    )
 
   default_cask_measure <- getBFData(
     baseuri = baseuri, auth = auth, .opts = .opts,
@@ -128,6 +126,10 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
   cp <- cp %>%
     left_join(gyle, by = "gyle_id")
 
+  ## Prices should be numeric.
+  suppressWarnings(cp$cask_price <- as.numeric(cp$cask_price))
+  suppressWarnings(cp$sale_price <- as.numeric(cp$sale_price))
+
   ## Sort out ABVs. If a gyle ABV is present, use it preferentially.
   suppressWarnings(cp$nominal_abv <- as.numeric(cp$nominal_abv))
   suppressWarnings(cp$gyle_abv <- as.numeric(cp$gyle_abv))
@@ -146,7 +148,7 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
 
   company <- getBFData(
     baseuri = baseuri, auth = auth, .opts = .opts,
-    "company", "list",
+    "Company", "list",
     columns = c("company_id", "name", "company_region_id")
   ) %>%
     rename(company_name = "name")
@@ -177,11 +179,17 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
     "OrderBatch", "list",
     params = festival_id,
     columns = c("order_batch_id", "description")
-  ) %>%
-    rename(order_batch = "description")
-  cp <- cp %>%
-    left_join(orderbatch, by = "order_batch_id") %>%
-    replace_na(list(order_batch = "Other"))
+  )
+  # In the absence of an order batch in the database, the returned value will be NA 
+  if (nrow(orderbatch) > 0) {
+    orderbatch <- orderbatch %>%
+      rename(order_batch = "description")
+    cp <- cp %>%
+      left_join(orderbatch, by = "order_batch_id") %>%
+      replace_na(list(order_batch = "Other"))
+  } else {
+    cp$order_batch <- NA
+  }
 
   ## Throw out all database ID columns except cask_id.
   cp <- cp %>%
