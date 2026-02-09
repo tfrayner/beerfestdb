@@ -1,0 +1,13 @@
+[% META title = 'Gyle Details' %]
+
+<script type="text/javascript">
+   var url_festival_product_view  = '[% c.uri_for( "/festivalproduct/view/$object.festival_product_id.id" ) %]';
+   var url_company_view           = '[% c.uri_for( "/company/view/$object.company_id.id" ) %]';
+   var url_gyle_load_form         = '[% c.uri_for( "/gyle/load_form" ) %]';
+   
+   var gyle_id  = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/gyle_view.js' ) %]
+
+<div id="datagrid"></div>

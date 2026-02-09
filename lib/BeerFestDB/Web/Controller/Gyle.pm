@@ -49,6 +49,14 @@ sub BUILD {
         comment           => 'comment',
         ext_reference     => 'external_reference',
         int_reference     => 'internal_reference',
+       festival_name     => {
+           festival_product_id => {
+               festival_id => 'name',
+           },
+       },
+       company_name      => {
+           company_id => 'name',
+       },
     });
 }
 
@@ -89,6 +97,40 @@ sub list_by_festival : Local {
     );
 
     $self->generate_json_and_detach( $c, $rs );
+}
+
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model('DB::Gyle');
+
+    $self->form_json_and_detach( $c, $rs, 'gyle_id' );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::Gyle')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: Gyle not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
 }
 
 =head2 submit

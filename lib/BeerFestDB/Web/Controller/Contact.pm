@@ -44,7 +44,13 @@ sub BUILD {
     $self->model_view_map({
         contact_id      => 'contact_id',
         company_id      => 'company_id',
+        company_name    => {
+            company_id => 'name',
+        },
         contact_type_id => 'contact_type_id',
+        contact_type_desc => {
+            contact_type_id => 'description',
+        },
         first_name      => 'first_name',
         last_name       => 'last_name',
         street_address  => 'street_address',
