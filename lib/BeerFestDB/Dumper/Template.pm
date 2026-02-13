@@ -766,7 +766,7 @@ configured default_measurement_unit (e.g., gallons).
 
 =item dispense_method
 
-(Cask-level export only). The cask dispense method (e.g. "cask", "keykeg").
+The product dispense method (e.g. "cask", "keykeg", "bottle", "can").
 
 =item cask_count
 
