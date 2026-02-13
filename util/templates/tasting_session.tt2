@@ -22,6 +22,7 @@ Note that ABVs output using product dump class info may be inaccurate, as update
 \usepackage[british]{babel}
 \usepackage{palatino}[14pt]
 \usepackage{fix-cm}
+\usepackage[T1]{fontenc}
 
 %% EDIT HERE: The author(s) and title
 \title{Beer tasting at CAMRA Festival}

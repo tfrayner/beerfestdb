@@ -1,17 +1,28 @@
-%
-% $Id$
-%
-% Example LaTeX template for use with cask_end_signs_latex.pl
+[%# Example LaTeX template for use with cask_end_signs_latex.pl script. This is designed
+to be used with the gyle, product or product_order dump classes, and will print a cask end
+sign for each product in the dump. The template uses the textpos package to position elements
+on the page, and includes some basic formatting for brewery and product names, ABV, price and
+allergen information. The template also includes some logic to control printing of prices for
+high-ABV draught products, which can be adjusted by changing the max_abv_for_pint_sale and
+max_units_per_sale variables below. %]
 
+[%-# The user should edit the following thresholds to control printing of high-ABV product prices: -%]
+[% SET max_abv_for_pint_sale = 7.5 %]
+[% SET max_units_per_sale = 100 %]
+
+
+[%-# Sanity check to ensure we're using the right dump class for this template -%]
 [% IF dump_class != 'gyle' && dump_class != 'product' && dump_class != 'product_order' -%]
   [%- THROW bad_dump_class "Use the gyle, product or product_order dump classes.\n" -%]
 [%- END %]
 
 [% IF dump_class == 'product_order' -%]
 [%- FILTER stderr -%]
-Note that cask end signs created using product_order dump class info may be inaccurate, due to discrepancies with actual cask delivery.
+Note that cask end signs created using product_order dump class info may be inaccurate, due to read-world discrepancies in actual cask delivery.
 [% END -%]
 [%- END %]
+
+[%-# Document preamble -%]
 
 \documentclass[english,a4paper]{article}
 
@@ -22,6 +33,7 @@ Note that cask end signs created using product_order dump class info may be inac
 \usepackage{times}
 \usepackage{graphicx}
 \usepackage{fix-cm}
+\usepackage[T1]{fontenc}
 \begin{document}
 
 %\hyphenpenalty=10000
@@ -39,7 +51,7 @@ Note that cask end signs created using product_order dump class info may be inac
 %\fontsize{60}{75}
 %\selectfont
 
-% festival logo
+[%-# Festival logo -%]
 [% SET logo = logos.0 %]
 
 [% IF logo != '' -%]
@@ -48,7 +60,7 @@ Note that cask end signs created using product_order dump class info may be inac
 \end{textblock}
 [%- END %]
 
-% Vegan flag and Allergen data (replaces old hardcoded CAMRA logo)
+[%-# Vegan flag and Allergen data (replaces old hardcoded CAMRA logo) -%]
 \fontsize{14}{16}
 \selectfont
 \begin{textblock}{0.15}(0.80,0.04)
@@ -68,8 +80,6 @@ Note that cask end signs created using product_order dump class info may be inac
 
 \end{textblock}
 
-% product info to be plugged in
-
   \fontsize{48}{60}
   \selectfont
 
@@ -86,6 +96,8 @@ Note that cask end signs created using product_order dump class info may be inac
       [% product_font_size = 86 %]
     [% END %]
   [% END %]
+
+[%-# Brewery and product name -%]
 
   \begin{textblock}{0.6}[0.5,0](0.5,0.05)
   \begin{center}
@@ -108,29 +120,38 @@ Note that cask end signs created using product_order dump class info may be inac
 
 [% ELSIF cask.category == 'cider' || cask.category == 'perry' || cask.category == 'apple juice' %]
 
-
   [% IF cask.brewery.length > 55 %]
-    [% product_font_size = 44 %]
+    [% cidery_font_size = 44 %]
   [% ELSE %]
-    [% product_font_size = 80 %]
+    [% cidery_font_size = 80 %]
   [% END %]
 
-  \fontsize{[% product_font_size %]}{94}
-  \selectfont
+  [% IF cask.product.length > 30 %]
+    [% product_font_size = 48 %]
+  [% ELSE %]
+    [% IF cask.product.length > 20 %]
+      [% product_font_size = 54 %]
+    [% ELSE %]
+      [% product_font_size = 60 %]
+    [% END %]
+  [% END %]
+
+[%-# Cidery and product name -%]
 
   \begin{textblock}{0.6}[0.5,0](0.5,0.05)
   \begin{center}
+  \fontsize{[% cidery_font_size %]}{94}
+  \selectfont
   \textbf{[% cask.brewery | latexify %]}
   \end{center}
   \end{textblock}
 
   %\vspace{5mm}
 
-  \fontsize{60}{94}
-  \selectfont
-
   \begin{textblock}{0.8}[0.5, 0.5](0.5,0.50)
   \begin{center}
+  \fontsize{[% product_font_size %]}{94}
+  \selectfont
   \textbf{[% cask.product | latexify -%]
   [%- IF cask.category == 'apple juice' %] APPLE JUICE[% END %]}
   \end{center}
@@ -151,6 +172,8 @@ Note that cask end signs created using product_order dump class info may be inac
       [% product_font_size = 86 %]
     [% END %]
   [% END %]
+
+[%-# Winery and product name -%]
 
   \begin{textblock}{0.6}[0.5,0](0.5,0.05)
   \begin{center}
@@ -177,6 +200,8 @@ Note that cask end signs created using product_order dump class info may be inac
   
 [% END %]
 
+[%-# Product ABV (skipped for apple juice) -%]
+
 \begin{textblock}{0.4}(0.05,0.70)
 \fontsize{60}{75}
 \selectfont
@@ -184,6 +209,10 @@ Note that cask end signs created using product_order dump class info may be inac
 [% IF cask.category != 'apple juice' %]
 \textbf{ABV: [% cask.abv | latexify %] \%}
 [% END %]
+
+\end{textblock}
+
+[%-# Brewery/Cidery/Winery location, if available -%]
 
 [% IF cask.location.defined %]
   [% IF cask.location.length > 22 %]
@@ -196,10 +225,12 @@ Note that cask end signs created using product_order dump class info may be inac
     [% END %]
   [% END %]
 [% END %]
+\begin{textblock}{0.4}(0.05,0.83)
 \selectfont
 \textbf{\emph{[% cask.location | latexify %]}}
-
 \end{textblock}
+
+[%-# Price info, with some special handling for draught products to avoid printing prices for volumes we won't actually sell -%]
 
   \fontsize{48}{60}
   \selectfont
@@ -218,16 +249,33 @@ Note that cask end signs created using product_order dump class info may be inac
 
 [% ELSE %]
 
+  [% IF cask.dispense_method == 'bottle' || cask.dispense_method == 'can' -%]
+
+\begin{textblock}{0.4}(0.55,0.75)
+
+    \textbf{[% cask.currency | latexify -%]
+              [%- cask.price | price_format | format('%.2f') -%]/[% cask.dispense_method %]}
+
+  [%- ELSE -%]
+
 \begin{textblock}{0.4}(0.55,0.63)
 
+    [%-# For draught products, we only print the price per pint and half pint if the ABV and total units sold are below the specified thresholds -%]
+    [% SET sale_units = cask.abv * cask.sale_litres %]
+    [% IF cask.abv <= max_abv_for_pint_sale && sale_units <= max_units_per_sale -%]
   \textbf{[% cask.currency | latexify -%]
           [%- cask.price | price_format | format('%.2f') -%]/[% cask.sale_volume %]}
+    [%- ELSE %] \textbf{} [% END %]
 
+    [% IF cask.abv <= (max_abv_for_pint_sale * 2) && sale_units <= (max_units_per_sale * 2) -%]
   \textbf{[% cask.currency | latexify -%]
           [%- cask.price | price_format(2) | format('%.2f') -%]/half [% cask.sale_volume %]}
+    [%- ELSE %] \textbf{} [% END %]
 
-  \textbf{[% cask.currency | latexify -%]
-          [%- cask.price | price_format(3) | format('%.2f') -%]/third [% cask.sale_volume %]}
+    [%-# Always print price per third, since we'll always sell at that volume %]
+      \textbf{[% cask.currency | latexify -%]
+              [%- cask.price | price_format(3) | format('%.2f') -%]/third [% cask.sale_volume %]}
+  [%- END %]
 
 \end{textblock}
 

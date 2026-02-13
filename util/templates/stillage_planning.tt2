@@ -11,6 +11,7 @@
 
 \usepackage[british]{babel}
 \usepackage{palatino}
+\usepackage[T1]{fontenc}
 \pagestyle{empty}
 \begin{document}
 

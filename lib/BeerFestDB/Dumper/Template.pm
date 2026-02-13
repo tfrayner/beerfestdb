@@ -174,6 +174,8 @@ sub product_hash {
     # Handle FestivalProduct data here.
     if ( $fp ) {
         $prodhash->{sale_volume} = $fp->sale_volume_id()->description();
+        $prodhash->{sale_litres} = ( $fp->sale_volume_id()->container_measure_id()->litre_multiplier()
+                                   * $fp->sale_volume_id()->volume() );
         my $currency = $fp->sale_currency_id();
         my $format   = $currency->currency_format();
         $prodhash->{currency} = $currency->currency_symbol();
@@ -214,7 +216,7 @@ sub order_hash {
         cask_size_std  => $local_cask_size
                         * ( $cask_measure->litre_multiplier() /
                             $default_meas_unit->litre_multiplier() ),
-	dispense_method => $order->container_size_id->dispense_method_id->description(),
+	    dispense_method => $order->container_size_id->dispense_method_id->description(),
         cask_count  => $order->cask_count(),
         is_sale_or_return => $order->is_sale_or_return(),
         is_disposable     => $order->container_size_id->dispense_method_id->is_disposable(),
@@ -303,6 +305,13 @@ sub update_gyle_hash {
     # table with the *actual* gyle ABV.
     if ( defined $gyle->abv() ) {
         $gylehash->{abv} = $gyle->abv();
+    }
+
+    # This is a bit hacky but it allows us to get the dispense method for a gyle.
+    # Assumes only one dispense method per gyle, which is almost always true in practice.
+    my $dispense = $gyle->search_related('casks')->first()->cask_management_id()->container_size_id()->dispense_method_id();
+    if ( $dispense ) {
+        $gylehash->{dispense_method} = $dispense->description();
     }
 
     return $gylehash;
@@ -507,6 +516,7 @@ sub dump {
     # We define some custom filters for convenience.
     my $template = Template->new(
 	ABSOLUTE => 1,
+    RELATIVE => 1,
 	FILTERS => {
             titlecase => sub { join(' ', map { ucfirst $_ } split / +/, lc($_[0])) },
             latexify  => \&filter_to_latex,
@@ -611,6 +621,8 @@ sub filter_to_latex {
     $text =~ s/ [_] /\\_/gxms;
     $text =~ s/ \$  /\\\$/gxms;
     $text =~ s/ \n  /\\\\/gxms;
+    $text =~ s/ \'  /\{\\textquotesingle\}/gxms;
+    $text =~ s/ \"  /\{\\textquotedbl\}/gxms; # Requires \usepackage[T1]{fontenc}
 
     # In the following we try to support both Latin-1 and UTF-8
     # encodings. Note that the UTF-8 substitution requires
@@ -796,6 +808,10 @@ The price per half sale unit.
 =item sale_volume
 
 The sale unit itself.
+
+=item sale_litres
+
+The sale unit converted to litres.
 
 =item comment
 

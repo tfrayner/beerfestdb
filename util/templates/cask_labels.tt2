@@ -12,6 +12,7 @@
 \documentclass[a4paper,12pt]{article} 
 \usepackage[newdimens]{labels}
 %\usepackage{palatino}
+\usepackage[T1]{fontenc}
 
 %% For the QR codes.
 \usepackage{pst-barcode}

@@ -10,6 +10,7 @@
 \usepackage[british]{babel}
 \usepackage{palatino}
 \usepackage{graphicx}
+\usepackage[T1]{fontenc}
 
 \setlength{\TPHorizModule}{5mm}
 \setlength{\TPVertModule}{\TPHorizModule}
