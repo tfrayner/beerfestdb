@@ -7,6 +7,7 @@
 \documentclass[a4paper,12pt]{article} 
 \usepackage[newdimens]{labels}
 %\usepackage{palatino}
+\usepackage[T1]{fontenc}
 
 \LabelCols=3 % Number of columns of labels per page
 \LabelRows=7 % Number of rows of labels per page

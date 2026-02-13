@@ -10,6 +10,7 @@
 \usepackage[british]{babel}
 \usepackage{palatino}
 \usepackage{multicol}
+\usepackage[T1]{fontenc}
 
 \pagestyle{empty}
 \renewcommand\familydefault{\sfdefault} % makes it use sans serif
