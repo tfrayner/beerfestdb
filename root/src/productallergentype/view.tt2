@@ -1,0 +1,11 @@
+[% META title = 'Product Allergen Type Details' %]
+
+<script type="text/javascript">
+   var url_product_allergen_type_load_form = '[% c.uri_for( "/productallergentype/load_form" ) %]';
+   
+   var product_allergen_type_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_allergen_type_view.js' ) %]
+
+<div id="datagrid"></div>
