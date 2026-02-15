@@ -50,6 +50,40 @@ sub BUILD {
     $self->model_name('DB::ProductStyle');
 }
 
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( $self->model_name() );
+
+    $self->form_json_and_detach( $c, $rs, 'product_style_id' );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model( $self->model_name() )->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: ProductStyle not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
+}
+
 =head2 list
 
 =cut
