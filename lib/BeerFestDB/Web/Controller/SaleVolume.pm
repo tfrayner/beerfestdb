@@ -51,6 +51,40 @@ sub BUILD {
     $self->model_name('DB::SaleVolume');
 }
 
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model( $self->model_name() );
+
+    $self->form_json_and_detach( $c, $rs, 'sale_volume_id' );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model( $self->model_name() )->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: SaleVolume not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
+}
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2010 by Tim F. Rayner

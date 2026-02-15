@@ -28,14 +28,14 @@ Ext.onReady(function(){
     /* product allergen type form */
     var productAllergenTypeForm = new MyFormPanel({
 
-        url:         url_product_allergen_type_submit,
+        url:         url_product_allergen_submit,
         title:       'Product Allergen Type details',
             
         items: [
 
             { name:           'description',
               fieldLabel:     'Description',
-              xtype:          'textarea',
+              xtype:          'textfield',
               allowBlank:     false, },
 
             { name:           'product_allergen_type_id',

@@ -35,7 +35,7 @@ Ext.onReady(function(){
 
             { name:           'description',
               fieldLabel:     'Description',
-              xtype:          'textarea',
+              xtype:          'textfield',
               allowBlank:     false, },
 
             { name:           'company_region_id',
