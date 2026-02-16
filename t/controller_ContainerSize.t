@@ -13,4 +13,7 @@ my $ua = authenticated_user("admin", "admin");
 
 generic_grid_tests("containersize", "ContainerSize", $ua);
 
+$ua->get_ok('/containersize/view/1',
+            'ContainerSize view should succeed' );
+
 done_testing();

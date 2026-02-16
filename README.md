@@ -21,16 +21,19 @@ Installation (using Docker)
 
 The simplest method to get BeerFestDB up and running is to use the
 provided Docker container with docker-compose. There are just three
-steps to get started:
+steps to get started, the first two of which can be skipped for an ultra-quick startup:
 
-1. Edit beerfestdb_web.yml and db/create_dbuser_account.sql to change
+1. (OPTIONAL) Edit beerfestdb_web.yml and db/create_dbuser_account.sql to change
 the default database connection password. This step is optional, but
-highly recommended.
+*highly recommended*.
 
-2. Run these commands to build the Docker container:
+2. (OPTIONAL) Run these commands to rebuild the Docker image:
 
-        docker build -t catalyst:1.0 -f Dockerfile-catalyst .
-        docker build -t beerfestdb:1.0 .
+        docker build -t tfrayner/catalyst-base:1.1 -f Dockerfile-catalyst .
+        docker build -t tfrayner/beerfestdb:1.1 .
+
+Alternatively, you can simply use the official images from Docker Hub by
+skipping directly to the next step.
 
 3. Run this command to initialise the database and start the application:
 
@@ -56,9 +59,16 @@ write files within the project directory:
 Files will be created as owned by the 'nobody' user; if desired, this can
 be changed in the docker-compose.yml file.
 
+Installation (Kubernetes)
+-------------------------
 
-Installation (without Docker)
------------------------------
+The `k8s` subdirectory contains manifest YAML files which have been 
+successfully used to deploy `beerfestdb` + `nginx` + `mysql` on a 
+`k3s+traefik` cluster. They are provided as an example of what is possible, 
+but will likely require tailoring to your specific cluster environment.
+
+Installation (without Docker/K8S)
+---------------------------------
 
 This approach is suited to a more old-school environment in which
 Docker is not available and you simply want to install on a bare-metal

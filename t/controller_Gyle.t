@@ -14,6 +14,9 @@ my $ua = authenticated_user("cellar", "cellar");
 $ua->get_ok('/gyle',
             'Gyle index should succeed' );
 
+$ua->get_ok('/gyle/view/1',
+            'Gyle view should succeed' );
+
 $ua->get_ok('/gyle/list_by_festival_product/1',
             'Gyle list_by_festival_product should succeed' );
 

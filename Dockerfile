@@ -1,4 +1,4 @@
-FROM tfrayner/catalyst-base:1.1
+FROM tfrayner/beerfestdb-base:1.1
 
 # Install BeerFestDB.
 WORKDIR /usr/src
@@ -13,4 +13,4 @@ WORKDIR /var/tmp
 
 ENV BEERFESTDB_WEB_CONFIG=/etc/beerfestdb/beerfestdb_web.yml
 
-CMD beerfestdb_web_server.pl -r
+CMD ["beerfestdb_web_server.pl", "-r"]

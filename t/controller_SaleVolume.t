@@ -13,4 +13,7 @@ my $ua = authenticated_user("admin", "admin");
 
 generic_grid_tests("salevolume", "SaleVolume", $ua);
 
+$ua->get_ok('/salevolume/view/1',
+            'SaleVolume view should succeed' );
+
 done_testing();
