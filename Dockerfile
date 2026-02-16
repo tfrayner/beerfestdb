@@ -1,4 +1,4 @@
-FROM catalyst:1.0
+FROM tfrayner/catalyst-base:1.1
 
 # Install BeerFestDB.
 WORKDIR /usr/src
@@ -6,11 +6,10 @@ COPY . .
 RUN   cpanm . \
    && rm -rf ~/.cpanm \
    && mkdir /etc/beerfestdb \
-   && cp beerfestdb_web.yml /etc/beerfestdb/
+   && cp beerfestdb_web.yml /etc/beerfestdb/ \
+   && cd /usr && rm -rf /usr/src
 
-# Clean up src directory.
-WORKDIR /usr
-RUN   rm -rf src
+WORKDIR /var/tmp
 
 ENV BEERFESTDB_WEB_CONFIG=/etc/beerfestdb/beerfestdb_web.yml
 
