@@ -75,23 +75,30 @@ BEGIN {
                               company_region_id => 5, # Cambridgeshire
                               name => "TestBrewer"});
 
+        $schema->resultset("Telephone")
+            ->find_or_create({telephone_id => 1,
+                              telephone_type_id => 1, # Landline
+                              description => "Test Telephone"});
+
         $schema->resultset("Contact")
             ->find_or_create({contact_id => 1,
                               company_id => 1,
                               contact_type_id => 1, # Customer service
+                              telephone_id => 1,
                               last_name => "TestContact"});
 
         $schema->resultset("Product")
             ->find_or_create({product_id => 1,
                               company_id => 1,
-                              product_category_id => 2,
+                              product_category_id => 2, # Foreign beer
+                              product_style_id => 5, # IPA
                               name => "TestBeer"});
 
         $schema->resultset("FestivalProduct")
             ->find_or_create({festival_product_id => 1,
                               product_id => 1,
                               festival_id => 1,
-                              sale_volume_id => 1,
+                              sale_volume_id => 1, # pint
                               sale_currency_id => 1});
 
         $schema->resultset("Gyle")
@@ -108,8 +115,8 @@ BEGIN {
         $schema->resultset("CaskManagement")
             ->find_or_create({cask_management_id => 1,
                               festival_id => 1,
-                              container_size_id => 1,
-                              currency_id => 1,
+                              container_size_id => 1, # firkin
+                              currency_id => 1, # GBP
                               stillage_location_id => 1,
                               cellar_reference => 1});
 
@@ -126,7 +133,7 @@ BEGIN {
         $schema->resultset("CaskMeasurement")
             ->find_or_create({cask_measurement_id => 1,
                               cask_id => 1,
-                              container_measure_id => 1,
+                              container_measure_id => 1, # firkin
                               measurement_batch_id => 1,
                               volume => 3.0});
 

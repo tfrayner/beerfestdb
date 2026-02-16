@@ -13,4 +13,7 @@ my $ua = authenticated_user("admin", "admin");
 
 generic_grid_tests("companyregion", "CompanyRegion", $ua);
 
+$ua->get_ok('/companyregion/view/1',
+            'CompanyRegion view should succeed' );
+
 done_testing();

@@ -13,4 +13,7 @@ my $ua = authenticated_user("admin", "admin");
 
 generic_grid_tests("dispensemethod", "DispenseMethod", $ua);
 
+$ua->get_ok('/dispensemethod/view/1',
+            'DispenseMethod view should succeed' );
+
 done_testing();

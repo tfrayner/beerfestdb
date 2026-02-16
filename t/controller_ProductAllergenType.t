@@ -13,4 +13,7 @@ my $ua = authenticated_user("admin", "admin");
 
 generic_grid_tests("productallergentype", "ProductAllergenType", $ua);
 
+$ua->get_ok('/productallergentype/view/1',
+            'ProductAllergenType view should succeed' );
+
 done_testing();

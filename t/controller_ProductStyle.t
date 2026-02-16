@@ -13,6 +13,9 @@ my $ua = authenticated_user("admin", "admin");
 
 generic_grid_tests("productstyle", "ProductStyle", $ua);
 
+$ua->get_ok('/productstyle/view/1',
+            'ProductStyle view should succeed' );
+
 $ua->get_ok("/productstyle/list_by_category/1",
             "ProductStyle list_by_category should succeed" );
 

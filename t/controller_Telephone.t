@@ -11,6 +11,9 @@ BEGIN { use_ok 'BeerFestDB::Web::Controller::Telephone' }
 my $ua = authenticated_user("cellar", "cellar");
 
 # Using the fixtures set up in TestFestivalDB:
+$ua->get_ok('/telephone/view/1',
+            'Telephone view should succeed' );
+
 $ua->get_ok('/telephone/list_by_contact/1',
             'Telephone list_by_contact should succeed' );
 
