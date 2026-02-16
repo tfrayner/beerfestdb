@@ -3,8 +3,6 @@ name: Docker Image CI/CD
 on:
   push:
     branches: [ "cbf-production" ]
-  pull_request:
-    branches: [ "cbf-production" ]
 
 jobs:
   docker:
