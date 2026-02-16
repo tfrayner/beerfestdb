@@ -34,7 +34,7 @@ Ext.onReady(function(){
     var role_store = new Ext.data.JsonStore({
         url:        url_role_list,
         root:       'objects',
-        fields:     [{ name: 'role_id',  type: 'int' },
+        fields:     [{ name: 'role_id',  type: 'string' }, // Technically int, but we cast to string for lovcombo handling.
                      { name: 'rolename', type: 'string'}],
         sortInfo:   {
             field:     'rolename',
@@ -78,6 +78,11 @@ Ext.onReady(function(){
               lazyRender:     true,
               valueField:     'role_id',
               displayField:   'rolename',
+              // FIXME review the next four lines, they are basically guesses at this point.
+              emptyText:      'Select roles...',
+		      hideOnSelect:   false,
+              queryMode:      'local',
+              multiSelect:    true,
               xtype:          'lovcombo',
               allowBlank:     true, },
 

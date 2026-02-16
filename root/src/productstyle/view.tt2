@@ -1,0 +1,12 @@
+[% META title = 'Product Style Details' %]
+
+<script type="text/javascript">
+   var url_product_style_load_form = '[% c.uri_for( "/productstyle/load_form" ) %]';
+   var url_product_style_grid = '[% c.uri_for( "/productstyle/grid/$object.product_category_id.id" ) %]';
+   
+   var product_style_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_style_view.js' ) %]
+
+<div id="datagrid"></div>

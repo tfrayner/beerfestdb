@@ -1,0 +1,11 @@
+[% META title = 'Container Size Details' %]
+
+<script type="text/javascript">
+   var url_container_size_load_form = '[% c.uri_for( "/containersize/load_form" ) %]';
+   
+   var container_size_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/container_size_view.js' ) %]
+
+<div id="datagrid"></div>

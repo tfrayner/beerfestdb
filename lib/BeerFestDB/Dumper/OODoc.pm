@@ -30,7 +30,7 @@ use Moose;
 
 use Carp;
 use OpenOffice::OODoc;
-
+use Encode qw(encode);
 use Data::Dumper;
 
 our $VERSION = '0.02';
@@ -182,18 +182,18 @@ sub dump {
         warn("Printing bar info: $bar\n");
         if ( $bar ) {
             $self->_content->appendParagraph(
-                text    => $bar,
+                text    => encode('UTF-8', $bar),
                 style   => $self->config->{'styles'}{'bar_name'},
             );            
         }
         foreach my $brewer ( sort keys %$caskinfo ) {
             warn("  Printing details for $brewer...\n");
             $self->_content->appendParagraph(
-                text    => $brewer,
+                text    => encode('UTF-8', $brewer),
                 style   => $self->config->{'styles'}{'brewery_name'},
             );
             $self->_content->appendParagraph(
-                text    => $brewerinfo{$brewer}{'location'},
+                text    => encode('UTF-8', $brewerinfo{$brewer}{'location'}),
                 style   => $self->config->{'styles'}{'brewery_location'},
             );
             foreach my $beer ( sort keys %{ $caskinfo->{$brewer} } ) {
@@ -203,12 +203,12 @@ sub dump {
                                                       $beerinfo->{abv} )
                     : sprintf("%s\t%s %%", $beer, 'Unknown');
                 $self->_content->appendParagraph(
-                    text    => $line,
+                    text    => encode('UTF-8', $line),
                     style   => $self->config->{'styles'}{'beer_name'},
                 );
                 if ( $self->config->{'dump_tasting_notes'} && $beerinfo->{'description'} ) {
                     $self->_content->appendParagraph(
-                        text    => $beerinfo->{'description'},
+                        text    => encode('UTF-8', $beerinfo->{'description'}),
                         style   => $self->config->{'styles'}{'beer_notes'},
                     );
                 }

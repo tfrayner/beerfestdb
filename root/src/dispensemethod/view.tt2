@@ -1,0 +1,11 @@
+[% META title = 'Dispense Method Details' %]
+
+<script type="text/javascript">
+   var url_dispense_method_load_form = '[% c.uri_for( "/dispensemethod/load_form" ) %]';
+   
+   var dispense_method_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/dispense_method_view.js' ) %]
+
+<div id="datagrid"></div>

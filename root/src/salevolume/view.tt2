@@ -1,0 +1,11 @@
+[% META title = 'Sale Volume Details' %]
+
+<script type="text/javascript">
+   var url_sale_volume_load_form = '[% c.uri_for( "/salevolume/load_form" ) %]';
+   
+   var sale_volume_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/sale_volume_view.js' ) %]
+
+<div id="datagrid"></div>

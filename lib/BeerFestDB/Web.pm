@@ -24,7 +24,7 @@ package BeerFestDB::Web;
 use strict;
 use warnings;
 
-use Catalyst::Runtime '5.70';
+use Catalyst::Runtime 5.70;
 
 # Set flags and add plugins for the application
 #
@@ -46,7 +46,7 @@ use Catalyst qw/ConfigLoader
                 Authorization::Roles
                 Authorization::ACL
                /;
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 # Configure the application. 
 #
@@ -92,6 +92,7 @@ __PACKAGE__->config(
     default_product_category => 'beer',
     default_measurement_unit => 'gallon',
     stock_control_departments => [],
+    using_frontend_proxy => 1,  # create URLs using HTTPS scheme when behind a proxy
  );
 
 # Start the application
