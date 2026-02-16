@@ -51,7 +51,7 @@ sub BUILD {
         password           => 'password',
         name               => 'name',
         email              => 'email',
-        roles              => undef,
+        roles              => undef, # See viewhash_from_model below.
     });
 }
 
