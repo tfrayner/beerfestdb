@@ -75,17 +75,17 @@ BEGIN {
                               company_region_id => 5, # Cambridgeshire
                               name => "TestBrewer"});
 
-        $schema->resultset("Telephone")
-            ->find_or_create({telephone_id => 1,
-                              telephone_type_id => 1, # Landline
-                              description => "Test Telephone"});
-
         $schema->resultset("Contact")
             ->find_or_create({contact_id => 1,
                               company_id => 1,
                               contact_type_id => 1, # Customer service
-                              telephone_id => 1,
                               last_name => "TestContact"});
+
+        $schema->resultset("Telephone")
+            ->find_or_create({telephone_id => 1,
+                              telephone_type_id => 1, # Landline
+                              contact_id => 1,
+                              local_number => "0123456789"});
 
         $schema->resultset("Product")
             ->find_or_create({product_id => 1,

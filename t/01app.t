@@ -15,6 +15,6 @@ ok( request('/index')->is_error, 'Index request should fail' );
 my $ua1 = authenticated_user("admin", "admin");
 my $ua2 = authenticated_user("cellar", "cellar");
 
-$_->get_ok("http://localhost/", "Check redirect of base URL") for $ua1, $ua2;
+$_->get_ok("https://localhost/", "Check redirect of base URL") for $ua1, $ua2;
 $_->title_is("Welcome to BeerFestDB", "Check for login title") for $ua1, $ua2;
 

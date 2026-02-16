@@ -1,0 +1,8 @@
+FROM tfrayner/catalyst-base:1.1
+
+# Install BeerFestDB dependencies.
+WORKDIR /usr/src
+COPY . .
+RUN   cpanm --installdeps . \
+   && rm -rf ~/.cpanm \
+   && cd /usr && rm -rf /usr/src
