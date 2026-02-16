@@ -1,0 +1,155 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: beerfestdb
+  labels:
+    name: beerfestdb
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: quota
+  namespace: beerfestdb
+spec:
+  hard:
+    cpu: 2
+    memory: 8Gi
+    pods: 4
+    resourcequotas: 1
+    services: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: beerfestdb
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+  type: ClusterIP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-mysql-ingress
+spec:
+  entryPoints:
+    - bfdbmysql
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: mysql
+      port: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: beerfestdb
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      # Consider mysql:9 here FIXME
+      - image: mysql:5.7
+        name: mysql
+        env:
+        - name: MYSQL_RANDOM_ROOT_PASSWORD
+          value: 1
+        resources:
+          limits:
+            cpu: '2'
+            memory: 8G
+          requests:
+            cpu: 10m
+            memory: 200Mi
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
+      - name: mysql-initdb
+        persistentVolumeClaim:
+          claimName: mysqlinit-pv-claim
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: beerfestdb-mysql-pv-volume
+  labels:
+    type: local
+    name: beerfestdb-dbvol
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/srv/beerfestdb/mysql"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+  namespace: beerfestdb
+spec:
+  selector:
+    matchLabels:
+      name: beerfestdb-dbvol
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: beerfestdb-mysqlinit-pv-volume
+  labels:
+    type: local
+    name: beerfestdb-initvol
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadOnlyMany
+  hostPath:
+    path: "/home/tfrayner/src/beerfestdb/db"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysqlinit-pv-claim
+  namespace: beerfestdb
+spec:
+  selector:
+    matchLabels:
+      name: beerfestdb-initvol
+  storageClassName: manual
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 100Mi
