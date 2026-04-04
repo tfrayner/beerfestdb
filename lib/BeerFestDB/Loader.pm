@@ -26,7 +26,6 @@ package BeerFestDB::Loader;
 
 use Moose;
 
-use Text::CSV_XS;
 use Readonly;
 use Carp;
 use List::Util qw(first);
@@ -74,6 +73,8 @@ with 'BeerFestDB::DBHashRefValidator';
 with 'BeerFestDB::MenuSelector';
 
 with 'BeerFestDB::CaskPreloader';
+
+with 'BeerFestDB::CsvParser';
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -142,22 +143,6 @@ Readonly my $PRODUCT_IS_VEGAN          => 60;
 ########
 # SUBS #
 ########
-
-sub _get_csv_parser {
-
-    my ( $self ) = @_;
-
-    my $csv_parser = Text::CSV_XS->new(
-        {   sep_char    => qq{\t},
-            quote_char  => qq{"},                   # default
-            escape_char => qq{"},                   # default
-            binary      => 1,
-            allow_loose_quotes => 1,
-        }
-    );
-
-    return $csv_parser;
-}
 
 sub value_is_acceptable {
 
@@ -379,7 +364,7 @@ sub _load_data {
                 product_category_id => $category,
                 product_style_id    => $style,
                 nominal_abv         => $nominal_abv,
-                is_vegan         => $datahash->{$PRODUCT_IS_VEGAN},
+                is_vegan         => $self->parse_boolean( $datahash->{$PRODUCT_IS_VEGAN} ),
             },
             'Product')
         : undef;
@@ -469,10 +454,10 @@ sub _load_data {
                 cask_count             => $count,
                 currency_id            => $currency,
                 advertised_price       => $cask_price,
-                is_final               => $datahash->{$ORDER_FINALISED},
-                is_received            => $datahash->{$ORDER_RECEIVED},
+                is_final               => $self->parse_boolean( $datahash->{$ORDER_FINALISED} ),
+                is_received            => $self->parse_boolean( $datahash->{$ORDER_RECEIVED} ),
                 comment                => $datahash->{$ORDER_COMMENT},
-                is_sale_or_return      => $datahash->{$ORDER_SALE_OR_RETURN} || 0, # Part of a DB key
+                is_sale_or_return      => $self->parse_boolean( $datahash->{$ORDER_SALE_OR_RETURN} ) || 0, # Part of a DB key
             },
             'ProductOrder',
         );
@@ -893,15 +878,10 @@ sub _coerce_headings {
 
 sub load {
 
-    my ( $self, $input ) = @_;
+    my ( $self ) = @_;
 
-    my $csv_parser = $self->_get_csv_parser();
-
-    open( my $input_fh, '<', $input )
-        or die(qq{Error opening input file "$input": $!});
-
-    # Assume first line is the header, for now:
-    my $headings = $self->_coerce_headings( $csv_parser->getline($input_fh) );
+    # Find the first suitable header line:
+    my $headings = $self->_coerce_headings( $self->get_headers() );
 
     if ( $self->overwrite() ) {
         warn("Loader running in OVERWRITE mode.\n");
@@ -912,7 +892,7 @@ sub load {
     eval {
         $db->txn_do(
             sub {
-                while ( my $rowlist = $csv_parser->getline($input_fh) ) {
+                while ( my $rowlist = $self->getline() ) {
                     next if $rowlist->[0] =~ /^\s*#/;
                     my %datahash;
                     @datahash{ @$headings } = @$rowlist;
@@ -930,16 +910,7 @@ sub load {
         die(qq{Errors encountered during load:\n\n$@});
     }
     else {
-
-        # Check that parsing completed successfully.
-        my ( $error, $mess ) = $csv_parser->error_diag();
-        unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
-            die(sprintf(
-                    "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
-                    $mess,
-                    $csv_parser->error_input()));
-        }
-
+        $self->confirm_eof()
         warn("All data successfully loaded.\n");
     }
 }
