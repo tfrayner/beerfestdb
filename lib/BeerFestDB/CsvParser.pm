@@ -24,6 +24,7 @@ use Moose::Role;
 use MooseX::Types::OpenHandle;
 use namespace::autoclean;
 use Text::CSV_XS;
+use BeerFestDB::Web;
 
 has 'filehandle' => ( is       => 'rw',
                       isa      => 'OpenHandle' );
@@ -33,16 +34,29 @@ has 'csv_parser' => ( is       => 'ro',
                       lazy     => 1,
                       builder  => '_build_csv_parser' );
 
+has 'currency' => ( is       => 'ro',
+                    isa      => 'BeerFestDB::ORM::Currency',
+                    lazy     => 1,
+                    builder  => '_build_currency' );
+
+# This role requires the consuming class to implement a database method 
+# that returns a DBIx::Class::Schema object, which may be used by the CSV 
+# parsing methods if needed (e.g., currency manipulations).
+requires qw(database);
+
 sub BUILD {
 
     my ( $self, $params ) = @_;
-    
+
+    # csv_file is a required parameter, and should be the path to the CSV file to be parsed. 
     my $file = $params->{ csv_file } // die(qq{Error: missing required parameter "csv_file".\n});
 
     open( my $fh, '<', $file )
         or die(qq{Error: unable to open input file "$file".\n});
 
     $self->filehandle($fh);
+
+    return;
 }
 
 sub _build_csv_parser {
@@ -62,6 +76,15 @@ sub _build_csv_parser {
     );
 
     return $_csv_parser;
+}
+
+sub _build_currency {
+
+    my ( $self ) = @_;
+
+    return $self->database()->resultset('Currency')->find({
+        currency_code => BeerFestDB::Web->config()->{ default_currency }
+    }) or die(qq{Error: unable to find default currency in database.\n});
 }
 
 =head1 NAME
@@ -173,5 +196,19 @@ sub parse_boolean {
     die(sprintf("Unable to parse boolean value: %s", defined($value) ? $value : 'undef'));
 }
 
-# TODO: price value handling - e.g. "£1.50", "1.50", etc. 
+=head2 parse_price
+
+This method is used to parse price values from the CSV file. It currently assumes that the
+input value is a simple numeric value representing the price in pounds, and it converts it
+to pence by multiplying by 100. TODO: this method should be enhanced to handle currency information returned by the database method.
+
+=cut
+
+sub parse_price {
+
+    my ( $self, $value ) = @_;
+
+    return $value * (10 ** $self->currency()->exponent());
+}
+
 

@@ -27,7 +27,7 @@ use strict;
 use warnings;
 
 use Moose;
-
+use Number::Format qw(format_picture);
 use Carp;
 
 our $VERSION = '0.01';
@@ -153,27 +153,22 @@ sub format_price {
 
     return 'STAFF' unless $price;
 
-    my @digits = split //, $price;
-
-    my $formatted = q{};
-
-    POS:
-    foreach my $pos ( 1..length($format) ) {
-        my $f = substr($format, -$pos, 1);
-        if ( $f !~ /[#0]/ ) {
-            $formatted = $f . $formatted;
-            next POS;
-        }
-        my $num = pop @digits;
-        last POS if ( $f eq '#' && ! defined $num );
-        if ( $f eq '0' ) {
-            $num ||= 0;
-            $formatted = $num . $formatted;
-        }
-        else {
-            die(qq{Error: Unrecognised formatting symbol: "$f".\n});
-        }
+    # Find decimal places from format
+    my ($before, $after) = split /\./, $format, 2;
+    my $decimals = 0;
+    if ($after) {
+        $decimals = ($after =~ tr/0/0/);
     }
+
+    my $pounds = $price / ( 10 ** $decimals);
+
+    # Format the number
+    $format =~ s/0/#/g;  # replace 0 with # for format_picture
+
+    # TODO note that e.g. the original GBP format includes '0.00' in its template 
+    # to indicate the minimal formatting desired, but the actual formatting is currently
+    # fixed to the number of decimal places in the format, and assumes a leading zero is desirable.
+    my $formatted = format_picture($pounds, $format);
 
     return $formatted;
 }

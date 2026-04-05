@@ -348,7 +348,7 @@ sub _load_data {
         description => $config->{'default_sale_volume'},
     }) or die("Unable to retrieve default sale volume; check config settings.");
 
-    my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
+    my $sale_price = $self->parse_price( $datahash->{$GYLE_PINT_PRICE} );
 
     my $nominal_abv = $datahash->{$PRODUCT_ABV};
     $nominal_abv = undef if ( defined $nominal_abv && $nominal_abv eq q{} );
@@ -417,7 +417,7 @@ sub _load_data {
             'ContainerSize')
         : undef;
 
-    my $cask_price = $datahash->{$CASK_PRICE} ? $datahash->{$CASK_PRICE} * 100 : undef;
+    my $cask_price = $self->parse_price( $datahash->{$CASK_PRICE} );
 
     my $count = $datahash->{$CASK_COUNT};
     unless ( defined $count && $count ne q{} ) {

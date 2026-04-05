@@ -65,7 +65,7 @@ sub assign_cask_price {
         if ( ! looks_like_number( $price ) ) {
             die("Error: This cask_price doesn't look like a number: $price\n");
         }
-   	    $caskman->set_column('price', $price * 100); # Convert from pounds to pence.
+   	    $caskman->set_column('price', $self->parse_price( $price ));
     }
 
     return;
