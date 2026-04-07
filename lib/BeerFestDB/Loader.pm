@@ -139,6 +139,7 @@ Readonly my $BREWER_AWRS_URN           => 57;
 Readonly my $DISTRIBUTOR_AWRS_URN      => 58;
 Readonly my $CASK_GRAVEYARD_LOCATION   => 59;
 Readonly my $PRODUCT_IS_VEGAN          => 60;
+Readonly my $ORDER_PRICE               => 61;
 
 ########
 # SUBS #
@@ -417,7 +418,7 @@ sub _load_data {
             'ContainerSize')
         : undef;
 
-    my $cask_price = $self->parse_price( $datahash->{$CASK_PRICE} );
+    my $order_price = $self->parse_price( $datahash->{$ORDER_PRICE} );
 
     my $count = $datahash->{$CASK_COUNT};
     unless ( defined $count && $count ne q{} ) {
@@ -453,7 +454,7 @@ sub _load_data {
                 container_size_id      => $cask_size,
                 cask_count             => $count,
                 currency_id            => $currency,
-                advertised_price       => $cask_price,
+                advertised_price       => $order_price,
                 is_final               => $self->parse_boolean( $datahash->{$ORDER_FINALISED} ),
                 is_received            => $self->parse_boolean( $datahash->{$ORDER_RECEIVED} ),
                 comment                => $datahash->{$ORDER_COMMENT},
@@ -545,6 +546,8 @@ sub _load_data {
             }
             @wanted_casks = $datahash->{$CASK_CELLAR_ID};
         }
+
+        my $cask_price = $self->parse_price( $datahash->{$CASK_PRICE} );
 
         foreach my $n ( @wanted_casks ) {
 
@@ -842,6 +845,7 @@ sub _coerce_headings {
         qr/order [_ -]* finali[sz]ed/ixms              => $ORDER_FINALISED,
         qr/order [_ -]* received/ixms                  => $ORDER_RECEIVED,
         qr/order [_ -]* comment/ixms                   => $ORDER_COMMENT,
+        qr/order [_ -]* price/ixms                     => $ORDER_PRICE,
         qr/order [_ -]* (?:sor|sale [_ -]* or [_ -]* return)/ixms  => $ORDER_SALE_OR_RETURN,
         qr/contact [_ -]* type/ixms                    => $CONTACT_TYPE,
         qr/contact [_ -]* first [_ -]* name/ixms       => $CONTACT_FIRST_NAME,
