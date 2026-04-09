@@ -917,7 +917,7 @@ sub load {
         die(qq{Errors encountered during load:\n\n$@});
     }
     else {
-        $self->confirm_eof()
+        $self->confirm_eof();
         warn("All data successfully loaded.\n");
     }
 }
