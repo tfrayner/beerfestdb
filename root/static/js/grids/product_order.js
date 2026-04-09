@@ -304,8 +304,8 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'product/view/{product_id}');
-        window.location=t.apply({product_id: record.get('product_id')});
+        var t = new Ext.XTemplate(url_base + 'productorder/view/{product_order_id}');
+        window.location=t.apply({product_order_id: record.get('product_order_id')});
     };
 
     function recordChanges (record) {

@@ -1,0 +1,18 @@
+[% META title = 'Product Order Details' %]
+
+<script type="text/javascript">
+   var url_po_load_form     = '[% c.uri_for( "/productorder/load_form" ) %]';
+   var url_product_view     = '[% c.uri_for( "/product/view/$object.product_id.id" ) %]';
+   var url_order_batch_view = '[% c.uri_for( "/orderbatch/view/$object.order_batch_id.id" ) %]';
+   var url_festival_view    = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
+   var order_batch_id       = '[% object.order_batch_id.id %]';
+   var product_order_id     = '[% object.id %]';
+   var poname               = '[% object.product_id.company_id.name | xml %]:&nbsp;
+       [%- object.product_id.name | xml %] ([% object.festival_id.name | xml %])';
+
+   var default_currency     = '[% default_currency %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_order_view.js' ) %]
+
+<div id="datagrid"></div>
