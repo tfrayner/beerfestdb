@@ -349,6 +349,7 @@ sub _load_data {
         description => $config->{'default_sale_volume'},
     }) or die("Unable to retrieve default sale volume; check config settings.");
 
+    # Assumes default currency
     my $sale_price = $self->parse_price( $datahash->{$GYLE_PINT_PRICE} );
 
     my $nominal_abv = $datahash->{$PRODUCT_ABV};
@@ -418,6 +419,7 @@ sub _load_data {
             'ContainerSize')
         : undef;
 
+    # Assumes default currency
     my $order_price = $self->parse_price( $datahash->{$ORDER_PRICE} );
 
     my $count = $datahash->{$CASK_COUNT};
@@ -547,6 +549,7 @@ sub _load_data {
             @wanted_casks = $datahash->{$CASK_CELLAR_ID};
         }
 
+        # Assumes default currency
         my $cask_price = $self->parse_price( $datahash->{$CASK_PRICE} );
 
         foreach my $n ( @wanted_casks ) {

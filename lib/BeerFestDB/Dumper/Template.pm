@@ -177,14 +177,13 @@ sub product_hash {
         $prodhash->{sale_litres} = ( $fp->sale_volume_id()->container_measure_id()->litre_multiplier()
                                    * $fp->sale_volume_id()->volume() );
         my $currency = $fp->sale_currency_id();
-        my $format   = $currency->currency_format();
         $prodhash->{currency} = $currency->currency_symbol();
 
         # The formatted_price option is great if you just want to display
         # the price in the local format. However, if you need to do any
         # calculations then use price and the price_format filter
         # below. This reduces the risk of floating-point errors.
-        $prodhash->{formatted_price} = $self->format_price( $fp->sale_price(), $format );
+        $prodhash->{formatted_price} = $self->format_price( $fp->sale_price(), $currency );
         $prodhash->{price} = $fp->sale_price(); # typically in pennies (GBP).
     }
 
@@ -223,10 +222,8 @@ sub order_hash {
         _split_export_tag => $order->product_order_id(),
     );
 
-    my $currency = $order->currency_id();
-    my $format   = $currency->currency_format();
     $orderhash{currency} = $currency->currency_symbol();
-    $orderhash{price}    = $self->format_price( $order->advertised_price(), $format );
+    $orderhash{price}    = $self->format_price( $order->advertised_price(), $order->currency_id() );
 
     return \%orderhash;
 }

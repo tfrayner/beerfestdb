@@ -57,6 +57,22 @@ with 'BeerFestDB::MenuSelector';
 
 with 'BeerFestDB::CsvParser';
 
+with 'BeerFestDB::PriceMunger';
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    # Cache the default currency for use by the price parsing and formatting methods (PriceMunger role).
+    my $currency = $self->database()->resultset('Currency')->find({
+        currency_code => BeerFestDB::Web->config()->{ default_currency }
+    }) or die(qq{Error: unable to find default currency in database.\n});
+
+    $self->default_currency($currency);
+
+    return;
+}
+
 sub assign_cask_price {
 
     my ( $self, $caskman, $price ) = @_;
@@ -65,6 +81,7 @@ sub assign_cask_price {
         if ( ! looks_like_number( $price ) ) {
             die("Error: This cask_price doesn't look like a number: $price\n");
         }
+        # Assumes price is in the configured default currency.
    	    $caskman->set_column('price', $self->parse_price( $price ));
     }
 

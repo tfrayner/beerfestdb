@@ -28,7 +28,7 @@ use Digest::SHA qw( sha1_hex );
 use Carp;
 use JSON::MaybeXS;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::PriceController'; }
 
 =head1 NAME
 
@@ -72,6 +72,9 @@ sub BUILD {
         },
         comment             => 'comment',
     });
+
+    $self->price_field('sale_price');
+    $self->currency_id_field('sale_currency_id');
 }
 
 =head2 index

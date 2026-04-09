@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -87,11 +87,11 @@ sub generate_object_viewhash : Private {
     foreach my $key ( keys %mv_map ) {
         my $value = $self->viewhash_from_model($key, $obj);
 
-	# We used to constrain this to just output defined values, but
-	# that led to failures in the R package when querying
-	# e.g. lists of Casks, none of whom have a defined comment. So
-	# bear in mind that some of the following will be undef.
-	$obj_info{ $key } = $value;
+        # We used to constrain this to just output defined values, but
+        # that led to failures in the R package when querying
+        # e.g. lists of Casks, none of whom have a defined comment. So
+        # bear in mind that some of the following will be undef.
+        $obj_info{ $key } = $value;
     }
 
     return \%obj_info;
@@ -471,6 +471,14 @@ sub value_is_acceptable : Private {  # Required by DBHashRefValidator
     return 1;  # Undef values must be allowed if we want to break relationships.
 }
 
+=head2 decode_json_changes
+
+Extract the JSON data from the request and decode it into a Perl data structure. This is
+overridden in some controllers to perform additional parsing of the data; e.g. to parse
+price fields.
+
+=cut
+
 sub decode_json_changes : Private {
 
     my ( $self, $c ) = @_;
@@ -479,8 +487,8 @@ sub decode_json_changes : Private {
     my $data;
     eval { $data = $j->decode( encode('UTF-8', $c->request->param( 'changes' ) ) ) };
     if ($@) {
-	$c->error("Unable to parse submitted JSON upload: $@");
-	$self->detach_with_txn_failure( $c );
+        $c->error("Unable to parse submitted JSON upload: $@");
+        $self->detach_with_txn_failure( $c );
     }
 
     return $data;
@@ -595,23 +603,6 @@ sub detach_with_txn_failure : Private {
     $c->forward( 'View::JSON' );
 }
 
-=head2 get_default_currency
-
-=cut
-
-sub get_default_currency : Private {
-
-    my ( $self, $c ) = @_;
-
-    my $def = $c->model('DB::Currency')->find({
-        currency_code => $c->config->{'default_currency'},
-    }) or $self->raise_exception($c, "Error retrieving default currency; check config settings.\n");
-
-    $c->stash->{ 'default_currency' } = $def->currency_id();
-
-    return;
-}
-
 =head2 get_default_sale_volume
 
 =cut
@@ -648,7 +639,7 @@ sub get_default_product_category : Private {
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

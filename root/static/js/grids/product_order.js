@@ -105,7 +105,7 @@ Ext.onReady(function(){
         { name: 'cask_count',             type: 'int' },
         { name: 'container_size_id',      type: 'int', sortType: myMakeSortTypeFun(cask_size_store, 'description') },
         { name: 'currency_id',            type: 'int', sortType: myMakeSortTypeFun(currency_store, 'currency_code') },
-        { name: 'price',                  type: 'int' },
+        { name: 'price',                  type: 'string' },
         { name: 'is_final',               type: 'int' },
         { name: 'is_received',            type: 'int' },
         { name: 'is_sale_or_return',      type: 'int' },

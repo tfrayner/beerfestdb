@@ -27,7 +27,7 @@ use strict;
 use warnings;
 
 use Moose;
-use Number::Format qw(format_picture);
+use BeerFestDB::Web;
 use Carp;
 
 our $VERSION = '0.01';
@@ -47,6 +47,22 @@ has '_order_batch' => ( is       => 'rw',
                         isa      => 'BeerFestDB::ORM::OrderBatch' );
 
 with 'BeerFestDB::MenuSelector';
+
+with 'BeerFestDB::PriceMunger';
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    # Cache the default currency for use by the price parsing and formatting methods, which may be called by subclasses.
+    my $currency = $self->database()->resultset('Currency')->find({
+        currency_code => BeerFestDB::Web->config()->{ default_currency }
+    }) or die(qq{Error: unable to find default currency in database.\n});
+
+    $self->default_currency($currency);
+
+    return;
+}
 
 sub festival_casks {
 
@@ -145,32 +161,6 @@ sub order_batch_distributors {
                              ->all();
 
     return \@distributors;
-}
-
-sub format_price {
-
-    my ( $self, $price, $format ) = @_;
-
-    return 'STAFF' unless $price;
-
-    # Find decimal places from format
-    my ($before, $after) = split /\./, $format, 2;
-    my $decimals = 0;
-    if ($after) {
-        $decimals = ($after =~ tr/0/0/);
-    }
-
-    my $pounds = $price / ( 10 ** $decimals);
-
-    # Format the number
-    $format =~ s/0/#/g;  # replace 0 with # for format_picture
-
-    # TODO note that e.g. the original GBP format includes '0.00' in its template 
-    # to indicate the minimal formatting desired, but the actual formatting is currently
-    # fixed to the number of decimal places in the format, and assumes a leading zero is desirable.
-    my $formatted = format_picture($pounds, $format);
-
-    return $formatted;
 }
 
 1;
