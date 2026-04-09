@@ -125,7 +125,7 @@ sub format_price {
 
     my ( $self, $price, $currency ) = @_;
 
-    return 'STAFF' unless $price;
+    return unless defined $price;
 
     $currency //= $self->default_currency();
 
