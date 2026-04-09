@@ -68,7 +68,7 @@ sub generate_json_and_detach : Private {
 
     my @objects;
     while ( my $obj = $rs->next ) {
-        push @objects, $self->generate_object_viewhash($obj);
+        push @objects, $self->generate_object_viewhash($obj, $c);
     }
 
     $c->stash->{ 'success' } = JSON->true();
@@ -78,7 +78,9 @@ sub generate_json_and_detach : Private {
 
 sub generate_object_viewhash : Private {
 
-    my ( $self, $obj ) = @_;
+    # Context is included here solely as a way to retrieve configured
+    # default objects (e.g. currency) in subclasses.
+    my ( $self, $obj, $c ) = @_;
 
     # Maps View onto Model columns.
     my %mv_map = %{ $self->model_view_map() };
@@ -111,7 +113,7 @@ sub form_json_and_detach : Private {
         my $obj = $rs->find({ $pk => $id });
 
         if ( $obj ) {
-            $c->stash->{ 'data' } = $self->generate_object_viewhash( $obj );
+            $c->stash->{ 'data' } = $self->generate_object_viewhash( $obj, $c );
             $c->stash->{ 'success' } = JSON->true();
         }
         else {

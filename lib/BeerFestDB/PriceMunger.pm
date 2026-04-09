@@ -24,6 +24,7 @@ use Moose::Role;
 use namespace::autoclean;
 use Number::Format qw(format_picture);
 use BeerFestDB::ORM;
+use Carp;
 
 has '_default_currency' => ( is       => 'rw',
                              isa      => 'BeerFestDB::ORM::Currency' );
@@ -60,6 +61,8 @@ sub _build_currency {
 
     # Method of last resort; create a brand new database connection to fetch the
     # default currency if it hasn't already been set by the consuming class.
+    confess(qq{Warning: default currency not set for PriceMunger; creating new database connection to fetch it.\n});
+
     require BeerFestDB::Web;
 
     my ( $self ) = @_;

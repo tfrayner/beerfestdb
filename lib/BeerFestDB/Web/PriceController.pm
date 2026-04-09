@@ -57,18 +57,14 @@ Overrides the default generate_object_viewhash method to format the price field 
 
 sub generate_object_viewhash {
 
-    my ( $self, $obj ) = @_;
+    my ( $self, $obj, $c ) = @_;
 
-    my $hash = $self->SUPER::generate_object_viewhash($obj);
+    my $hash = $self->SUPER::generate_object_viewhash($obj, $c);
 
     # Format the price for display in the UI.
     my $field = $self->price_field();
-    my $curr_id = $self->currency_id_field();
     if ( exists $hash->{$field} ) {
-        my $currency;
-        if (exists $hash->{$curr_id}) {
-            $currency = $obj->result_source()->schema()->resultset('Currency')->find($hash->{$curr_id});
-        }
+        my $currency = $self->_fetch_currency($hash, $c);
         $hash->{$field} = $self->format_price(
             $hash->{$field}, $currency
         );
@@ -92,10 +88,7 @@ sub decode_json_changes : Private {
     my $field = $self->price_field();
     foreach my $rec ( @{ $data } ) {
         if ( exists $rec->{$field} ) {
-            my $currency;
-            if (exists $rec->{$self->currency_id_field()}) {
-                $currency = $c->model('DB::Currency')->find($rec->{$self->currency_id_field()});
-            }
+            my $currency = $self->_fetch_currency($rec, $c);
             $rec->{$field} = $self->parse_price(
                 $rec->{$field}, $currency
             );
@@ -115,15 +108,40 @@ sub get_default_currency : Private {
 
     my ( $self, $c ) = @_;
 
-    my $def = $c->model('DB::Currency')->find({
-        currency_code => $c->config->{'default_currency'},
-    }) or $self->raise_exception($c, "Error retrieving default currency; check config settings.\n");
-
-#    $self->default_currency($def);
+    my $def = $self->_fetch_default_currency($c);
 
     $c->stash->{ 'default_currency' } = $def->currency_id();
 
     return;
+}
+
+sub _fetch_currency {
+
+    my ( $self, $hash, $c ) = @_;
+
+    my $currency;
+
+    my $curr_id = $self->currency_id_field();
+    if (exists $hash->{$curr_id}) {
+        $currency = $c->model('DB::Currency')->find($hash->{$curr_id});
+    } else {
+        $currency = $self->_fetch_default_currency($c);
+    }
+
+    return $currency;
+}
+
+sub _fetch_default_currency {
+
+    my ( $self, $c ) = @_;
+
+    my $def = $c->model('DB::Currency')->find({
+        currency_code => $c->config->{'default_currency'},
+    }) or $self->raise_exception($c, "Error retrieving default currency; check config settings.\n");
+
+    $self->default_currency($def);
+
+    return $def;
 }
 
 =head1 COPYRIGHT AND LICENSE
