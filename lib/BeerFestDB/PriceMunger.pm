@@ -23,7 +23,6 @@ package BeerFestDB::PriceMunger;
 use Moose::Role;
 use namespace::autoclean;
 use Number::Format qw(format_picture);
-use BeerFestDB::Web;
 use BeerFestDB::ORM;
 
 has '_default_currency' => ( is       => 'rw',
@@ -61,6 +60,7 @@ sub _build_currency {
 
     # Method of last resort; create a brand new database connection to fetch the
     # default currency if it hasn't already been set by the consuming class.
+    require BeerFestDB::Web;
 
     my ( $self ) = @_;
 
