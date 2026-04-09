@@ -21,12 +21,11 @@
 
 package BeerFestDB::CsvParser;
 use Moose::Role;
-use MooseX::Types::OpenHandle;
 use namespace::autoclean;
 use Text::CSV_XS;
 
 has 'filehandle' => ( is       => 'rw',
-                      isa      => 'OpenHandle' );
+                      isa      => 'IO::Handle' );
 
 has 'csv_parser' => ( is       => 'ro',
                       isa      => 'Text::CSV_XS',
@@ -55,7 +54,7 @@ sub _build_csv_parser {
     # All supported files are tab-delimited, with double-quote as the quote character and
     # escape character, and binary mode enabled to allow for special characters. Loose quotes
     # are allowed to handle cases where the input data may not be perfectly formatted.
-    $_csv_parser //= Text::CSV_XS->new(
+    my $_csv_parser //= Text::CSV_XS->new(
         {   sep_char    => qq{\t},
             quote_char  => qq{"},                   # default
             escape_char => qq{"},                   # default
