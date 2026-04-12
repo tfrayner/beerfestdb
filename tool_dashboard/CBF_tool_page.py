@@ -3,6 +3,15 @@ import streamlit as st
 
 st.title("BeerfestDB Tools")
 
+if not st.user.is_logged_in:
+    if st.button("Log in with BeerfestDB account"):
+        st.login()
+    st.stop()
+
+if st.button("Log out"):
+    st.logout()
+st.markdown(f"Welcome! {st.user.name}")
+
 pages = {
     "Data Tables": [
         st.Page("CBF_beer_price_calculator.py", title="Price Load File"),
