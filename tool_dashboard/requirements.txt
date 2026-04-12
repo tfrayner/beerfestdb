@@ -3,5 +3,4 @@ streamlit
 mysql-connector-python
 SQLAlchemy
 mysqlclient
-math
 numpy
