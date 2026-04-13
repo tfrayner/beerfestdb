@@ -1,0 +1,325 @@
+---
+title: Beer Festival Database ERD
+config:
+  layout: elk
+id: 2cd5b0bf-69ae-43c3-8250-2075eb90d0f8
+---
+erDiagram
+    PRODUCT_CATEGORY ||--o{ CATEGORY_AUTH : product_category_id
+    ROLE ||--o{ CATEGORY_AUTH : role_id
+
+    FESTIVAL ||--o{ BAR : festival_id
+    FESTIVAL_ENTRY }o--|| FESTIVAL_ENTRY_TYPE : festival_entry_type_id
+    FESTIVAL_ENTRY }o--|| FESTIVAL_OPENING : festival_opening_id
+    FESTIVAL_ENTRY }o--|| CURRENCY : currency_id
+    FESTIVAL ||--o{ FESTIVAL_OPENING : festival_id
+    FESTIVAL ||--o{ FESTIVAL_PRODUCT : festival_id
+    FESTIVAL ||--o{ ORDER_BATCH : festival_id
+    FESTIVAL ||--o{ CASK_MANAGEMENT : festival_id
+    FESTIVAL ||--o{ MEASUREMENT_BATCH  : festival_id
+    FESTIVAL_PRODUCT }o--|| PRODUCT : product_id
+    FESTIVAL_PRODUCT ||--o{ GYLE : gyle_id
+    FESTIVAL_PRODUCT }o--|| SALE_VOLUME : sale_volume_id
+    FESTIVAL_PRODUCT }o--|| CURRENCY : sale_currency_id
+    GYLE }o--|| COMPANY : company_id
+
+    DISPENSE_METHOD ||--o{ CONTAINER_SIZE : dispense_method_id
+
+    PRODUCT }o--|| COMPANY : company_id
+    PRODUCT }o--|| PRODUCT_CATEGORY : product_category_id
+    PRODUCT }o--o| PRODUCT_STYLE : product_style_id
+    PRODUCT ||--o{ PRODUCT_ALLERGEN : product_id
+    PRODUCT_ALLERGEN }o--|| PRODUCT_ALLERGEN_TYPE : product_allergen_type_id
+    PRODUCT ||--o{ PRODUCT_CHARACTERISTIC : product_id
+    PRODUCT_CHARACTERISTIC }o--|| PRODUCT_CHARACTERISTIC_TYPE : product_characteristic_type_id
+    PRODUCT_CHARACTERISTIC_TYPE }o--|| PRODUCT_CATEGORY : product_category_id
+    PRODUCT_STYLE }o--|| PRODUCT_CATEGORY : product_category_id
+
+    COMPANY }o--o| COMPANY_REGION : company_region_id
+    CONTACT }o--o| COUNTRY : country_id
+
+    CASK }o--|| CASK_MANAGEMENT : cask_management_id
+    CASK }o--|| GYLE : gyle_id
+    CASK_MANAGEMENT }o--o| PRODUCT_ORDER : product_order_id
+    CASK_MANAGEMENT }o--|| CURRENCY : currency_id
+    CASK_MANAGEMENT }o--o| COMPANY : distributor_company_id
+    CASK_MANAGEMENT }o--o| STILLAGE_LOCATION : stillage_location_id
+    CASK_MANAGEMENT }o--o| BAY_POSITION : bay_position_id
+    CASK_MANAGEMENT }o--|| CONTAINER_SIZE : container_size_id
+    CASK_MANAGEMENT }o--o| BAR : bar_id
+
+    CONTAINER_SIZE }o--|| CONTAINER_MEASURE : container_measure_id
+
+    CASK ||--o{ CASK_MEASUREMENT : cask_id
+    CASK_MEASUREMENT }o--|| MEASUREMENT_BATCH : measurement_batch_id
+    CASK_MEASUREMENT }o--|| CONTAINER_MEASURE : container_measure_id
+
+    PRODUCT_ORDER }o--|| PRODUCT : product_id
+    PRODUCT_ORDER }o--|| ORDER_BATCH : order_batch_id
+    PRODUCT_ORDER }o--|| COMPANY : distributor_company_id
+    PRODUCT_ORDER }o--|| CONTAINER_SIZE : container_size_id
+    PRODUCT_ORDER }o--|| CURRENCY : currency_id
+
+    SALE_VOLUME }o--|| CONTAINER_MEASURE : container_measure_id
+    STILLAGE_LOCATION }o--|| FESTIVAL : festival_id
+
+    USER_ROLE }o--|| USER : user_id
+    USER_ROLE }o--|| ROLE : role_id
+
+    CONTACT }o--|| CONTACT_TYPE : contact_type_id
+    CONTACT ||--o{ TELEPHONE : contact_id
+    TELEPHONE }o--o| TELEPHONE_TYPE : telephone_type_id
+    CONTACT }o--|| COMPANY : company_id
+
+    BAR {
+        %% int bar_id
+        varchar description
+        tinyint is_private
+    }
+
+    BAY_POSITION {
+        %% int bay_position_id
+        varchar description
+    }
+
+    CASK {
+        %% int cask_id
+        text comment
+        varchar external_reference
+        tinyint is_vented
+        tinyint is_tapped
+        tinyint is_ready
+        tinyint is_condemned
+    }
+
+    CASK_MANAGEMENT {
+        %% int cask_management_id
+        int price
+        int stillage_bay
+        int stillage_x_location
+        int stillage_y_location
+        int stillage_z_location
+        int internal_reference
+        int cellar_reference
+        tinyint is_sale_or_return
+        varchar cask_graveyard
+    }
+
+    CASK_MEASUREMENT {
+        %% int cask_measurement_id
+        decimal volume
+        text comment
+    }
+
+    CATEGORY_AUTH {
+        %% int category_auth_id
+    }
+
+    COMPANY {
+        %% int company_id
+        varchar name
+        varchar full_name
+        varchar loc_desc
+        int year_founded
+        varchar url
+        varchar awrs_urn
+        text comment
+    }
+
+    COMPANY_REGION {
+        %% int company_region_id
+        varchar description
+    }
+
+    CONTACT {
+        %% int contact_id
+        varchar last_name
+        varchar first_name
+        text street_address
+        varchar postcode
+        varchar email
+        text comment
+    }
+
+    CONTACT_TYPE {
+        %% int contact_type_id
+        varchar description
+    }
+
+    CONTAINER_MEASURE {
+        %% int container_measure_id
+        decimal litre_multiplier
+        varchar description
+        varchar symbol
+    }
+
+    DISPENSE_METHOD {
+        %% int dispense_method_id
+        varchar description
+        tinyint is_disposable
+    }
+
+    CONTAINER_SIZE {
+        %% int container_size_id
+        decimal container_volume
+        varchar description
+    }
+
+    COUNTRY {
+        %% int country_id
+        char country_code_iso2
+        char country_code_iso3
+        char country_code_num3
+        varchar country_name
+    }
+
+    CURRENCY {
+        %% int currency_id
+        char currency_code
+        char currency_number
+        varchar currency_format
+        tinyint exponent
+        varchar currency_symbol
+    }
+
+    FESTIVAL {
+        %% int festival_id
+        year year
+        varchar name
+        text description
+        date fst_start_date
+        date fst_end_date
+    }
+
+    FESTIVAL_ENTRY {
+        %% int festival_entry_id
+        int price
+    }
+
+    FESTIVAL_ENTRY_TYPE {
+        %% int festival_entry_type_id
+        varchar description
+    }
+
+    FESTIVAL_OPENING {
+        %% int festival_opening_id
+        datetime op_start_date
+        datetime op_end_date
+    }
+
+    FESTIVAL_PRODUCT {
+        %% int festival_product_id
+        int sale_price
+        text comment
+    }
+
+    GYLE {
+        %% int gyle_id
+        decimal abv
+        text comment
+        varchar external_reference
+        varchar internal_reference
+    }
+
+    MEASUREMENT_BATCH {
+        %% int measurement_batch_id
+        datetime measurement_time
+        varchar description
+    }
+
+    ORDER_BATCH {
+        %% int order_batch_id
+        varchar description
+        date order_date
+    }
+
+    PRODUCT {
+        %% int product_id
+        varchar name
+        decimal nominal_abv
+        text description
+        text long_description
+        text comment
+        tinyint is_vegan
+    }
+
+    PRODUCT_ALLERGEN {
+        %% int product_allergen_id
+        tinyint present
+    }
+
+    PRODUCT_ALLERGEN_TYPE {
+        %% int product_allergen_type_id
+        varchar description
+    }
+
+    PRODUCT_CATEGORY {
+        %% int product_category_id
+        varchar description
+    }
+
+    PRODUCT_CHARACTERISTIC {
+        %% int product_characteristic_id
+        int value
+    }
+
+    PRODUCT_CHARACTERISTIC_TYPE {
+        %% int product_characteristic_type_id
+        varchar description
+    }
+
+    PRODUCT_ORDER {
+        %% int product_order_id
+        int cask_count
+        int advertised_price
+        tinyint is_final
+        tinyint is_received
+        text comment
+        tinyint is_sale_or_return
+    }
+
+    PRODUCT_STYLE {
+        %% int product_style_id
+        varchar description
+    }
+
+    ROLE {
+        %% int role_id
+        varchar rolename
+    }
+
+    SALE_VOLUME {
+        %% int sale_volume_id
+        varchar description
+        decimal volume
+    }
+
+    STILLAGE_LOCATION {
+        %% int stillage_location_id
+        varchar description
+    }
+
+    TELEPHONE {
+        %% int telephone_id
+        varchar international_code
+        varchar area_code
+        varchar local_number
+        varchar extension
+    }
+
+    TELEPHONE_TYPE {
+        %% int telephone_type_id
+        varchar description
+    }
+
+    USER {
+        %% int user_id
+        varchar username
+        varchar name
+        varchar email
+        varchar password
+    }
+
+    USER_ROLE {
+        %% int user_role_id
+    }

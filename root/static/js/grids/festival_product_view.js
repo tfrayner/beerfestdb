@@ -159,7 +159,7 @@ Ext.onReady(function(){
                      { name: 'order_batch_name',  type: 'string' },
                      { name: 'container_size_id', type: 'int', sortType: myMakeSortTypeFun(casksize_store, 'description') },
                      { name: 'currency_id',       type: 'int', sortType: myMakeSortTypeFun(currency_store, 'currency_code') },
-                     { name: 'price',             type: 'int' },
+                     { name: 'price',             type: 'string' },
                      { name: 'int_reference',     type: 'string' },
                      { name: 'ext_reference',     type: 'string' },
                      { name: 'festival_ref',      type: 'string' },
@@ -193,7 +193,7 @@ Ext.onReady(function(){
             
             { name:           'sale_price',
               fieldLabel:     'Sale Price',
-              xtype:          'numberfield',
+              xtype:          'textfield',
               allowBlank:     true, },
             
             { name:           'sale_currency_id',
