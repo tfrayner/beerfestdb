@@ -76,6 +76,8 @@ with 'BeerFestDB::CaskPreloader';
 
 with 'BeerFestDB::CsvParser';
 
+with 'BeerFestDB::PriceMunger';
+
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
 Readonly my $UNKNOWN_COLUMN            => 0;
@@ -344,6 +346,9 @@ sub _load_data {
     my $currency = $self->database->resultset('Currency')->find({
         currency_code => $config->{'default_currency'},
     }) or die("Unable to retrieve default currency; check config settings.");
+
+    # Cache the currency so the PriceMunger role doesn't have to keep looking it up.
+    $self->default_currency($currency);
 
     my $sale_volume = $self->database->resultset('SaleVolume')->find({
         description => $config->{'default_sale_volume'},

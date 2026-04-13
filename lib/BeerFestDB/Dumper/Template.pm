@@ -222,7 +222,7 @@ sub order_hash {
         _split_export_tag => $order->product_order_id(),
     );
 
-    $orderhash{currency} = $currency->currency_symbol();
+    $orderhash{currency} = $order->currency_id()->currency_symbol();
     $orderhash{price}    = $self->format_price( $order->advertised_price(), $order->currency_id() );
 
     return \%orderhash;

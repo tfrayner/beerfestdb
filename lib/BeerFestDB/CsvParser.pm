@@ -24,27 +24,30 @@ use Moose::Role;
 use namespace::autoclean;
 use Text::CSV_XS;
 
-has 'filehandle' => ( is       => 'rw',
-                      isa      => 'IO::Handle' );
+has 'csv_file' => ( is       => 'ro',
+                    isa      => 'Str',
+                    required => 1 );
+
+has 'filehandle' => ( is       => 'ro',
+                      isa      => 'FileHandle',
+                      lazy     => 1,
+                      builder  => '_build_filehandle' );
 
 has 'csv_parser' => ( is       => 'ro',
                       isa      => 'Text::CSV_XS',
                       lazy     => 1,
                       builder  => '_build_csv_parser' );
 
-sub BUILD {
+sub _build_filehandle {
 
-    my ( $self, $params ) = @_;
+    my ( $self ) = @_;
 
-    # csv_file is a required parameter, and should be the path to the CSV file to be parsed. 
-    my $file = $params->{ csv_file } // die(qq{Error: missing required parameter "csv_file".\n});
+    my $file = $self->csv_file();
 
     open( my $fh, '<', $file )
         or die(qq{Error: unable to open input file "$file".\n});
 
-    $self->filehandle($fh);
-
-    return;
+    return $fh;
 }
 
 sub _build_csv_parser {
@@ -88,6 +91,11 @@ sub getline {
     my ( $self ) = @_;
 
     my $csv_parser = $self->csv_parser();
+
+    confess "CSV parser not initialized" unless $csv_parser;
+    confess "Filehandle not initialized" unless $self->filehandle;
+
+    print "Reading line from CSV file...\n";
 
     return $csv_parser->getline( $self->filehandle );
 }
@@ -133,7 +141,9 @@ sub get_headers {
     my @header;
     HEADER:
     while ( scalar @header == 0 ) {
+        print "Reading header line...$self\n";
         my $line = $self->getline();
+        print "Read header line...\n";
         my $lstr = join('', @$line);
         next HEADER if $lstr =~ /^\s*#/;  # skip comments
         next HEADER if $lstr =~ /^\s*$/;  # skip blank lines
@@ -164,7 +174,7 @@ sub parse_boolean {
     my ( $self, $value ) = @_;
 
     # Handle blank values and "n/a" values as false.
-    return if !defined($value) || $value eq q{} || $value =~ /\A n\/?[ad] \z/ixms;
+    return undef if !defined($value) || $value eq q{} || $value =~ /\A (\s+|n\/?[ad]) \z/ixms;
 
     # Handle "no", "false", "0" values as false.
     return 1 if defined($value) && $value =~ /\A (?:y|yes|t|true|1) \z/ixms;

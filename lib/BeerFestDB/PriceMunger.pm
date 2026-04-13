@@ -61,7 +61,7 @@ sub _build_currency {
 
     # Method of last resort; create a brand new database connection to fetch the
     # default currency if it hasn't already been set by the consuming class.
-    confess(qq{Warning: default currency not set for PriceMunger; creating new database connection to fetch it.\n});
+    carp(qq{Warning: default currency not set for PriceMunger; creating new database connection to fetch it.\n});
 
     require BeerFestDB::Web;
 
