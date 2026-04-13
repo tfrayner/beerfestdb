@@ -210,10 +210,10 @@ sub modify : Local {
 
 sub generate_object_viewhash : Private {
 
-    my ( $self, $obj ) = @_;
+    my ( $self, $obj, $c ) = @_;
 
     # Don't publish the SHA-1 password hash; just leave it blank.
-    my $obj_info = $self->next::method( $obj );
+    my $obj_info = $self->next::method( $obj, $c );
     delete $obj_info->{'password'};
     return $obj_info;
 }

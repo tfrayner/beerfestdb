@@ -71,6 +71,19 @@ Ext.onReady(function(){
         },
     });
 
+    /* Currency drop-down */
+    var currency_store = new Ext.data.JsonStore({
+        url:        url_currency_list,
+        root:       'objects',
+        fields:     [{ name: 'currency_id',   type: 'int'    },
+                     { name: 'currency_code', type: 'string' }],
+	idProperty: 'currency_id',
+        sortInfo:   {
+            field:     'currency_code',
+            direction: 'ASC',
+        },
+    });
+
     /* Distributor drop-down */
     var dist_store = new Ext.data.JsonStore({
         url:        url_company_list,
@@ -170,6 +183,24 @@ Ext.onReady(function(){
               noSelection:    emptySelect,
               allowBlank:     true, },
             
+            { name:           'price',
+              fieldLabel:     'Cask Price',
+              xtype:          'textfield',
+              allowBlank:     true, },
+            
+            { name:           'currency_id',
+              fieldLabel:     'Currency',
+              typeAhead:      true,
+              triggerAction:  'all',
+              mode:           'local',
+              store:          currency_store,
+              forceSelection: true,
+              valueField:     'currency_id',
+              displayField:   'currency_code',
+              lazyRender:     true,
+              xtype:          'combo',
+              allowBlank:     false, },
+            
             { name:           'festival_name',
               fieldLabel:     'Festival',
               lazyRender:     true,
@@ -239,7 +270,7 @@ Ext.onReady(function(){
               xtype:          'hidden', },
         ],
 
-        comboStores: [ dist_store, casksize_store, stillage_store, bay_position_store ],
+        comboStores: [ dist_store, casksize_store, stillage_store, bay_position_store, currency_store ],
         loadUrl:     url_cask_load_form,
         idParams:    { cask_id: cask_id },
         waitMsg:     'Loading Cask details...',

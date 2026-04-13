@@ -49,6 +49,7 @@ requires 'Readonly';
 requires 'Text::CSV_XS';
 requires 'Template';
 requires 'DateTime::TimeZone';  # Timestamps for upload to public web site.
+requires 'Number::Format';  # For formatting prices for output.
 
 requires 'LWP';
 requires 'HTTP::Cookies';

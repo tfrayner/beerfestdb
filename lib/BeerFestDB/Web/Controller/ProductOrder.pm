@@ -24,7 +24,8 @@ use Moose;
 use namespace::autoclean;
 use JSON::MaybeXS;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'};
+BEGIN {extends 'BeerFestDB::Web::PriceController'};
+
 with 'BeerFestDB::CaskPreloader';
 
 =head1 NAME
@@ -63,6 +64,9 @@ sub BUILD {
         is_sale_or_return => 'is_sale_or_return',
         comment           => 'comment',
     });
+
+    $self->price_field('price');
+    $self->currency_id_field('currency_id');
 }
 
 =head2 list
