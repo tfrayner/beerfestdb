@@ -45,8 +45,12 @@ use Catalyst qw/ConfigLoader
                 Authentication
                 Authorization::Roles
                 Authorization::ACL
+
+                OpenIDConnect
                /;
 our $VERSION = '1.1';
+
+use BeerFestDB::Web::Controller::OpenIDConnect;
 
 # Configure the application. 
 #
@@ -137,6 +141,7 @@ __PACKAGE__->deny_access( '/role' );
 __PACKAGE__->allow_access( '/default' );
 __PACKAGE__->allow_access( '/index' );
 __PACKAGE__->allow_access( '/login' );
+__PACKAGE__->allow_access( '/openidconnect' );
 
 =head1 NAME
 

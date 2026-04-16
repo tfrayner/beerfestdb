@@ -68,3 +68,15 @@ status_query:
   beerfestdb_uri:          'http://localhost:3000'
   public_site_upload_uri:  'file://localhost/www/data/push'
   public_festival_tag:      test
+
+Plugin::OpenIDConnect:
+  issuer:
+    url: 'https://localhost:3000'
+    private_key_file: '/path/to/beerfestdb/keys/private.pem'
+    public_key_file: '/path/to/beerfestdb/keys/public.pem'
+    key_id: 'my-key-1'
+  clients:
+    'dashboard':
+        client_secret: 'my-secret'
+        redirect_uris: 'http://localhost:8081/oauth2callback'
+
