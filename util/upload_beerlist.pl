@@ -264,9 +264,22 @@ sub _update_via_local_command {
     my $cmd = $uri->path;
     $cmd =~ s/%20/ /g;
 
+    # Validate command path to ensure it's an absolute path and exists
+    unless ( -x $cmd ) {
+        die("Invalid command path: $cmd is not executable!");
+    }
+
+    # Validate festival_tag and dept to contain only safe characters
+    unless ( $festival_tag =~ /^[a-zA-Z0-9_-]+$/ ) {
+        die("Invalid festival_tag: contains unsafe characters!");
+    }
+    unless ( $dept =~ /^[a-zA-Z0-9_-]+$/ ) {
+        die("Invalid dept: contains unsafe characters!");
+    }
+
     # This assumes that the command accepts '-' as designating input
-    # from stdin.
-    open ( my $pipe, "| $cmd $festival_tag $dept -" )
+    # from stdin. Use list form of open to avoid shell interpretation.
+    open ( my $pipe, '|-', $cmd, $festival_tag, $dept, '-' )
         or die("Unable to open command pipe: $!");
 
     binmode($pipe, ":utf8");
