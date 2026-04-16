@@ -53,11 +53,11 @@ has '_errors'   => ( is       => 'ro',
                      required => 1,
                      default  => sub { [] } );
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
 
-with 'BeerFestDB::CsvParser';
+with 'BeerFestDB::Role::CsvParser';
 
-with 'BeerFestDB::PriceMunger';
+with 'BeerFestDB::Role::PriceMunger';
 
 sub BUILD {
 

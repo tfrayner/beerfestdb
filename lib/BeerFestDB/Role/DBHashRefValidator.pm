@@ -19,7 +19,7 @@
 #
 # $Id: Controller.pm 233 2011-05-15 15:56:58Z tfrayner $
 
-package BeerFestDB::DBHashRefValidator;
+package BeerFestDB::Role::DBHashRefValidator;
 use Moose::Role;
 use namespace::autoclean;
 
@@ -27,7 +27,7 @@ requires qw(value_is_acceptable);
 
 =head1 NAME
 
-BeerFestDB::DBHashRefValidator - Validation of DB load data.
+BeerFestDB::Role::DBHashRefValidator - Validation of DB load data.
 
 =head1 DESCRIPTION
 

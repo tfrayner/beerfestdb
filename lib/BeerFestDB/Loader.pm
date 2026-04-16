@@ -68,15 +68,15 @@ has '_preload_casks' => ( is       => 'rw',
                           required => 1,
                           default  => 0 );
 
-with 'BeerFestDB::DBHashRefValidator';
+with 'BeerFestDB::Role::DBHashRefValidator';
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
 
-with 'BeerFestDB::CaskPreloader';
+with 'BeerFestDB::Role::CaskPreloader';
 
-with 'BeerFestDB::CsvParser';
+with 'BeerFestDB::Role::CsvParser';
 
-with 'BeerFestDB::PriceMunger';
+with 'BeerFestDB::Role::PriceMunger';
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.

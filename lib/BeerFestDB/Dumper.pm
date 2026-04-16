@@ -46,9 +46,9 @@ has 'cask_ids'   => ( is       => 'ro',
 has '_order_batch' => ( is       => 'rw',
                         isa      => 'BeerFestDB::ORM::OrderBatch' );
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
 
-with 'BeerFestDB::PriceMunger';
+with 'BeerFestDB::Role::PriceMunger';
 
 sub BUILD {
 

@@ -19,7 +19,7 @@
 #
 # $Id$
 
-package BeerFestDB::CsvParser;
+package BeerFestDB::Role::CsvParser;
 use Moose::Role;
 use namespace::autoclean;
 use Text::CSV_XS;
@@ -71,7 +71,7 @@ sub _build_csv_parser {
 
 =head1 NAME
 
-BeerFestDB::CsvParser - Parsing CSV files for BeerFestDB.
+BeerFestDB::Role::CsvParser - Parsing CSV files for BeerFestDB.
 
 =head1 DESCRIPTION
 

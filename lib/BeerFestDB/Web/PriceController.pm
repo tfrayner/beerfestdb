@@ -37,7 +37,7 @@ has 'currency_id_field' => ( is       => 'rw',
                              required => 1,
                              default  => 'currency_id' );
 
-with 'BeerFestDB::PriceMunger';
+with 'BeerFestDB::Role::PriceMunger';
 
 =head1 NAME
 
