@@ -25,6 +25,14 @@ port = 3306
 database = "beerfestdb"
 username = "myusername"
 password = "mypassword"
+
+[auth]
+redirect_uri = "http://localhost:8501/oauth2callback"
+cookie_secret = "xxx"
+
+client_id = "dashboard"
+client_secret = "xxx"
+server_metadata_url = "http://localhost/.well-known/openid-configuration"
 ```
 
 Run the streamlit app:
@@ -34,3 +42,18 @@ streamlit run CBF_tool_page.py
 ```
 
 You should now be able to point your browser at the app using the URL(s) that streamlit gives you.
+
+== Docker ==
+
+To create a docker image, run
+
+``` bash
+docker build . -t tfrayner/beerfestdb-dashboard:latest
+```
+
+To run it on the same host as the MySQL database and web UI, create `.streamlit/secrets.toml` in the current directory, configure the `[auth]` section appropriately and 
+
+``` bash
+# Forward the local config into the docker container using -v argument
+docker run -d --net=host --rm -v `pwd`/.streamlit:/app/.streamlit tfrayner/beerfestdb-dashboard:latest
+```
