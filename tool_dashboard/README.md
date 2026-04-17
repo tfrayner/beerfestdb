@@ -45,15 +45,19 @@ You should now be able to point your browser at the app using the URL(s) that st
 
 == Docker ==
 
-To create a docker image, run
+To create a docker image, run:
 
 ``` bash
 docker build . -t tfrayner/beerfestdb-dashboard:latest
 ```
 
-To run it on the same host as the MySQL database and web UI, create `.streamlit/secrets.toml` in the current directory, configure the `[auth]` section appropriately and 
+To run it on the same host as the MySQL database and web UI, create `.streamlit/secrets.toml` in the current directory, configure the `[auth]` section appropriately, and run:
 
 ``` bash
 # Forward the local config into the docker container using -v argument
 docker run -d --net=host --rm -v `pwd`/.streamlit:/app/.streamlit tfrayner/beerfestdb-dashboard:latest
 ```
+
+Alternatively, you can simply run the `run_docker_image.sh` script in this directory, which will alert you if the secrets.toml file cannot be found.
+
+Once running, the web dashboard will be accessible on the host at port 8501.
