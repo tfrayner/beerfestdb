@@ -74,7 +74,7 @@ has 'interactive'     => ( is       => 'rw',
                            isa      => 'Bool',
                            default  => 0 );
 
-with 'BeerFestDB::CsvParser';
+with 'BeerFestDB::Role::CsvParser';
 
 sub _parse_row {
 

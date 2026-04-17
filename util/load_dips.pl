@@ -38,9 +38,9 @@ has 'database'  => ( is       => 'ro',
                      isa      => 'DBIx::Class::Schema',
                      required => 1 );
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
 
-with 'BeerFestDB::CsvParser';
+with 'BeerFestDB::Role::CsvParser';
 
 sub value_acceptable {
 

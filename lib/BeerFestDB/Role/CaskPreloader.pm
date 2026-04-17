@@ -19,7 +19,7 @@
 #
 # $Id$
 
-package BeerFestDB::CaskPreloader;
+package BeerFestDB::Role::CaskPreloader;
 use Moose::Role;
 use namespace::autoclean;
 use Scalar::Util qw(looks_like_number);
@@ -29,7 +29,7 @@ use BeerFestDB::ORM;
 
 =head1 NAME
 
-BeerFestDB::CaskPreloader - Populating FestivalProduct, CaskManagement, Cask.
+BeerFestDB::Role::CaskPreloader - Populating FestivalProduct, CaskManagement, Cask.
 
 =head1 DESCRIPTION
 
