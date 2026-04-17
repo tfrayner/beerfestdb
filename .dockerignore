@@ -1,4 +1,6 @@
 .venv*
+.venv
+.venv_dashboard
 .vscode
 .git
 .github
