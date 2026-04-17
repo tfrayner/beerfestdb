@@ -130,9 +130,6 @@ sub login : Global {
 
     my $data = $j->decode( $json_req );
 
-    $c->log->debug('login credentials received: username="' . $data->{ 'username' }
-		   . '" password="' . $data->{ 'password' } . '"');
-
     if ( $c->authenticate({ username => $data->{ 'username' },
                             password => $data->{ 'password' }, }) ) {
 

@@ -19,7 +19,7 @@
 #
 # $Id$
 
-package BeerFestDB::MenuSelector;
+package BeerFestDB::Role::MenuSelector;
 use Moose::Role;
 use namespace::autoclean;
 use Scalar::Util qw(looks_like_number);
@@ -32,7 +32,7 @@ requires 'database';
 
 =head1 NAME
 
-BeerFestDB::MenuSelector - Command-line menus.
+BeerFestDB::Role::MenuSelector - Command-line menus.
 
 =head1 DESCRIPTION
 

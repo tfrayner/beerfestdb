@@ -19,7 +19,7 @@
 #
 # $Id$
 
-package BeerFestDB::DipMunger;
+package BeerFestDB::Role::DipMunger;
 use Moose::Role;
 use namespace::autoclean;
 
@@ -27,7 +27,7 @@ use BeerFestDB::Web;
 
 =head1 NAME
 
-BeerFestDB::DipMunger - Utility functions for CaskMeasurements.
+BeerFestDB::Role::DipMunger - Utility functions for CaskMeasurements.
 
 =head1 DESCRIPTION
 

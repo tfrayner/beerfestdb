@@ -1,0 +1,5 @@
+.venv*
+.vscode
+.git
+.github
+inc

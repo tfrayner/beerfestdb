@@ -42,7 +42,7 @@ our $VERSION = '0.01';
 
 extends 'BeerFestDB::Dumper';
 
-with 'BeerFestDB::DipMunger';
+with 'BeerFestDB::Role::DipMunger';
 
 has 'template'   => ( is       => 'ro',
                       isa      => 'Str',
@@ -886,7 +886,7 @@ None by default.
 
 =head1 SEE ALSO
 
-L<BeerFestDB::Dumper>, L<BeerFestDB::Dumper::OODoc>, L<BeerFestDB::DipMunger>
+L<BeerFestDB::Dumper>, L<BeerFestDB::Dumper::OODoc>, L<BeerFestDB::Role::DipMunger>
 
 =head1 COPYRIGHT AND LICENSE
 
