@@ -561,7 +561,7 @@ MyLoginPanel = Ext.extend(Ext.form.FormPanel, {
     width:       500,
     defaults:    {width: 300}, // field box width
     defaultType: 'textfield',
-    targetUrl:   "/",  // A reasonable but not universally-applicable default.
+    targetUrl:   url_success_target || url_base, // default to server root if not set by controller.
     
     initComponent: function() {
 

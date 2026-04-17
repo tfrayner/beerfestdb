@@ -68,8 +68,15 @@ __PACKAGE__->config(
     session => { flash_to_stash => 1,
                  expires        => 3600, },
     'Plugin::Session' => {
-	storage => "/tmp/beerfestdb-$>/web/session_data",
-	unlink_on_exit => 1,
+        storage => "/tmp/beerfestdb-$>/web/session_data",
+        unlink_on_exit => 1,
+    },
+    'Plugin::OpenIDConnect' => {
+        user_claims => {
+            sub => 'id',
+            name => 'name',
+            email => 'email',
+        },
     },
     authentication => {  
         default_realm => 'beerfestdb',

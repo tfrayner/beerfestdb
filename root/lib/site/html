@@ -5,8 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 [% IF ! generate_bare_html -%]
  <script type="text/javascript">
-   <!-- We must set our base URL before defining our custom classes (in /static/js/classes.js). -->
+   <!-- We must set our base URLs before defining our custom classes (in /static/js/classes.js). -->
    var url_base = '[% c.uri_for( "/" ) %]';
+   var url_success_target = '[% url_success_target || "/" %]';
  </script>
 [%-
   css_link( href = "/static/ext/resources/css/ext-all.css" );

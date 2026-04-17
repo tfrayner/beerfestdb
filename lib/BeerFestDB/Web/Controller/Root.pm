@@ -72,15 +72,15 @@ sub access_denied : Private {
 
     if (!$c->user_exists) {
 
-	# Handle cases where we're not running at server root
-	# (e.g. behind a reverse proxy).
-	my $base = $c->config->{ 'base_path' };
-	my $uri  = $c->req->uri;
-	if ( defined $base ) {
-	    $uri->path($base . $uri->path);
-	}
+	    # Handle cases where we're not running at server root
+	    # (e.g. behind a reverse proxy).
+        my $base = $c->config->{ 'base_path' };
+	    my $uri  = $c->req->uri;
+	    if ( defined $base ) {
+	        $uri->path($base . $uri->path);
+        }
 
-	$c->log->debug("If login succeeds, will redirect to $uri");
+	    $c->log->debug("If login succeeds, will redirect to $uri");
 
         # Set up the post-login destination URI.
         $c->flash->{url_success_target} = '' . $uri;
@@ -116,8 +116,19 @@ sub login : Global {
     # on the web page. FIXME?
     $c->log->debug("login flash: " . Dumper $c->flash);
 
-    $c->stash->{'url_success_target'}
-        = $c->flash->{'url_success_target'} || '' . $c->uri_for('/');
+    if (my $back =  $c->request->params->{'back'}) {
+
+        # OpenIDConnect case
+        $c->log->debug("back parameter is set, will redirect to " . $back);
+        $c->stash->{url_success_target} = $c->flash->{url_success_target} = $c->uri_for($back);
+
+    } else {
+
+        # Normal case
+        $c->stash->{'url_success_target'}
+            = $c->flash->{'url_success_target'} || '' . $c->uri_for('/');
+
+    }
 
     my $j = JSON->new;
     my $json_req = $c->request->param( 'data' );
@@ -133,16 +144,16 @@ sub login : Global {
     if ( $c->authenticate({ username => $data->{ 'username' },
                             password => $data->{ 'password' }, }) ) {
 
-	$c->log->debug("login authentication successful.");
+	    $c->log->debug("login authentication successful.");
 
         # ExtJS form redirects to url_success_target URI.
-	$c->res->status('200');
+	    $c->res->status('200');
         $c->stash->{ 'success' } = JSON->true();
         $c->forward( 'View::JSON' );
     }
     else {
 
-	$c->log->debug("login authentication failed.");
+	    $c->log->debug("login authentication failed.");
 
         $c->res->status('401');
         $c->stash->{ 'message' } = 'Login failed.';
