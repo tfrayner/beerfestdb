@@ -1,19 +1,21 @@
 FROM python:3.12-slim
 
+ENV PORT=8501
+
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     build-essential \
     pkg-config \
     libmariadb-dev \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir --no-compile -r requirements.txt
 
-EXPOSE 8501
+EXPOSE ${PORT}
 
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
+HEALTHCHECK CMD curl --fail http://localhost:${PORT}/_stcore/health
 
-ENTRYPOINT ["streamlit", "run", "CBF_tool_page.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT streamlit run CBF_tool_page.py --server.port=${PORT} --server.address=0.0.0.0
