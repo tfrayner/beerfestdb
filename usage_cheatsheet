@@ -45,18 +45,19 @@ Info gathering spreadsheet --> load_data input
 7. Add remaining required columns: festival name & year, product category, order batch, is-final ('1' for yes). Example header row:
     brewery_name	product_name	product_abv	product_style	cask_size	cask_count	order_sor	distributor_name	order_batch	product_category	festival_name	festival_year	order_finalized
     	a. For cask_size, use one of the text descriptions from the database (see list below). Watch for typos, especially if a load fails. (New 2017-04; previously used number of gallons)
-8. Feed to load_data.pl with default beerfestdb.yml (i.e. default protected categories including company, product)
+	b. Need order_finalized to tick the 'ordered' boxes ... and make orders actually get spawned! product_category and festival_year are less critical; although the category is useful, the load won't actually fail without it. (Based on experience in 2019.)
+8. Feed to load_data.pl with default beerfestdb_web.yml (i.e. default protected categories including company, product)
 	a. if it squawks "Protection error (ProductOrder):" uncomment ProductOrder to create (wait for it) this product order
 9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things
    9a. Make sure nothing got missed out, duplicated, or otherwise mangled!
-10. Unprotect company & product in beerfestdb.yml; load!
+10. Unprotect company & product in beerfestdb_web.yml; load!
 11. Spawn 'n' send orders as above
 
 Alternative to steps 1-6: Copy just columns A-F from spreadsheet GUI; don't forget to repeat with updated quantities for any SOR casks. Paste into file destined to be input for load_data.pl, add remaining column, and edit container size descriptions as indicated above.
 
 Note that either approach is error-prone, so check carefully to avoid duplications and omissions.
 
-Container size descriptions from beerfestdb:
+To get the current list of container size descriptions from beerfestdb, use query 'select description from container_size;'. Example output (slightly out of date):
 
 +----------------------+
 | description          |
@@ -378,6 +379,7 @@ e.g. https://www.tax.service.gov.uk/check-the-awrs-register?query=XMAW0000010340
 % echo 'select name, awrs_urn from company where awrs_urn is not null;' | mysql -p beerfestdb > awrs_file
 % for each in `cut -f2 awrs_file`; do open "https://www.tax.service.gov.uk/check-the-awrs-register?query=$each" ; done
 
+
 Appendix 8 - how many casks/kils/firkins ordered?
 
 Query to get a count of casks of each size ordered (but not yet arrived):
@@ -385,5 +387,39 @@ Query to get a count of casks of each size ordered (but not yet arrived):
 select cs.description, sum(po.cask_count) from festival f, container_size cs, order_batch ob, product_order po  where ob.festival_id=f.festival_id and ob.order_batch_id=po.order_batch_id and po.container_size_id=cs.container_size_id and f.name='43rd Cambridge Beer Festival' group by cs.description;
 
 This doesn't filter by product category, but for casks it doesn't need to - only beer comes in kils or firkins.
+
+
+
+Appendix 9 - Online tool dashboard introduced 2026
+
+To run the tools dashboard locally:
+
+- Check out beerfestdb from github
+	make sure .gitignore includes the '.streamlit' line
+
+- Set up python virtual environment as directed
+- Install required modules via pip install
+- It will also need underlying modules
+	e.g. a Linux setup will need python.[version]-venv, mariadb-client, libmariadb-dev
+
+When setup is complete:
+- Log in to pin via the 'sock' command (this does the required port forwarding)Q
+	% ssh -L 3307:/run/mysqld/mysqld.sock pin.cambridge-camra.org.uk
+
+- While logged in to pin, run the streamlit script (on a local command line):
+% streamlit run CBF_tool_page.py
+
+Tips on using the Sale Price Generator:
+- Timing: Recommend using it after preload_festival_casks.pl has been run
+-- This is when cask prices become available to the query
+- Make sure festival_product is protected in beerfestdb_web.yml, so duplicates aren't created
+- Default display includes the essential columns for loading, so that's a good selection to download
+-- columns: festival_name, brewery_name, product_name, product_sale_price
+- After downloading a file, manually enter any overrides 
+-- This can be done in the file before running load_data.pl, or in the web interface after loading
+-- Either way, remember to re-check if you re-run the price generator
+- If one beer is available in both cask and keg, choose one to retain in the load file, and manually correct afterwards; also see next note.
+
+Also remember that the database doesn't really support same product, different dispense (e.g. beer in cask & keg) at same festival. (The schema dates back to before that was a thing; only International had any keg back then.) We have always kludged by manually editing one of the cask end signs in the .tex file after running dump_to_template.pl!
 
 
