@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ package BeerFestDB::Web;
 use strict;
 use warnings;
 
-use Catalyst::Runtime 5.70;
+use Catalyst::Runtime 5.90;
 
 # Set flags and add plugins for the application
 #
@@ -168,7 +168,7 @@ L<BeerFestDB::Web::Controller::Root>, L<Catalyst>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
