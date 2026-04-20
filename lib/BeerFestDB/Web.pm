@@ -45,12 +45,8 @@ use Catalyst qw/ConfigLoader
                 Authentication
                 Authorization::Roles
                 Authorization::ACL
-
-                OpenIDConnect
                /;
 our $VERSION = '1.1';
-
-use BeerFestDB::Web::Controller::OpenIDConnect;
 
 # Configure the application. 
 #
@@ -107,7 +103,16 @@ __PACKAGE__->config(
  );
 
 # Start the application
-__PACKAGE__->setup();
+my $has_openid_connect_plugin = eval { require Catalyst::Plugin::OpenIDConnect; 1; };
+if ( $has_openid_connect_plugin ) {
+    # If OpenID Connect plugin is available, set up the application with it.
+    __PACKAGE__->setup(qw/OpenIDConnect/);
+    __PACKAGE__->log->info("OpenID Connect plugin is available; setting up application with OpenID Connect support.");
+}
+else {
+    __PACKAGE__->setup();
+    __PACKAGE__->log->warn("OpenID Connect plugin is not available; setting up application without OpenID Connect support.");
+}
 
 # Turn off debug output unless we're really debugging.
 __PACKAGE__->log->levels( qw/info warn error fatal/ ) unless __PACKAGE__->debug;
@@ -148,7 +153,10 @@ __PACKAGE__->deny_access( '/role' );
 __PACKAGE__->allow_access( '/default' );
 __PACKAGE__->allow_access( '/index' );
 __PACKAGE__->allow_access( '/login' );
-__PACKAGE__->allow_access( '/openidconnect' );
+
+if ( $has_openid_connect_plugin ) {
+    __PACKAGE__->allow_access( '/openidconnect' );
+}
 
 =head1 NAME
 
