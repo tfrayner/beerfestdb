@@ -48,7 +48,7 @@ my $po2 = $s->resultset('ProductOrder')->find_or_create({
 
 # ── preload_cask_managements: is_final=0 ─────────────────────────────────────
 
-lives_ok { $preloader->preload_cask_managements($po1) }
+lives_ok { local $SIG{__WARN__} = sub {}; $preloader->preload_cask_managements($po1) }
     'preload_cask_managements lives with is_final=0';
 
 is( $po1->cask_managements()->count(), 0,
@@ -58,7 +58,7 @@ is( $po1->cask_managements()->count(), 0,
 
 $po1->update({ is_final => 1 });
 
-lives_ok { $preloader->preload_cask_managements($po1) }
+lives_ok { local $SIG{__WARN__} = sub {}; $preloader->preload_cask_managements($po1) }
     'preload_cask_managements lives with is_final=1, cask_count=2';
 
 is( $po1->cask_managements()->count(), 2,
@@ -86,7 +86,7 @@ is( $caskmans[0]->get_column('festival_id'), 1,
 
 # ── preload_cask_managements: idempotent ─────────────────────────────────────
 
-lives_ok { $preloader->preload_cask_managements($po1) }
+lives_ok { local $SIG{__WARN__} = sub {}; $preloader->preload_cask_managements($po1) }
     'preload_cask_managements is idempotent (second call lives)';
 
 is( $po1->cask_managements()->count(), 2,
@@ -97,7 +97,7 @@ is( $po1->cask_managements()->count(), 2,
 my $fp_count_before   = $s->resultset('FestivalProduct')->count();
 my $gyle_count_before = $s->resultset('Gyle')->count();
 
-lives_ok { $preloader->preload_product_order($po2) }
+lives_ok { local $SIG{__WARN__} = sub {}; $preloader->preload_product_order($po2) }
     'preload_product_order lives';
 
 # The FestivalProduct for festival 1 / product 1 already exists — no new one.
@@ -132,7 +132,7 @@ ok( defined $new_cask,
 
 # ── preload_product_order: idempotent ─────────────────────────────────────────
 
-lives_ok { $preloader->preload_product_order($po2) }
+lives_ok { local $SIG{__WARN__} = sub {}; $preloader->preload_product_order($po2) }
     'preload_product_order is idempotent (second call lives)';
 
 is( $po2->cask_managements()->count(), 1,

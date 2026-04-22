@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use lib 't/lib';
+use TestFestivalDB;
 
 # Compile tests for modules not covered elsewhere.
 # These modules depend on external services, interactive I/O, or complex
