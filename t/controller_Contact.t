@@ -20,7 +20,7 @@ $ua->get_ok('/contact/load_form',
 $ua->get_ok('/contact/list_by_company/1',
             'Contact list_by_company should succeed' );
 
-# Not yet implemented FIXME if needed.
+# No template exists yet; not implemented.
 #$ua->get_ok('/contact/grid/1',
 #            'Contact grid should succeed' );
 

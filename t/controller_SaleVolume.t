@@ -16,4 +16,7 @@ generic_grid_tests("salevolume", "SaleVolume", $ua);
 $ua->get_ok('/salevolume/view/1',
             'SaleVolume view should succeed' );
 
+$ua->get_ok('/salevolume/load_form',
+            'SaleVolume load_form should succeed' );
+
 done_testing();

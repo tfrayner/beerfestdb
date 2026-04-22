@@ -16,4 +16,7 @@ generic_grid_tests("companyregion", "CompanyRegion", $ua);
 $ua->get_ok('/companyregion/view/1',
             'CompanyRegion view should succeed' );
 
+$ua->get_ok('/companyregion/load_form',
+            'CompanyRegion load_form should succeed' );
+
 done_testing();

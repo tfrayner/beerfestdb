@@ -16,4 +16,7 @@ generic_grid_tests("dispensemethod", "DispenseMethod", $ua);
 $ua->get_ok('/dispensemethod/view/1',
             'DispenseMethod view should succeed' );
 
+$ua->get_ok('/dispensemethod/load_form',
+            'DispenseMethod load_form should succeed' );
+
 done_testing();
