@@ -145,7 +145,11 @@ BEGIN {
     }
 
     # Refresh from pristine_testing.db every time.
-    copy( $db, "t/testing.db" )
+    copy( $db, "t/testing.db" );
+
+    # Reconnect to testing.db so that writes during tests do not
+    # accumulate in the pristine DB across multiple runs.
+    $schema = BeerFestDB::ORM->connect("DBI:SQLite:t/testing.db");
 };
 
 sub schema { $schema }

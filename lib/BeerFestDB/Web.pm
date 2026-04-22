@@ -73,6 +73,7 @@ __PACKAGE__->config(
             name => 'name',
             email => 'email',
         },
+        debug => 0, # Set to 1 for specific logging of OIDC plugin including setup.
     },
     authentication => {  
         default_realm => 'beerfestdb',
@@ -105,13 +106,14 @@ __PACKAGE__->config(
 # Start the application
 my $has_openid_connect_plugin = eval { require Catalyst::Plugin::OpenIDConnect; 1; };
 if ( $has_openid_connect_plugin ) {
-    # If OpenID Connect plugin is available, set up the application with it.
     __PACKAGE__->setup(qw/OpenIDConnect/);
-    __PACKAGE__->log->info("OpenID Connect plugin is available; setting up application with OpenID Connect support.");
+    __PACKAGE__->log->autoflush(1);
+    __PACKAGE__->log->debug("OpenID Connect plugin is available; application set up with OpenID Connect support.");
 }
 else {
     __PACKAGE__->setup();
-    __PACKAGE__->log->warn("OpenID Connect plugin is not available; setting up application without OpenID Connect support.");
+    __PACKAGE__->log->autoflush(1);
+    __PACKAGE__->log->warn("OpenID Connect plugin is not available; application set up without OpenID Connect support.");
 }
 
 # Turn off debug output unless we're really debugging.
