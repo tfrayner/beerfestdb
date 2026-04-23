@@ -16,4 +16,7 @@ generic_grid_tests("productallergentype", "ProductAllergenType", $ua);
 $ua->get_ok('/productallergentype/view/1',
             'ProductAllergenType view should succeed' );
 
+$ua->get_ok('/productallergentype/load_form',
+            'ProductAllergenType load_form should succeed' );
+
 done_testing();

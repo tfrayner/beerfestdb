@@ -174,7 +174,7 @@ sub load_form : Local {
 
     my $pk = 'user_id';
     
-    my $id = $c->request->param( $pk );
+    my $id = $c->request->param( $pk ) // -1;
 
     if ( $id != eval{ $c->user->user_id } && ! $c->check_any_user_role('admin') ) {
         $c->stash->{error} = 'You are not authorised to access these data.';

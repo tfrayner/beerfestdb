@@ -108,6 +108,8 @@ sub parse_price {
 
     my ( $self, $value, $currency ) = @_;
 
+    return unless defined $value;
+
     $currency //= $self->default_currency();
 
     return $value * (10 ** $currency->exponent());

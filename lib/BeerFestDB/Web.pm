@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ package BeerFestDB::Web;
 use strict;
 use warnings;
 
-use Catalyst::Runtime 5.70;
+use Catalyst::Runtime 5.90;
 
 # Set flags and add plugins for the application
 #
@@ -64,8 +64,16 @@ __PACKAGE__->config(
     session => { flash_to_stash => 1,
                  expires        => 3600, },
     'Plugin::Session' => {
-	storage => "/tmp/beerfestdb-$>/web/session_data",
-	unlink_on_exit => 1,
+        storage => "/tmp/beerfestdb-$>/web/session_data",
+        unlink_on_exit => 1,
+    },
+    'Plugin::OpenIDConnect' => {
+        user_claims => {
+            sub => 'id',
+            name => 'name',
+            email => 'email',
+        },
+        debug => 0, # Set to 1 for specific logging of OIDC plugin including setup.
     },
     authentication => {  
         default_realm => 'beerfestdb',
@@ -96,7 +104,13 @@ __PACKAGE__->config(
  );
 
 # Start the application
-__PACKAGE__->setup();
+my $has_openid_connect_plugin = eval { require Catalyst::Plugin::OpenIDConnect; 1; };
+if ( $has_openid_connect_plugin ) {
+    __PACKAGE__->setup(qw/OpenIDConnect/);
+}
+else {
+    __PACKAGE__->setup();
+}
 
 # Turn off debug output unless we're really debugging.
 __PACKAGE__->log->levels( qw/info warn error fatal/ ) unless __PACKAGE__->debug;
@@ -138,6 +152,10 @@ __PACKAGE__->allow_access( '/default' );
 __PACKAGE__->allow_access( '/index' );
 __PACKAGE__->allow_access( '/login' );
 
+if ( $has_openid_connect_plugin ) {
+    __PACKAGE__->allow_access( '/openidconnect' );
+}
+
 =head1 NAME
 
 BeerFestDB::Web - Catalyst based application
@@ -156,7 +174,7 @@ L<BeerFestDB::Web::Controller::Root>, L<Catalyst>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

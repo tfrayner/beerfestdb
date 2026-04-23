@@ -16,4 +16,7 @@ generic_grid_tests("containersize", "ContainerSize", $ua);
 $ua->get_ok('/containersize/view/1',
             'ContainerSize view should succeed' );
 
+$ua->get_ok('/containersize/load_form',
+            'ContainerSize load_form should succeed' );
+
 done_testing();

@@ -16,7 +16,7 @@ spec:
     memory: 8Gi
     pods: 4
     resourcequotas: 1
-    services: 3
+    services: 4
 ---
 apiVersion: v1
 kind: Service
@@ -66,7 +66,7 @@ spec:
         name: mysql
         env:
         - name: MYSQL_RANDOM_ROOT_PASSWORD
-          value: 1
+          value: '1'
         resources:
           limits:
             cpu: '2'
