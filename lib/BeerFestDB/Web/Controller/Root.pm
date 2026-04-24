@@ -120,7 +120,7 @@ sub login : Global {
 
         # OpenIDConnect case
         $c->log->debug("back parameter is set, will redirect to " . $back);
-        $c->stash->{url_success_target} = $c->flash->{url_success_target} = $c->uri_for($back);
+        $c->stash->{url_success_target} = $c->flash->{url_success_target} = '' . $c->uri_for($back);
 
     } else {
 
