@@ -1,0 +1,90 @@
+---
+# Example stillage planning configuration for BeerFestDB::StillagePlanner.
+#
+# Copy and customise this file for each festival.  Pass it to the
+# plan_stillage.pl utility with --config.
+
+# ── Physical margins ──────────────────────────────────────────────────────────
+
+# Fraction of a cask's width to add as a spacing gap on each side.
+# Effective pitch = cask_width * (1 + margin).
+# Default: 0.10 (10 %)
+margin: 0.10
+
+# ── Container widths (metres) ─────────────────────────────────────────────────
+# Map each ContainerSize description to its approximate physical width.
+
+container_widths:
+  firkin:     0.45
+  kilderkin:  0.58
+  22 gallon:  0.65
+  barrel:     0.72
+
+# ── Stillages ─────────────────────────────────────────────────────────────────
+# List each stillage to be planned.  The description must exactly match
+# the StillageLocation.description in the database.
+#
+# Each stillage has one or more numbered bays, and each bay has one or
+# more bay positions (which must match BayPosition.description in the DB)
+# with a physical width in metres.
+
+stillages:
+  - description: Main Bar South
+    bays:
+      - number: 1
+        positions:
+          - bay_position: Bottom Front
+            width: 4.0
+          - bay_position: Top Front
+            width: 4.0
+      - number: 2
+        positions:
+          - bay_position: Bottom Front
+            width: 4.0
+          - bay_position: Top Front
+            width: 4.0
+      - number: 3
+        positions:
+          - bay_position: Bottom Front
+            width: 4.0
+          - bay_position: Top Front
+            width: 4.0
+
+  - description: Main Bar North
+    bays:
+      - number: 1
+        positions:
+          - bay_position: Bottom Front
+            width: 3.6
+          - bay_position: Top Front
+            width: 3.6
+      - number: 2
+        positions:
+          - bay_position: Bottom Front
+            width: 3.6
+          - bay_position: Top Front
+            width: 3.6
+
+  - description: Cider Bar
+    bays:
+      - number: 1
+        positions:
+          - bay_position: On Floor
+            width: 6.0
+
+# ── Scoring weights ───────────────────────────────────────────────────────────
+# All keys are optional; the values below are the built-in defaults.
+
+weights:
+  # Penalty per adjacent out-of-order (brewery/beer) pair in the plan.
+  alphabetical: 10
+
+  # Penalty per extra (stillage, bay) pair occupied by a single beer.
+  proximity: 5
+
+  # Penalty per importance unit for a cask sent to the deck.
+  # Importance = cask_count + 1 - cask_number  (first cask matters most).
+  deck: 20
+
+  # Multiplier applied to the deck penalty for sale-or-return casks.
+  sor_deck_multiplier: 0.1

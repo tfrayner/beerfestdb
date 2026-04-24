@@ -30,27 +30,22 @@ use Scalar::Util qw(looks_like_number);
 use BeerFestDB::ORM;
 use BeerFestDB::Web;
 use BeerFestDB::StillagePlanner;
+use BeerFestDB::StillagePlanner::Config;
 
 ########################################################################
 # Command-line arguments
 ########################################################################
 
-my ( $want_help, $opt_apply, $opt_bays, $opt_capacity,
-     $opt_max_iter, $opt_convergence, $opt_seed,
-     $opt_w_alpha, $opt_w_prox, $opt_w_deck, $opt_w_sor );
+my ( $want_help, $opt_apply, $opt_config,
+     $opt_max_iter, $opt_convergence, $opt_seed );
 
 GetOptions(
     'h|help'            => \$want_help,
     'apply'             => \$opt_apply,
-    'bays=i'            => \$opt_bays,
-    'capacity=i'        => \$opt_capacity,
+    'config=s'          => \$opt_config,
     'max-iterations=i'  => \$opt_max_iter,
     'convergence=i'     => \$opt_convergence,
     'seed=i'            => \$opt_seed,
-    'w-alpha=f'         => \$opt_w_alpha,
-    'w-proximity=f'     => \$opt_w_prox,
-    'w-deck=f'          => \$opt_w_deck,
-    'w-sor=f'           => \$opt_w_sor,
 ) or pod2usage( -exitval => 1, -output => \*STDERR );
 
 if ($want_help) {
@@ -61,69 +56,27 @@ if ($want_help) {
     );
 }
 
-die("Error: --bays must be a positive integer.\n")
-    if defined $opt_bays && ( !looks_like_number($opt_bays) || $opt_bays < 1 );
+die("Error: --config is required.\n")
+    unless defined $opt_config;
 
-die("Error: --capacity must be a positive integer.\n")
-    if defined $opt_capacity
-        && ( !looks_like_number($opt_capacity) || $opt_capacity < 1 );
-
-########################################################################
-# Helper: interactive stillage selector
-########################################################################
-
-sub select_stillage {
-    my ( $schema, $festival ) = @_;
-
-    my @locs = $schema->resultset('StillageLocation')
-        ->search( { festival_id => $festival->get_column('festival_id') },
-                  { order_by    => 'description' } )
-        ->all;
-
-    die("Error: no stillage locations found for this festival.\n")
-        unless @locs;
-
-    return $locs[0] if @locs == 1;
-
-    my $wanted;
-    SELECT: {
-        warn("Please select the stillage to plan:\n\n");
-        for my $n ( 1 .. @locs ) {
-            warn( sprintf( "  %d: %s\n", $n, $locs[$n-1]->description ) );
-        }
-        warn("\n");
-        chomp( my $sel = <STDIN> );
-        redo SELECT
-            unless looks_like_number($sel) && ( $wanted = $locs[$sel-1] );
-    }
-    return $wanted;
-}
-
-########################################################################
-# Helper: ask for an integer with a default
-########################################################################
-
-sub prompt_int {
-    my ( $prompt, $default ) = @_;
-    warn("$prompt [default: $default]: ");
-    chomp( my $val = <STDIN> );
-    $val = $default unless length $val;
-    die("Error: '$val' is not a positive integer.\n")
-        unless looks_like_number($val) && $val >= 1;
-    return int($val);
-}
+die("Error: config file '$opt_config' not found.\n")
+    unless -f $opt_config;
 
 ########################################################################
 # Main
 ########################################################################
 
-my $config = BeerFestDB::Web->config();
-my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
+my $web_config = BeerFestDB::Web->config();
+my $schema = BeerFestDB::ORM->connect( @{ $web_config->{'Model::DB'}{'connect_info'} } );
 
-# ── Festival selection (reuses the MenuSelector logic inline) ──────────────
+my $planner_config = BeerFestDB::StillagePlanner::Config->new(
+    config_file => $opt_config,
+);
+
+# ── Festival selection ────────────────────────────────────────────────────────
 
 my $festival;
-if ( my $festname = $config->{'current_festival'} ) {
+if ( my $festname = $web_config->{'current_festival'} ) {
     $festival = $schema->resultset('Festival')
         ->find({ name => $festname })
             or die(qq{Error: configured festival "$festname" not found.\n});
@@ -155,48 +108,37 @@ else {
 
 warn( sprintf( "Festival: %d %s\n\n", $festival->year, $festival->name ) );
 
-# ── Stillage selection ────────────────────────────────────────────────────
-
-my $stillage = select_stillage( $schema, $festival );
-warn( sprintf( "Stillage: %s\n\n", $stillage->description ) );
-
-# ── Stillage dimensions ───────────────────────────────────────────────────
-
-my $num_bays    = $opt_bays     // prompt_int( 'Number of bays', 20 );
-my $bay_cap     = $opt_capacity // prompt_int( 'Cask positions per bay', 1 );
-
-# ── Build the planner ─────────────────────────────────────────────────────
+# ── Build the planner ─────────────────────────────────────────────────────────
 
 my %planner_args = (
-    database          => $schema,
-    stillage_location => $stillage,
-    num_bays          => $num_bays,
-    bay_capacity      => $bay_cap,
+    database => $schema,
+    festival => $festival,
+    config   => $planner_config,
 );
 
 $planner_args{max_iterations}    = $opt_max_iter    if defined $opt_max_iter;
 $planner_args{convergence_streak} = $opt_convergence if defined $opt_convergence;
-$planner_args{weight_alphabetical}        = $opt_w_alpha if defined $opt_w_alpha;
-$planner_args{weight_proximity}           = $opt_w_prox  if defined $opt_w_prox;
-$planner_args{weight_deck}                = $opt_w_deck  if defined $opt_w_deck;
-$planner_args{weight_sor_deck_multiplier} = $opt_w_sor   if defined $opt_w_sor;
 
 my $planner = BeerFestDB::StillagePlanner->new(%planner_args);
 
-# ── Load and plan ─────────────────────────────────────────────────────────
+# ── Load, build slots, and plan ───────────────────────────────────────────────
 
 srand($opt_seed) if defined $opt_seed;
 
-my $n = $planner->load_casks();
-warn("Loaded $n cask(s) from stillage '" . $stillage->description . "'.\n");
+my $n_casks = $planner->load_casks();
+warn("Loaded $n_casks unassigned cask(s) for this festival.\n");
 
-if ( $n == 0 ) {
+if ( $n_casks == 0 ) {
     warn("Nothing to plan.\n");
     exit 0;
 }
 
+my $n_slots = $planner->build_slots();
+warn("Planning into $n_slots slot group(s) from config.\n");
+
 $planner->initialise();
 warn( sprintf( "Initial score: %.1f\n", $planner->score ) );
+
 
 my $final_score = $planner->plan();
 warn( sprintf( "Final score:   %.1f\n\n", $final_score ) );
@@ -221,68 +163,40 @@ __END__
 
 =head1 NAME
 
-plan_stillage.pl - Automatically arrange casks along a stillage
+plan_stillage.pl - Automatically assign unplaced casks to stillage positions
 
 =head1 SYNOPSIS
 
- plan_stillage.pl [options]
+ plan_stillage.pl --config stillage_plan.yml [options]
+
+ Required:
+   --config FILE       Path to the YAML planning configuration file
 
  Options:
-   --bays N            Number of bays on the stillage
-   --capacity N        Cask positions per bay (default 1)
    --apply             Write the planned layout back to the database
    --max-iterations N  Maximum number of swap attempts (default 5000)
    --convergence N     Stop after N consecutive non-improving swaps (default 500)
    --seed N            Random seed for reproducibility
-   --w-alpha F         Weight for alphabetical-order violations (default 10)
-   --w-proximity F     Weight for same-beer separation (default 5)
-   --w-deck F          Base weight for deck placement (default 20)
-   --w-sor F           Deck-penalty multiplier for sale-or-return casks (default 0.1)
    -h, --help          Show this help message
 
 =head1 DESCRIPTION
 
-C<plan_stillage.pl> uses L<BeerFestDB::StillagePlanner> to find a
-near-optimal arrangement of casks along a named stillage.
+C<plan_stillage.pl> uses L<BeerFestDB::StillagePlanner> to assign all
+unplaced casks for a festival (C<cask_management> rows whose
+C<stillage_location_id> is NULL and C<cask_graveyard> is NULL) to the
+bay positions defined in the YAML config file.
 
-The script will prompt interactively for the festival and stillage
-(unless C<current_festival> is set in the BeerFestDB configuration and
-there is only one stillage for that festival).  The number of bays and
-cask positions per bay must be supplied either on the command line or
-interactively.
+The script prints a human-readable plan to standard output.  Pass
+C<--apply> to write C<stillage_location_id>, C<stillage_bay>, and
+C<bay_position_id> back to the C<cask_management> table.  Casks that
+cannot fit in any available bay position have their C<cask_graveyard>
+set to C<"deck">.
 
-A dry-run layout is always printed to standard output.  Pass C<--apply>
-to write the planned C<stillage_bay> and C<stillage_x_location> values
-back to the C<cask_management> table (casks that overflow the available
-slots are placed on the deck and have their C<cask_graveyard> set to
-C<"deck">).
-
-=head2 Scoring weights
-
-The penalty function combines three components; each can be tuned with
-the corresponding command-line option:
-
-=over 4
-
-=item C<--w-alpha>
-
-Penalty added for each adjacent out-of-order pair on the stillage
-(alphabetical ordering).
-
-=item C<--w-proximity>
-
-Penalty per slot of separation between same-beer casks.
-
-=item C<--w-deck>
-
-Base per-importance-point penalty for placing a cask on the deck.
-
-=item C<--w-sor>
-
-Multiplier applied to the deck penalty for sale-or-return casks
-(default 0.1, making SOR placement nearly free).
-
-=back
+The script will prompt interactively for the festival unless
+C<current_festival> is set in the BeerFestDB configuration.  All
+physical constraints (stillage descriptions, bay widths, container
+widths, and scoring weights) are read from the C<--config> YAML file.
+See C<example_data/stillage_plan.yml> for an annotated example.
 
 =head2 Reproducibility
 
@@ -292,7 +206,8 @@ random seed and obtain repeatable results.
 
 =head1 SEE ALSO
 
-L<BeerFestDB::StillagePlanner>, L<BeerFestDB::StillagePlanner::CaskEntry>
+L<BeerFestDB::StillagePlanner>, L<BeerFestDB::StillagePlanner::Config>,
+L<BeerFestDB::StillagePlanner::SlotGroup>
 
 =head1 AUTHOR
 
@@ -300,7 +215,7 @@ Tim F. Rayner <tfrayner@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2026 by Tim F. Rayner
+Copyright (C) 2024 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

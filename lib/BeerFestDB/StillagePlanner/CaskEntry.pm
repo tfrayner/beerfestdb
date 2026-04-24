@@ -175,6 +175,21 @@ has 'festival_product_id' => (
     required => 1,
 );
 
+=head2 cask_width
+
+Physical width of this cask in metres, looked up from the planner
+config via the container size description.  Used by
+L<BeerFestDB::StillagePlanner::SlotGroup/can_fit> to enforce bay
+position capacity.
+
+=cut
+
+has 'cask_width' => (
+    is       => 'ro',
+    isa      => 'Num',
+    required => 1,
+);
+
 =head1 METHODS
 
 =head2 label
