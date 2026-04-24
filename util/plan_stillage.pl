@@ -215,7 +215,7 @@ Tim F. Rayner <tfrayner@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2024 by Tim F. Rayner
+Copyright (C) 2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 #
-# Copyright (C) 2010-2024 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -727,7 +727,7 @@ assignment state, the loop terminates.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010-2024 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
