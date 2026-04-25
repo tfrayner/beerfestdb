@@ -81,8 +81,23 @@ and p.is_vegan = '1';'''
 #%%
 vgfdf = conn.query(vgsql, params={"festivalname": festivalname})
 
+@st.cache_data
+def csv_for_download(df):
+    return df.to_csv().encode("utf-8")
+
+def tsv_for_download(df):
+    return df.to_csv(sep="\t", index=False).encode("utf-8")
+
+
 #%%
 conn.close()
+
+vcsv = csv_for_download(vdf)
+vtsv = tsv_for_download(vdf)
+gfcsv = csv_for_download(gfdf)
+gftsv = tsv_for_download(gfdf)
+vgfcsv = csv_for_download(vgfdf)
+vgftsv = tsv_for_download(vgfdf)
 
 #%%
 st.header(f'{festivalname}')
@@ -90,10 +105,78 @@ st.header(f'{festivalname}')
 st.subheader("Vegan beers")
 st.dataframe(vdf, hide_index=True)
 
+col1, col2 = st.columns(2)
+
+with col1:
+    st.download_button(
+        key="vcsv",
+        label="Download CSV",
+        data=vcsv,
+        file_name="vegan_beer_list.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
+
+with col2:
+    st.download_button(
+        key="vtsv",
+        label="Download TSV",
+        data=vtsv,
+        file_name="vegan_beer_list.tsv",
+        mime="text/tab-separated-values",
+        icon=":material/download:",
+    )
+
+
 st.subheader("Gluten-free beers")
 st.dataframe(gfdf, hide_index=True)
 
+col1, col2 = st.columns(2)
+
+with col1:
+    st.download_button(
+        key="gfcsv",
+        label="Download CSV",
+        data=gfcsv,
+        file_name="gluten-free_beer_list.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
+
+with col2:
+    st.download_button(
+        key="gftsv",
+        label="Download TSV",
+        data=gftsv,
+        file_name="gluten-free_beer_list.tsv",
+        mime="text/tab-separated-values",
+        icon=":material/download:",
+    )
+
+
 st.subheader("Beers that are both vegan and gluten-free")
 st.dataframe(vgfdf, hide_index=True)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.download_button(
+        key="vgfcsv",
+        label="Download CSV",
+        data=vgfcsv,
+        file_name="_beer_list.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
+
+with col2:
+    st.download_button(
+        key="vgftsv",
+        label="Download TSV",
+        data=vgftsv,
+        file_name="vegan-GF_beer_list.tsv",
+        mime="text/tab-separated-values",
+        icon=":material/download:",
+    )
 
 #%%
