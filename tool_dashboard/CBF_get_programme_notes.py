@@ -44,6 +44,13 @@ where festival = :festivalname;'''
 df = conn.query(sql, params={"festivalname": festivalname})
 #%%
 
+@st.cache_data
+def csv_for_download(df):
+    return df.to_csv().encode("utf-8")
+
+def tsv_for_download(df):
+    return df.to_csv(sep="\t", index=False).encode("utf-8")
+
 
 #%%
 conn.close()
@@ -53,4 +60,29 @@ st.header(f'{festivalname}')
 st.subheader('File for programme beer list:')
 
 df
+
+prgcsv = csv_for_download(df)
+prgtsv = tsv_for_download(df)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.download_button(
+        key="prgcsv",
+        label="Download CSV",
+        data=prgcsv,
+        file_name="programme_beer_list.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
+
+with col2:
+    st.download_button(
+        key="prgtsv",
+        label="Download TSV",
+        data=prgtsv,
+        file_name="programme_beer_list.tsv",
+        mime="text/tab-separated-values",
+        icon=":material/download:",
+    )
 
