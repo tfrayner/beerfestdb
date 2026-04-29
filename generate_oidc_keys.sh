@@ -6,6 +6,8 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KEYS_DIR="$SCRIPT_DIR/keys"
 
+mkdir -p "$KEYS_DIR"
+
 echo "Generating RSA key pair for OIDC..."
 
 # Generate private key

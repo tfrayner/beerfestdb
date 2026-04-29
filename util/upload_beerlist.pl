@@ -481,7 +481,7 @@ sub upload_department {
 
     # Warn on unusual/new characters. Add new characters here only if
     # you're sure the server can handle it.
-    my $core_re = qr/[^[:alnum:]_&"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄπ° \*-]+/;
+    my $core_re = qr/[^[:alnum:]_&\$"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄçßøπ°·žĀě \*\#-]+/;
     my $re = qr/( .{0,8} $core_re .{0,8} )/xms;
     if ( $output =~ $re ) {
         warn("Warning: uploaded content contains unexpected characters and may fail."

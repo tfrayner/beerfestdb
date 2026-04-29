@@ -37,7 +37,6 @@ requires 'Catalyst::Authentication::Store::DBIx::Class'   => '0.1506';
 requires 'Digest::SHA'                                    => '6.04';
 requires 'Crypt::SaltedHash'                              => '0.09';
 requires 'Catalyst::Action::RenderView';
-requires 'Catalyst::Plugin::Unicode::Encoding';
 requires 'parent';
 requires 'Config::YAML';
 
