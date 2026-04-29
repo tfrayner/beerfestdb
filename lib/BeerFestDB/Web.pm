@@ -104,13 +104,14 @@ __PACKAGE__->config(
  );
 
 # Start the application
-my $has_openid_connect_plugin = eval { require Catalyst::Plugin::OpenIDConnect; 1; };
-if ( $has_openid_connect_plugin ) {
-    __PACKAGE__->setup(qw/OpenIDConnect/);
+my $has_openid_connect_plugin = 0;
+if (eval { require Catalyst::Plugin::OpenIDConnect; 1; }) {
+    $has_openid_connect_plugin = eval { __PACKAGE__->setup_component(qw/OpenIDConnect/); 1; };
 }
-else {
-    __PACKAGE__->setup();
+if ( !$has_openid_connect_plugin ) {
+    __PACKAGE__->log->warn("OpenID Connect plugin not available, skipping setup of OpenID Connect support.\n");
 }
+__PACKAGE__->setup();
 
 # Turn off debug output unless we're really debugging.
 __PACKAGE__->log->levels( qw/info warn error fatal/ ) unless __PACKAGE__->debug;
