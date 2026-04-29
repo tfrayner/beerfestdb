@@ -30,9 +30,14 @@ use Moose;
 
 use LWP;
 use HTTP::Cookies;
-use JSON::DWIW;
+use JSON::MaybeXS;
 use Term::ReadKey;
 use Term::ReadLine;
+
+use Moose::Util::TypeConstraints;
+
+class_type 'JSON_XS', { class => 'Cpanel::JSON::XS' };
+class_type 'JSON_PP', { class => 'JSON::PP' };
 
 has 'uri'              => ( is       => 'ro',
                             isa      => 'Str',
@@ -56,9 +61,9 @@ has 'useragent'        => ( is       => 'ro',
                             } );
 
 has 'json_parser'      => ( is       => 'ro',
-                            isa      => 'JSON::DWIW',
+                            isa      => 'JSON_XS | JSON_PP',
                             required => 1,
-                            default  => sub { JSON::DWIW->new() } );
+                            default  => sub { JSON::MaybeXS->new() } );
 
 has 'debug'            => ( is       => 'ro',
                             isa      => 'Bool',
@@ -154,7 +159,7 @@ sub _attempt_login {
     my ( $username, $password ) = $self->_retrieve_credentials();
 
     my $ua   = $self->useragent();
-    my $json = $self->json_parser()->to_json({
+    my $json = $self->json_parser()->encode({
         username => $username,
         password => $password,
     });
@@ -165,7 +170,7 @@ sub _attempt_login {
         die("Error: Unable to login to BeerFestDB web site: "
                 . $res->status_line() . " (" . $self->uri() . ")\n");
     }
-    my $login = $self->json_parser->from_json( $res->decoded_content() );
+    my $login = $self->json_parser->decode( $res->decoded_content() );
     unless ( $login->{success} ) {
         die("Error: Unable to login to BeerFestDB web site: "
                 . $res->status_line() . " (" . $self->uri() . ")\n");                
@@ -202,12 +207,16 @@ sub _data_from_uri {
 
     my $json = $res->decoded_content();
 
-    my $data = $self->json_parser->from_json($json);
+    my $data = $self->json_parser->decode($json);
     unless ( $data->{success} ) {
         die("Error: JSON query returned error: $data->{error}\n");
     }
 
-    return( $data->{objects} );
+    # Escape all newlines to avoid problems with JSON parsers which don't handle them in strings.
+    my $objdata = $data->{objects};
+    $objdata =~ s/\n/\\n/g;
+
+    return( $objdata );
 }
 
 #############
@@ -220,7 +229,7 @@ use Template;
 use Digest::SHA qw (hmac_sha256_hex);
 use DateTime;
 use DateTime::TimeZone;
-use JSON::DWIW;
+use JSON::MaybeXS;
 use List::Util qw (first);
 use BeerFestDB::Web;
 use Encode qw(encode_utf8);
@@ -289,33 +298,6 @@ sub _update_via_local_command {
     return();
 }
 
-# No longer supported, this remains for now as a record of how the old
-# beerengine upload worked.
-
-# sub _update_via_web_upload {
-
-#     my ( $uri, $content, $clientid, $key ) = @_;
-
-#     my $counter  = time;
-#     my $mac      = hmac_sha256_hex(encode_utf8($clientid . $counter . $content), $key);
-
-#     my $ua  = LWP::UserAgent->new;
-#     my $res = $ua->post(
-#         $uri,
-#         [ 'clientid' => $clientid,
-#           'counter'  => $counter,
-#           'mac'      => $mac,
-#           'content'  => $content, ],
-#     );
-
-#     if ( ! $res->is_success() ) {
-#         die(sprintf("Error: Unable to connect to Public web site: %s\nResponse content:\n  %s",
-#                     $res->status_line(), $res->content() ));
-#     }
-
-#     return();
-# }
-
 sub get_timestamp {
 
     my $dt = DateTime->now();
@@ -342,6 +324,7 @@ sub update_brewery_info {
         stillage_location => 'bar',
         dispense_method   => 'dispense',
     );
+    my @boolean_fields = qw(is_vegan);
     foreach my $item ( @$statuslist ) {
         my $id = $item->{company_id};
         $brewery_info->{ $id }{id}           ||= $item->{company_id};
@@ -380,6 +363,14 @@ sub update_brewery_info {
             $item->{status} = '';
         }
         my $beer_info = { map { $infomap{$_} => $item->{ $_ } } keys %infomap };
+
+        foreach my $boolfield ( @boolean_fields ) {
+            if ( defined $beer_info->{ $boolfield } ) {
+                $beer_info->{ $boolfield } = $beer_info->{ $boolfield } 
+                                           ? JSON::MaybeXS->true 
+                                           : JSON::MaybeXS->false;
+            }
+        }
 
         if ( $prodcat eq 'apple juice' ) {
             $beer_info->{name} .= ' APPLE JUICE';
@@ -466,13 +457,13 @@ sub upload_department {
     }
 
     # Default version: generate a JSON-encoded string for upload.
-    my $jwriter = JSON::DWIW->new();
+    my $jwriter = JSON::MaybeXS->new();
     my @content = map { $_->[0] } # Schwartzian transform sorting by brewery name.
                   sort { $a->[1] cmp $b->[1] }
                   map { [ $_, $_->{name} ] }
                   values %$brewery_info;
-    my $output = $jwriter->to_json( { producers => \@content,
-				      timestamp => get_timestamp() } );
+    my $output = $jwriter->encode( { producers => \@content,
+				                     timestamp => get_timestamp() } );
 
     # Check for valid UTF-8 (don't just trust MySQL, although I've no reason to doubt it yet).
     unless (utf8::valid($output)) {

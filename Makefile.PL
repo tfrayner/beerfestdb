@@ -50,6 +50,7 @@ requires 'Text::CSV_XS';
 requires 'Template';
 requires 'DateTime::TimeZone';  # Timestamps for upload to public web site.
 requires 'Number::Format';  # For formatting prices for output.
+requires 'Moose::Util::TypeConstraints';
 
 requires 'LWP';
 requires 'HTTP::Cookies';
@@ -63,7 +64,6 @@ requires 'DBD::MariaDB'; # Or whatever you wish to use; beerfestdb has been exte
 requires 'YAML::XS';  # YAML::Syck is deprecated.
 requires 'DateTime';  # CBF-specific web site upload script.
 requires 'JSON::XS';  # Seems to work a bit more reliably than JSON::PP in this context.
-requires 'JSON::DWIW'; # For the beerfestdb web site upload script, which needs to be able to handle JSON with embedded newlines.
 requires 'LWP::Protocol::https'; # For the beerfestdb web site upload script, which needs to be able to upload over HTTPS.
 
 requires 'OpenOffice::OODoc';
