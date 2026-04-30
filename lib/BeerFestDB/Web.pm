@@ -103,15 +103,20 @@ __PACKAGE__->config(
     using_frontend_proxy => 1,  # create URLs using HTTPS scheme when behind a proxy
  );
 
-# Start the application
-my $has_openid_connect_plugin = 0;
-if (eval { require Catalyst::Plugin::OpenIDConnect; 1; }) {
-    $has_openid_connect_plugin = eval { __PACKAGE__->setup_component(qw/OpenIDConnect/); 1; };
+# Load the OpenIDConnect plugin if available. ConditionalOIDC runs its
+# after-setup hook between ConfigLoader and OpenIDConnect: it checks that
+# the configured key files are readable and, if not, removes the issuer
+# config so that the OpenIDConnect plugin skips initialisation gracefully
+# instead of dying. Both plugins must be passed to setup() together so
+# that the Moose after-modifier ordering is correct (ConditionalOIDC inner,
+# OpenIDConnect outer).
+my $has_openid_connect_plugin = eval { require Catalyst::Plugin::OpenIDConnect; 1; };
+if ( $has_openid_connect_plugin ) {
+    __PACKAGE__->setup(qw/+BeerFestDB::Web::Plugin::ConditionalOIDC OpenIDConnect/);
 }
-if ( !$has_openid_connect_plugin ) {
-    __PACKAGE__->log->warn("OpenID Connect plugin not available, skipping setup of OpenID Connect support.\n");
+else {
+    __PACKAGE__->setup();
 }
-__PACKAGE__->setup();
 
 # Turn off debug output unless we're really debugging.
 __PACKAGE__->log->levels( qw/info warn error fatal/ ) unless __PACKAGE__->debug;
