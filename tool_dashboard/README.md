@@ -12,6 +12,8 @@ Also create a /path/to/.streamlit/ directory. This will hold the secrets.toml fi
 Create and activate a python virtual environment. Run the following to install dependencies:
 
 ``` bash
+python -m venv .venv
+. .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -19,6 +21,7 @@ Create a `.streamlit` subdirectory containing a file `secrets.toml` which looks 
 
 ```
 [connections.cbf]
+# Connection to the BeerFestDB MySQL/MariaDB database (read-only access only)
 dialect = "mysql"
 host = "127.0.0.1"
 port = 3306
@@ -27,12 +30,18 @@ username = "myusername"
 password = "mypassword"
 
 [auth]
+# Both secrets should be long, hard-to-guess strings. You will need to register the
+# redirect_uri, client_id and client_secret with the OpenID provider
 redirect_uri = "http://localhost:8501/oauth2callback"
 cookie_secret = "xxx"
 
 client_id = "dashboard"
 client_secret = "xxx"
 server_metadata_url = "http://localhost/.well-known/openid-configuration"
+
+[app]
+# Inactivity timeout in minutes before the user is automatically logged out.
+inactivity_timeout_minutes = 60
 ```
 
 Run the streamlit app:
