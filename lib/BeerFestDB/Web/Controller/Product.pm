@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -62,7 +62,8 @@ sub BUILD {
             product_category_id => 'description',
         },
         is_vegan         => 'is_vegan',
-        allergens        => undef, # See viewhash_from_model below.
+        allergens_present => undef, # See viewhash_from_model below.
+        allergens_absent  => undef, # See viewhash_from_model below.
     });
 }
 
@@ -308,26 +309,37 @@ sub build_database_object : Private {
     my ( $self, $rec, $c, @other ) = @_;
 
     # Our regular build_database_object method doesn't handle many-to-many.
-    my $allergens = delete $rec->{'allergens'};
+    my $allergens_present = delete $rec->{'allergens_present'} || '';
+    my $allergens_absent  = delete $rec->{'allergens_absent'} || '';
 
     my $obj = $self->next::method( $rec, $c, @other );
 
-    if ( defined $allergens && defined $obj ) {
+    # Check that all the wanted allergens are set appropriately.
+    if ( defined $obj && $obj->result_source()->source_name eq 'Product' ) {
+       
         my $rs = $c->model( 'DB::ProductAllergen' );
-        my @a = split /,/, $allergens;
-        foreach my $existing ($obj->product_allergens) {
 
-            # Delete unwanted existing allergens.
-            if ( ! first { $existing->get_column('product_allergen_type_id') == $_ } @a ) {
+        # Note here that we set present=1 for allergens marked as both
+        # present and absent. This seems best from a safety perspective.
+        my @present = split /,/, $allergens_present;
+        my %selected = map { $_ => 1 } @present;
+        my @absent = grep { !$selected{$_} } split /,/, $allergens_absent;
+        foreach my $allergen_id (@present) {
+            my $pa = $rs->find_or_create({ product_id => $obj->product_id(),
+                                           product_allergen_type_id => $allergen_id });
+            $pa->update({present => 1 });
+        }
+        foreach my $allergen_id (@absent) {
+            my $pa = $rs->find_or_create({ product_id => $obj->product_id(),
+                                           product_allergen_type_id => $allergen_id });
+            $pa->update({present => 0 });
+        }
+
+        # Delete unwanted existing allergens.
+        foreach my $existing ($obj->product_allergens) {
+            if ( ! first { $existing->get_column('product_allergen_type_id') == $_ } (@present, @absent) ) {
                 $existing->delete;
             }
-        }
-        foreach my $allergen_id (@a) {
-
-            # Check that all the wanted allergens are set.
-            $rs->find_or_create({ product_id => $obj->product_id(),
-                                  product_allergen_type_id => $allergen_id, 
-                                  present => 1 });
         }
     }
 
@@ -343,9 +355,11 @@ sub viewhash_from_model : Private {
     my ( $self, $view_key, $dbrow, $lookup ) = @_;
 
     my $rc;
-    if ( $view_key eq 'allergens' ) {
-        # FIXME this only displays present allergens; we also need to handle absent and undefined in the web UI.
+    if ( $view_key eq 'allergens_present' ) {
         $rc = join(',', map { $_->get_column('product_allergen_type_id') } $dbrow->allergens_present);
+    }
+    elsif ( $view_key eq 'allergens_absent' ) {
+        $rc = join(',', map { $_->get_column('product_allergen_type_id') } $dbrow->allergens_absent);
     }
     else {
         $rc = $self->next::method( $view_key, $dbrow, $lookup );
@@ -356,7 +370,7 @@ sub viewhash_from_model : Private {
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
