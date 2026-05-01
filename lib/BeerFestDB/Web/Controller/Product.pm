@@ -23,6 +23,8 @@ package BeerFestDB::Web::Controller::Product;
 use Moose;
 use namespace::autoclean;
 
+use List::Util qw(first);
+
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
 use Storable qw(dclone);
@@ -60,6 +62,7 @@ sub BUILD {
             product_category_id => 'description',
         },
         is_vegan         => 'is_vegan',
+        allergens        => undef, # See viewhash_from_model below.
     });
 }
 
@@ -294,6 +297,61 @@ sub grid : Local {
         $c->detach();        
     }
     $c->stash->{category} = $category;
+}
+
+=head2 build_database_object
+
+=cut
+
+sub build_database_object : Private {
+
+    my ( $self, $rec, $c, @other ) = @_;
+
+    # Our regular build_database_object method doesn't handle many-to-many.
+    my $allergens = delete $rec->{'allergens'};
+
+    my $obj = $self->next::method( $rec, $c, @other );
+
+    if ( defined $allergens && defined $obj ) {
+        my $rs = $c->model( 'DB::ProductAllergen' );
+        my @a = split /,/, $allergens;
+        foreach my $existing ($obj->product_allergens) {
+
+            # Delete unwanted existing allergens.
+            if ( ! first { $existing->get_column('product_allergen_type_id') == $_ } @a ) {
+                $existing->delete;
+            }
+        }
+        foreach my $allergen_id (@a) {
+
+            # Check that all the wanted allergens are set.
+            $rs->find_or_create({ product_id => $obj->product_id(),
+                                  product_allergen_type_id => $allergen_id, 
+                                  present => 1 });
+        }
+    }
+
+    return $obj;
+}
+
+=head2 viewhash_from_model
+
+=cut
+
+sub viewhash_from_model : Private {
+
+    my ( $self, $view_key, $dbrow, $lookup ) = @_;
+
+    my $rc;
+    if ( $view_key eq 'allergens' ) {
+        # FIXME this only displays present allergens; we also need to handle absent and undefined in the web UI.
+        $rc = join(',', map { $_->get_column('product_allergen_type_id') } $dbrow->allergens_present);
+    }
+    else {
+        $rc = $self->next::method( $view_key, $dbrow, $lookup );
+    }
+
+    return $rc;
 }
 
 =head1 COPYRIGHT AND LICENSE
