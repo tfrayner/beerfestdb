@@ -33,9 +33,10 @@ WriteMakefile(
     NAME          => 'BeerFestDB::Web',
     AUTHOR        => 'Tim F. Rayner',
     VERSION_FROM  => 'lib/BeerFestDB/Web.pm',
-    ABSTRACT      => 'Catalyst based application',
+    ABSTRACT_FROM  => 'lib/BeerFestDB/Web.pm',
     EXE_FILES     => [ glob('script/*.pl'), glob('util/*.pl') ],
     PREREQ_PM     => $prereqs,
+    LICENSE       => 'GPL-3.0',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => 0,
         'Module::CPANfile'    => '1.1004',
@@ -47,6 +48,9 @@ WriteMakefile(
                 type => 'git',
                 url  => 'https://github.com/tfrayner/beerfestdb.git',
                 web  => 'https://github.com/tfrayner/beerfestdb',
+            },
+            bugtracker => {
+                web => 'https://github.com/tfrayner/beerfestdb/issues',
             },
         },
     },
