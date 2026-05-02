@@ -28,7 +28,7 @@ use Data::Dumper;
 
 BEGIN {extends 'BeerFestDB::Web::PriceController'; }
 
-with 'BeerFestDB::DipMunger';
+with 'BeerFestDB::Role::DipMunger';
 
 use Storable qw(dclone);
 

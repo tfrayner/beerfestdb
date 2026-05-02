@@ -19,22 +19,35 @@
 #
 # $Id$
 
-package BeerFestDB::PriceMunger;
+package BeerFestDB::Role::PriceMunger;
 use Moose::Role;
 use namespace::autoclean;
 use Number::Format qw(format_picture);
 use BeerFestDB::ORM;
 use Carp;
 
+=head1 NAME
+
+BeerFestDB::Role::PriceMunger - Handling price formatting for BeerFestDB.
+
+=head1 DESCRIPTION
+
+This is a Role class used to parse CSV files and populate the database with the parsed
+information. The following documentation is written from the perspective of a user operating
+in GBP, but the class should support most currencies (known exceptions: Malagasy ariary
+and Mauritanian Ouguiya).
+
+This class is a little more complex than ideal, because it is designed to be used from
+both the Dumper class and from the web UI Controller classes, which have different ways
+of accessing the database and configuration. The consuming classes are expected to set
+the default currency prior to accessing the parse_price and format_price methods (ideally
+in their BUILD methods). The price parsing and formatting methods will also attempt to
+fetch the default currency from the database if it hasn't already been set.
+
+=cut
+
 has '_default_currency' => ( is       => 'rw',
                              isa      => 'BeerFestDB::ORM::Currency' );
-
-# This class is a little more complex than ideal, because it is designed to be used from
-# both the Dumper class and from the web UI Controller classes, which have different ways
-# of accessing the database and configuration. The consuming classes are expected to set
-# the default currency prior to accessing the parse_price and format_price methods (ideally
-# in their BUILD methods). The price parsing and formatting methods will also attempt to
-# fetch the default currency from the database if it hasn't already been set.
 
 sub default_currency {
 
@@ -61,7 +74,7 @@ sub _build_currency {
 
     # Method of last resort; create a brand new database connection to fetch the
     # default currency if it hasn't already been set by the consuming class.
-    confess(qq{Warning: default currency not set for PriceMunger; creating new database connection to fetch it.\n});
+    carp(qq{Warning: default currency not set for PriceMunger; creating new database connection to fetch it.\n});
 
     require BeerFestDB::Web;
 
@@ -77,17 +90,6 @@ sub _build_currency {
 
     return $currency;
 }
-
-=head1 NAME
-
-BeerFestDB::PriceMunger - Handling price formatting for BeerFestDB.
-
-=head1 DESCRIPTION
-
-This is a Role class used to parse CSV files and populate the database with the parsed
-information. The following documentation is written from the perspective of a user operating
-in GBP, but the class should support most currencies (known exceptions: Malagasy ariary
-and Mauritanian Ouguiya).
 
 =head1 METHODS
 
@@ -105,6 +107,8 @@ sub parse_price {
     # a different currency if needed.
 
     my ( $self, $value, $currency ) = @_;
+
+    return unless defined $value;
 
     $currency //= $self->default_currency();
 

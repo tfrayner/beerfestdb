@@ -26,7 +26,7 @@ use JSON::MaybeXS;
 
 BEGIN {extends 'BeerFestDB::Web::PriceController'};
 
-with 'BeerFestDB::CaskPreloader';
+with 'BeerFestDB::Role::CaskPreloader';
 
 =head1 NAME
 

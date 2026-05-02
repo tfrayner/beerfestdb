@@ -23,6 +23,9 @@ $ua->get_ok('/gyle/list_by_festival_product/1',
 $ua->get_ok('/gyle/list_by_festival/1',
             'Gyle list_by_festival should succeed' );
 
+$ua->get_ok('/gyle/load_form',
+            'Gyle load_form should succeed' );
+
 # The following need JSON payloads and (in the case of delete) user confirmation.
 #$ua->get_ok('/gyle/submit', 'Gyle submit should succeed' );
 #$ua->get_ok('/gyle/delete', 'Gyle delete should succeed' );

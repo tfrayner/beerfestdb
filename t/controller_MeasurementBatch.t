@@ -20,7 +20,7 @@ $ua->get_ok('/measurementbatch/view/1',
 $ua->get_ok('/measurementbatch/list/1',
             'MeasurementBatch list should succeed' );
 
-# Not implemented FIXME if needed.
+# No template exists yet; not implemented.
 #$ua->get_ok('/measurementbatch/grid/1',
 #            'MeasurementBatch grid should succeed' );
 

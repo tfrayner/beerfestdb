@@ -32,7 +32,7 @@ use Data::Dumper;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
-with 'BeerFestDB::DBHashRefValidator';
+with 'BeerFestDB::Role::DBHashRefValidator';
 
 has 'model_view_map' => ( is  => 'rw',
                           isa => 'HashRef' );

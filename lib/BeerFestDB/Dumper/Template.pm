@@ -42,7 +42,7 @@ our $VERSION = '0.01';
 
 extends 'BeerFestDB::Dumper';
 
-with 'BeerFestDB::DipMunger';
+with 'BeerFestDB::Role::DipMunger';
 
 has 'template'   => ( is       => 'ro',
                       isa      => 'Str',
@@ -222,7 +222,7 @@ sub order_hash {
         _split_export_tag => $order->product_order_id(),
     );
 
-    $orderhash{currency} = $currency->currency_symbol();
+    $orderhash{currency} = $order->currency_id()->currency_symbol();
     $orderhash{price}    = $self->format_price( $order->advertised_price(), $order->currency_id() );
 
     return \%orderhash;
@@ -886,7 +886,7 @@ None by default.
 
 =head1 SEE ALSO
 
-L<BeerFestDB::Dumper>, L<BeerFestDB::Dumper::OODoc>, L<BeerFestDB::DipMunger>
+L<BeerFestDB::Dumper>, L<BeerFestDB::Dumper::OODoc>, L<BeerFestDB::Role::DipMunger>
 
 =head1 COPYRIGHT AND LICENSE
 

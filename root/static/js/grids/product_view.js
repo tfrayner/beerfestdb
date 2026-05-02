@@ -30,6 +30,11 @@ Ext.override(Ext.form.NumberField, {
     }
 });
 
+// Workaround for odd Ext.ux.form.LovCombo clear-on-blur bug when using ExtJS3.
+Ext.override(Ext.ux.form.LovCombo, {
+    beforeBlur: Ext.emptyFn
+})
+
 Ext.onReady(function(){
 
     // Enable tooltips
@@ -61,6 +66,24 @@ Ext.onReady(function(){
         },
     });
 
+    /* Allergen drop-down - two independent stores to avoid cross-talk between lovcombo fields */
+    function makeAllergenStore() {
+        return new Ext.data.JsonStore({
+            url:        url_product_allergen_list,
+            root:       'objects',
+            fields:     [{ name: 'product_allergen_type_id', type: 'string' },  // Technically int, but we cast to string for lovcombo handling.
+                         { name: 'description',              type: 'string' }],
+            idProperty: 'product_allergen_type_id',
+            sortInfo:   {
+                field:     'description',
+                direction: 'ASC',
+            },
+        });
+    }
+    var allergen_store_present = makeAllergenStore();
+    var allergen_store_absent  = makeAllergenStore();
+
+    /* Festival Product drop-down */
     var festival_product_store = new Ext.data.JsonStore({
         url:        url_festival_product_list,
         root:       'objects',
@@ -156,6 +179,36 @@ Ext.onReady(function(){
               xtype:          'checkbox',
               allowBlank:     true },
 
+            { name:           'allergens_present',
+              fieldLabel:     'Allergens PRESENT',
+              store:          allergen_store_present,
+              triggerAction:  'all',
+              mode:           'local',
+              lazyRender:     true,
+              valueField:     'product_allergen_type_id',
+              displayField:   'description',
+              emptyText:      'Select allergens...',
+              hideOnSelect:   false,
+              queryMode:      'local',
+              multiSelect:    true,
+              xtype:          'lovcombo',
+              allowBlank:     true, },
+
+            { name:           'allergens_absent',
+              fieldLabel:     'Allergens ABSENT',
+              store:          allergen_store_absent,
+              triggerAction:  'all',
+              mode:           'local',
+              lazyRender:     true,
+              valueField:     'product_allergen_type_id',
+              displayField:   'description',
+              emptyText:      'Select allergens...',
+              hideOnSelect:   false,
+              queryMode:      'local',
+              multiSelect:    true,
+              xtype:          'lovcombo',
+              allowBlank:     true, },
+
             { name:           'description',
               fieldLabel:     'Short Description',
               xtype:          'textarea',
@@ -173,7 +226,7 @@ Ext.onReady(function(){
             
         ],
 
-        comboStores: [ category_store, style_store ],
+        comboStores: [ category_store, style_store, allergen_store_present, allergen_store_absent ],
         loadUrl:     url_product_load_form,
         idParams:    { product_id: product_id },
         waitMsg:     'Loading Product details...',

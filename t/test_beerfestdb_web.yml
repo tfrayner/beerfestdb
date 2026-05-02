@@ -60,3 +60,16 @@ status_query:
   beerfestdb_uri:          'http://localhost:3000'
   public_site_upload_uri:  'file://localhost/www/data/push'
   public_festival_tag:      test
+
+# The following is just a dummy config; key files etc. do not exist.
+Plugin::OpenIDConnect:
+  issuer:
+    url: 'http://localhost:3000'
+    # Paths relative to top-level directory in which tests are invoked.
+    private_key_file: './t/keys/private.pem'
+    public_key_file: './t/keys/public.pem'
+    key_id: 'my-key-1'
+  clients:
+    'dashboard':
+       client_secret: 'my-secret'
+       redirect_uris: 'http://localhost:8501/oauth2callback'

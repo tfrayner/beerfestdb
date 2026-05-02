@@ -68,13 +68,15 @@ has '_preload_casks' => ( is       => 'rw',
                           required => 1,
                           default  => 0 );
 
-with 'BeerFestDB::DBHashRefValidator';
+with 'BeerFestDB::Role::DBHashRefValidator';
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
 
-with 'BeerFestDB::CaskPreloader';
+with 'BeerFestDB::Role::CaskPreloader';
 
-with 'BeerFestDB::CsvParser';
+with 'BeerFestDB::Role::CsvParser';
+
+with 'BeerFestDB::Role::PriceMunger';
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -344,6 +346,9 @@ sub _load_data {
     my $currency = $self->database->resultset('Currency')->find({
         currency_code => $config->{'default_currency'},
     }) or die("Unable to retrieve default currency; check config settings.");
+
+    # Cache the currency so the PriceMunger role doesn't have to keep looking it up.
+    $self->default_currency($currency);
 
     my $sale_volume = $self->database->resultset('SaleVolume')->find({
         description => $config->{'default_sale_volume'},

@@ -3,7 +3,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,18 +25,18 @@ use inc::Module::Install;
 name 'BeerFestDB-Web';
 all_from 'lib/BeerFestDB/Web.pm';
 
-requires 'Catalyst::Runtime' => '5.90084';
+requires 'Catalyst::Runtime' => '5.90130';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::Static::Simple';
 requires 'Catalyst::Plugin::Session::Store::FastMmap';
-requires 'Catalyst::Plugin::Authentication'               => '0.10007';
-requires 'Catalyst::Plugin::Authorization::ACL'           => '0.08';    # NOT 0.09!
-requires 'Catalyst::Plugin::Authorization::Roles'         => '0.05';
-requires 'Catalyst::Authentication::Store::DBIx::Class'   => '0.104';
-requires 'Digest::SHA'                                    => '5.93';
-requires 'Crypt::SaltedHash'                              => '0.06';
+requires 'Catalyst::Plugin::Authentication'               => '0.10023';
+requires 'Catalyst::Plugin::Authorization::ACL'           => '0.16';
+requires 'Catalyst::Plugin::Authorization::Roles'         => '0.09';
+requires 'Catalyst::Plugin::OpenIDConnect'                => '0.02';
+requires 'Catalyst::Authentication::Store::DBIx::Class'   => '0.1506';
+requires 'Digest::SHA'                                    => '6.04';
+requires 'Crypt::SaltedHash'                              => '0.09';
 requires 'Catalyst::Action::RenderView';
-requires 'Catalyst::Plugin::Unicode::Encoding';
 requires 'parent';
 requires 'Config::YAML';
 
@@ -50,6 +50,7 @@ requires 'Text::CSV_XS';
 requires 'Template';
 requires 'DateTime::TimeZone';  # Timestamps for upload to public web site.
 requires 'Number::Format';  # For formatting prices for output.
+requires 'Moose::Util::TypeConstraints';
 
 requires 'LWP';
 requires 'HTTP::Cookies';
@@ -63,7 +64,6 @@ requires 'DBD::MariaDB'; # Or whatever you wish to use; beerfestdb has been exte
 requires 'YAML::XS';  # YAML::Syck is deprecated.
 requires 'DateTime';  # CBF-specific web site upload script.
 requires 'JSON::XS';  # Seems to work a bit more reliably than JSON::PP in this context.
-requires 'JSON::DWIW'; # For the beerfestdb web site upload script, which needs to be able to handle JSON with embedded newlines.
 requires 'LWP::Protocol::https'; # For the beerfestdb web site upload script, which needs to be able to upload over HTTPS.
 
 requires 'OpenOffice::OODoc';

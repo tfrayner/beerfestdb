@@ -17,7 +17,10 @@ $ua->get_ok('/orderbatch',
 $ua->get_ok('/orderbatch/list/1',
             'OrderBatch list should succeed' );
 
-# Not implemented FIXME if needed
+$ua->get_ok('/orderbatch/view/1',
+            'OrderBatch view should succeed' );
+
+# No template exists yet; not implemented.
 #$ua->get_ok('/orderbatch/grid/1',
 #            'OrderBatch grid should succeed' );
 

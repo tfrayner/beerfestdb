@@ -74,7 +74,7 @@ has 'interactive'     => ( is       => 'rw',
                            isa      => 'Bool',
                            default  => 0 );
 
-with 'BeerFestDB::CsvParser';
+with 'BeerFestDB::Role::CsvParser';
 
 sub _parse_row {
 
@@ -321,8 +321,8 @@ header line. The first two columns are supplier (brewer) and product
 name (beer). Each allergen is represented by a single column (the
 allergen name in the header line). The column contains one of the
 following values to indicate that the allergen is present in the
-product: 1, y, yes (case insensitive). The following values are used
-to indicate a definite absence: 0, n, no. If the presence or absence
+product: 1, y, yes, t, true (case insensitive). The following values are used
+to indicate a definite absence: 0, n, no, f, false (case insensitive). If the presence or absence
 of the allergen cannot be established, use one of these values: na,
 n/a, nd, n/d, or a blank value. All other values will raise an error.
 

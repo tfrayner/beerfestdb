@@ -19,4 +19,7 @@ $ua->get_ok('/productstyle/view/1',
 $ua->get_ok("/productstyle/list_by_category/1",
             "ProductStyle list_by_category should succeed" );
 
+$ua->get_ok('/productstyle/load_form',
+            'ProductStyle load_form should succeed' );
+
 done_testing();

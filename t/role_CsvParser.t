@@ -1,0 +1,73 @@
+use strict;
+use warnings;
+use Test::More;
+use Test::Exception;
+use File::Temp qw(tempfile);
+
+BEGIN { use_ok 'BeerFestDB::Role::CsvParser' }
+
+# Minimal consumer for testing the role in isolation.
+{
+    package TestCsvConsumer;
+    use Moose;
+    with 'BeerFestDB::Role::CsvParser';
+}
+
+# -----------------------------------------------------------------------
+# parse_boolean
+# -----------------------------------------------------------------------
+
+my $dummy_file = (tempfile(SUFFIX => '.tsv', UNLINK => 1))[1];
+my $c = TestCsvConsumer->new( csv_file => $dummy_file );
+
+# True values
+is( $c->parse_boolean('yes'),   1, 'parse_boolean: yes => true' );
+is( $c->parse_boolean('y'),     1, 'parse_boolean: y => true' );
+is( $c->parse_boolean('true'),  1, 'parse_boolean: true => true' );
+is( $c->parse_boolean('1'),     1, 'parse_boolean: 1 => true' );
+is( $c->parse_boolean('t'),     1, 'parse_boolean: t => true' );
+
+# False values
+is( $c->parse_boolean('no'),    0, 'parse_boolean: no => false' );
+is( $c->parse_boolean('n'),     0, 'parse_boolean: n => false' );
+is( $c->parse_boolean('false'), 0, 'parse_boolean: false => false' );
+is( $c->parse_boolean('0'),     0, 'parse_boolean: 0 => false' );
+is( $c->parse_boolean('f'),     0, 'parse_boolean: f => false' );
+
+# Undefined / blank / n/a values
+is( $c->parse_boolean(undef),   undef, 'parse_boolean: undef => undef' );
+is( $c->parse_boolean(q{}),     undef, 'parse_boolean: empty string => undef' );
+is( $c->parse_boolean('n/a'),   undef, 'parse_boolean: n/a => undef' );
+is( $c->parse_boolean('N/A'),   undef, 'parse_boolean: N/A => undef' );
+is( $c->parse_boolean('nd'),    undef, 'parse_boolean: nd => undef' );
+
+# Invalid value should die
+dies_ok { $c->parse_boolean('maybe') } 'parse_boolean: unrecognised value dies';
+
+# -----------------------------------------------------------------------
+# get_headers, getline, confirm_eof
+# -----------------------------------------------------------------------
+
+# Write a small tab-separated test file with a comment, blank line, then headers + data.
+my ( $fh_tmp, $tmpfile ) = tempfile( SUFFIX => '.tsv', UNLINK => 1 );
+print $fh_tmp "# This is a comment\n";
+print $fh_tmp "\n";
+print $fh_tmp "name\tregion\tactive\n";
+print $fh_tmp "Acme Brewery\tCambridgeshire\tyes\n";
+close $fh_tmp;
+
+my $p = TestCsvConsumer->new( csv_file => $tmpfile );
+
+my $headers = $p->get_headers();
+is_deeply( $headers, [ 'name', 'region', 'active' ],
+           'get_headers: skips comments and returns column names' );
+
+my $row = $p->getline();
+is_deeply( $row, [ 'Acme Brewery', 'Cambridgeshire', 'yes' ],
+           'getline: reads next data row correctly' );
+
+# After reading all rows getline returns undef; confirm_eof should pass.
+$p->getline();    # consume any trailing content
+ok( $p->confirm_eof(), 'confirm_eof: returns true at end of file' );
+
+done_testing();

@@ -15,6 +15,14 @@ want to change the file paths mounted into the images:
 - `/srv/beerfestdb/mysql` - the location of the actual mysql database directory to be created.
 - `/home/tfrayner/src/beerfestdb/db` - the location of the `db` directory in a local copy of this git repo.
 
+IMPORTANT: the deployment of the app depends on a ConfigMap containing the environmental
+variables. Set this up by running this command in this directory, once you have loaded
+the above YAML files:
+
+``` bash
+kubectl -n beerfestdb create configmap beerfestdb-app-config --from-env-file=../.app_env
+```
+
 In addition to these YAML files, if you are running on a cluster using
 traefik to manage ingresses, you will need to expose the webapp port
 somehow. For traefik installed via Helm this can be a simple as adding

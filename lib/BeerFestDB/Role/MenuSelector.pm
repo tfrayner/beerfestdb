@@ -19,11 +19,10 @@
 #
 # $Id$
 
-package BeerFestDB::MenuSelector;
+package BeerFestDB::Role::MenuSelector;
 use Moose::Role;
 use namespace::autoclean;
 use Scalar::Util qw(looks_like_number);
-use BeerFestDB::Web;
 
 has '_festival' => ( is       => 'rw',
                      isa      => 'BeerFestDB::ORM::Festival' );
@@ -32,7 +31,7 @@ requires 'database';
 
 =head1 NAME
 
-BeerFestDB::MenuSelector - Command-line menus.
+BeerFestDB::Role::MenuSelector - Command-line menus.
 
 =head1 DESCRIPTION
 
@@ -155,6 +154,7 @@ sub festival {
         return $fest;
     }
 
+    require BeerFestDB::Web;
     my $config = BeerFestDB::Web->config();
     if ( my $festname = $config->{'current_festival'} ) {
         $fest = $self->database->resultset('Festival')

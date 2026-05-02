@@ -1,0 +1,8 @@
+.venv*
+.venv
+.venv_dashboard
+.vscode
+.git
+.github
+inc
+.streamlit
