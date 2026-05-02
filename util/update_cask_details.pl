@@ -237,9 +237,6 @@ sub load {
                 
                 CASK:
                 while ( my $line = $self->getline() ) {
-                    my $lstr = join('', @$line);
-                    next CASK if $lstr =~ /^\s*#/;  # skip comments
-                    
                     my %row;
                     @row{ @$header } = @$line;
                     

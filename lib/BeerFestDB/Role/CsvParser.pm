@@ -100,7 +100,19 @@ sub getline {
 
     print "Reading line from CSV file...\n";
 
-    my $fields = $csv_parser->getline( $self->filehandle );
+    my $fields;
+    GETLINE:
+    while (1) {
+        $fields = $csv_parser->getline( $self->filehandle );
+
+        # Stop gracefully at end of file.
+        last GETLINE unless defined $fields;
+
+        # Skip comment lines.
+        next GETLINE if join( q{}, @$fields ) =~ m/\A \s* \#/xms;
+
+        last GETLINE;
+    }
 
     # If this is not a search for the header line, strip out fields indicating missing values.
     if ( defined $fields && ! ( $is_header || 0 ) ) {
@@ -156,7 +168,7 @@ sub get_headers {
         print "Read header line...\n";
         last HEADER unless defined $line;
         my $lstr = join('', @$line);
-        next HEADER if $lstr =~ /^\s*#/;  # skip comments
+        next HEADER if $lstr =~ /^\s*#/;  # skip comments (N.B. redundant with getline, but added for extra safety)
         next HEADER if $lstr =~ /^\s*$/;  # skip blank lines
         @header = @$line;
     }
