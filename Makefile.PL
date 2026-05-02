@@ -36,7 +36,7 @@ WriteMakefile(
     ABSTRACT_FROM  => 'lib/BeerFestDB/Web.pm',
     EXE_FILES     => [ glob('script/*.pl'), glob('util/*.pl') ],
     PREREQ_PM     => $prereqs,
-    LICENSE       => 'GPL-3.0',
+    LICENSE       => 'gpl_3',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => 0,
         'Module::CPANfile'    => '1.1004',

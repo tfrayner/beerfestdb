@@ -103,7 +103,7 @@ sub getline {
     my $fields = $csv_parser->getline( $self->filehandle );
 
     # If this is not a search for the header line, strip out fields indicating missing values.
-    if ( ! ( $is_header || 0 ) ) {
+    if ( defined $fields && ! ( $is_header || 0 ) ) {
         $fields = [ map { m/\A \s* (NA|N\/A|ND|N\/D|NULL|TBC|TBD|) \s* \z/ixms ? q{} : $_ } @$fields ];
     }
 
@@ -154,6 +154,7 @@ sub get_headers {
         print "Reading header line...$self\n";
         my $line = $self->getline(1);
         print "Read header line...\n";
+        last HEADER unless defined $line;
         my $lstr = join('', @$line);
         next HEADER if $lstr =~ /^\s*#/;  # skip comments
         next HEADER if $lstr =~ /^\s*$/;  # skip blank lines
