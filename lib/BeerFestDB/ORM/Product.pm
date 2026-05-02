@@ -247,8 +247,12 @@ __PACKAGE__->many_to_many(
 );
 
 __PACKAGE__->many_to_many(
+    "allergens" => "product_allergens", "product_allergen_type_id",
+);
+
+__PACKAGE__->many_to_many(
     "allergens_present" => "product_allergens", "product_allergen_type_id",
-    { where => { present => 1 } }, # FIXME untested
+    { where => { present => 1 } },
 );
 
 __PACKAGE__->many_to_many(

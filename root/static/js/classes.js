@@ -446,6 +446,7 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
     defaults:    {width: 300}, // field box width
     defaultType: 'textfield',
     comboStores: [],
+    afterSave: null,
             
     initComponent: function() {
 
@@ -462,8 +463,25 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
                     for ( var key in this.idParams ) {
                         fields[key] = this.idParams[key];
                     }
-                    submitChanges( [ fields ], this.url );
-                    this.getForm().setValues({ values: fields }); // doesn't currently work.
+                    var myForm = this;
+                    var afterSaveFn = this.afterSave || function() {
+                        Ext.Msg.alert('Success', 'Record saved to database', function() {
+                            myForm.getForm().load({
+                                url:     myForm.loadUrl,
+                                params:  myForm.idParams,
+                                waitMsg: myForm.waitMsg,
+                            });
+                        });
+                    };
+                    Ext.Ajax.request({
+                        url:     this.url,
+                        success: afterSaveFn,
+                        failure: function(res, opts) {
+                            var stash = Ext.util.JSON.decode(res.responseText);
+                            Ext.Msg.alert('Error', stash.error);
+                        },
+                        params: { changes: Ext.util.JSON.encode( [ fields ] ) }
+                    });
                 },
                 scope: this,
             },{
