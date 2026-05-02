@@ -8,7 +8,7 @@
    var order_batch_id       = '[% object.order_batch_id.id %]';
    var product_order_id     = '[% object.id %]';
    var poname               = '[% object.product_id.company_id.name | xml %]:&nbsp;
-       [%- object.product_id.name | xml %] ([% object.festival_id.name | xml %])';
+       [%- object.product_id.name | xml %] ([% object.order_batch_id.festival_id.name | xml %])';
 
    var default_currency     = '[% default_currency %]';
 </script>
