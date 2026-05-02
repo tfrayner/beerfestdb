@@ -671,3 +671,17 @@ MyMainPanel = Ext.extend(Ext.Panel, {
     }
 });
 
+window.onbeforeunload = function() {
+    var dirty = false;
+    Ext.ComponentMgr.all.each(function(cmp) {
+        if (cmp instanceof MyFormPanel && cmp.getForm().isDirty()) {
+            dirty = true;
+        } else if (cmp instanceof MyEditorGrid && cmp.store &&
+                   cmp.store.getModifiedRecords().length > 0) {
+            dirty = true;
+        }
+    });
+    if (dirty) {
+        return 'You have unsaved changes. Are you sure you want to leave this page?';
+    }
+};
