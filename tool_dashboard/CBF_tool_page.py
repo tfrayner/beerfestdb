@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 # Begin login and inactivity management ------------------------------------------------------
 # Configurable inactivity timeout (in minutes); set via .streamlit/secrets.toml [app] section.
-INACTIVITY_TIMEOUT_MINUTES = st.secrets.get("app", {}).get("inactivity_timeout_minutes", 60)
+timeout_mins = st.secrets.get("app", {}).get("inactivity_timeout_minutes", 60)
 
 st.set_page_config(page_title="BeerfestDB Tools", page_icon="favicon.ico")
 st.title("BeerfestDB Tools")
@@ -22,7 +22,7 @@ st.session_state.last_activity = datetime.now()
 
 @st.fragment(run_every=60)  # Check every 60 seconds
 def _inactivity_check():
-    timeout = timedelta(minutes=INACTIVITY_TIMEOUT_MINUTES)
+    timeout = timedelta(minutes=timeout_mins)
     if datetime.now() - st.session_state.last_activity > timeout:
         st.logout()
 
