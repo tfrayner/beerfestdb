@@ -459,29 +459,36 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
                 tooltip: 'Write changes to the database',
                 iconCls: 'icon-save-table',
                 handler: function(b, e) {
-                    var fields = this.getForm().getFieldValues({ dirtyOnly: true });
-                    for ( var key in this.idParams ) {
-                        fields[key] = this.idParams[key];
-                    }
-                    var myForm = this;
-                    var afterSaveFn = this.afterSave || function() {
-                        Ext.Msg.alert('Success', 'Record saved to database', function() {
-                            myForm.getForm().load({
-                                url:     myForm.loadUrl,
-                                params:  myForm.idParams,
-                                waitMsg: myForm.waitMsg,
+                    var panel = this;
+                    var doSave = function() {
+                        var fields = panel.getForm().getFieldValues({ dirtyOnly: true });
+                        for ( var key in panel.idParams ) {
+                            fields[key] = panel.idParams[key];
+                        }
+                        var afterSaveFn = panel.afterSave || function() {
+                            Ext.Msg.alert('Success', 'Record saved to database', function() {
+                                panel.getForm().load({
+                                    url:     panel.loadUrl,
+                                    params:  panel.idParams,
+                                    waitMsg: panel.waitMsg,
+                                });
                             });
+                        };
+                        Ext.Ajax.request({
+                            url:     panel.url,
+                            success: afterSaveFn,
+                            failure: function(res, opts) {
+                                var stash = Ext.util.JSON.decode(res.responseText);
+                                Ext.Msg.alert('Error', stash.error);
+                            },
+                            params: { changes: Ext.util.JSON.encode( [ fields ] ) }
                         });
                     };
-                    Ext.Ajax.request({
-                        url:     this.url,
-                        success: afterSaveFn,
-                        failure: function(res, opts) {
-                            var stash = Ext.util.JSON.decode(res.responseText);
-                            Ext.Msg.alert('Error', stash.error);
-                        },
-                        params: { changes: Ext.util.JSON.encode( [ fields ] ) }
-                    });
+                    if (panel.beforeSave) {
+                        panel.beforeSave(doSave);
+                    } else {
+                        doSave();
+                    }
                 },
                 scope: this,
             },{

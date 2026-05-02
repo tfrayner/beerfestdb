@@ -158,12 +158,12 @@ Ext.onReady(function(){
               xtype:          'checkbox',
               allowBlank:     true },
 
-            { name:           'sale_price',
+            { name:           'price',
               fieldLabel:     'Sale Price',
               xtype:          'textfield',
               allowBlank:     true, },
             
-            { name:           'sale_currency_id',
+            { name:           'currency_id',
               fieldLabel:     'Sale Currency',
               typeAhead:      true,
               triggerAction:  'all',
@@ -175,7 +175,13 @@ Ext.onReady(function(){
               lazyRender:     true,
               xtype:          'combo',
               allowBlank:     false, },
-// Deliberately omitting is_received flag so we don't have to implement javascript warnings etc.            
+
+            { name:           'is_received',
+              fieldLabel:     'Is Received',
+              lazyRender:     true,
+              xtype:          'checkbox',
+              allowBlank:     true },
+
             { name:           'is_final',
               fieldLabel:     'Is Final',
               lazyRender:     true,
@@ -201,52 +207,48 @@ Ext.onReady(function(){
         loadUrl:     url_po_load_form,
         idParams:    { product_order_id: product_order_id },
         waitMsg:     'Loading Product Order details...',
-/*        setReadOnlyForAll: function (bReadOnly) {
-            this.getForm().getFields().each (function (field) {
-                field.setReadOnly (bReadOnly);
-            });
+
+        beforeSave: function(proceed) {
+            var isReceivedField = poForm.getForm().findField('is_received');
+            if (isReceivedField && isReceivedField.isDirty() && !!isReceivedField.getValue()) {
+                Ext.Msg.confirm(
+                    'Confirm Mark as Received',
+                    'You are marking this order as received. This will make the form read-only and cannot easily be undone. Are you sure you wish to proceed?',
+                    function(btn) {
+                        if (btn === 'yes') {
+                            proceed();
+                        }
+                    }
+                );
+            } else {
+                proceed();
+            }
+        },
+    });
+
+    // After the form data loads, make the form read-only if is_received is already true.
+    poForm.getForm().on('actioncomplete', function(basicForm, action) {
+        if (action.type === 'load') {
+            var f = basicForm.findField('is_received');
+            if (f && !!f.getValue()) {
+                basicForm.items.each(function(field) {
+                    if (field.isXType('checkbox')) {
+                        field.disable();
+                    } else {
+                        field.setReadOnly(true);
+                    }
+                });
+                if (poForm.buttons && poForm.buttons[0]) {
+                    poForm.buttons[0].disable();
+                }
+            }
         }
-
-            view: new Ext.form.Vgrid.GridView({
-
-                // Set CSS on disabled records.
-                getRowClass: function (rec, idx, rowParams, store){
-                    if (rec.get('is_received') == 1 && ! rec.isModified('is_received') ) {
-              	        return 'disabled-record';
-                    }
-                },
-            }),
-            listeners: {
-                beforeedit: function(e) {
-                    
-         if (booleanVariable === true) Ext.getCmp('your-textbox-id').setReadOnly(true);
-        else Ext.getCmp('your-textbox-id').setReadOnly(false);
-    }
- }
-            listeners: {
-                beforeedit: function(e) {
-
-                    // reference to the currently clicked cell
-                    var ed = e.grid.getColumnModel().getCellEditor(e.column, e.row);    
-                    if (ed && ed.field) {
-                        // copy these references to the current editor (brewer_combo in our case)
-                        Ext.copyTo(ed.field, e, 'grid,record,field,row,column');
-                    }
-
-                    // Disallow editing of records which we've physically received.
-                    rec = e.record;
-                    if (rec.get('is_received') == 1 && ! rec.isModified('is_received') ) {
-                        return false;
-                    }
-                },
-            },
-            */
     });
 
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
-            { title: 'Festival Product Information',
+            { title: 'Product Order Information',
               layout: 'anchor',
               items:  poForm, },
         ],
