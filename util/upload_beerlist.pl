@@ -33,6 +33,7 @@ use HTTP::Cookies;
 use JSON::MaybeXS;
 use Term::ReadKey;
 use Term::ReadLine;
+use Encode;
 
 use Moose::Util::TypeConstraints;
 
@@ -170,7 +171,7 @@ sub _attempt_login {
         die("Error: Unable to login to BeerFestDB web site: "
                 . $res->status_line() . " (" . $self->uri() . ")\n");
     }
-    my $login = $self->json_parser->decode( $res->decoded_content() );
+    my $login = $self->json_parser->decode( decode("UTF-8", $res->decoded_content()) );
     unless ( $login->{success} ) {
         die("Error: Unable to login to BeerFestDB web site: "
                 . $res->status_line() . " (" . $self->uri() . ")\n");                
@@ -205,7 +206,7 @@ sub _data_from_uri {
         }
     }
 
-    my $json = $res->decoded_content();
+    my $json = decode("UTF-8", $res->decoded_content());
 
     my $data = $self->json_parser->decode($json);
     unless ( $data->{success} ) {

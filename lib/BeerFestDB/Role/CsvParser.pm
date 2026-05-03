@@ -82,13 +82,16 @@ This is a Role class used to parse CSV files and populate the database with the 
 =head2 getline
 
 This method is provided by the Text::CSV_XS parser object and is used to read lines from the CSV file. It returns
-an array reference containing the fields of the current line, or undef if there are no more lines to read.
+an array reference containing the fields of the current line, or undef if there are no more lines to read. If the
+C<$is_header> argument is true, it returns the fields as they are read from the file. If C<$is_header> is false, 
+it processes the fields to replace any values that indicate missing data (such as "NA", "N/A", "ND", "N/D", "NULL",
+"TBC", "TBD", or blank values) with an empty string. Whitespace around the fields is preserved.
 
 =cut
 
 sub getline {
 
-    my ( $self ) = @_;
+    my ( $self, $is_header ) = @_;
 
     my $csv_parser = $self->csv_parser();
 
@@ -97,7 +100,27 @@ sub getline {
 
     print "Reading line from CSV file...\n";
 
-    return $csv_parser->getline( $self->filehandle );
+    my $fields;
+    GETLINE:
+    while (1) {
+        $fields = $csv_parser->getline( $self->filehandle );
+
+        # Stop gracefully at end of file.
+        last GETLINE unless defined $fields;
+
+        # Skip comment lines. If this ever becomes a bottleneck, we could consider adding an option to 
+        # the Text::CSV_XS parser to skip comment lines automatically. This allows leading whitspace though:
+        next GETLINE if join( q{}, @$fields ) =~ m/\A \s* \#/xms;
+
+        last GETLINE;
+    }
+
+    # If this is not a search for the header line, strip out fields indicating missing values.
+    if ( defined $fields && ! ( $is_header || 0 ) ) {
+        $fields = [ map { m/\A \s* (NA|N\/A|ND|N\/D|NULL|TBC|TBD|) \s* \z/ixms ? q{} : $_ } @$fields ];
+    }
+
+    return $fields;
 }
 
 =head2 confirm_eof
@@ -142,10 +165,11 @@ sub get_headers {
     HEADER:
     while ( scalar @header == 0 ) {
         print "Reading header line...$self\n";
-        my $line = $self->getline();
+        my $line = $self->getline(1);
         print "Read header line...\n";
+        last HEADER unless defined $line;
         my $lstr = join('', @$line);
-        next HEADER if $lstr =~ /^\s*#/;  # skip comments
+        next HEADER if $lstr =~ /^\s*#/;  # skip comments (N.B. redundant with getline, but added for extra safety)
         next HEADER if $lstr =~ /^\s*$/;  # skip blank lines
         @header = @$line;
     }

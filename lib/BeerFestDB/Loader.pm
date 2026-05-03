@@ -905,7 +905,6 @@ sub load {
         $db->txn_do(
             sub {
                 while ( my $rowlist = $self->getline() ) {
-                    next if $rowlist->[0] =~ /^\s*#/;
                     my %datahash;
                     @datahash{ @$headings } = @$rowlist;
                     $self->_load_data( \%datahash );
