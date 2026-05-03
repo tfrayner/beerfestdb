@@ -108,7 +108,8 @@ sub getline {
         # Stop gracefully at end of file.
         last GETLINE unless defined $fields;
 
-        # Skip comment lines.
+        # Skip comment lines. If this ever becomes a bottleneck, we could consider adding an option to 
+        # the Text::CSV_XS parser to skip comment lines automatically. This allows leading whitspace though:
         next GETLINE if join( q{}, @$fields ) =~ m/\A \s* \#/xms;
 
         last GETLINE;

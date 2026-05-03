@@ -108,4 +108,32 @@ is_deeply( $mv_row2,
            [ ('') x (scalar(@missing_tokens) + 1), ' beer ' ],
            'getline (data): missing-value replacement is case-insensitive and preserves whitespace' );
 
+# -----------------------------------------------------------------------
+# getline: comment lines in the data section are skipped
+# -----------------------------------------------------------------------
+
+# Write a file where comment lines appear between data rows, including
+# a comment with leading whitespace to exercise the \s* part of the regex.
+my ( $fh_cmt, $cmt_file ) = tempfile( SUFFIX => '.tsv', UNLINK => 1 );
+print $fh_cmt "name\tvalue\n";
+print $fh_cmt "row_one\t1\n";
+print $fh_cmt "# full-line comment between data rows\n";
+print $fh_cmt "  # comment with leading whitespace\n";
+print $fh_cmt "row_two\t2\n";
+close $fh_cmt;
+
+my $cmt = TestCsvConsumer->new( csv_file => $cmt_file );
+$cmt->get_headers();   # consume the header line
+
+my $cmt_row1 = $cmt->getline();
+is_deeply( $cmt_row1, [ 'row_one', '1' ],
+           'getline: returns first data row before inline comments' );
+
+my $cmt_row2 = $cmt->getline();
+is_deeply( $cmt_row2, [ 'row_two', '2' ],
+           'getline: skips comment lines between data rows' );
+
+my $cmt_eof = $cmt->getline();
+is( $cmt_eof, undef, 'getline: returns undef after last data row' );
+
 done_testing();
