@@ -65,6 +65,8 @@
    var url_category_delete      = '[% c.uri_for( "/productcategory/delete" ) %]';
    var url_contact_delete       = '[% c.uri_for( "/contact/delete" ) %]';
    var url_contact_submit       = '[% c.uri_for( "/contact/submit" ) %]';
+   var url_container_measure_delete  = '[% c.uri_for( "/containermeasure/delete" ) %]';
+   var url_container_measure_submit  = '[% c.uri_for( "/containermeasure/submit" ) %]';
    var url_company_delete       = '[% c.uri_for( "/company/delete" ) %]';
    var url_company_submit       = '[% c.uri_for( "/company/submit" ) %]';
    var url_company_region_delete = '[% c.uri_for( "/companyregion/delete" ) %]';

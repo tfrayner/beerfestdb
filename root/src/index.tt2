@@ -34,6 +34,7 @@
     <li><a href="[% c.uri_for('/salevolume/grid') %]">Sale volume sizes</a></li>
     <li><a href="[% c.uri_for('/companyregion/grid') %]">Company geographic regions</a></li>
     <li><a href="[% c.uri_for('/bayposition/grid') %]">Bay positions</a></li>
+    <li><a href="[% c.uri_for('/containermeasure/grid') %]">Container measures</a></li>
   </ul>
 
 </div>

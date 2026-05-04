@@ -1,0 +1,5 @@
+[% META title = 'Container Measure listing' %]
+
+[% js_link( src = '/static/js/grids/container_measures.js' ) %]
+
+<div id="datagrid"></div>
