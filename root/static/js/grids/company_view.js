@@ -231,6 +231,24 @@ Ext.onReady(function(){
         },
     });
 
+    /* AWRS URN field with external lookup trigger */
+    var awrs_urn_field = new Ext.form.TriggerField({
+        name:         'awrs_urn',
+        fieldLabel:   'AWRS URN',
+        allowBlank:   true,
+        triggerClass: 'x-form-awrs-trigger',
+        onTriggerClick: function() {
+            var val = this.getValue();
+            if (val) {
+                window.open(
+                    url_awrs_urn_prefix + encodeURIComponent(val),
+                    '_blank',
+                    'noopener,noreferrer'
+                );
+            }
+        },
+    });
+
     /* Company form */
     var coForm = new MyFormPanel({
 
@@ -277,10 +295,7 @@ Ext.onReady(function(){
               xtype:          'textfield',
               allowBlank:     true, },
             
-            { name:           'awrs_urn',
-              fieldLabel:     'AWRS URN',
-              xtype:          'textfield',
-              allowBlank:     true, },
+            awrs_urn_field,
             
             { name:           'comment',
               fieldLabel:     'Comment',
