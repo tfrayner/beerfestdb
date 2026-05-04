@@ -120,6 +120,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Container Sizes', handler: function() { window.location = url_container_size_grid; } },
         ],
     });
     

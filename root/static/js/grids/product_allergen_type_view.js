@@ -65,6 +65,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Product Allergen Types', handler: function() { window.location = url_product_allergen_type_grid; } },
         ],
     });
     

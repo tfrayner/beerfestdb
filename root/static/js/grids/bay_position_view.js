@@ -65,7 +65,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'All Bay Positions', handler: function() { window.location = url_bay_position_grid; } },
+            { text: 'Bay Positions', handler: function() { window.location = url_bay_position_grid; } },
         ],
     });
     

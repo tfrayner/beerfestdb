@@ -65,6 +65,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Company Regions', handler: function() { window.location = url_company_region_grid; } },
         ],
     });
     
