@@ -129,12 +129,19 @@ plugin. Typical routes:
 
 | Path | Description |
 |---|---|
-| `/openidconnect/callback` | OIDC provider callback |
+| **`/.well-known/openid-configuration`** | **OIDC discovery endpoint** |
+| `/openidconnect/authorize` | OIDC authorization endpoint |
+| `/openidconnect/token` | OIDC auth-token exchange |
+| `/openidconnect/userinfo` | OIDC user claim retrieval |
+| `/openidconnect/jwks` | OIDC jwks key discovery |
 | `/openidconnect/logout` | OIDC-aware logout |
 
-After a successful OIDC login the browser is redirected back to the
-original target URI. The `back` query parameter on `/login` carries the
-post-login destination.
+After a successful OIDC login, the browser is redirected back to the site-configured
+target URI corresponding to the originator site. This destination will have been inserted as the
+`back` query parameter to the top-level `/login` endpoint (which actually handles the 
+authentication). Please see the OIDC specification RFCs and the `Catalyst::Plugin::OpenIDConnect` 
+documentation for more information. Also see the [tool dashboard](./tool_dashboard/README.md) 
+for an example of this system in use.
 
 ---
 
