@@ -100,6 +100,7 @@ __PACKAGE__->config(
     default_product_category => 'beer',
     default_measurement_unit => 'gallon',
     stock_control_departments => [],
+    awrs_urn_prefix => 'https://www.tax.service.gov.uk/check-the-awrs-register?query=',
     using_frontend_proxy => 1,  # create URLs using HTTPS scheme when behind a proxy
  );
 
