@@ -12,13 +12,8 @@ st.title("Beer price calculator"	)
 
 st.write("Known limitation: The beerfestdb does not support more than one price per product. If a beer is available in both cask and keg, choose one price to load, and manually edit the cask end sign .tex file to create the other.")
 
-#%%
-if 'festival' not in st.session_state:
-    st.session_state.festival = "Cambridge Winter Festival 2025"
-
 if 'orderbatch' not in st.session_state:
     st.session_state.orderbatch = "Main Beer Order"
-
 
 festivalname = st.session_state['festival']
 
