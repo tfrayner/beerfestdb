@@ -93,14 +93,14 @@
 
 <div id="bfdb-panels">
 
-  <div class="bfdb-panel" id="main-menu">
+  <div class="bfdb-panel" id="bfdb-main-menu">
     <h2>Festival &amp; Products</h2>
     <p>Day-to-day management of festivals, suppliers and products.</p>
     <a class="bfdb-card" href="[% c.uri_for('/festival/grid') %]">Festival Records</a>
     <a class="bfdb-card" href="[% c.uri_for('/company/grid') %]">Supplier and Product Listings</a>
   </div>
 
-  <div class="bfdb-panel" id="admin-menu">
+  <div class="bfdb-panel" id="bfdb-admin-menu">
     <h2>Database Administration</h2>
     <p>Configuration pages restricted to admin-level users.</p>
 
@@ -129,6 +129,4 @@
 </div>
 
 </div>
-
-[% js_link( src = '/static/js/grids/main.js' ) %]
 
