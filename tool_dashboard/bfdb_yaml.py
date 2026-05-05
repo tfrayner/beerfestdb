@@ -11,4 +11,3 @@ with open(f'{bfdbyaml}') as f:
 
 current_festival = (bfdbconf["current_festival"])
 
-print(f'{current_festival}')
