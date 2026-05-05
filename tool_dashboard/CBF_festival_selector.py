@@ -12,7 +12,6 @@ conn = st.connection('cbf', type='sql')
 #%%
 if 'festival' not in st.session_state:
     st.session_state.festival = f'{current_festival}'
-#    st.session_state.festival = "Cambridge Winter Festival 2025"
 
 
 #%%

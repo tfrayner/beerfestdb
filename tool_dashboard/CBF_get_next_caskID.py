@@ -10,15 +10,9 @@ from bfdb_yaml import current_festival
 conn = st.connection('cbf', type='sql')
 
 #%%
-if 'festival' not in st.session_state:
-    st.session_state.festival = f'{current_festival}'
-#    st.session_state.festival = "Cambridge Winter Festival 2025"
-
-#%%
 st.title("Cask ID Lookup")
 
 st.write("This tool retrieves the highest cask ID in use for a festival")
-
 
 festivalname = st.session_state['festival']
 

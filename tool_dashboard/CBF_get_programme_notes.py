@@ -7,10 +7,6 @@ import streamlit as st
 conn = st.connection('cbf', type='sql')
 
 #%%
-if 'festival' not in st.session_state:
-    st.session_state.festival = "Cambridge Winter Festival 2025"
-
-#%%
 st.title("Festival Programme Beer List")
 
 st.write("This tool retrieves the programme notes file for a festival.")
