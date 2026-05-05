@@ -9,36 +9,19 @@ conn = st.connection('cbf', type='sql')
 #%%
 st.title('CBF beer allergen lookup')
 
-#%%
-if 'festival' not in st.session_state:
-    st.session_state.festival = "Cambridge Winter Festival 2025"
-
-fsql = '''select name from festival where year > 2023;'''
-fdf = conn.query(fsql)
-festlist = fdf['name'].to_list()
-
-festnames = [str(name) for name in (festlist)]
-
-def set_festival():
-    st.session_state['festival']
-
-festival_selection = st.selectbox(
-"Choose a festival",
-(festnames),
-key="festival",
-on_change=set_festival
-)
-
 festivalname = st.session_state['festival']
 
-asql = '''select description as allergen from product_allergen_type;'''
-adf = conn.query(asql)
-allergenlist = adf['allergen'].to_list()
+alsql = '''select description as allergen from product_allergen_type;'''
+aldf = conn.query(alsql)
+allergenlist = aldf['allergen'].to_list()
 
 allergens = [str(allergen) for allergen in (allergenlist)]
 
 def choose_allergen():
     st.session_state['allergen']
+
+st.subheader(f'{festivalname}')
+st.write("Use the menu in the left sidebar to choose another festival")
 
 allergen_selection = st.selectbox(
 "Choose an allergen",
@@ -82,9 +65,22 @@ acsv = csv_for_download(adf)
 atsv = tsv_for_download(adf)
 
 #%%
-st.header(f'{festivalname}')
+st.header("Allergen finder")
 
-st.subheader("Allergen finder")
+
+#%%
+conn.close()
+
+def csv_for_download(df):
+    return df.to_csv().encode("utf-8")
+
+def tsv_for_download(df):
+    return df.to_csv(sep="\t", index=False).encode("utf-8")
+
+acsv = csv_for_download(adf)
+atsv = tsv_for_download(adf)
+
+#%%
 st.write("Table of beers containing the allergen selected above")
 st.dataframe(adf, hide_index=True)
 
