@@ -1,0 +1,12 @@
+[% META title = 'Product Characteristic Type Details' %]
+
+<script type="text/javascript">
+   var url_product_characteristic_type_load_form = '[% c.uri_for( "/productcharacteristictype/load_form" ) %]';
+   var url_product_characteristic_type_grid = '[% c.uri_for( "/productcharacteristictype/grid" ) %]';
+   
+   var product_characteristic_type_id = '[% object.product_characteristic_type_id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_characteristic_type_view.js' ) %]
+
+<div id="datagrid"></div>

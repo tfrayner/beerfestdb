@@ -1,0 +1,9 @@
+[% META title = 'Product Characteristic Type listing' %]
+
+<script type="text/javascript">
+   var url_category_view  = '[% c.uri_for( "/productcategory/grid" ) %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_characteristic_types.js' ) %]
+
+<div id="datagrid"></div>

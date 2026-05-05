@@ -139,7 +139,8 @@ foreach my $path ( qw(productstyle) ) {
 }
 foreach my $path ( qw(bayposition companyregion contacttype containermeasure
                       containersize country currency dispensemethod
-                      productallergentype productcategory productstyle
+                      productallergentype productcharacteristictype
+                      productcategory productstyle
                       salevolume telephonetype) ) {
     __PACKAGE__->allow_access_if( "/$path/list", [ qw( user ) ] );
     __PACKAGE__->allow_access_if( '/' . $path, [ qw( admin ) ] );

@@ -27,7 +27,7 @@
 
   <ul class="linkslist">
     <li><a href="[% c.uri_for('/user/grid') %]">Database users and roles</a></li>
-    <li><a href="[% c.uri_for('/productcategory/grid') %]">Product categorisation</a></li>
+    <li><a href="[% c.uri_for('/productcategory/grid') %]">Product categories, styles and characteristics</a></li>
     <li><a href="[% c.uri_for('/productallergentype/grid') %]">Allergen types</a></li>
     <li><a href="[% c.uri_for('/dispensemethod/grid') %]">Dispense methods</a></li>
     <li><a href="[% c.uri_for('/containersize/grid') %]">Cask and other container sizes</a></li>
