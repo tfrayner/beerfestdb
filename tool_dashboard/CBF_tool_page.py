@@ -39,23 +39,6 @@ if st.button("Log out"):
     st.logout()
 # End login and inactivity management --------------------------------------------------------
 
-pages = {
-    "Data Tables": [
-        st.Page("CBF_beer_price_calculator.py", title="Price Load File"),
-        st.Page("CBF_gf_vegan_beer.py", title="Vegan & G-free"),
-        st.Page("CBF_beer_allergen_lookup.py", title="Beer Allergens"),
-        st.Page("CBF_get_programme_notes.py", title="Programme Beer List"),
-    ],
-    "Extras": [
-        st.Page("CBF_get_next_caskID.py", title="Next Cask ID"),
-    ],
-}
-
-pg = st.navigation(pages)
-pg.run()
-
-##########
-
 conn = st.connection('cbf', type='sql')
 
 if 'festival' not in st.session_state:
@@ -78,3 +61,20 @@ on_change=set_festival
 )
 
 festivalname = st.session_state['festival']
+
+##########
+
+pages = {
+    "Data Tables": [
+        st.Page("CBF_beer_price_calculator.py", title="Price Load File"),
+        st.Page("CBF_gf_vegan_beer.py", title="Vegan & G-free"),
+        st.Page("CBF_beer_allergen_lookup.py", title="Beer Allergens"),
+        st.Page("CBF_get_programme_notes.py", title="Programme Beer List"),
+    ],
+    "Extras": [
+        st.Page("CBF_get_next_caskID.py", title="Next Cask ID"),
+    ],
+}
+
+pg = st.navigation(pages)
+pg.run()
