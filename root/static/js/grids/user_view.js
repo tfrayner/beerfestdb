@@ -70,7 +70,7 @@ Ext.onReady(function(){
               xtype:          'textfield',
               allowBlank:     true, },
 
-            { name:           'roles',  // FIXME this still doesn't pre-check the right boxes.
+            { name:           'roles',
               fieldLabel:     'Roles',
               store:          role_store,
               triggerAction:  'all',
@@ -78,9 +78,8 @@ Ext.onReady(function(){
               lazyRender:     true,
               valueField:     'role_id',
               displayField:   'rolename',
-              // FIXME review the next four lines, they are basically guesses at this point.
               emptyText:      'Select roles...',
-		      hideOnSelect:   false,
+              hideOnSelect:   false,
               queryMode:      'local',
               multiSelect:    true,
               xtype:          'lovcombo',
@@ -123,8 +122,5 @@ Ext.onReady(function(){
         items:  panel,
     });
 
-    //  FIXME we also need to warn the user if they're trying to
-    //  navigate away from a dirty grid.
-    
 });
 

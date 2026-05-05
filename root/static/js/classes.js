@@ -446,6 +446,7 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
     defaults:    {width: 300}, // field box width
     defaultType: 'textfield',
     comboStores: [],
+    afterSave: null,
             
     initComponent: function() {
 
@@ -458,12 +459,36 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
                 tooltip: 'Write changes to the database',
                 iconCls: 'icon-save-table',
                 handler: function(b, e) {
-                    var fields = this.getForm().getFieldValues({ dirtyOnly: true });
-                    for ( var key in this.idParams ) {
-                        fields[key] = this.idParams[key];
+                    var panel = this;
+                    var doSave = function() {
+                        var fields = panel.getForm().getFieldValues({ dirtyOnly: true });
+                        for ( var key in panel.idParams ) {
+                            fields[key] = panel.idParams[key];
+                        }
+                        var afterSaveFn = panel.afterSave || function() {
+                            Ext.Msg.alert('Success', 'Record saved to database', function() {
+                                panel.getForm().load({
+                                    url:     panel.loadUrl,
+                                    params:  panel.idParams,
+                                    waitMsg: panel.waitMsg,
+                                });
+                            });
+                        };
+                        Ext.Ajax.request({
+                            url:     panel.url,
+                            success: afterSaveFn,
+                            failure: function(res, opts) {
+                                var stash = Ext.util.JSON.decode(res.responseText);
+                                Ext.Msg.alert('Error', stash.error);
+                            },
+                            params: { changes: Ext.util.JSON.encode( [ fields ] ) }
+                        });
+                    };
+                    if (panel.beforeSave) {
+                        panel.beforeSave(doSave);
+                    } else {
+                        doSave();
                     }
-                    submitChanges( [ fields ], this.url );
-                    this.getForm().setValues({ values: fields }); // doesn't currently work.
                 },
                 scope: this,
             },{
@@ -561,7 +586,7 @@ MyLoginPanel = Ext.extend(Ext.form.FormPanel, {
     width:       500,
     defaults:    {width: 300}, // field box width
     defaultType: 'textfield',
-    targetUrl:   "/",  // A reasonable but not universally-applicable default.
+    targetUrl:   url_success_target || url_base, // default to server root if not set by controller.
     
     initComponent: function() {
 
@@ -646,3 +671,17 @@ MyMainPanel = Ext.extend(Ext.Panel, {
     }
 });
 
+window.onbeforeunload = function() {
+    var dirty = false;
+    Ext.ComponentMgr.all.each(function(cmp) {
+        if (cmp instanceof MyFormPanel && cmp.getForm().isDirty()) {
+            dirty = true;
+        } else if (cmp instanceof MyEditorGrid && cmp.store &&
+                   cmp.store.getModifiedRecords().length > 0) {
+            dirty = true;
+        }
+    });
+    if (dirty) {
+        return 'You have unsaved changes. Are you sure you want to leave this page?';
+    }
+};

@@ -30,15 +30,10 @@ use Data::Dumper;
 package AllergenLoader;
 
 use Moose;
-use Text::CSV_XS;
 
 has 'database'    => ( is       => 'ro',
                        isa      => 'DBIx::Class::Schema',
                        required => 1 );
-
-has '_csv_parser' => ( is       => 'rw',
-                       isa      => 'Text::CSV_XS',
-                       required => 0 );
 
 has '_header'     => ( is       => 'rw',
                        isa      => 'ArrayRef',
@@ -79,36 +74,7 @@ has 'interactive'     => ( is       => 'rw',
                            isa      => 'Bool',
                            default  => 0 );
 
-sub value_acceptable {
-
-    my ( $value ) = @_;
-
-    if ( defined $value &&
-             ( $value eq q{} ||
-              $value =~ /\A (0|1|y(?:es)?|n(?:o)?|n\/?[ad]) \z/ixms ) ) {
-        return 1;
-    }
-
-    return;
-}
-
-sub _parse_value {
-
-    my ( $self, $value ) = @_;
-
-    if ( $value eq q{} || $value =~ /\A n\/?[ad] \z/ixms ) {
-        return;
-    }
-    elsif ( $value =~ /\A (0|n(?:o)?) \z/ixms ) {
-        return 0;
-    }
-    elsif ( $value =~ /\A (1|y(?:es)?) \z/ixms ) {
-        return 1;
-    }
-    else {
-        die(qq{Unable to parse value "$value"\n});
-    }
-}
+with 'BeerFestDB::Role::CsvParser';
 
 sub _parse_row {
 
@@ -132,7 +98,7 @@ sub _parse_row {
             $compname = $value
         }
         else {
-            $allergen{ $heading } = $self->_parse_value( $value );
+            $allergen{ $heading } = $self->parse_boolean( $value );
         }
     }
 
@@ -192,17 +158,14 @@ sub _protected_find_or_create_database_object {
 
 sub _load_table_data {
 
-    my ( $self, $fh ) = @_;
+    my ( $self ) = @_;
 
     my $product_category = $self->database->resultset("ProductCategory")->find(
         { description => $self->category } )
         or die(sprintf(qq{Unable to find the product category "%s" in the database.\n"},
                        $self->category));
 
-    PRODUCT:
-    while ( my $line = $self->_csv_parser->getline($fh) ) {
-
-        next PRODUCT if ( $line->[0] =~ /\A \s* \#/xms );
+    while ( my $line = $self->getline() ) {
         my ( $prodname, $compname, $allergens ) = $self->_parse_row( $line );
 
         my $company = $self->_protected_find_or_create_database_object(
@@ -236,43 +199,19 @@ sub _load_table_data {
 
 sub load {
 
-    my ( $self, $input ) = @_;
+    my ( $self ) = @_;
 
-    my $csv_parser = Text::CSV_XS->new(
-        {   sep_char    => qq{\t},
-            quote_char  => qq{"},                   # default
-            escape_char => qq{"},                   # default
-            binary      => 1,
-            allow_loose_quotes => 1,
-        }
-    );
-    $self->_csv_parser( $csv_parser );
-
-    open(my $fh, '<', $input)
-        or die(qq{Error: unable to open input file "$input".\n});
-
-    my $rawheader = $self->_csv_parser->getline($fh);
-    my @header = map { $_ =~ s/\A \s*(.*?)\s* \z/$1/xms; $_ } @$rawheader;
-    $self->_header( \@header );
+    $self->_header( $self->get_headers() );
 
     eval {
-        $self->database->txn_do( sub { $self->_load_table_data($fh); } );
+        $self->database->txn_do( sub { $self->_load_table_data(); } );
     };
     if ( $@ ) {
         die(qq{Errors encountered during load:\n\n$@});
     }
     else {
-
-        # Check that parsing completed successfully.
-        my ( $error, $mess ) = $csv_parser->error_diag();
-        unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
-            die(sprintf(
-		"Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
-		$mess,
-		$csv_parser->error_input()));
-        }
-
-        print("Allergen data successfully loaded.\n");
+        $self->confirm_eof();
+        warn("Allergen data successfully loaded.\n");
     }
 
     return;
@@ -351,6 +290,7 @@ my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'}
 
 my $loader = AllergenLoader->new(
     database        => $schema,
+    csv_file        => $input,
     category        => $category,
     force_companies => $force_companies,
     force_products  => $force_products,
@@ -358,7 +298,7 @@ my $loader = AllergenLoader->new(
     interactive     => $interactive,
 );
 
-$loader->load( $input );
+$loader->load();
 
 __END__
 
@@ -378,8 +318,8 @@ header line. The first two columns are supplier (brewer) and product
 name (beer). Each allergen is represented by a single column (the
 allergen name in the header line). The column contains one of the
 following values to indicate that the allergen is present in the
-product: 1, y, yes (case insensitive). The following values are used
-to indicate a definite absence: 0, n, no. If the presence or absence
+product: 1, y, yes, t, true (case insensitive). The following values are used
+to indicate a definite absence: 0, n, no, f, false (case insensitive). If the presence or absence
 of the allergen cannot be established, use one of these values: na,
 n/a, nd, n/d, or a blank value. All other values will raise an error.
 

@@ -26,7 +26,6 @@ package BeerFestDB::Loader;
 
 use Moose;
 
-use Text::CSV_XS;
 use Readonly;
 use Carp;
 use List::Util qw(first);
@@ -69,11 +68,15 @@ has '_preload_casks' => ( is       => 'rw',
                           required => 1,
                           default  => 0 );
 
-with 'BeerFestDB::DBHashRefValidator';
+with 'BeerFestDB::Role::DBHashRefValidator';
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
 
-with 'BeerFestDB::CaskPreloader';
+with 'BeerFestDB::Role::CaskPreloader';
+
+with 'BeerFestDB::Role::CsvParser';
+
+with 'BeerFestDB::Role::PriceMunger';
 
 # Constants used throughout to label data columns. The actual numbers
 # here are arbitrary; they only have to be unique.
@@ -143,22 +146,6 @@ Readonly my $ORDER_PRICE               => 61;
 ########
 # SUBS #
 ########
-
-sub _get_csv_parser {
-
-    my ( $self ) = @_;
-
-    my $csv_parser = Text::CSV_XS->new(
-        {   sep_char    => qq{\t},
-            quote_char  => qq{"},                   # default
-            escape_char => qq{"},                   # default
-            binary      => 1,
-            allow_loose_quotes => 1,
-        }
-    );
-
-    return $csv_parser;
-}
 
 sub value_is_acceptable {
 
@@ -360,11 +347,15 @@ sub _load_data {
         currency_code => $config->{'default_currency'},
     }) or die("Unable to retrieve default currency; check config settings.");
 
+    # Cache the currency so the PriceMunger role doesn't have to keep looking it up.
+    $self->default_currency($currency);
+
     my $sale_volume = $self->database->resultset('SaleVolume')->find({
         description => $config->{'default_sale_volume'},
     }) or die("Unable to retrieve default sale volume; check config settings.");
 
-    my $sale_price = $datahash->{$GYLE_PINT_PRICE} ? $datahash->{$GYLE_PINT_PRICE} * 100 : undef;
+    # Assumes default currency
+    my $sale_price = $self->parse_price( $datahash->{$GYLE_PINT_PRICE} );
 
     my $nominal_abv = $datahash->{$PRODUCT_ABV};
     $nominal_abv = undef if ( defined $nominal_abv && $nominal_abv eq q{} );
@@ -380,7 +371,7 @@ sub _load_data {
                 product_category_id => $category,
                 product_style_id    => $style,
                 nominal_abv         => $nominal_abv,
-                is_vegan         => $datahash->{$PRODUCT_IS_VEGAN},
+                is_vegan         => $self->parse_boolean( $datahash->{$PRODUCT_IS_VEGAN} ),
             },
             'Product')
         : undef;
@@ -433,7 +424,8 @@ sub _load_data {
             'ContainerSize')
         : undef;
 
-    my $order_price = $datahash->{$ORDER_PRICE} ? $datahash->{$ORDER_PRICE} * 100 : undef;
+    # Assumes default currency
+    my $order_price = $self->parse_price( $datahash->{$ORDER_PRICE} );
 
     my $count = $datahash->{$CASK_COUNT};
     unless ( defined $count && $count ne q{} ) {
@@ -470,10 +462,10 @@ sub _load_data {
                 cask_count             => $count,
                 currency_id            => $currency,
                 advertised_price       => $order_price,
-                is_final               => $datahash->{$ORDER_FINALISED},
-                is_received            => $datahash->{$ORDER_RECEIVED},
+                is_final               => $self->parse_boolean( $datahash->{$ORDER_FINALISED} ),
+                is_received            => $self->parse_boolean( $datahash->{$ORDER_RECEIVED} ),
                 comment                => $datahash->{$ORDER_COMMENT},
-                is_sale_or_return      => $datahash->{$ORDER_SALE_OR_RETURN} || 0, # Part of a DB key
+                is_sale_or_return      => $self->parse_boolean( $datahash->{$ORDER_SALE_OR_RETURN} ) || 0, # Part of a DB key
             },
             'ProductOrder',
         );
@@ -562,7 +554,8 @@ sub _load_data {
             @wanted_casks = $datahash->{$CASK_CELLAR_ID};
         }
 
-        my $cask_price = $datahash->{$CASK_PRICE} ? $datahash->{$CASK_PRICE} * 100 : undef;
+        # Assumes default currency
+        my $cask_price = $self->parse_price( $datahash->{$CASK_PRICE} );
 
         foreach my $n ( @wanted_casks ) {
 
@@ -897,15 +890,10 @@ sub _coerce_headings {
 
 sub load {
 
-    my ( $self, $input ) = @_;
+    my ( $self ) = @_;
 
-    my $csv_parser = $self->_get_csv_parser();
-
-    open( my $input_fh, '<', $input )
-        or die(qq{Error opening input file "$input": $!});
-
-    # Assume first line is the header, for now:
-    my $headings = $self->_coerce_headings( $csv_parser->getline($input_fh) );
+    # Find the first suitable header line:
+    my $headings = $self->_coerce_headings( $self->get_headers() );
 
     if ( $self->overwrite() ) {
         warn("Loader running in OVERWRITE mode.\n");
@@ -916,8 +904,7 @@ sub load {
     eval {
         $db->txn_do(
             sub {
-                while ( my $rowlist = $csv_parser->getline($input_fh) ) {
-                    next if $rowlist->[0] =~ /^\s*#/;
+                while ( my $rowlist = $self->getline() ) {
                     my %datahash;
                     @datahash{ @$headings } = @$rowlist;
                     $self->_load_data( \%datahash );
@@ -934,16 +921,7 @@ sub load {
         die(qq{Errors encountered during load:\n\n$@});
     }
     else {
-
-        # Check that parsing completed successfully.
-        my ( $error, $mess ) = $csv_parser->error_diag();
-        unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
-            die(sprintf(
-                    "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
-                    $mess,
-                    $csv_parser->error_input()));
-        }
-
+        $self->confirm_eof();
         warn("All data successfully loaded.\n");
     }
 }

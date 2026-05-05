@@ -174,7 +174,7 @@ sub load_form : Local {
 
     my $pk = 'user_id';
     
-    my $id = $c->request->param( $pk );
+    my $id = $c->request->param( $pk ) // -1;
 
     if ( $id != eval{ $c->user->user_id } && ! $c->check_any_user_role('admin') ) {
         $c->stash->{error} = 'You are not authorised to access these data.';
@@ -210,10 +210,10 @@ sub modify : Local {
 
 sub generate_object_viewhash : Private {
 
-    my ( $self, $obj ) = @_;
+    my ( $self, $obj, $c ) = @_;
 
     # Don't publish the SHA-1 password hash; just leave it blank.
-    my $obj_info = $self->next::method( $obj );
+    my $obj_info = $self->next::method( $obj, $c );
     delete $obj_info->{'password'};
     return $obj_info;
 }

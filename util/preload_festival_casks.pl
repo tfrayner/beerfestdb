@@ -39,8 +39,8 @@ has 'database'  => ( is       => 'rw',
                      isa      => 'DBIx::Class::Schema',
                      required => 1 );
 
-with 'BeerFestDB::MenuSelector';
-with 'BeerFestDB::CaskPreloader';
+with 'BeerFestDB::Role::MenuSelector';
+with 'BeerFestDB::Role::CaskPreloader';
 
 sub preload_festival {
 

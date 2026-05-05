@@ -50,7 +50,7 @@ spec:
     spec:
       containers:
       - name: beerfestdb
-        image: tfrayner/beerfestdb:1.1
+        image: tfrayner/beerfestdb:latest
         imagePullPolicy: IfNotPresent
         command: ["beerfestdb_web_fastcgi.pl", "-l", ":3000", "-n", "1"]
         ports:
@@ -140,6 +140,44 @@ spec:
     port: 80
     targetPort: 80
 ---
+# # If you want to use cert-manager to get TLS certs from Let's Encrypt, you can
+# # apply the following resources. You will need to replace the email address and
+# # domain name with your own. Please note that this will only work on a publicly 
+# # accessible cluster with a valid domain name pointing to it. If you are running
+# # this on a local cluster or without a valid domain, you will need to use
+# # self-signed certificates or another method for TLS.
+# apiVersion: cert-manager.io/v1
+# kind: Issuer
+# metadata:
+#   namespace: beerfestdb
+#   name: letsencrypt-prod
+# spec:
+#   acme:
+#     email: user@example.org
+#     server: https://acme-v02.api.letsencrypt.org/directory
+#     privateKeySecretRef:
+#       name: letsencrypt-prod-issuer-account-key
+#     solvers:
+#       - http01:
+#           ingress:
+#             serviceType: ClusterIP
+#             ingressClassName: traefik
+# ---
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   namespace: beerfestdb
+#   name: beerfestdb-nginx-cert
+# spec:
+#   commonName: mybeerfestdb.example.net
+#   secretName: beerfestdb-nginx-cert
+#   dnsNames:
+#     # Replace with your domain here
+#     - mybeerfestdb.example.net
+#   issuerRef:
+#     kind: Issuer
+#     name: letsencrypt-prod
+# ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -154,6 +192,10 @@ spec:
     services:
     - name: beerfestdb-nginx-service
       port: 80
+# # If you have TLS set up, uncomment the following lines to enable TLS for the
+# # ingress (see above for cert-manager resources)
+#  tls:
+#    secretName: beerfestdb-nginx-cert
 ---
 apiVersion: v1
 kind: ConfigMap

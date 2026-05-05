@@ -3,7 +3,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2012-2017 Tim F. Rayner
+# Copyright (C) 2012-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@ package CaskUpdater;
 use Moose;
 use List::Util qw(first);
 use Scalar::Util qw(looks_like_number);
-use Text::CSV_XS;
 
 has 'database'  => ( is       => 'ro',
                      isa      => 'DBIx::Class::Schema',
@@ -54,7 +53,25 @@ has '_errors'   => ( is       => 'ro',
                      required => 1,
                      default  => sub { [] } );
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
+
+with 'BeerFestDB::Role::CsvParser';
+
+with 'BeerFestDB::Role::PriceMunger';
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    # Cache the default currency for use by the price parsing and formatting methods (PriceMunger role).
+    my $currency = $self->database()->resultset('Currency')->find({
+        currency_code => BeerFestDB::Web->config()->{ default_currency }
+    }) or die(qq{Error: unable to find default currency in database.\n});
+
+    $self->default_currency($currency);
+
+    return;
+}
 
 sub assign_cask_price {
 
@@ -64,7 +81,8 @@ sub assign_cask_price {
         if ( ! looks_like_number( $price ) ) {
             die("Error: This cask_price doesn't look like a number: $price\n");
         }
-	$caskman->set_column('price', $price);
+        # Assumes price is in the configured default currency.
+   	    $caskman->set_column('price', $self->parse_price( $price ));
     }
 
     return;
@@ -185,7 +203,7 @@ sub update_caskman {
                 die("Attempting to set a concrete cask status"
                         . " on a virtual cask (has it arrived yet?).")
             }
-            $cask->set_column($dbcol, $value ? 1 : 0);
+            $cask->set_column($dbcol, $self->parse_boolean($value));
         }
     }
 
@@ -197,37 +215,13 @@ sub update_caskman {
 
 sub load {
 
-    my ( $self, $datafile ) = @_;
-
-    my $csv_parser = Text::CSV_XS->new(
-        {   sep_char    => qq{\t},
-            quote_char  => qq{"},                   # default
-            escape_char => qq{"},                   # default
-            binary      => 1,
-            allow_loose_quotes => 1,
-        }
-    );
-
-    open(my $fh, '<', $datafile)
-        or die(qq{Error: unable to open input file "$datafile".\n});
+    my ( $self ) = @_;
 
     # Find header line.
-    my @header;
-    HEADER:
-    while ( scalar @header == 0 ) {
-        my $line = $csv_parser->getline($fh);
-        my $lstr = join('', @$line);
-        next HEADER if $lstr =~ /^\s*#/;  # skip comments
-        next HEADER if $lstr =~ /^\s*$/;  # skip blank lines
-        @header = @$line;
-    }
-
-    if ( scalar @header == 0 ) {
-        die("Unable to find a suitable header line in the input file.");
-    }
+    my $header = $self->get_headers();
 
     ## Die on unrecognised columns.
-    foreach my $col ( @header ) {
+    foreach my $col ( @$header ) {
         unless ( first { $col eq $_ } qw(cask_festival_id cask_cellar_id
                                          stillage_location stillage_bay
                                          bay_position vented tapped ready
@@ -242,12 +236,9 @@ sub load {
             sub {
                 
                 CASK:
-                while ( my $line = $csv_parser->getline($fh) ) {
-                    my $lstr = join('', @$line);
-                    next CASK if $lstr =~ /^\s*#/;  # skip comments
-                    
+                while ( my $line = $self->getline() ) {
                     my %row;
-                    @row{ @header } = @$line;
+                    @row{ @$header } = @$line;
                     
                     my $cfid = $row{ 'cask_festival_id' };
                     unless ( defined $cfid ) {
@@ -277,17 +268,8 @@ sub load {
         die(qq{Errors encountered during load (database not changed):\n\n$@});
     }
     else {
-        
-        # Check that parsing completed successfully.
-        my ( $error, $mess ) = $csv_parser->error_diag();
-        unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
-            die(sprintf(
-		"Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
-		$mess,
-		$csv_parser->error_input()));
-        }
-        
-        print("Cask information successfully loaded.\n");
+        $self->confirm_eof();
+        warn("Cask information successfully loaded.\n");
     }
 
     return;
@@ -333,10 +315,11 @@ my ( $config, $datafile, $allow_stillage_move, $force_load ) = parse_args();
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
 my $updater = CaskUpdater->new( database            => $schema,
+                                csv_file            => $datafile,
                                 allow_stillage_move => $allow_stillage_move,
                                 require_stillage_loc => not $force_load );
 
-$updater->load( $datafile );
+$updater->load();
 
 __END__
 
@@ -423,8 +406,7 @@ OPTIONAL. Whether the cask has been condemned. See the notes under 'vented' for 
 =item cask_price
 
 OPTIONAL. The original purchase price of the cask. This should
-be a value in pence. For example, a cask that cost £75.50 should be
-coded as 7550 in this column.
+be a value in pounds.
 
 =item cask_graveyard
 
@@ -440,7 +422,7 @@ Tim F. Rayner, E<lt>tfrayner@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2012-2017 by Tim F. Rayner
+Copyright (C) 2012-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

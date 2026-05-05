@@ -83,7 +83,7 @@ Ext.onReady(function(){
         { name: 'festival_product_id', type: 'int' },
         { name: 'product_id',          type: 'int', sortType: myMakeSortTypeFun(product_store, 'name') },
         { name: 'company_id',          type: 'int', sortType: myMakeSortTypeFun(brewer_store, 'name') },
-        { name: 'sale_price',          type: 'float' },
+        { name: 'sale_price',          type: 'string' },
         { name: 'sale_volume_id',      type: 'int', sortType: myMakeSortTypeFun(volume_store, 'description') },
         { name: 'sale_currency_id',    type: 'int', sortType: myMakeSortTypeFun(currency_store, 'currency_code') },
         { name: 'comment',             type: 'string' },
@@ -199,7 +199,7 @@ Ext.onReady(function(){
           header:     'Sale price',
           dataIndex:  'sale_price',
           width:      40,
-          editor:     new Ext.form.TextField({  // FIXME use currency format, reload on change.
+          editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
         { id:         'sale_currency_id',
@@ -282,8 +282,5 @@ Ext.onReady(function(){
         items:  panel,
     });
 
-    //  FIXME we also need to warn the user if they're trying to
-    //  navigate away from a dirty grid.
-    
 });
 

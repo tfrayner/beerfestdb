@@ -105,7 +105,7 @@ Ext.onReady(function(){
         { name: 'cask_count',             type: 'int' },
         { name: 'container_size_id',      type: 'int', sortType: myMakeSortTypeFun(cask_size_store, 'description') },
         { name: 'currency_id',            type: 'int', sortType: myMakeSortTypeFun(currency_store, 'currency_code') },
-        { name: 'price',                  type: 'int' },
+        { name: 'price',                  type: 'string' },
         { name: 'is_final',               type: 'int' },
         { name: 'is_received',            type: 'int' },
         { name: 'is_sale_or_return',      type: 'int' },
@@ -304,8 +304,8 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'product/view/{product_id}');
-        window.location=t.apply({product_id: record.get('product_id')});
+        var t = new Ext.XTemplate(url_base + 'productorder/view/{product_order_id}');
+        window.location=t.apply({product_order_id: record.get('product_order_id')});
     };
 
     function recordChanges (record) {
@@ -400,8 +400,5 @@ Ext.onReady(function(){
         items:  panel,
     });
 
-    //  FIXME we also need to warn the user if they're trying to
-    //  navigate away from a dirty grid.
-    
 });
 

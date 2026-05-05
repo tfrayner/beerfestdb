@@ -26,9 +26,9 @@ use namespace::autoclean;
 use JSON::MaybeXS;
 use Data::Dumper;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::PriceController'; }
 
-with 'BeerFestDB::DipMunger';
+with 'BeerFestDB::Role::DipMunger';
 
 use Storable qw(dclone);
 
@@ -144,6 +144,9 @@ sub BUILD {
             cask_management_id => 'cask_graveyard',
         }
     });
+
+    $self->price_field('price');
+    $self->currency_id_field('currency_id');
 }
 
 =head2 view

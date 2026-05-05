@@ -3,7 +3,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010-2013 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
-use Text::CSV_XS;
 use Scalar::Util qw(looks_like_number);
 use BeerFestDB::ORM;
 
@@ -39,7 +38,9 @@ has 'database'  => ( is       => 'ro',
                      isa      => 'DBIx::Class::Schema',
                      required => 1 );
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
+
+with 'BeerFestDB::Role::CsvParser';
 
 sub value_acceptable {
 
@@ -54,21 +55,9 @@ sub value_acceptable {
 
 sub load {
 
-    my ( $self, $input ) = @_;
+    my ( $self ) = @_;
 
     my $batch = $self->select_dip_batch();
-
-    my $csv_parser = Text::CSV_XS->new(
-        {   sep_char    => qq{\t},
-            quote_char  => qq{"},                   # default
-            escape_char => qq{"},                   # default
-            binary      => 1,
-            allow_loose_quotes => 1,
-        }
-    );
-
-    open(my $fh, '<', $input)
-        or die(qq{Error: unable to open input file "$input".\n});
 
     my $db = $self->database;
 
@@ -76,7 +65,7 @@ sub load {
         $db->txn_do(
             sub {
                 MEAS:
-                while ( my $line = $csv_parser->getline($fh) ) {
+                while ( my $line = $self->getline() ) {
                     next MEAS unless ( scalar @$line > 1
                                     && value_acceptable( $line->[0] )
                                         && value_acceptable( $line->[1] ));
@@ -127,17 +116,8 @@ sub load {
         die(qq{Errors encountered during load:\n\n$@\n});
     }
     else {
-        
-        # Check that parsing completed successfully.
-        my ( $error, $mess ) = $csv_parser->error_diag();
-        unless ( $error == 2012 ) {    # 2012 is the Text::CSV_XS EOF code.
-            die(sprintf(
-                "Error in tab-delimited format: %s. Bad input was:\n\n%s\n",
-                $mess,
-                $csv_parser->error_input()));
-        }
-        
-        print("Dip data successfully loaded.\n");
+        $self->confirm_eof();
+        warn("Dip data successfully loaded.\n");
     }
 
     return;
@@ -180,9 +160,9 @@ my ( $input, $config ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
-my $loader = DipLoader->new( database => $schema );
+my $loader = DipLoader->new( database => $schema, csv_file => $input );
 
-$loader->load( $input );
+$loader->load();
 
 __END__
 
@@ -207,7 +187,7 @@ Tim F. Rayner, E<lt>tfrayner@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

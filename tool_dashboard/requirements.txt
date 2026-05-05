@@ -5,3 +5,4 @@ SQLAlchemy
 mysqlclient
 numpy
 PyYAML
+Authlib

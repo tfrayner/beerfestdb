@@ -27,7 +27,7 @@ use strict;
 use warnings;
 
 use Moose;
-
+use BeerFestDB::Web;
 use Carp;
 
 our $VERSION = '0.01';
@@ -46,7 +46,23 @@ has 'cask_ids'   => ( is       => 'ro',
 has '_order_batch' => ( is       => 'rw',
                         isa      => 'BeerFestDB::ORM::OrderBatch' );
 
-with 'BeerFestDB::MenuSelector';
+with 'BeerFestDB::Role::MenuSelector';
+
+with 'BeerFestDB::Role::PriceMunger';
+
+sub BUILD {
+
+    my ( $self, $params ) = @_;
+
+    # Cache the default currency for use by the price parsing and formatting methods, which may be called by subclasses.
+    my $currency = $self->database()->resultset('Currency')->find({
+        currency_code => BeerFestDB::Web->config()->{ default_currency }
+    }) or die(qq{Error: unable to find default currency in database.\n});
+
+    $self->default_currency($currency);
+
+    return;
+}
 
 sub festival_casks {
 
@@ -145,37 +161,6 @@ sub order_batch_distributors {
                              ->all();
 
     return \@distributors;
-}
-
-sub format_price {
-
-    my ( $self, $price, $format ) = @_;
-
-    return 'STAFF' unless $price;
-
-    my @digits = split //, $price;
-
-    my $formatted = q{};
-
-    POS:
-    foreach my $pos ( 1..length($format) ) {
-        my $f = substr($format, -$pos, 1);
-        if ( $f !~ /[#0]/ ) {
-            $formatted = $f . $formatted;
-            next POS;
-        }
-        my $num = pop @digits;
-        last POS if ( $f eq '#' && ! defined $num );
-        if ( $f eq '0' ) {
-            $num ||= 0;
-            $formatted = $num . $formatted;
-        }
-        else {
-            die(qq{Error: Unrecognised formatting symbol: "$f".\n});
-        }
-    }
-
-    return $formatted;
 }
 
 1;

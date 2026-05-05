@@ -84,12 +84,13 @@ my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'}
 
 my $loader = BeerFestDB::Loader->new(
     database  => $schema,
+    csv_file  => $input,
     protected => ( $config->{'protected_classes'} || [] ),
     overwrite => $overwrite,
     use_default_festival => $default_festival,
 );
 
-$loader->load( $input );
+$loader->load();
 
 __END__
 
