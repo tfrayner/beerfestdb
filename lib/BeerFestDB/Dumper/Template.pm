@@ -63,6 +63,11 @@ has 'filters'    => ( is       => 'ro',
                       required => 1,
                       default  => sub { [] } );
 
+has 'include_filters' => ( is       => 'ro',
+                           isa      => 'ArrayRef',
+                           required => 1,
+                           default  => sub { [] } );
+
 has 'dump_class'  => ( is       => 'ro',
                        isa      => 'Str',
                        required => 1,
@@ -387,6 +392,21 @@ sub is_user_filtered {
     return 0;
 }
 
+sub is_user_included {
+
+    my ( $self, $objhash ) = @_;
+
+    # Include filters are stored as an arrayref of arrayrefs.
+    foreach my $filter ( @{ $self->include_filters } ) {
+        my ( $key, $value, $count ) = @$filter;
+        if ( exists($objhash->{ $key }) && $objhash->{ $key } eq $value ) {
+            $filter->[2]++;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 sub dump {
 
     my ( $self ) = @_;
@@ -486,16 +506,34 @@ sub dump {
         confess(sprintf(qq{Attempt to dump data from unsupported class "%s"}, $self->dump_class));
     }
 
-    # The user may have specified some object properties to filter out of the dump.
-    @template_data = grep { ! $self->is_user_filtered($_) } @template_data;
+    # The user may have specified include and/or exclude filters.
+    # Include filters act as a whitelist; if an item matches any include filter
+    # it is always kept, even if it also matches an exclude filter (include has
+    # priority).  If include filters are specified and an item matches none of
+    # them, it is dropped regardless of the exclude filters.  If no include
+    # filters are specified the original exclude-only behaviour is preserved.
+    my $has_includes = scalar @{ $self->include_filters };
+    my $keep = sub {
+        my ($h) = @_;
+        return 1 if $has_includes && $self->is_user_included($h);  # explicit include always wins
+        return 0 if $has_includes && ! $self->is_user_included($h); # outside whitelist
+        return ! $self->is_user_filtered($h);                       # no whitelist: exclude-only
+    };
+    @template_data = grep { $keep->($_) } @template_data;
     foreach my $stillage_name ( keys %stillage ) {
-        $stillage{ $stillage_name } = [ grep { ! $self->is_user_filtered($_) }
+        $stillage{ $stillage_name } = [ grep { $keep->($_) }
                                             @{ $stillage{ $stillage_name } } ];
     }
     foreach my $filter ( @{ $self->filters } ) {
         my ( $key, $value, $count ) = @$filter;
         if ( (not defined($count)) || $count == 0 ) {
-            warn("Warning: Filter expression did not remove any entries: $key=$value\n");
+            warn("Warning: Exclude filter expression did not remove any entries: $key=$value\n");
+        }
+    }
+    foreach my $filter ( @{ $self->include_filters } ) {
+        my ( $key, $value, $count ) = @$filter;
+        if ( (not defined($count)) || $count == 0 ) {
+            warn("Warning: Include filter expression did not match any entries: $key=$value\n");
         }
     }
 
