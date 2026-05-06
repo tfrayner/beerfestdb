@@ -1,0 +1,12 @@
+[% META title = 'Country Details' %]
+
+<script type="text/javascript">
+   var url_country_load_form = '[% c.uri_for( "/country/load_form" ) %]';
+   var url_country_grid = '[% c.uri_for( "/country/grid" ) %]';
+   
+   var country_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/country_view.js' ) %]
+
+<div id="datagrid"></div>

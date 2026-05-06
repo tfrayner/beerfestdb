@@ -70,6 +70,10 @@
    var url_container_measure_submit  = '[% c.uri_for( "/containermeasure/submit" ) %]';
    var url_company_delete       = '[% c.uri_for( "/company/delete" ) %]';
    var url_company_submit       = '[% c.uri_for( "/company/submit" ) %]';
+   var url_country_delete       = '[% c.uri_for( "/country/delete" ) %]';
+   var url_country_submit       = '[% c.uri_for( "/country/submit" ) %]';
+   var url_currency_delete      = '[% c.uri_for( "/currency/delete" ) %]';
+   var url_currency_submit      = '[% c.uri_for( "/currency/submit" ) %]';
    var url_company_region_delete = '[% c.uri_for( "/companyregion/delete" ) %]';
    var url_company_region_submit = '[% c.uri_for( "/companyregion/submit" ) %]';
    var url_dispense_method_delete = '[% c.uri_for( "/dispensemethod/delete" ) %]';
