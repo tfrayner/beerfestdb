@@ -1,0 +1,12 @@
+[% META title = 'Currency Details' %]
+
+<script type="text/javascript">
+   var url_currency_load_form = '[% c.uri_for( "/currency/load_form" ) %]';
+   var url_currency_grid = '[% c.uri_for( "/currency/grid" ) %]';
+   
+   var currency_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/currency_view.js' ) %]
+
+<div id="datagrid"></div>

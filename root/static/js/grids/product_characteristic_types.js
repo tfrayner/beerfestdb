@@ -25,20 +25,21 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
-    var ProductCategory = Ext.data.Record.create([
-        { name: 'product_category_id',  type: 'int' },
-        { name: 'description',          type: 'string' },
+    var ProductCharacteristicType = Ext.data.Record.create([
+        { name: 'product_characteristic_type_id', type: 'int' },
+        { name: 'product_category_id',            type: 'int' },
+        { name: 'description',                    type: 'string' },
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        url_category_list,
+        url:        url_object_list,
         root:       'objects',
-        fields:     ProductCategory
+        fields:     ProductCharacteristicType
     });
-    
+
     var content_cols = [
         { id:         'description',
-          header:     'Category Name',
+          header:     'Description',
           dataIndex:  'description',
           width:      150,
           editor:     new Ext.form.TextField({
@@ -47,35 +48,38 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'productcategory/view/{product_category_id}');
-        window.location=t.apply({product_category_id: record.get('product_category_id')});
+        var t = new Ext.XTemplate(url_base + 'productcharacteristictype/view/{product_characteristic_type_id}');
+        window.location=t.apply({product_characteristic_type_id: record.get('product_characteristic_type_id')});
     };
 
     function recordChanges (record) {
         var fields = record.getChanges();
-        fields.product_category_id = record.get( 'product_category_id' );
+        fields.product_characteristic_type_id = record.get( 'product_characteristic_type_id' );
         return(fields);
     }
 
     var panel = new MyMainPanel({
-        title: 'All Product Categories',
+        title: 'All Product Characteristic Types',
         layout: 'fit',
         items: new MyEditorGrid(
             {
-                objLabel:           'Product Category',
-                idField:            'product_category_id',
+                objLabel:           'Product Characteristic Type',
+                idField:            'product_characteristic_type_id',
                 autoExpandColumn:   'description',
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          url_category_delete,
-                submitUrl:          url_category_submit,
+                deleteUrl:          url_product_characteristic_type_delete,
+                submitUrl:          url_product_characteristic_type_submit,
                 recordChanges:      recordChanges,
             }
         ),
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Home',
+              handler: function() { window.location = url_base; } },
+            { text: 'Product Categories',
+              handler: function() { window.location = url_category_view; } },
         ],
     });
     

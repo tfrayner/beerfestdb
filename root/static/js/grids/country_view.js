@@ -25,48 +25,65 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
 
-    /* product style form */
-    var productStyleForm = new MyFormPanel({
+    /* country form */
+    var countryForm = new MyFormPanel({
 
-        url:         url_productstyle_submit,
-        title:       'Product Style details',
+        url:         url_country_submit,
+        title:       'Country details',
             
         items: [
 
-            { name:           'description',
-              fieldLabel:     'Description',
+            { name:           'country_name',
+              fieldLabel:     'Country Name',
               xtype:          'textfield',
               allowBlank:     false, },
 
-            { name:           'product_style_id',
-              value:          product_style_id,
+            { name:           'country_code_iso2',
+              fieldLabel:     'ISO 3166-1 alpha-2 code',
+              xtype:          'textfield',
+              maxLength:      2,
+              allowBlank:     false, },
+
+            { name:           'country_code_iso3',
+              fieldLabel:     'ISO 3166-1 alpha-3 code',
+              xtype:          'textfield',
+              maxLength:      3,
+              allowBlank:     false, },
+
+            { name:           'country_code_num3',
+              fieldLabel:     'ISO 3166-1 numeric code',
+              xtype:          'textfield',
+              maxLength:      3,
+              allowBlank:     false, },
+
+            { name:           'country_id',
+              value:          country_id,
               xtype:          'hidden', },
             
         ],
 
-        loadUrl:     url_product_style_load_form,
-        idParams:    { product_style_id: product_style_id },
-        waitMsg:     'Loading Product Style details...',
+        loadUrl:     url_country_load_form,
+        idParams:    { country_id: country_id },
+        waitMsg:     'Loading Country details...',
     });
 
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
-            { title: 'Product Style Information',
+            { title: 'Country Information',
               layout: 'anchor',
-              items:  productStyleForm, },
+              items:  countryForm, },
         ],
     });
 
     var panel = new MyMainPanel({
-        title:  'Product Style Details',            
+        title:  'Country Details',            
         layout: 'fit',
         items: tabpanel,
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'Product Categories', handler: function() { window.location = url_category_view; } },
-            { text: 'Product Styles', handler: function() { window.location = url_product_style_grid; } },
+            { text: 'Countries', handler: function() { window.location = url_country_grid; } },
         ],
     });
     

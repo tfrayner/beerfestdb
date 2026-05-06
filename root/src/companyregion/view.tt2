@@ -2,6 +2,7 @@
 
 <script type="text/javascript">
    var url_company_region_load_form = '[% c.uri_for( "/companyregion/load_form" ) %]';
+   var url_company_region_grid = '[% c.uri_for( "/companyregion/grid" ) %]';
    
    var company_region_id = '[% object.id %]';
 </script>

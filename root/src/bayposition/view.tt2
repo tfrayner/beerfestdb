@@ -1,0 +1,12 @@
+[% META title = 'Bay Position Details' %]
+
+<script type="text/javascript">
+   var url_bay_position_load_form = '[% c.uri_for( "/bayposition/load_form" ) %]';
+   var url_bay_position_grid = '[% c.uri_for( "/bayposition/grid" ) %]';
+   
+   var bay_position_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/bay_position_view.js' ) %]
+
+<div id="datagrid"></div>

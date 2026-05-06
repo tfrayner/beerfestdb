@@ -1,0 +1,5 @@
+[% META title = 'Currency listing' %]
+
+[% js_link( src = '/static/js/grids/currencies.js' ) %]
+
+<div id="datagrid"></div>

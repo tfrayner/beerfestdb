@@ -25,20 +25,20 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
-    var ProductCategory = Ext.data.Record.create([
-        { name: 'product_category_id',  type: 'int' },
-        { name: 'description',          type: 'string' },
+    var BayPosition = Ext.data.Record.create([
+        { name: 'bay_position_id', type: 'int' },
+        { name: 'description',        type: 'string' },
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        url_category_list,
+        url:        url_bay_position_list,
         root:       'objects',
-        fields:     ProductCategory
+        fields:     BayPosition
     });
     
     var content_cols = [
         { id:         'description',
-          header:     'Category Name',
+          header:     'Description',
           dataIndex:  'description',
           width:      150,
           editor:     new Ext.form.TextField({
@@ -47,35 +47,36 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'productcategory/view/{product_category_id}');
-        window.location=t.apply({product_category_id: record.get('product_category_id')});
+        var t = new Ext.XTemplate(url_base + 'bayposition/view/{bay_position_id}');
+        window.location=t.apply({bay_position_id: record.get('bay_position_id')});
     };
 
     function recordChanges (record) {
         var fields = record.getChanges();
-        fields.product_category_id = record.get( 'product_category_id' );
+        fields.bay_position_id = record.get( 'bay_position_id' );
         return(fields);
     }
 
     var panel = new MyMainPanel({
-        title: 'All Product Categories',
+        title: 'All Bay Positions',
         layout: 'fit',
         items: new MyEditorGrid(
             {
-                objLabel:           'Product Category',
-                idField:            'product_category_id',
+                objLabel:           'Bay Position',
+                idField:            'bay_position_id',
                 autoExpandColumn:   'description',
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          url_category_delete,
-                submitUrl:          url_category_submit,
+                deleteUrl:          url_bay_position_delete,
+                submitUrl:          url_bay_position_submit,
                 recordChanges:      recordChanges,
             }
         ),
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Home',
+              handler: function() { window.location = url_base; } },
         ],
     });
     

@@ -25,11 +25,11 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
 
-    /* product style form */
-    var productStyleForm = new MyFormPanel({
+    /* container measure form */
+    var containerMeasureForm = new MyFormPanel({
 
-        url:         url_productstyle_submit,
-        title:       'Product Style details',
+        url:         url_container_measure_submit,
+        title:       'Container Measure details',
             
         items: [
 
@@ -38,35 +38,34 @@ Ext.onReady(function(){
               xtype:          'textfield',
               allowBlank:     false, },
 
-            { name:           'product_style_id',
-              value:          product_style_id,
+            { name:           'container_measure_id',
+              value:          container_measure_id,
               xtype:          'hidden', },
             
         ],
 
-        loadUrl:     url_product_style_load_form,
-        idParams:    { product_style_id: product_style_id },
-        waitMsg:     'Loading Product Style details...',
+        loadUrl:     url_container_measure_load_form,
+        idParams:    { container_measure_id: container_measure_id },
+        waitMsg:     'Loading Container Measure details...',
     });
 
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
-            { title: 'Product Style Information',
+            { title: 'Container Measure Information',
               layout: 'anchor',
-              items:  productStyleForm, },
+              items:  containerMeasureForm, },
         ],
     });
 
     var panel = new MyMainPanel({
-        title:  'Product Style Details',            
+        title:  'Container Measure Details',            
         layout: 'fit',
         items: tabpanel,
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'Product Categories', handler: function() { window.location = url_category_view; } },
-            { text: 'Product Styles', handler: function() { window.location = url_product_style_grid; } },
+            { text: 'Container Measures', handler: function() { window.location = url_container_measure_grid; } },
         ],
     });
     

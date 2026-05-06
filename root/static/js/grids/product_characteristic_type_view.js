@@ -25,11 +25,11 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
 
-    /* product style form */
-    var productStyleForm = new MyFormPanel({
+    /* product characteristic type form */
+    var productCharacteristicTypeForm = new MyFormPanel({
 
-        url:         url_productstyle_submit,
-        title:       'Product Style details',
+        url:         url_product_characteristic_type_submit,
+        title:       'Product Characteristic Type details',
             
         items: [
 
@@ -38,35 +38,35 @@ Ext.onReady(function(){
               xtype:          'textfield',
               allowBlank:     false, },
 
-            { name:           'product_style_id',
-              value:          product_style_id,
+            { name:           'product_characteristic_type_id',
+              value:          product_characteristic_type_id,
               xtype:          'hidden', },
             
         ],
 
-        loadUrl:     url_product_style_load_form,
-        idParams:    { product_style_id: product_style_id },
-        waitMsg:     'Loading Product Style details...',
+        loadUrl:     url_product_characteristic_type_load_form,
+        idParams:    { product_characteristic_type_id: product_characteristic_type_id },
+        waitMsg:     'Loading Product Characteristic Type details...',
     });
 
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,
         items: [
-            { title: 'Product Style Information',
+            { title: 'Product Characteristic Type Information',
               layout: 'anchor',
-              items:  productStyleForm, },
+              items:  productCharacteristicTypeForm, },
         ],
     });
 
     var panel = new MyMainPanel({
-        title:  'Product Style Details',            
+        title:  'Product Characteristic Type Details',            
         layout: 'fit',
         items: tabpanel,
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Product Categories', handler: function() { window.location = url_category_view; } },
-            { text: 'Product Styles', handler: function() { window.location = url_product_style_grid; } },
+            { text: 'Product Characteristic Types', handler: function() { window.location = url_product_characteristic_type_grid; } },
         ],
     });
     

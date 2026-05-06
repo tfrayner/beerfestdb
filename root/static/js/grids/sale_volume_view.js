@@ -96,6 +96,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Sale Volumes', handler: function() { window.location = url_sale_volume_grid; } },
         ],
     });
     

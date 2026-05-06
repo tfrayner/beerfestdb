@@ -2,7 +2,7 @@
  * This file is part of BeerFestDB, a beer festival product management
  * system.
  * 
- * Copyright (C) 2010 Tim F. Rayner
+ * Copyright (C) 2010-2026 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,20 +25,20 @@ Ext.onReady(function(){
     // Enable tooltips
     Ext.QuickTips.init();
     
-    var ProductCategory = Ext.data.Record.create([
-        { name: 'product_category_id',  type: 'int' },
-        { name: 'description',          type: 'string' },
+    var ContainerMeasure = Ext.data.Record.create([
+        { name: 'container_measure_id', type: 'int' },
+        { name: 'description',        type: 'string' },
     ]);
 
     var store = new Ext.data.JsonStore({
-        url:        url_category_list,
+        url:        url_container_measure_list,
         root:       'objects',
-        fields:     ProductCategory
+        fields:     ContainerMeasure
     });
     
     var content_cols = [
         { id:         'description',
-          header:     'Category Name',
+          header:     'Description',
           dataIndex:  'description',
           width:      150,
           editor:     new Ext.form.TextField({
@@ -47,35 +47,36 @@ Ext.onReady(function(){
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'productcategory/view/{product_category_id}');
-        window.location=t.apply({product_category_id: record.get('product_category_id')});
+        var t = new Ext.XTemplate(url_base + 'containermeasure/view/{container_measure_id}');
+        window.location=t.apply({container_measure_id: record.get('container_measure_id')});
     };
 
     function recordChanges (record) {
         var fields = record.getChanges();
-        fields.product_category_id = record.get( 'product_category_id' );
+        fields.container_measure_id = record.get( 'container_measure_id' );
         return(fields);
     }
 
     var panel = new MyMainPanel({
-        title: 'All Product Categories',
+        title: 'All Container Measures',
         layout: 'fit',
         items: new MyEditorGrid(
             {
-                objLabel:           'Product Category',
-                idField:            'product_category_id',
+                objLabel:           'Container Measure',
+                idField:            'container_measure_id',
                 autoExpandColumn:   'description',
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,
-                deleteUrl:          url_category_delete,
-                submitUrl:          url_category_submit,
+                deleteUrl:          url_container_measure_delete,
+                submitUrl:          url_container_measure_submit,
                 recordChanges:      recordChanges,
             }
         ),
         tbar:
         [
-            { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Home',
+              handler: function() { window.location = url_base; } },
         ],
     });
     

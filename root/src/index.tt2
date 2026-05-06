@@ -1,43 +1,134 @@
 [% META title = "Welcome to BeerFestDB" %]
 
+<style type="text/css">
+  #bfdb-hero {
+    background: linear-gradient(135deg, #b35c00 0%, #e8890a 60%, #f5b942 100%);
+    color: #fff;
+    text-align: center;
+    padding: 2.5em 1em 2em;
+    margin-bottom: 0;
+  }
+  #bfdb-hero h1 {
+    margin: 0 0 0.4em;
+    font-size: 2em;
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  }
+  #bfdb-hero p {
+    margin: 0;
+    font-size: 1em;
+    opacity: 0.92;
+  }
+  #bfdb-panels {
+    display: flex;
+    gap: 2em;
+    padding: 2em;
+    max-width: 960px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .bfdb-panel {
+    flex: 1;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+    padding: 1.5em;
+    box-sizing: border-box;
+  }
+  .bfdb-panel h2 {
+    margin: 0 0 0.8em;
+    font-size: 1.1em;
+    padding-left: 0.6em;
+    border-left: 4px solid #e8890a;
+    color: #333;
+  }
+  .bfdb-panel > p {
+    font-size: 0.9em;
+    color: #555;
+    margin: 0 0 1em;
+  }
+  .bfdb-card {
+    display: block;
+    padding: 0.55em 0.9em;
+    margin: 0.35em 0;
+    border-radius: 4px;
+    background: #f5f5f5;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.95em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .bfdb-card:hover {
+    background: #ffe0a0;
+    color: #000;
+  }
+  .bfdb-subgroup {
+    margin-top: 1.1em;
+  }
+  .bfdb-subgroup h3 {
+    margin: 0 0 0.4em;
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #999;
+  }
+  @media (max-width: 640px) {
+    #bfdb-panels {
+      flex-direction: column;
+      padding: 1em;
+    }
+  }
+</style>
+
 <div id="html-content">
 
-<div class="menu" id="main-menu">
+<div id="bfdb-hero">
+  <h1>Welcome to BeerFestDB</h1>
+  [% IF message %]
+    <p><span class="message">[% message | html %]</span></p>
+  [% ELSE %]
+    <p>Beer festival product management &mdash; use the panels below to navigate.</p>
+  [% END %]
+</div>
 
-  <div class="heading"><h1>Welcome to BeerFestDB</h1></div>
+<div id="bfdb-panels">
 
-    [% IF message %] 
-      <p class="textblock"><span class="message">[% message | html %]</span></p> 
-    [% END %] 
+  <div class="bfdb-panel" id="bfdb-main-menu">
+    <h2>Festival &amp; Products</h2>
+    <p>Day-to-day management of festivals, suppliers and products.</p>
+    <a class="bfdb-card" href="[% c.uri_for('/festival/grid') %]">Festival Records</a>
+    <a class="bfdb-card" href="[% c.uri_for('/company/grid') %]">Supplier and Product Listings</a>
+  </div>
 
-  <p class="textblock">This is the main entry page for the BeerFestDB product management web site. Please use the links below to navigate:</p>
+  <div class="bfdb-panel" id="bfdb-admin-menu">
+    <h2>Database Administration</h2>
+    <p>Configuration pages restricted to admin-level users.</p>
 
-  <ul class="linkslist"> 
-    <li><a href="[% c.uri_for('/festival/grid') %]">Festival Records</a></li> 
-    <li><a href="[% c.uri_for('/company/grid') %]">Supplier and Product Listings</a></li> 
-  </ul>
+    <div class="bfdb-subgroup">
+      <h3>Users</h3>
+      <a class="bfdb-card" href="[% c.uri_for('/user/grid') %]">Database users and roles</a>
+    </div>
+
+    <div class="bfdb-subgroup">
+      <h3>Products</h3>
+      <a class="bfdb-card" href="[% c.uri_for('/productcategory/grid') %]">Product categories, styles and characteristics</a>
+      <a class="bfdb-card" href="[% c.uri_for('/productallergentype/grid') %]">Allergen types</a>
+    </div>
+
+    <div class="bfdb-subgroup">
+      <h3>Logistics</h3>
+      <a class="bfdb-card" href="[% c.uri_for('/containersize/grid') %]">Cask and other container sizes</a>
+      <a class="bfdb-card" href="[% c.uri_for('/salevolume/grid') %]">Sale volume sizes</a>
+      <a class="bfdb-card" href="[% c.uri_for('/containermeasure/grid') %]">Container measures</a>
+      <a class="bfdb-card" href="[% c.uri_for('/dispensemethod/grid') %]">Dispense methods</a>
+      <a class="bfdb-card" href="[% c.uri_for('/bayposition/grid') %]">Bay positions</a>
+      <a class="bfdb-card" href="[% c.uri_for('/companyregion/grid') %]">Company geographic regions</a>
+      <a class="bfdb-card" href="[% c.uri_for('/country/grid') %]">Countries</a>
+      <a class="bfdb-card" href="[% c.uri_for('/currency/grid') %]">Currencies</a>
+    </div>
+  </div>
 
 </div>
 
-<div class="menu" id="admin-menu">
-
-  <div class="heading"><h1>BeerfestDB Database Administration</h1></div>
-
-  <p class="textblock">This area is used to make changes to the way the database is organised. Access to the following pages is restricted to admin-level users:</p>
-
-  <ul class="linkslist">
-    <li><a href="[% c.uri_for('/user/grid') %]">Database users and roles</a></li>
-    <li><a href="[% c.uri_for('/productcategory/grid') %]">Product categorisation</a></li>
-    <li><a href="[% c.uri_for('/productallergentype/grid') %]">Allergen types</a></li>
-    <li><a href="[% c.uri_for('/dispensemethod/grid') %]">Dispense methods</a></li>
-    <li><a href="[% c.uri_for('/containersize/grid') %]">Cask and other container sizes</a></li>
-    <li><a href="[% c.uri_for('/salevolume/grid') %]">Sale volume sizes</a></li>
-    <li><a href="[% c.uri_for('/companyregion/grid') %]">Company geographic regions</a></li>
-  </ul>
-
 </div>
-
-</div>
-
-[% js_link( src = '/static/js/grids/main.js' ) %]
 
