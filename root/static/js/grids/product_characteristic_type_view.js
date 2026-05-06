@@ -66,7 +66,7 @@ Ext.onReady(function(){
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Product Categories', handler: function() { window.location = url_category_view; } },
-            { text: 'Characteristic Types', handler: function() { window.location = url_product_characteristic_type_grid; } },
+            { text: 'Product Characteristic Types', handler: function() { window.location = url_product_characteristic_type_grid; } },
         ],
     });
     

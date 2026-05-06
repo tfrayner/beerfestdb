@@ -112,6 +112,25 @@ sub list_by_category : Local {
     $self->generate_json_and_detach( $c, $rs );
 }
 
+=head2 grid
+
+=cut
+
+sub grid : Local {
+
+    my ( $self, $c, $category_id ) = @_;
+
+    if ( defined $category_id ) {
+        my $category = $c->model( 'DB::ProductCategory' )->find($category_id);
+        unless ( $category ) {
+            $c->flash->{error} = "Error: Product Category not found.";
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();
+        }
+        $c->stash->{category} = $category;
+    }
+}
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2017-2026 by Tim F. Rayner
