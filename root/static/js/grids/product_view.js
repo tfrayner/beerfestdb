@@ -291,6 +291,7 @@ Ext.onReady(function(){
             },
             store:              product_characteristic_store,
             comboStores:         [ product_characteristic_type_store ],
+            reloadableStores:    [ product_characteristic_type_store ], // fixes refresh view bug after save
             contentCols: [
                 { id:         'product_characteristic_type_id',
                   header:     'Characteristic Type',
