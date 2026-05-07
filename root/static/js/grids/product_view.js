@@ -274,6 +274,65 @@ Ext.onReady(function(){
         loadUrl:     url_product_load_form,
         idParams:    { product_id: product_id },
         waitMsg:     'Loading Product details...',
+
+        // Tracks the new category ID when the user changes category, so afterSave
+        // can reload the characteristic type store with the correct URL.
+        _pendingCategoryId: null,
+
+        // Warn the user if they are changing the product category, since this
+        // may cause product characteristics to be deleted or remapped.
+        beforeSave: function(doSave) {
+            var panel = this;
+            var catField = panel.getForm().findField('product_category_id');
+            if (catField && catField.isDirty()) {
+                // Capture the new category ID now, before the form reloads.
+                panel._pendingCategoryId = catField.getValue();
+                var oldRec = category_store.getById(catField.originalValue);
+                var newRec = category_store.getById(panel._pendingCategoryId);
+                var oldName = oldRec ? oldRec.get('description') : catField.originalValue;
+                var newName = newRec ? newRec.get('description') : panel._pendingCategoryId;
+                Ext.Msg.show({
+                    title:   'Changing Product Category',
+                    msg:     'You are changing the category from <b>' + oldName + '</b> to <b>' + newName + '</b>.<br><br>'
+                           + 'Any product characteristics whose type does not exist in the new category '
+                           + 'will be <b>deleted or remapped</b>. Continue?',
+                    buttons: Ext.Msg.YESNO,
+                    icon:    Ext.MessageBox.WARNING,
+                    fn:      function(btn) {
+                        if (btn === 'yes') { doSave(); }
+                        else { panel._pendingCategoryId = null; }
+                    },
+                });
+            } else {
+                panel._pendingCategoryId = null;
+                doSave();
+            }
+        },
+
+        // After saving, reload the form (clears dirty state) and, if the
+        // category changed, update the characteristic type store URL and
+        // reload both it and the characteristic data store.
+        afterSave: function() {
+            var panel = prodForm;
+            var newCatId = panel._pendingCategoryId;
+            panel._pendingCategoryId = null;
+
+            if (newCatId) {
+                var newUrl = url_product_characteristic_type_list_base + '/' + newCatId;
+                product_characteristic_type_store.proxy.conn.url = newUrl;
+                product_characteristic_type_store.reload({
+                    callback: function() {
+                        product_characteristic_store.reload();
+                    }
+                });
+            }
+
+            panel.getForm().load({
+                url:     panel.loadUrl,
+                params:  panel.idParams,
+                waitMsg: panel.waitMsg,
+            });
+        },
     });
 
     /* Product Characteristic grid */
