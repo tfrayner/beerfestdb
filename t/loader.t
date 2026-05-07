@@ -162,9 +162,18 @@ is( $db->resultset('ProductCharacteristic')->count(), 1,
     'Exactly one ProductCharacteristic created for a valid row' );
 
 my $pchar_rec = $db->resultset('ProductCharacteristic')->first();
-is( $pchar_rec->value,                                 'High', 'ProductCharacteristic has correct value' );
-is( $pchar_rec->get_column('product_id'),              1,      'ProductCharacteristic linked to correct product' );
-is( $pchar_rec->get_column('product_characteristic_type_id'), 1,
+is( $pchar_rec->value,                    'High', 'ProductCharacteristic has correct value' );
+is( $pchar_rec->get_column('product_id'), 1,      'ProductCharacteristic linked to correct product' );
+
+my $loaded_type = $db->resultset('ProductCharacteristicType')->find({
+    description         => 'TestCharacteristic',
+    product_category_id => $db->resultset('ProductCategory')
+                               ->find({ description => 'foreign beer' })
+                               ->product_category_id,
+});
+ok( defined $loaded_type, 'ProductCharacteristicType TestCharacteristic/foreign beer exists after load' );
+is( $pchar_rec->get_column('product_characteristic_type_id'),
+    $loaded_type->product_characteristic_type_id,
     'ProductCharacteristic linked to correct type' );
 
 # 4. Loading the same row again is idempotent (find_or_create).
