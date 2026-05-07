@@ -7,6 +7,12 @@
    var url_festival_product_list = '[% c.uri_for( "/festivalproduct/list_by_product/$object.id" ) %]';
    var url_company_view          = '[% c.uri_for( "/company/view/$object.company_id.id" ) %]';
 
+   [%# Product Characteristic are special cases %]
+   var url_product_characteristic_type_list = '[% c.uri_for( "/productcharacteristictype/list_by_category/" _ object.product_category_id.id ) %]';
+   var url_product_characteristic_list = '[% c.uri_for( "/productcharacteristic/list_by_product/" _ object.id ) %]';
+   var url_product_characteristic_delete = '[% c.uri_for( "/productcharacteristic/delete" ) %]';
+   var url_product_characteristic_submit = '[% c.uri_for( "/productcharacteristic/submit" ) %]';
+
    var product_id  = '[% object.id %]';
    var productname = '[% object.name | xml %]';
 </script>

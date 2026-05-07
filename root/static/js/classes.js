@@ -198,6 +198,9 @@ RemoveButton = Ext.extend(Ext.Button, {
             {
                 handler:        function() {
                     this.grid.stopEditing();
+                    // Capture selections NOW, before the modal dialog causes
+                    // the grid to lose focus and deselect rows (ExtJS 3 bug).
+                    var dirty = this.sm.getSelections();
                     Ext.Msg.show({
                         title:    'Delete',
                         msg:      'Really delete the selected rows?',
@@ -206,9 +209,16 @@ RemoveButton = Ext.extend(Ext.Button, {
                         fn:       function(btn, text){
                             if (btn == 'yes'){
                                 var changes = new Array();
-                                var dirty   = this.sm.getSelections();
                                 for ( var i = 0 ; i < dirty.length ; i++ ) {
-                                    var id = dirty[i].get( this.idField );
+                                    var id;
+                                    if ( Ext.isArray(this.idField) ) {
+                                        id = {};
+                                        for ( var j = 0 ; j < this.idField.length ; j++ ) {
+                                            id[ this.idField[j] ] = dirty[i].get( this.idField[j] );
+                                        }
+                                    } else {
+                                        id = dirty[i].get( this.idField );
+                                    }
                                     changes.push( id );
                                 }
                                 deleteProducts( changes,

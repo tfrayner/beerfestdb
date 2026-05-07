@@ -190,14 +190,15 @@ sub _get_product_category : Private {
     # FIXME note that this may be rather too heavy on DB queries,
     # especially for large lists of updates.
     my %catmap = (
-        'Product'         => sub { $_[0]->product_category_id() },
-        'FestivalProduct' => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
-        'Gyle'            => sub { $self->_get_product_category( $c, $_[0]->festival_product_id ) },
-        'Cask'            => sub { $self->_get_product_category( $c, $_[0]->gyle_id ) },
-        'CaskMeasurement' => sub { $self->_get_product_category( $c, $_[0]->cask_id ) },
-        'ProductOrder'    => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
-        'CaskManagement'  => sub { $self->_get_product_category( $c, $_[0]->casks->first() ||
-                                                                     $_[0]->product_order_id, 1 ) },
+        'Product'               => sub { $_[0]->product_category_id() },
+        'ProductCharacteristic' => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'FestivalProduct'       => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'Gyle'                  => sub { $self->_get_product_category( $c, $_[0]->festival_product_id ) },
+        'Cask'                  => sub { $self->_get_product_category( $c, $_[0]->gyle_id ) },
+        'CaskMeasurement'       => sub { $self->_get_product_category( $c, $_[0]->cask_id ) },
+        'ProductOrder'          => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'CaskManagement'        => sub { $self->_get_product_category( $c, $_[0]->casks->first() ||
+                                                                           $_[0]->product_order_id, 1 ) },
     );
 
     if ( my $fun = $catmap{ $classname } ) {
@@ -224,7 +225,7 @@ sub _confirm_category_authorisation : Private {
     return if $c->check_any_user_role('admin');
 
     # Make sure this list matches the keys of %catmap, above.
-    if ( first { $_ eq $classname } qw( Product FestivalProduct Gyle
+    if ( first { $_ eq $classname } qw( Product ProductCharacteristic FestivalProduct Gyle
                                         Cask ProductOrder CaskManagement
                                         CaskMeasurement  ) ) {
 

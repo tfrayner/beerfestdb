@@ -124,11 +124,50 @@ sub build_database_object {
     my $type     = $c->model("DB::ProductCharacteristicType")->find($rec->{product_characteristic_type_id});
     my $product  = $c->model("DB::Product")->find($rec->{product_id});
 
-    if ( $type->product_category_id != $product->product_category_id ) {
+    $c->log->debug("build_database_object: product_characteristic_type_id = " .
+                    $rec->{product_characteristic_type_id} . ", product_id = " . $rec->{product_id});
+
+    if ( $type->product_category_id->id != $product->product_category_id->id ) {
+        $c->log->error("ProductCharacteristicType category " . $type->product_category_id->id . 
+                       " does not match Product category " . $product->product_category_id->id);
         $self->raise_exception($c, "Product characteristic type is not valid for the product's category.\n");
     }
 
     return $self->next::method( $rec, $c, @other );
+}
+
+=head2 delete_from_resultset
+
+Overrides the base implementation to support the composite primary key
+(product_id, product_characteristic_type_id).
+
+=cut
+
+sub delete_from_resultset : Private {
+
+    my ( $self, $c, $rs ) = @_;
+
+    my $data = $self->decode_json_changes( $c );
+
+    eval {
+        $rs->result_source()->schema()->txn_do(
+            sub {
+                foreach my $id ( @{ $data } ) {
+                    my $rec = $rs->find({
+                        product_id                     => $id->{product_id},
+                        product_characteristic_type_id => $id->{product_characteristic_type_id},
+                    });
+                    $self->delete_database_object( $c, $rec ) if $rec;
+                }
+            }
+        );
+    };
+    if ( $@ or scalar @{ $c->error } ) {
+        $self->detach_with_txn_failure( $c );
+    };
+
+    $c->stash->{ 'success' } = JSON->false();
+    $c->forward( 'View::JSON' );
 }
 
 =head1 COPYRIGHT AND LICENSE

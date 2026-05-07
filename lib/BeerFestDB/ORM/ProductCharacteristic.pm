@@ -58,11 +58,13 @@ __PACKAGE__->add_columns(
 
 =item * L</product_id>
 
+=item * L</product_characteristic_type_id>
+
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("product_id");
+__PACKAGE__->set_primary_key("product_id", "product_characteristic_type_id");
 
 =head1 RELATIONS
 

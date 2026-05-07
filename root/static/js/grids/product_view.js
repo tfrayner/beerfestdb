@@ -99,6 +99,50 @@ Ext.onReady(function(){
         },
     });
 
+    /* Product Characteristic drop-down */
+    var ProductCharacteristicType = Ext.data.Record.create([
+        { name: 'product_characteristic_type_id', type: 'int' },
+        { name: 'product_category_id',            type: 'int' },
+        { name: 'description',                    type: 'string' },
+    ]);
+
+    var product_characteristic_type_store = new Ext.data.JsonStore({
+        url:        url_product_characteristic_type_list,
+        root:       'objects',
+        fields:     ProductCharacteristicType,
+        idProperty: 'product_characteristic_type_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+
+    var product_characteristic_type_combo = new Ext.form.ComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        mode:           'local',
+        store:          product_characteristic_type_store,
+        valueField:     'product_characteristic_type_id',
+        displayField:   'description',
+        lazyRender:     true,
+        noSelection:    emptySelect,
+        forceSelection: true,
+        xtype:          'mycombo',
+    });
+
+    var product_characteristic_store = new Ext.data.JsonStore({
+        url:        url_product_characteristic_list,
+        root:       'objects',
+        fields:     [{ name: 'product_id',                type: 'int' },
+                     { name: 'product_characteristic_type_id', type: 'int' },
+                     { name: 'value',                     type: 'string' }],
+        idProperty: 'product_characteristic_type_id',
+        sortInfo:   {
+            field:     'product_characteristic_type_id',
+            direction: 'ASC',
+        },
+    });
+
     function updateStyleList(query) { // Listener function to update style dropdown.
         var currentRowId = prodForm.getForm().findField('product_category_id').getValue();
         this.store.reload( { params: { product_category_id: currentRowId }, add: true } );
@@ -232,6 +276,42 @@ Ext.onReady(function(){
         waitMsg:     'Loading Product details...',
     });
 
+    /* Product Characteristic grid */
+    var charGrid = new MyEditorGrid(
+        {
+            objLabel:           'Product Characteristic',
+            idField:            ['product_id', 'product_characteristic_type_id'],
+            autoExpandColumn:   'value',
+            deleteUrl:          url_product_characteristic_delete,
+            submitUrl:          url_product_characteristic_submit,
+            recordChanges:      function (record) {
+                var fields = record.getChanges();
+                fields.product_id = product_id;
+                return(fields);
+            },
+            store:              product_characteristic_store,
+            comboStores:         [ product_characteristic_type_store ],
+            contentCols: [
+                { id:         'product_characteristic_type_id',
+                  header:     'Characteristic Type',
+                  dataIndex:  'product_characteristic_type_id',
+                  width:      130,
+                  renderer:   MyComboRenderer(product_characteristic_type_combo),
+                  editor:     product_characteristic_type_combo,
+                  },
+                { id:         'value',
+                  header:     'Value',
+                  dataIndex:  'value',
+                  width:      150,
+                  editor:     new Ext.form.TextField({
+                      allowBlank:     true,
+                  })},
+            ],
+            // Dead link - we have a no target view for product characteristics, and the link is not worth the effort of creating one.
+            viewLink: function (grid, record, action, row, col) {},
+        }
+    );
+
     /* Festival Product grid */
     var fpGrid = new MyEditorGrid(
         {
@@ -277,12 +357,12 @@ Ext.onReady(function(){
             { title: 'Product Information',
               layout: 'anchor',
               items:  prodForm, },
+            { title: 'Characteristics',
+              layout: 'fit',
+              items:  charGrid, },
             { title: 'Festivals',
               layout: 'fit',
               items:  fpGrid, },
-//            { title: 'Characteristics',
-//              layout: 'fit',
-//              items:  charGrid, },
         ],
     });
 
