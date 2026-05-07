@@ -249,6 +249,7 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     stripeRows:         true,
     trackMouseOver:     true,
     loadMask:           true, // seems not to work in extjs 3.4
+    clicksToEdit:       1,    // single click activates cell editors (enables smooth tab navigation)
     comboStores:        [],
     viewConfig: new Ext.grid.GridView({
         autoFill: true,
@@ -358,6 +359,26 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
         });
 
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
+    },
+
+    // Intercept Tab at document capture phase so Firefox cannot move browser
+    // focus away, then delegate to the selection model's onEditorKey — exactly
+    // mirroring what the editor's 'specialkey' listener does internally.
+    afterRender: function() {
+        MyEditorGrid.superclass.afterRender.apply(this, arguments);
+        var grid = this;
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Tab' && e.keyCode !== 9) { return; }
+            if (!grid.activeEditor) { return; }
+            // Prevent Firefox from moving browser focus away from the editor.
+            e.preventDefault();
+            // Stop propagation so the Tab keydown does not also reach the
+            // editor field's own 'specialkey' listener, which would fire
+            // onEditorKey a second time on the newly opened editor.
+            e.stopPropagation();
+            var extEvt = Ext.EventObject.setEvent(e);
+            grid.getSelectionModel().onEditorKey(grid.activeEditor.field, extEvt);
+        }, true /* useCapture */);
     },
 
     onRender: function() {
