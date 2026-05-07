@@ -73,6 +73,7 @@ pages = {
     ],
     "Extras": [
         st.Page("CBF_get_next_caskID.py", title="Next Cask ID"),
+        st.Page("CBF_brewery_beer_lookup.py", title="Have we had it before?"),
     ],
 }
 
