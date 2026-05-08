@@ -80,6 +80,21 @@ Note that cask end signs created using product_order dump class info may be inac
 
 \end{textblock}
 
+[%-# Product characteristics -%]
+
+\fontsize{24}{30}
+\selectfont
+\begin{textblock}{0.15}(0.80,0.14)
+
+[% SET chars = cask.characteristics %]
+[% IF chars.colour.defined && chars.colour != '' %] Colour: \textbf{[% chars.colour %]} [% END %] \\
+\\
+[% IF chars.clarity.defined && chars.clarity != '' %] Clarity: \textbf{[% chars.clarity %]} [% END %] \\
+
+\end{textblock}
+
+[%-# Brewery and product name -%]
+
   \fontsize{48}{60}
   \selectfont
 
@@ -96,8 +111,6 @@ Note that cask end signs created using product_order dump class info may be inac
       [% product_font_size = 86 %]
     [% END %]
   [% END %]
-
-[%-# Brewery and product name -%]
 
   \begin{textblock}{0.6}[0.5,0](0.5,0.05)
   \begin{center}
