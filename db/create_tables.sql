@@ -983,7 +983,7 @@ CREATE TABLE `product_characteristic` (
   `product_id` int(6) NOT NULL,
   `product_characteristic_type_id` int(6) NOT NULL,
   `value` varchar(32) NOT NULL,
-  PRIMARY KEY (`product_id`),
+  PRIMARY KEY (`product_id`,`product_characteristic_type_id`),
   KEY `Rel_29` (`product_characteristic_type_id`),
   CONSTRAINT `product_characteristic_ibfk_1` FOREIGN KEY (`product_characteristic_type_id`) REFERENCES `product_characteristic_type` (`product_characteristic_type_id`) ON UPDATE NO ACTION,
   CONSTRAINT `product_characteristic_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE NO ACTION

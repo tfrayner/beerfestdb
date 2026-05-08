@@ -198,6 +198,9 @@ RemoveButton = Ext.extend(Ext.Button, {
             {
                 handler:        function() {
                     this.grid.stopEditing();
+                    // Capture selections NOW, before the modal dialog causes
+                    // the grid to lose focus and deselect rows (ExtJS 3 bug).
+                    var dirty = this.sm.getSelections();
                     Ext.Msg.show({
                         title:    'Delete',
                         msg:      'Really delete the selected rows?',
@@ -206,9 +209,16 @@ RemoveButton = Ext.extend(Ext.Button, {
                         fn:       function(btn, text){
                             if (btn == 'yes'){
                                 var changes = new Array();
-                                var dirty   = this.sm.getSelections();
                                 for ( var i = 0 ; i < dirty.length ; i++ ) {
-                                    var id = dirty[i].get( this.idField );
+                                    var id;
+                                    if ( Ext.isArray(this.idField) ) {
+                                        id = {};
+                                        for ( var j = 0 ; j < this.idField.length ; j++ ) {
+                                            id[ this.idField[j] ] = dirty[i].get( this.idField[j] );
+                                        }
+                                    } else {
+                                        id = dirty[i].get( this.idField );
+                                    }
                                     changes.push( id );
                                 }
                                 deleteProducts( changes,
@@ -239,6 +249,7 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     stripeRows:         true,
     trackMouseOver:     true,
     loadMask:           true, // seems not to work in extjs 3.4
+    clicksToEdit:       1,    // single click activates cell editors (enables smooth tab navigation)
     comboStores:        [],
     viewConfig: new Ext.grid.GridView({
         autoFill: true,
@@ -348,6 +359,26 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
         });
 
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
+    },
+
+    // Intercept Tab at document capture phase so Firefox cannot move browser
+    // focus away, then delegate to the selection model's onEditorKey — exactly
+    // mirroring what the editor's 'specialkey' listener does internally.
+    afterRender: function() {
+        MyEditorGrid.superclass.afterRender.apply(this, arguments);
+        var grid = this;
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Tab' && e.keyCode !== 9) { return; }
+            if (!grid.activeEditor) { return; }
+            // Prevent Firefox from moving browser focus away from the editor.
+            e.preventDefault();
+            // Stop propagation so the Tab keydown does not also reach the
+            // editor field's own 'specialkey' listener, which would fire
+            // onEditorKey a second time on the newly opened editor.
+            e.stopPropagation();
+            var extEvt = Ext.EventObject.setEvent(e);
+            grid.getSelectionModel().onEditorKey(grid.activeEditor.field, extEvt);
+        }, true /* useCapture */);
     },
 
     onRender: function() {

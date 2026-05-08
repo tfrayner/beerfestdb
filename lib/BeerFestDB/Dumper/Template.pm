@@ -149,6 +149,22 @@ sub allergen_hash {
     return \%allergen_data;
 }
 
+sub productcharacteristic_hash {
+
+    my ( $self, $product ) = @_;
+
+    # Return a hashref keyed by characteristic type; values are the
+    # characteristic value, as stored in the database.
+
+    my %char_data;
+
+    foreach my $char ( $product->search_related('product_characteristics') ) {
+        $char_data{ $char->product_characteristic_type_id->description() } = $char->value;
+    }
+
+    return \%char_data;
+}
+
 sub product_hash {
 
     my ( $self, $product, $prodhash ) = @_;
@@ -173,6 +189,7 @@ sub product_hash {
     $prodhash->{abv}      = $product->nominal_abv();
     $prodhash->{notes}    = $product->description();
     $prodhash->{allergens} = $self->allergen_hash( $product );
+    $prodhash->{characteristics} = $self->productcharacteristic_hash( $product );
     $prodhash->{is_vegan}  = $product->is_vegan();
     $prodhash->{_split_export_tag} = $tag;
 
@@ -870,7 +887,10 @@ A hashref of allergen records, keyed by the name of the allergens. All
 allergens stored in the database are represented. Values are
 1=present, 0=absent, undef=unknown.
 
-=back
+=item characteristics
+
+A hashref of product characteristics, keyed by the name of the characteristic
+and valued by the characteristic value as stored in the database.
 
 =item stillages
 
