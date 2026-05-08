@@ -34,6 +34,6 @@ requires 'DBD::MariaDB';
 requires 'YAML::XS';
 requires 'JSON::XS';
 requires 'OpenOffice::OODoc';
-requires 'Exceptions::Class';
+requires 'Exception::Class';
 requires 'Try::Tiny::ByClass';
 requires 'parent';
