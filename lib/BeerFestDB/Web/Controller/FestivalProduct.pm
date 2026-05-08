@@ -403,6 +403,13 @@ sub _derive_status_report : Private {
 
     my ( $self, $c, $festival_id, $category_id ) = @_;
 
+    # Confirm the current user is authorised for this product category.
+    my $category = $c->model('DB::ProductCategory')->find($category_id);
+    $self->_check_category_membership( $c, $category ) or do {
+        $c->response->status(403);
+        $c->detach();
+    };
+
     my ( $festival, $cond, $attr ) = $self->_retrieve_festival_plus_cond_attr(
         $c, $festival_id, $category_id );
 

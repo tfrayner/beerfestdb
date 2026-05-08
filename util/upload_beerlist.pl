@@ -3,7 +3,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2011 Tim F. Rayner
+# Copyright (C) 2011-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@ use Term::ReadLine;
 use Encode;
 
 use Moose::Util::TypeConstraints;
+
+use BeerFestDB::Exceptions qw(UriAuthorizationError);
 
 class_type 'JSON_XS', { class => 'Cpanel::JSON::XS' };
 class_type 'JSON_PP', { class => 'JSON::PP' };
@@ -71,12 +73,18 @@ has 'debug'            => ( is       => 'ro',
                             required => 1,
                             default  => 0 );
 
+# Cache for credentials and IDs to avoid unnecessary queries and repeated credential prompts.
 my $CREDENTIALS_CACHE = {};
+my $FESTIVAL_ID_CACHE = {};
+my $CATEGORY_ID_CACHE = {};
 
 sub _find_festival_id {
 
-    # FIXME it would be much quicker to run this search on the server.
     my ( $self ) = @_;
+
+    if ( exists $FESTIVAL_ID_CACHE->{ $self->festival_name() } ) {
+        return $FESTIVAL_ID_CACHE->{ $self->festival_name() };
+    }
 
     $self->debug && warn("Retrieving festival list...\n");
 
@@ -86,6 +94,7 @@ sub _find_festival_id {
     # Make this search case-insensitive.
     foreach my $festref ( @$fest_list ) {
         if ( lc $festref->{name} eq lc $fest_name ) {
+            $FESTIVAL_ID_CACHE->{ $fest_name } = $festref->{festival_id};
             return $festref->{festival_id};
         }
     }
@@ -95,8 +104,11 @@ sub _find_festival_id {
 
 sub _find_category_id {
 
-    # FIXME it would be much quicker to run this search on the server.
     my ( $self ) = @_;
+
+    if ( exists $CATEGORY_ID_CACHE->{ $self->product_category() } ) {
+        return $CATEGORY_ID_CACHE->{ $self->product_category() };
+    }
 
     $self->debug && warn("Retrieving category list...\n");
 
@@ -106,6 +118,7 @@ sub _find_category_id {
     # Make this search case-insensitive.
     foreach my $catref ( @$cat_list ) {
         if ( lc $catref->{description} eq lc $prod_cat ) {
+            $CATEGORY_ID_CACHE->{ $prod_cat } = $catref->{product_category_id};
             return $catref->{product_category_id};
         }
     }
@@ -195,8 +208,16 @@ sub _data_from_uri {
 
             # Retry the original query.
             $res = $ua->get($uri);
+
             if ( ! $res->is_success() ) {
-                die("Error: Logged in user unable to access requested URI: "
+                if ( $res->code() == 403 ) {
+                    # Catchable exception
+                    UriAuthorizationError->throw(
+                        uri => $uri,
+                        message => "User is not authorized to access $uri.\n"
+                    );
+                }
+                die("Error: Unable to connect to BeerFestDB web site: "
                         . $res->status_line() . " (" . $uri . ")\n");
             }
         }
@@ -236,6 +257,8 @@ use BeerFestDB::Web;
 use Encode qw(encode_utf8);
 use URI;
 use Carp;
+use Try::Tiny::ByClass;
+use BeerFestDB::Exceptions qw(UriAuthorizationError);
 
 use utf8;
 
@@ -251,6 +274,7 @@ sub send_update {
 
     my %dispatch = (
         file  => \&_update_via_local_command,
+# Alternative upload schemes yet to be implemented:
 #        http  => \&_update_via_web_upload,
 #        https => \&_update_via_web_upload,
     );
@@ -400,10 +424,9 @@ sub update_brewery_info {
 
 sub parse_args {
 
-    my ( $tfile, $debug, $want_help );
+    my ( $debug, $want_help );
 
     GetOptions(
-        "t|template=s" => \$tfile,
         "d|debug"      => \$debug,
         "h|help"       => \$want_help,
     );
@@ -418,25 +441,18 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    my $template;
-    if ( $tfile ) {
-        open( my $fh, '<', $tfile )
-            or die("Unable to open template file $tfile: $!\n");
-        $template = join(q{}, <$fh>);
-    }
-
     my $st = $config->{ status_query }
         or die("Error: No status_query section in config file.");
 
     # We don't really want to set this twice.
     $st->{ festival_name } ||= $config->{ current_festival };
 
-    return( $st, $template, $debug );
+    return( $st, $debug );
 }
 
 sub upload_department {
 
-    my ( $prodcat, $config, $template, $debug ) = @_;
+    my ( $prodcat, $config, $debug ) = @_;
 
     my $brewery_info = {};
 
@@ -448,7 +464,17 @@ sub upload_department {
     );
 
     # Query the JSON API for latest status list.
-    my $statuslist = $qobj->query_status_list();
+    my $statuslist;
+    try {
+        $statuslist = $qobj->query_status_list();
+    }
+    catch_case [
+         'BeerFestDB::Exceptions::UriAuthorizationError' => sub {
+            my ($e) = @_;
+            warn("Warning: Logged in user is unable to access listing for $prodcat.\n");
+            return;
+        },
+    ];
 
     update_brewery_info( $brewery_info, $statuslist, $prodcat );
 
@@ -499,7 +525,7 @@ sub upload_department {
     }
 }
 
-my ( $config, $template, $debug ) = parse_args();
+my ( $config, $debug ) = parse_args();
 
 # Check that the appropriate config parameters have been set
 foreach my $item ( qw(festival_name
@@ -513,7 +539,7 @@ foreach my $item ( qw(festival_name
 }
 
 foreach my $dept ( @{ $config->{departments} } ) {
-    upload_department($dept, $config, $template, $debug)
+    upload_department($dept, $config, $debug)
 }
 
 =head1 NAME
@@ -531,9 +557,10 @@ form to a public web site.
 
 =head1 OPTIONS
 
-=head2 -t
+=head2 -d
 
-(Optional) A path to an alternate template file. If omitted, a suitable default will be provided.
+(Optional) Enable debug mode. The payload will be printed to STDOUT, and nothing 
+will be uploaded if this option is specified.
 
 =head1 AUTHOR
 
@@ -541,7 +568,7 @@ Tim F. Rayner, E<lt>tfrayner@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2011 by Tim F. Rayner
+Copyright (C) 2011-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
@@ -552,24 +579,3 @@ Probably.
 
 =cut
 
-#
-# What follows under __DATA__ is the output template.
-#
-
-__DATA__
-<div class="beerlist">
-[%- FOREACH brewer = brewers.sort('name') %]
-  <span class="producer">[% brewer.name | xml %]<span class="brewerydetails">[% brewer.location | xml %][% IF brewer.year_founded && brewer.year_founded + 0 %] est. [% brewer.year_founded | xml %][% END %]</span></span>
-  <div class="products">[% FOREACH beer = brewer.products.sort('product') %]
-    <span class="product">[% IF beer.css_status == 'sold_out' %]<span class="product_[% beer.css_status %]">[% END %]
-      <span class="productname">[% beer.name | xml %]</span>
-      <span class="abv">[% IF beer.abv.defined %][% beer.abv | xml %]%[% END %]</span>
-      <span class="tasting">[% beer.notes | xml %]</span>
-      <span class="status_[% beer.css_status %]">[% beer.status_text | xml %]</span>
-    </span>
-    [%- END %]
-  </div>
-[% END -%]
-</div>
-
-<span class="timestamp"><br/>Last updated: [% timestamp %]</span>

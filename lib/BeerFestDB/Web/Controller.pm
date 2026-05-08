@@ -209,6 +209,35 @@ sub _get_product_category : Private {
     }
 }
 
+sub _check_category_membership : Private {
+
+    my ($self, $c, $pcat) = @_;
+    
+    # Admin users get all the privs.
+    return 1 if $c->check_any_user_role('admin');
+
+    my $pcat_id = $pcat->get_column('product_category_id');
+
+    # Test that pcat is in $c->user's roles->categories.
+    my $found = $c->user->search_related('user_roles')
+                        ->search_related('role_id')
+                        ->search_related('category_auths',
+                                         { product_category_id => $pcat_id })
+                        ->count();
+
+    if ( ! $found ) {
+        $c->log->error(sprintf(
+            qq{User %s lacks authorisation for product_category %s (ID %d)},
+            $c->user->get_column('username'),
+            $pcat->description(),
+            $pcat_id
+        ));
+        return 0;
+    }
+
+    return 1;
+}
+
 sub _confirm_category_authorisation : Private {
 
     my ($self, $c, $dbobj) = @_;
@@ -237,27 +266,11 @@ sub _confirm_category_authorisation : Private {
 
         $c->log->debug("Located product_category " . $pcat->description());
 
-        my $pcat_id = $pcat->get_column('product_category_id');
-
-        # Test that pcat is in $c->user's roles->categories.
-        my $found = $c->user->search_related('user_roles')
-                            ->search_related('role_id')
-                            ->search_related('category_auths',
-                                             { product_category_id => $pcat_id })
-                            ->count();
-
-        if ( ! $found ) {
-            $c->log->error(sprintf(
-                qq{User %s lacks authorisation for product_category %s (ID %d)},
-                $c->user->get_column('username'),
-                $pcat->description(),
-                $pcat_id
-            ));
-            $self->raise_exception($c,
-                                   sprintf(qq{You do not have authorisation to}
-                                         . qq{ make changes to the "%s" category.\n},
-                                           $pcat->description))
-        }
+        $self->_check_category_membership($c, $pcat) or
+            $self->raise_exception(
+                $c,
+                sprintf(qq{Error: You do not have authorisation to make changes to the "%s" category.\n}, $pcat->description())
+            );
     }
     else {
 
