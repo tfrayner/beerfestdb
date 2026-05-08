@@ -84,13 +84,10 @@ Note that cask end signs created using product_order dump class info may be inac
 
 \fontsize{24}{30}
 \selectfont
-\begin{textblock}{0.15}(0.80,0.14)
-
+\begin{textblock}{0.15}(0.04,0.02)
 [% SET chars = cask.characteristics %]
-[% IF chars.colour.defined && chars.colour != '' %] Colour: \textbf{[% chars.colour %]} [% END %] \\
-\\
-[% IF chars.clarity.defined && chars.clarity != '' %] Clarity: \textbf{[% chars.clarity %]} [% END %] \\
-
+[% IF chars.colour.defined && chars.colour != '' %] {\fontsize{14}{16}\selectfont Colour:} \textbf{[% chars.colour | latexify %]} \\\\ [% END %]
+[% IF chars.clarity.defined && chars.clarity != '' %] {\fontsize{14}{16}\selectfont Clarity:} \textbf{[% chars.clarity | latexify | upper %]} \\ [% END %]
 \end{textblock}
 
 [%-# Brewery and product name -%]
