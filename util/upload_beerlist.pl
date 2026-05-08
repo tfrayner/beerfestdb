@@ -110,9 +110,10 @@ sub _find_category_id {
         return $CATEGORY_ID_CACHE->{ $self->product_category() };
     }
 
-    $self->debug && warn("Retrieving category list...\n");
-
     my $prod_cat = $self->product_category();
+
+    $self->debug && warn(sprintf("Retrieving category list for %s...\n", $prod_cat));
+
     my $cat_list = $self->_data_from_uri( $self->uri() . '/productcategory/list' );
 
     # Make this search case-insensitive.
@@ -198,32 +199,36 @@ sub _data_from_uri {
     my ( $self, $uri ) = @_;
 
     my $ua  = $self->useragent();
-    my $res = $ua->get($uri);
 
-    if ( ! $res->is_success() ) {
-        if ( $res->code() == 403 ) {
+    my $res;
+    foreach my $run ( 1, 2 ) {
+        
+        # Run the query
+        $res = $ua->get($uri);
+        
+        # Handle errors. If 403, try logging in once and retrying. Otherwise, die.
+        if ( ! $res->is_success() ) {
+            if ( $res->code() == 403 ) {
 
-            # Try logging in once only.
-            $self->_attempt_login();
-
-            # Retry the original query.
-            $res = $ua->get($uri);
-
-            if ( ! $res->is_success() ) {
-                if ( $res->code() == 403 ) {
+                # Try logging in once only.
+                if ( $run == 1 ) {
+                    $self->_attempt_login();
+                }
+                else {
                     # Catchable exception
                     UriAuthorizationError->throw(
                         uri => $uri,
                         message => "User is not authorized to access $uri.\n"
                     );
                 }
+            }
+            else {
                 die("Error: Unable to connect to BeerFestDB web site: "
                         . $res->status_line() . " (" . $uri . ")\n");
             }
-        }
-        else {
-            die("Error: Unable to connect to BeerFestDB web site: "
-                    . $res->status_line() . " (" . $uri . ")\n");
+        } else {
+            # Success, so break out of the loop.
+            last;
         }
     }
 
@@ -452,7 +457,7 @@ sub parse_args {
 
 sub upload_department {
 
-    my ( $prodcat, $config, $debug ) = @_;
+    my ( $prodcat, $config, $ua, $debug ) = @_;
 
     my $brewery_info = {};
 
@@ -460,6 +465,7 @@ sub upload_department {
         festival_name    => $config->{festival_name},
         product_category => $prodcat,
         uri              => $config->{beerfestdb_uri},
+        useragent        => $ua,
         debug            => $debug,
     );
 
@@ -538,8 +544,12 @@ foreach my $item ( qw(festival_name
     }
 }
 
+# Just one user agent for the whole run, to preserve cookies and avoid unnecessary overhead.
+my $ua = LWP::UserAgent->new();
+$ua->cookie_jar({});
+
 foreach my $dept ( @{ $config->{departments} } ) {
-    upload_department($dept, $config, $debug)
+    upload_department($dept, $config, $ua, $debug)
 }
 
 =head1 NAME

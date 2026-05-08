@@ -21,12 +21,27 @@
 
 package BeerFestDB::Exceptions;
 
+=head1 NAME
+
+BeerFestDB::Exceptions - Exception classes for BeerFestDB
+
+=head1 DESCRIPTION
+
+This module defines exception classes used in BeerFestDB.
+
+=head1 EXPORTS
+
+=head2 UriAuthorizationError
+
+Exception class for handling URI authorization errors.
+
+=cut
+
 use Exception::Class (
     'BeerFestDB::Exceptions::UriAuthorizationError' => {
         fields => ['uri', 'message'],
     },
 );
-
 use constant UriAuthorizationError => 'BeerFestDB::Exceptions::UriAuthorizationError';
 
 use Exporter qw/import/;
