@@ -344,6 +344,64 @@ Delete product records by ID.
 
 ---
 
+## ProductCharacteristic
+
+A `ProductCharacteristic` records a single typed attribute value (e.g. colour,
+clarity) for a `Product`. The composite primary key is
+`(product_id, product_characteristic_type_id)`.
+
+Base path: `/productcharacteristic`
+
+### Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `product_id` | integer | FK → Product (part of composite PK) |
+| `product_characteristic_type_id` | integer | FK → ProductCharacteristicType (part of composite PK) |
+| `value` | string | The characteristic value |
+
+### Endpoints
+
+#### `GET /productcharacteristic/list?product_id=N`
+
+Redirects internally to `list_by_product`.
+
+---
+
+#### `GET /productcharacteristic/list_by_product/{product_id}`
+
+All characteristics for a product.
+
+---
+
+#### `GET /productcharacteristic/load_form?product_characteristic_id=N`
+
+Returns a single characteristic record.
+
+---
+
+#### `POST /productcharacteristic/submit`
+
+Create or update characteristic records. The controller validates that the
+`ProductCharacteristicType` belongs to the same `ProductCategory` as the
+`Product`; mismatches are rejected with a transaction failure.
+
+---
+
+#### `POST /productcharacteristic/delete`
+
+Delete characteristic records. Because the table has a composite primary key,
+`changes` must be a JSON array of **objects** rather than plain integers:
+
+```json
+[
+  { "product_id": 42, "product_characteristic_type_id": 7 },
+  ...
+]
+```
+
+---
+
 ## FestivalProduct
 
 Links a `Product` to a specific `Festival`, recording its sale price and
@@ -412,6 +470,10 @@ Delete festival product records by ID.
 
 Returns a public-facing status list suitable for programme generation or a
 live availability board.
+
+**Authorisation:** The caller must be authorised for the requested product
+category. Returns HTTP 403 if the user's roles do not hold the appropriate
+`CategoryAuth` for the category.
 
 **Response:**
 ```json
@@ -1036,7 +1098,8 @@ Base path: `/role`
 | Field | Type | Description |
 |---|---|---|
 | `role_id` | integer | Primary key |
-| `rolename` | string | Role name (e.g. `"admin"`, `"manager"`) |
+| `rolename` | string | Role name (e.g. `"admin"`, `"manager"`, `"cellar"`, `"wine and mead"`) |
+| `categories` | string | Comma-separated `product_category_id` values representing the role's `CategoryAuth` entries (empty string for unrestricted roles such as `"admin"`) |
 
 ### Endpoints
 
@@ -1045,6 +1108,25 @@ Base path: `/role`
 All roles.
 
 ---
+
+#### `GET /role/load_form?role_id=N`
+
+Returns a single role record, including its `categories` field.
+
+---
+
+#### `POST /role/submit`
+
+Create or update role records. The `categories` field is a comma-separated
+list of `product_category_id` values; the controller synchronises the
+`CategoryAuth` join table so that only the supplied categories are retained.
+Omitting `categories` leaves existing category associations unchanged.
+
+---
+
+#### `POST /role/delete`
+
+Delete role records by ID.
 
 ## Reference / Vocabulary Tables
 
@@ -1182,6 +1264,24 @@ Base path: `/productallergentype`
 | `description` | string | Allergen name (e.g. `"Gluten"`, `"Nuts"`) |
 
 Extra: `GET /productallergentype/load_form?product_allergen_type_id=N`
+
+---
+
+### ProductCharacteristicType
+
+Base path: `/productcharacteristictype`
+
+| Field | Type | Description |
+|---|---|---|
+| `product_characteristic_type_id` | integer | Primary key |
+| `product_category_id` | integer | FK → ProductCategory (type is scoped to a category) |
+| `description` | string | Type name (e.g. `"Colour"`, `"Clarity"`) |
+
+Extra endpoints:
+
+- `GET /productcharacteristictype/list?product_category_id=N` — redirects to `list_by_category`
+- `GET /productcharacteristictype/list_by_category/{category_id}`
+- `GET /productcharacteristictype/load_form?product_characteristic_type_id=N`
 
 ---
 
