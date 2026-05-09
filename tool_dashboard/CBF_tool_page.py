@@ -1,5 +1,10 @@
 #%%
+import mysql.connector
+import pandas as pd
 import streamlit as st
+import yaml
+from pathlib import Path
+from bfdb_yaml import current_festival
 from datetime import datetime, timedelta
 
 # Begin login and inactivity management ------------------------------------------------------
@@ -34,6 +39,31 @@ if st.button("Log out"):
     st.logout()
 # End login and inactivity management --------------------------------------------------------
 
+conn = st.connection('cbf', type='sql')
+
+if 'festival' not in st.session_state:
+    st.session_state.festival = f'{current_festival}'
+
+fsql = '''select name from festival where year > 2023;'''
+fdf = conn.query(fsql)
+festlist = fdf['name'].to_list()
+
+festnames = [str(name) for name in (festlist)]
+
+def set_festival():
+    st.session_state['festival']
+
+festival_selection = st.sidebar.selectbox(
+"Choose a festival",
+(festnames),
+key="festival",
+on_change=set_festival
+)
+
+festivalname = st.session_state['festival']
+
+##########
+
 pages = {
     "Data Tables": [
         st.Page("CBF_beer_price_calculator.py", title="Price Load File"),
@@ -43,9 +73,9 @@ pages = {
     ],
     "Extras": [
         st.Page("CBF_get_next_caskID.py", title="Next Cask ID"),
+        st.Page("CBF_brewery_beer_lookup.py", title="Have we had it before?"),
     ],
 }
 
 pg = st.navigation(pages)
 pg.run()
-

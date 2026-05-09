@@ -12,31 +12,14 @@ st.title("Beer price calculator"	)
 
 st.write("Known limitation: The beerfestdb does not support more than one price per product. If a beer is available in both cask and keg, choose one price to load, and manually edit the cask end sign .tex file to create the other.")
 
-#%%
-if 'festival' not in st.session_state:
-    st.session_state.festival = "Cambridge Winter Festival 2025"
-
 if 'orderbatch' not in st.session_state:
     st.session_state.orderbatch = "Main Beer Order"
 
-#%%
-fsql = '''select name from festival where year > 2023;'''
-fdf = conn.query(fsql)
-festlist = fdf['name'].to_list()
-
-festnames = [str(name) for name in (festlist)]
-
-def set_festival():
-    st.session_state['festival']
-
-festival_selection = st.selectbox(
-"Choose a festival",
-(festnames),
-key="festival",
-on_change=set_festival
-)
-
 festivalname = st.session_state['festival']
+
+st.header(f'{festivalname}')
+st.write("Use the menu in the left sidebar to choose another festival")
+
 
 obsql = '''select  ob.description as batch, ob.order_date from order_batch ob, festival f
 where ob.festival_id = f.festival_id
@@ -129,7 +112,7 @@ def tsv_for_download(df):
 conn.close()
 
 #%%
-st.header(f'{festivalname} Beer Prices')
+st.subheader(f'{festivalname} Beer Prices')
 
 st.write("Download table as file to use as input for load_data.pl")
 st.write("Price is based on ABV or cask cost, whichever is greater.")

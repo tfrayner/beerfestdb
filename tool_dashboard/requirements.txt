@@ -4,4 +4,5 @@ mysql-connector-python
 SQLAlchemy
 mysqlclient
 numpy
+PyYAML
 Authlib

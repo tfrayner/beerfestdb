@@ -9,26 +9,6 @@ conn = st.connection('cbf', type='sql')
 #%%
 st.title('CBF vegan and gluten-free beers')
 
-#%%
-if 'festival' not in st.session_state:
-    st.session_state.festival = "Cambridge Winter Festival 2025"
-
-fsql = '''select name from festival where year > 2023;'''
-fdf = conn.query(fsql)
-festlist = fdf['name'].to_list()
-
-festnames = [str(name) for name in (festlist)]
-
-def set_festival():
-    st.session_state['festival']
-
-festival_selection = st.selectbox(
-"Choose a festival",
-(festnames),
-key="festival",
-on_change=set_festival
-)
-
 festivalname = st.session_state['festival']
 
 #%%
@@ -101,6 +81,8 @@ vgftsv = tsv_for_download(vgfdf)
 
 #%%
 st.header(f'{festivalname}')
+st.write("Use the menu in the left sidebar to choose another festival")
+
 
 st.subheader("Vegan beers")
 st.dataframe(vdf, hide_index=True)
