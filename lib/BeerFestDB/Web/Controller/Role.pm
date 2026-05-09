@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010-2012 Tim F. Rayner
+# Copyright (C) 2010-2026 by Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,9 +21,10 @@
 
 package BeerFestDB::Web::Controller::Role;
 use Moose;
+use List::Util qw(first);
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
@@ -44,25 +45,93 @@ sub BUILD {
     $self->model_view_map({
         role_id            => 'role_id',
         rolename           => 'rolename',
+        categories         => undef,
     });
+
+    $self->model_name('DB::Role');
 }
 
-=head2 list
+=head2 view
 
 =cut
 
-sub list : Local {
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::Role')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: Role not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
+}
+
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( 'DB::Role' );
+    my $rs = $c->model('DB::Role');
 
-    $self->generate_json_and_detach( $c, $rs );
+    $self->form_json_and_detach( $c, $rs, 'role_id' );
+}
+
+sub build_database_object : Private {
+
+    my ( $self, $rec, $c, @other ) = @_;
+
+    # Our regular build_database_object method doesn't handle many-to-many.
+    my $categories = delete $rec->{'categories'};
+
+    my $obj = $self->next::method( $rec, $c, @other );
+
+    if ( defined $categories && defined $obj ) {
+        my $rs = $c->model( 'DB::CategoryAuth' );
+        my @r = split /,/, $categories;
+        foreach my $existing ($obj->category_auths) {
+
+            # Delete unwanted existing categories.
+            if ( ! first { $existing->get_column('product_category_id') == $_ } @r ) {
+                $existing->delete;
+            }
+        }
+        foreach my $category_id (@r) {
+
+            # Check that all the wanted categories are set.
+            $rs->find_or_create({ role_id => $obj->role_id(), product_category_id => $category_id });
+        }
+    }
+
+    return $obj;
+}
+
+sub viewhash_from_model : Private {
+
+    my ( $self, $view_key, $dbrow, $lookup ) = @_;
+
+    my $rc;
+    if ( $view_key eq 'categories' ) {
+        $rc = join(',', map { $_->get_column('product_category_id') } $dbrow->categories);
+    }
+    else {
+        $rc = $self->next::method( $view_key, $dbrow, $lookup );
+    }
+
+    return $rc;
 }
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010-2012 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
