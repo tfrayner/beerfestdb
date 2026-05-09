@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 by Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::Country;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
@@ -48,24 +48,47 @@ sub BUILD {
         country_code_num3 => 'country_code_num3',
         country_name      => 'country_name',
     });
+
+    $self->model_name('DB::Country');
 }
 
-=head2 list
+=head2 load_form
 
 =cut
 
-sub list : Local {
+sub load_form : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( 'DB::Country' );
+    my $rs = $c->model( $self->model_name() );
 
-    $self->generate_json_and_detach( $c, $rs );
+    $self->form_json_and_detach( $c, $rs, 'country_id' );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model( $self->model_name() )->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: Country not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
 }
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

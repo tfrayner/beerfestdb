@@ -37,9 +37,9 @@ __PACKAGE__->table("product_characteristic");
 
 =head2 value
 
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_nullable: 1
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 32
 
 =cut
 
@@ -49,7 +49,7 @@ __PACKAGE__->add_columns(
   "product_characteristic_type_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "value",
-  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
+  { data_type => "varchar", is_nullable => 0, size => 32 },
 );
 
 =head1 PRIMARY KEY
@@ -58,11 +58,13 @@ __PACKAGE__->add_columns(
 
 =item * L</product_id>
 
+=item * L</product_characteristic_type_id>
+
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("product_id");
+__PACKAGE__->set_primary_key("product_id", "product_characteristic_type_id");
 
 =head1 RELATIONS
 

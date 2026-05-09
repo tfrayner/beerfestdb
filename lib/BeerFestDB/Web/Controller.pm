@@ -190,14 +190,15 @@ sub _get_product_category : Private {
     # FIXME note that this may be rather too heavy on DB queries,
     # especially for large lists of updates.
     my %catmap = (
-        'Product'         => sub { $_[0]->product_category_id() },
-        'FestivalProduct' => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
-        'Gyle'            => sub { $self->_get_product_category( $c, $_[0]->festival_product_id ) },
-        'Cask'            => sub { $self->_get_product_category( $c, $_[0]->gyle_id ) },
-        'CaskMeasurement' => sub { $self->_get_product_category( $c, $_[0]->cask_id ) },
-        'ProductOrder'    => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
-        'CaskManagement'  => sub { $self->_get_product_category( $c, $_[0]->casks->first() ||
-                                                                     $_[0]->product_order_id, 1 ) },
+        'Product'               => sub { $_[0]->product_category_id() },
+        'ProductCharacteristic' => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'FestivalProduct'       => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'Gyle'                  => sub { $self->_get_product_category( $c, $_[0]->festival_product_id ) },
+        'Cask'                  => sub { $self->_get_product_category( $c, $_[0]->gyle_id ) },
+        'CaskMeasurement'       => sub { $self->_get_product_category( $c, $_[0]->cask_id ) },
+        'ProductOrder'          => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
+        'CaskManagement'        => sub { $self->_get_product_category( $c, $_[0]->casks->first() ||
+                                                                           $_[0]->product_order_id, 1 ) },
     );
 
     if ( my $fun = $catmap{ $classname } ) {
@@ -206,6 +207,35 @@ sub _get_product_category : Private {
     else {
         $self->raise_exception($c, qq{Product category retrieval mapping not implemented for "$classname" objects.\n});
     }
+}
+
+sub _check_category_membership : Private {
+
+    my ($self, $c, $pcat) = @_;
+    
+    # Admin users get all the privs.
+    return 1 if $c->check_any_user_role('admin');
+
+    my $pcat_id = $pcat->get_column('product_category_id');
+
+    # Test that pcat is in $c->user's roles->categories.
+    my $found = $c->user->search_related('user_roles')
+                        ->search_related('role_id')
+                        ->search_related('category_auths',
+                                         { product_category_id => $pcat_id })
+                        ->count();
+
+    if ( ! $found ) {
+        $c->log->error(sprintf(
+            qq{User %s lacks authorisation for product_category %s (ID %d)},
+            $c->user->get_column('username'),
+            $pcat->description(),
+            $pcat_id
+        ));
+        return 0;
+    }
+
+    return 1;
 }
 
 sub _confirm_category_authorisation : Private {
@@ -224,7 +254,7 @@ sub _confirm_category_authorisation : Private {
     return if $c->check_any_user_role('admin');
 
     # Make sure this list matches the keys of %catmap, above.
-    if ( first { $_ eq $classname } qw( Product FestivalProduct Gyle
+    if ( first { $_ eq $classname } qw( Product ProductCharacteristic FestivalProduct Gyle
                                         Cask ProductOrder CaskManagement
                                         CaskMeasurement  ) ) {
 
@@ -236,27 +266,11 @@ sub _confirm_category_authorisation : Private {
 
         $c->log->debug("Located product_category " . $pcat->description());
 
-        my $pcat_id = $pcat->get_column('product_category_id');
-
-        # Test that pcat is in $c->user's roles->categories.
-        my $found = $c->user->search_related('user_roles')
-                            ->search_related('role_id')
-                            ->search_related('category_auths',
-                                             { product_category_id => $pcat_id })
-                            ->count();
-
-        if ( ! $found ) {
-            $c->log->error(sprintf(
-                qq{User %s lacks authorisation for product_category %s (ID %d)},
-                $c->user->get_column('username'),
-                $pcat->description(),
-                $pcat_id
-            ));
-            $self->raise_exception($c,
-                                   sprintf(qq{You do not have authorisation to}
-                                         . qq{ make changes to the "%s" category.\n},
-                                           $pcat->description))
-        }
+        $self->_check_category_membership($c, $pcat) or
+            $self->raise_exception(
+                $c,
+                sprintf(qq{Error: You do not have authorisation to make changes to the "%s" category.\n}, $pcat->description())
+            );
     }
     else {
 

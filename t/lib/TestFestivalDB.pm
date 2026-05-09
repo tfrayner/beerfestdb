@@ -87,6 +87,11 @@ BEGIN {
                               contact_id => 1,
                               local_number => "0123456789"});
 
+        $schema->resultset("ProductCharacteristicType")
+            ->find_or_create({product_characteristic_type_id => 1,
+                              product_category_id => 2, # Foreign beer
+                              description => "TestCharacteristic"});
+
         $schema->resultset("Product")
             ->find_or_create({product_id => 1,
                               company_id => 1,

@@ -1,4 +1,4 @@
-FROM tfrayner/beerfestdb-base:1.1
+FROM tfrayner/beerfestdb-base:1.2
 
 # Install BeerFestDB.
 WORKDIR /usr/src

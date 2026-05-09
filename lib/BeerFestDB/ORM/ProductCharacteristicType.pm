@@ -64,7 +64,7 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("product_characteristic_type_id", "product_category_id");
+__PACKAGE__->set_primary_key("product_characteristic_type_id");
 
 =head1 UNIQUE CONSTRAINTS
 

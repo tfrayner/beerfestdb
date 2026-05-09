@@ -1,0 +1,12 @@
+[% META title = 'Container Measure Details' %]
+
+<script type="text/javascript">
+   var url_container_measure_load_form = '[% c.uri_for( "/containermeasure/load_form" ) %]';
+   var url_container_measure_grid = '[% c.uri_for( "/containermeasure/grid" ) %]';
+   
+   var container_measure_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/container_measure_view.js' ) %]
+
+<div id="datagrid"></div>

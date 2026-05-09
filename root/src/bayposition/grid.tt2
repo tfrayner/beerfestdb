@@ -1,0 +1,5 @@
+[% META title = 'Bay Position listing' %]
+
+[% js_link( src = '/static/js/grids/bay_positions.js' ) %]
+
+<div id="datagrid"></div>
