@@ -1,0 +1,87 @@
+[%#
+# LaTeX bar menu template for a beer festival.
+# Produces a two-column A4 document listing beers grouped by stillage,
+# then brewery, with beers sorted alphabetically within each brewery.
+# Non-cask dispense methods are highlighted in colour.
+#
+# Use with the 'gyle' dump class via cask_end_signs_latex.pl, e.g.:
+#   cask_end_signs_latex.pl -d gyle -t bar_menu.tt2 -o bar_menu.tex
+#%]
+
+[% IF dump_class != 'gyle' %][% THROW bad_dump_class "Use the gyle dump class.\n" %][% END %]
+
+\documentclass[english,a4paper,10pt]{article}
+
+\usepackage[a4paper, portrait, top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage[british]{babel}
+\usepackage{palatino}
+\usepackage{multicol}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+
+%% Colour for stillage section headers
+\definecolor{stillageblue}{rgb}{0.10, 0.20, 0.50}
+%% Colour for non-cask dispense labels (key keg, bottle, etc.)
+\definecolor{noncaskred}{rgb}{0.65, 0.10, 0.10}
+
+\pagestyle{empty}
+\setlength{\columnsep}{8mm}
+\setlength{\columnseprule}{0.4pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+%% Tag for non-cask dispense methods
+\newcommand{\dispensetag}[1]{
+  {\footnotesize\color{noncaskred}\bfseries[#1]}%
+}
+
+\begin{document}
+
+\begin{center}
+  {\Huge\bfseries Bar Menu}
+\end{center}
+
+\vspace{4mm}
+
+\begin{multicols}{2}
+\raggedright
+
+[%- FOREACH stillage IN stillages.pairs.sort('key') %]
+[%- NEXT UNLESS stillage.key -%]
+
+{\color{stillageblue}\large\bfseries [% stillage.key | latexify %]}
+
+{\color{stillageblue}\rule{\columnwidth}{0.7pt}}
+
+\vspace{2mm}
+
+[%- SET products = stillage.value.sort('brewery', 'product') -%]
+[%- SET current_brewery = '' -%]
+[%- SET first_brewery = 1 -%]
+
+[%- FOREACH product IN products -%]
+[%- IF product.brewery != current_brewery -%]
+[%- SET current_brewery = product.brewery -%]
+[%- UNLESS first_brewery %]\par[% END %][% SET first_brewery = 0 -%]
+{\bfseries\large [%- product.brewery | latexify %]}
+[%- IF product.location %]{\footnotesize\ \textit{--- [%- product.location | latexify %]}}[%- END %]\newline
+[%- END %]
+\hspace{2mm}
+[%- product.product | latexify %]
+[%- IF product.style %]\ {\footnotesize\textit{([%- product.style | latexify %])}}[%- END %]
+\ [%- IF product.abv %][% product.abv %]\%[%- ELSE %]ABV~tbc[%- END %]
+[%- IF product.price %]\ [%- product.currency | latexify %][%- product.price | price_format | format('%.2f') %][%- END %]
+[%- IF product.dispense_method && product.dispense_method != 'cask' %]\ \dispensetag{[%- product.dispense_method | latexify %]}[%- END %]
+[%- IF product.is_vegan %]\ {\footnotesize(V)}[%- END %]\newline
+[%- IF product.notes %]\hspace{6mm}{\footnotesize\itshape [%- product.notes | latexify %]}\newline[%- END %]
+[%- END %]
+
+%%\vspace{2mm}
+
+\newpage
+
+[%- END %]
+
+\end{multicols}
+
+\end{document}
