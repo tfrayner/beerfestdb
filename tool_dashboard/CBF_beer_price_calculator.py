@@ -8,38 +8,18 @@ import math
 conn = st.connection('cbf', type='sql')
 
 #%%
-festivalname = "Cambridge Beer Festival 2025"
-orderbatch = "Main Beer Order"
-#%%
 st.title("Beer price calculator"	)
 
 st.write("Known limitation: The beerfestdb does not support more than one price per product. If a beer is available in both cask and keg, choose one price to load, and manually edit the cask end sign .tex file to create the other.")
 
-#%%
-if 'festival' not in st.session_state:
-    st.session_state.festival = "Cambridge Winter Festival 2025"
-
 if 'orderbatch' not in st.session_state:
     st.session_state.orderbatch = "Main Beer Order"
 
-#%%
-fsql = '''select name from festival where year > 2023;'''
-fdf = conn.query(fsql)
-festlist = fdf['name'].to_list()
-
-festnames = [str(name) for name in (festlist)]
-
-def set_festival():
-    st.session_state['festival']
-
-festival_selection = st.selectbox(
-"Choose a festival",
-(festnames),
-key="festival",
-on_change=set_festival
-)
-
 festivalname = st.session_state['festival']
+
+st.header(f'{festivalname}')
+st.write("Use the menu in the left sidebar to choose another festival")
+
 
 obsql = '''select  ob.description as batch, ob.order_date from order_batch ob, festival f
 where ob.festival_id = f.festival_id
@@ -121,15 +101,50 @@ dfload = dfo[['festival_name', 'brewery_name', 'product_name', 'cask_size', 'pro
 ##  includes cask size/format, to show where cask & keg differ
 ### BUT this isn't supported by the db schema at present anyway!
 
+@st.cache_data
+def csv_for_download(df):
+    return df.to_csv().encode("utf-8")
+
+def tsv_for_download(df):
+    return df.to_csv(sep="\t", index=False).encode("utf-8")
+
 #%%
 conn.close()
 
 #%%
-st.header(f'{festivalname} Beer Prices')
+st.subheader(f'{festivalname} Beer Prices')
 
 st.write("Download table as file to use as input for load_data.pl")
 st.write("Price is based on ABV or cask cost, whichever is greater.")
 st.write("*Note: If a cask price is missing, its value is set at zero (0), and the ABV-based price will be displayed.*")
+
 st.subheader(f'{orderbatch} - Sale Price Load File')
 st.dataframe(dfload, hide_index=True, column_order=('festival_name', 'brewery_name', 'product_name', 'product_sale_price'))
+
+
+pcsv = csv_for_download(dfload)
+ptsv = tsv_for_download(dfload)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.download_button(
+        key="pcsv",
+        label="Download CSV",
+        data=pcsv,
+        file_name="beer_price_data.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
+
+with col2:
+    st.download_button(
+        key="ptsv",
+        label="Download TSV",
+        data=ptsv,
+        file_name="beer_price_data.tsv",
+        mime="text/tab-separated-values",
+        icon=":material/download:",
+    )
+
 #%%

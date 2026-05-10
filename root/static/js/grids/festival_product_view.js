@@ -444,8 +444,5 @@ Ext.onReady(function(){
         items:  panel,
     });
 
-    //  FIXME we also need to warn the user if they're trying to
-    //  navigate away from a dirty grid.
-    
 });
 

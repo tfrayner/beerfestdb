@@ -100,13 +100,20 @@ __PACKAGE__->config(
     default_product_category => 'beer',
     default_measurement_unit => 'gallon',
     stock_control_departments => [],
+    awrs_urn_prefix => 'https://www.tax.service.gov.uk/check-the-awrs-register?query=',
     using_frontend_proxy => 1,  # create URLs using HTTPS scheme when behind a proxy
  );
 
-# Start the application
+# Load the OpenIDConnect plugin if available. ConditionalOIDC runs its
+# after-setup hook between ConfigLoader and OpenIDConnect: it checks that
+# the configured key files are readable and, if not, removes the issuer
+# config so that the OpenIDConnect plugin skips initialisation gracefully
+# instead of dying. Both plugins must be passed to setup() together so
+# that the Moose after-modifier ordering is correct (ConditionalOIDC inner,
+# OpenIDConnect outer).
 my $has_openid_connect_plugin = eval { require Catalyst::Plugin::OpenIDConnect; 1; };
 if ( $has_openid_connect_plugin ) {
-    __PACKAGE__->setup(qw/OpenIDConnect/);
+    __PACKAGE__->setup(qw/+BeerFestDB::Web::Plugin::ConditionalOIDC OpenIDConnect/);
 }
 else {
     __PACKAGE__->setup();
@@ -132,7 +139,8 @@ foreach my $path ( qw(productstyle) ) {
 }
 foreach my $path ( qw(bayposition companyregion contacttype containermeasure
                       containersize country currency dispensemethod
-                      productallergentype productcategory productstyle
+                      productallergentype productcharacteristictype
+                      productcategory productstyle
                       salevolume telephonetype) ) {
     __PACKAGE__->allow_access_if( "/$path/list", [ qw( user ) ] );
     __PACKAGE__->allow_access_if( '/' . $path, [ qw( admin ) ] );

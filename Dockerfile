@@ -1,4 +1,4 @@
-FROM tfrayner/beerfestdb-base:1.1
+FROM tfrayner/beerfestdb-base:1.2
 
 # Install BeerFestDB.
 WORKDIR /usr/src
@@ -6,7 +6,9 @@ COPY . .
 RUN   cpanm . \
    && rm -rf ~/.cpanm \
    && mkdir /etc/beerfestdb \
-   && cp beerfestdb_web.yml /etc/beerfestdb/ \
+   && cp beerfestdb_web_site.yml /etc/beerfestdb/beerfestdb_web.yml \
+   && mkdir -p /path/to/beerfestdb/keys/ \
+   && cp t/keys/*.pem /path/to/beerfestdb/keys/ \
    && cd /usr && rm -rf /usr/src
 
 WORKDIR /var/tmp

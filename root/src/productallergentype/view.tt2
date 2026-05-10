@@ -2,6 +2,7 @@
 
 <script type="text/javascript">
    var url_product_allergen_type_load_form = '[% c.uri_for( "/productallergentype/load_form" ) %]';
+   var url_product_allergen_type_grid = '[% c.uri_for( "/productallergentype/grid" ) %]';
    
    var product_allergen_type_id = '[% object.id %]';
 </script>

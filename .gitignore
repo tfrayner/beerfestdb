@@ -1,3 +1,7 @@
+# Main config file, which will have been edited locally. See beerfestdb_web_site.yml
+# for the default config file, which should be committed to the repo.
+beerfestdb_web.yml
+
 # Other random temp files
 *~
 t/testing.db

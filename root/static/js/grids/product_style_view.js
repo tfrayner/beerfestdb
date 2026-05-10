@@ -65,7 +65,8 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'Product Category Styles', handler: function() { window.location = url_product_style_grid; } },
+            { text: 'Product Categories', handler: function() { window.location = url_category_view; } },
+            { text: 'Product Styles', handler: function() { window.location = url_product_style_grid; } },
         ],
     });
     
@@ -74,8 +75,5 @@ Ext.onReady(function(){
         items:  panel,
     });
 
-    //  FIXME we also need to warn the user if they're trying to
-    //  navigate away from a dirty grid.
-    
 });
 

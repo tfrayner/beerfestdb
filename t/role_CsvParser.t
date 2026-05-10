@@ -70,4 +70,70 @@ is_deeply( $row, [ 'Acme Brewery', 'Cambridgeshire', 'yes' ],
 $p->getline();    # consume any trailing content
 ok( $p->confirm_eof(), 'confirm_eof: returns true at end of file' );
 
+# -----------------------------------------------------------------------
+# getline: missing-value stripping on data rows
+# -----------------------------------------------------------------------
+
+# Write a file whose data row contains every recognised missing-value token
+# plus a blank field, and whose header row contains the same strings (to
+# confirm they are preserved verbatim in header mode).
+my @missing_tokens = ( 'NA', 'N/A', 'ND', 'N/D', 'NULL', 'TBC', 'TBD' );
+
+my ( $fh_mv, $mv_file ) = tempfile( SUFFIX => '.tsv', UNLINK => 1 );
+# Header row: use the token names as column headers.
+print $fh_mv join( "\t", @missing_tokens, 'blank', 'real_value' ) . "\n";
+# Data row: one of each token, an empty field, and a real value.
+print $fh_mv join( "\t", @missing_tokens, '', 'beer' ) . "\n";
+# Data row: check case-insensitivity, surrounding whitespace, and whitespace-only fields.
+print $fh_mv "na\t n/a \t Nd \t N/d \t null \t tbc \t tbd \t   \t beer \n";
+close $fh_mv;
+
+my $mv = TestCsvConsumer->new( csv_file => $mv_file );
+
+# Header row must be returned unchanged.
+my $mv_headers = $mv->get_headers();
+is_deeply( $mv_headers,
+           [ @missing_tokens, 'blank', 'real_value' ],
+           'getline (header): missing-value tokens in header row are preserved' );
+
+# Data row: all missing-value tokens and the blank field become empty strings.
+my $mv_row = $mv->getline();
+is_deeply( $mv_row,
+           [ ('') x (scalar(@missing_tokens) + 1), 'beer' ],
+           'getline (data): recognised missing-value tokens replaced with empty string' );
+
+# Data row: case-insensitive and whitespace-tolerant.
+my $mv_row2 = $mv->getline();
+is_deeply( $mv_row2,
+           [ ('') x (scalar(@missing_tokens) + 1), ' beer ' ],
+           'getline (data): missing-value replacement is case-insensitive and preserves whitespace' );
+
+# -----------------------------------------------------------------------
+# getline: comment lines in the data section are skipped
+# -----------------------------------------------------------------------
+
+# Write a file where comment lines appear between data rows, including
+# a comment with leading whitespace to exercise the \s* part of the regex.
+my ( $fh_cmt, $cmt_file ) = tempfile( SUFFIX => '.tsv', UNLINK => 1 );
+print $fh_cmt "name\tvalue\n";
+print $fh_cmt "row_one\t1\n";
+print $fh_cmt "# full-line comment between data rows\n";
+print $fh_cmt "  # comment with leading whitespace\n";
+print $fh_cmt "row_two\t2\n";
+close $fh_cmt;
+
+my $cmt = TestCsvConsumer->new( csv_file => $cmt_file );
+$cmt->get_headers();   # consume the header line
+
+my $cmt_row1 = $cmt->getline();
+is_deeply( $cmt_row1, [ 'row_one', '1' ],
+           'getline: returns first data row before inline comments' );
+
+my $cmt_row2 = $cmt->getline();
+is_deeply( $cmt_row2, [ 'row_two', '2' ],
+           'getline: skips comment lines between data rows' );
+
+my $cmt_eof = $cmt->getline();
+is( $cmt_eof, undef, 'getline: returns undef after last data row' );
+
 done_testing();

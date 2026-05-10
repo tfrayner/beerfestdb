@@ -33,13 +33,13 @@ Ext.onReady(function(){
         { name: 'email',     type: 'string' },
     ]);
 
-    var store = new Ext.data.JsonStore({
+    var user_store = new Ext.data.JsonStore({
         url:        url_object_list,
         root:       'objects',
         fields:     User
     });
     
-    var content_cols = [
+    var user_content_cols = [
         { id:         'username',
           header:     'Username',
           dataIndex:  'username',
@@ -63,33 +63,98 @@ Ext.onReady(function(){
           })},
     ];
 
-    function viewLink (grid, record, action, row, col) {
+    function viewUserLink (grid, record, action, row, col) {
         var t = new Ext.XTemplate(url_base + 'user/view/{user_id}');
         window.location=t.apply({user_id: record.get('user_id')});
     };
 
-    function recordChanges (record) {
+    function recordUserChanges (record) {
         var fields = record.getChanges();
         fields.user_id = record.get( 'user_id' );
         return(fields);
     }
 
-    var panel = new MyMainPanel({
-        title: 'Database user listing: ',
-        layout: 'fit',
-        items: new MyEditorGrid(
+    var userGrid = new MyEditorGrid(
+        {
+            objLabel:           'User',
+            idField:            'user_id',
+            autoExpandColumn:   'username',
+            store:              user_store,
+            contentCols:        user_content_cols,
+            viewLink:           viewUserLink,
+            deleteUrl:          url_user_delete,
+            submitUrl:          url_user_submit,
+            recordChanges:      recordUserChanges,
+        }
+    );
+
+    var Role = Ext.data.Record.create([
+        { name: 'role_id',   type: 'int' },
+        { name: 'rolename',      type: 'string' },
+    ]);
+
+    var role_store = new Ext.data.JsonStore({
+        url:        url_role_list,
+        root:       'objects',
+        fields:     Role
+    });
+    
+    var role_content_cols = [
+        { id:         'rolename',
+          header:     'Role Name',
+          dataIndex:  'rolename',
+          width:      150,
+          editor:     new Ext.form.TextField({
+              allowBlank:     false,
+          })},
+    ];
+
+    function viewRoleLink (grid, record, action, row, col) {
+        var t = new Ext.XTemplate(url_base + 'role/view/{role_id}');
+        window.location=t.apply({role_id: record.get('role_id')});
+    };
+
+    function recordRoleChanges (record) {
+        var fields = record.getChanges();
+        fields.role_id = record.get( 'role_id' );
+        return(fields);
+    }
+
+    var roleGrid = new MyEditorGrid(
+        {
+            objLabel:           'Role',
+            idField:            'role_id',
+            autoExpandColumn:   'name',
+            store:              role_store,
+            contentCols:        role_content_cols,
+            viewLink:           viewRoleLink,
+            deleteUrl:          url_role_delete,
+            submitUrl:          url_role_submit,
+            recordChanges:      recordRoleChanges,
+        }
+    ); 
+
+    var tabpanel = new Ext.TabPanel({
+        activeTab: 0,
+        items: [
             {
-                objLabel:           'User',
-                idField:            'user_id',
-                autoExpandColumn:   'username',
-                store:              store,
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_user_delete,
-                submitUrl:          url_user_submit,
-                recordChanges:      recordChanges,
+                title: 'Users',
+                layout: 'fit',
+                items: userGrid,
+            },
+            {
+                title: 'Roles',
+                layout: 'fit',
+                items: roleGrid,
             }
-        ),
+        ],
+    });
+
+
+    var panel = new MyMainPanel({
+        title: 'Database Users and Roles',
+        layout: 'fit',
+        items: tabpanel,
         tbar:
         [
             { text: 'Home',
@@ -102,8 +167,5 @@ Ext.onReady(function(){
         items:  panel,
     });
 
-    //  FIXME we also need to warn the user if they're trying to
-    //  navigate away from a dirty grid.
-    
 });
 

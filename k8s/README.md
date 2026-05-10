@@ -20,7 +20,7 @@ variables. Set this up by running this command in this directory, once you have 
 the above YAML files:
 
 ``` bash
-kubectl -n beerfestdb create configmap beerfestdb-app-config --from-file=../.app_env
+kubectl -n beerfestdb create configmap beerfestdb-app-config --from-env-file=../.app_env
 ```
 
 In addition to these YAML files, if you are running on a cluster using

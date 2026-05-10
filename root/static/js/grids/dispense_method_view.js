@@ -65,6 +65,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Dispense Methods', handler: function() { window.location = url_dispense_method_grid; } },
         ],
     });
     
@@ -73,8 +74,5 @@ Ext.onReady(function(){
         items:  panel,
     });
 
-    //  FIXME we also need to warn the user if they're trying to
-    //  navigate away from a dirty grid.
-    
 });
 

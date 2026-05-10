@@ -20,59 +20,39 @@
 #
 # $Id$
 
-use inc::Module::Install;
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
+use Module::CPANfile;
 
-name 'BeerFestDB-Web';
-all_from 'lib/BeerFestDB/Web.pm';
+my $prereqs = Module::CPANfile->load('cpanfile')
+    ->prereqs->merged_requirements(['runtime'], ['requires'])
+    ->as_string_hash;
 
-requires 'Catalyst::Runtime' => '5.90130';
-requires 'Catalyst::Plugin::ConfigLoader';
-requires 'Catalyst::Plugin::Static::Simple';
-requires 'Catalyst::Plugin::Session::Store::FastMmap';
-requires 'Catalyst::Plugin::Authentication'               => '0.10023';
-requires 'Catalyst::Plugin::Authorization::ACL'           => '0.16';
-requires 'Catalyst::Plugin::Authorization::Roles'         => '0.09';
-requires 'Catalyst::Plugin::OpenIDConnect'                => '0.02';
-requires 'Catalyst::Authentication::Store::DBIx::Class'   => '0.1506';
-requires 'Digest::SHA'                                    => '6.04';
-requires 'Crypt::SaltedHash'                              => '0.09';
-requires 'Catalyst::Action::RenderView';
-requires 'Catalyst::Plugin::Unicode::Encoding';
-requires 'parent';
-requires 'Config::YAML';
-
-requires 'Catalyst::View::JSON';
-requires 'JSON::MaybeXS';
-requires 'Catalyst::View::TT';
-requires 'DBIx::Class';
-requires 'Moose';
-requires 'Readonly';
-requires 'Text::CSV_XS';
-requires 'Template';
-requires 'DateTime::TimeZone';  # Timestamps for upload to public web site.
-requires 'Number::Format';  # For formatting prices for output.
-
-requires 'LWP';
-requires 'HTTP::Cookies';
-requires 'Term::ReadLine';
-requires 'Term::ReadKey';
-
-requires 'String::Range::Expand';
-
-requires 'DBD::MariaDB'; # Or whatever you wish to use; beerfestdb has been extensively tested on mysql.
-
-requires 'YAML::XS';  # YAML::Syck is deprecated.
-requires 'DateTime';  # CBF-specific web site upload script.
-requires 'JSON::XS';  # Seems to work a bit more reliably than JSON::PP in this context.
-requires 'JSON::DWIW'; # For the beerfestdb web site upload script, which needs to be able to handle JSON with embedded newlines.
-requires 'LWP::Protocol::https'; # For the beerfestdb web site upload script, which needs to be able to upload over HTTPS.
-
-requires 'OpenOffice::OODoc';
-
-catalyst;
-
-install_script glob('script/*.pl');
-install_script glob('util/*.pl');
-
-auto_install;
-WriteAll;
+WriteMakefile(
+    NAME          => 'BeerFestDB::Web',
+    AUTHOR        => 'Tim F. Rayner',
+    VERSION_FROM  => 'lib/BeerFestDB/Web.pm',
+    ABSTRACT_FROM  => 'lib/BeerFestDB/Web.pm',
+    EXE_FILES     => [ glob('script/*.pl'), glob('util/*.pl') ],
+    PREREQ_PM     => $prereqs,
+    LICENSE       => 'gpl_3',
+    CONFIGURE_REQUIRES => {
+        'ExtUtils::MakeMaker' => 0,
+        'Module::CPANfile'    => '1.1004',
+    },
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources   => {
+            repository => {
+                type => 'git',
+                url  => 'https://github.com/tfrayner/beerfestdb.git',
+                web  => 'https://github.com/tfrayner/beerfestdb',
+            },
+            bugtracker => {
+                web => 'https://github.com/tfrayner/beerfestdb/issues',
+            },
+        },
+    },
+    clean => { FILES => 't/pristine_testing.db t/testing.db' },
+);

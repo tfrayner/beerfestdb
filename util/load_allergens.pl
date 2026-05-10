@@ -165,10 +165,7 @@ sub _load_table_data {
         or die(sprintf(qq{Unable to find the product category "%s" in the database.\n"},
                        $self->category));
 
-    PRODUCT:
     while ( my $line = $self->getline() ) {
-
-        next PRODUCT if ( $line->[0] =~ /\A \s* \#/xms );
         my ( $prodname, $compname, $allergens ) = $self->_parse_row( $line );
 
         my $company = $self->_protected_find_or_create_database_object(

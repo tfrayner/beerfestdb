@@ -24,3 +24,9 @@
     padding: 5px;
     text-align: center;
 }
+
+.x-form-awrs-trigger {
+    background-image: url(../images/silk/icons/world_link.png) !important;
+    background-position: center center !important;
+    background-repeat: no-repeat;
+}

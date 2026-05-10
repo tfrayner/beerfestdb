@@ -982,8 +982,8 @@ DROP TABLE IF EXISTS `product_characteristic`;
 CREATE TABLE `product_characteristic` (
   `product_id` int(6) NOT NULL,
   `product_characteristic_type_id` int(6) NOT NULL,
-  `value` int(11) unsigned DEFAULT NULL,
-  PRIMARY KEY (`product_id`),
+  `value` varchar(32) NOT NULL,
+  PRIMARY KEY (`product_id`,`product_characteristic_type_id`),
   KEY `Rel_29` (`product_characteristic_type_id`),
   CONSTRAINT `product_characteristic_ibfk_1` FOREIGN KEY (`product_characteristic_type_id`) REFERENCES `product_characteristic_type` (`product_characteristic_type_id`) ON UPDATE NO ACTION,
   CONSTRAINT `product_characteristic_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE NO ACTION
@@ -1059,7 +1059,7 @@ CREATE TABLE `product_characteristic_type` (
   `product_characteristic_type_id` int(6) NOT NULL AUTO_INCREMENT,
   `product_category_id` int(6) NOT NULL,
   `description` varchar(50) NOT NULL,
-  PRIMARY KEY (`product_characteristic_type_id`,`product_category_id`),
+  PRIMARY KEY (`product_characteristic_type_id`),
   UNIQUE KEY `product_category_id` (`product_category_id`,`description`),
   CONSTRAINT `product_characteristic_type_ibfk_1` FOREIGN KEY (`product_category_id`) REFERENCES `product_category` (`product_category_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

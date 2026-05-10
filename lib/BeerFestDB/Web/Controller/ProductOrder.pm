@@ -49,7 +49,15 @@ sub BUILD {
         company_id        => {
             product_id  => 'company_id',
         },
+        company_name      => {
+            product_id  => {
+                company_id => 'name',
+            },
+        },
         product_id        => 'product_id',
+        product_name      => {
+            product_id => 'name',
+        },
         order_batch_id    => 'order_batch_id',
         festival_id       => {
             order_batch_id => 'festival_id',
@@ -67,6 +75,19 @@ sub BUILD {
 
     $self->price_field('price');
     $self->currency_id_field('currency_id');
+}
+
+=head2 load_form
+
+=cut
+
+sub load_form : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model('DB::ProductOrder');
+
+    $self->form_json_and_detach( $c, $rs, 'product_order_id' );
 }
 
 =head2 list
@@ -153,6 +174,13 @@ sub _save_records : Private {
 
     # Create the core ProductOrder records in the database.
     foreach my $rec ( @{ $data } ) {
+        # No changes allowed to records already marked as is_received.
+        # FIXME perhaps allow comment changes, but for now this is simpler and
+        # safer. Even price changes would need to be propagated to CaskManagement.
+        if ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) {
+            $po->is_received() and
+                die("Product Order with id $rec->{product_order_id} is already is_received in database.");
+        }
         $self->build_database_object( $rec, $c, $rs );
     }
 
@@ -180,6 +208,32 @@ sub delete : Local {
     my $rs = $c->model( 'DB::ProductOrder' );
 
     $self->delete_from_resultset( $c, $rs );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model('DB::ProductOrder')->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: ProductOrder not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();
+    }
+
+    $c->stash->{object}     = $object;
+    $c->stash->{product}    = $object->product_id();
+    $c->stash->{order_batch} = $object->order_batch_id();
+    $c->stash->{festival}   = $object->order_batch_id()->festival_id();
+
+    $self->get_default_currency( $c );
+
+    return;
 }
 
 =head2 grid
