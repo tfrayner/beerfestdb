@@ -842,7 +842,7 @@ CREATE TABLE `product` (
   `description` text,
   `long_description` text,
   `comment` text,
-  `is_vegan` tinyint(1) DEFAULT NULL, // nullable so we can record 'known unknowns' positively
+  `is_vegan` tinyint(1) DEFAULT NULL, -- nullable so we can record 'known unknowns' positively
   PRIMARY KEY (`product_id`),
   UNIQUE KEY `company_id` (`company_id`,`name`),
   KEY `IDX_pdc_pcid` (`product_category_id`),
