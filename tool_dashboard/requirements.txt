@@ -1,8 +1,9 @@
 pandas
-streamlit
+streamlit[auth]
 mysql-connector-python
 SQLAlchemy
 mysqlclient
 numpy
 PyYAML
 Authlib
+httpx

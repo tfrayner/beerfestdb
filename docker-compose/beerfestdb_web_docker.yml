@@ -71,16 +71,15 @@ status_query:
 
 Plugin::OpenIDConnect:
   issuer:
-    url: 'https://localhost:3000'
+    url: 'https://titus.local:8443'
     private_key_file: '/path/to/beerfestdb/keys/private.pem'
     public_key_file: '/path/to/beerfestdb/keys/public.pem'
     key_id: 'my-key-1'
   clients:
     'dashboard':
        client_secret: 'my-secret'
-       redirect_uris: 'http://localhost:8501/oauth2callback'
-       post_logout_redirect_uris: 'http://localhost:8501/oauth2callback'
-  # Optional Redis store configuration for OpenID Connect session management. Likely
+       redirect_uris: 'https://titus.local:8444/oauth2callback'
+       post_logout_redirect_uris: 'https://titus.local:8444/oauth2callback'
   # Redis store for OpenID Connect session management - required for multi-worker
   # FastCGI deployments so auth codes are shared across all worker processes.
   store_class: 'Catalyst::Plugin::OpenIDConnect::Utils::Store::Redis'

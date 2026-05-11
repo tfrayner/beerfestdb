@@ -141,8 +141,18 @@ sub login : Global {
 
     my $data = $j->decode( $json_req );
 
-    if ( $c->authenticate({ username => $data->{ 'username' },
-                            password => $data->{ 'password' }, }) ) {
+    my $authenticated = eval {
+        $c->authenticate({ username => $data->{ 'username' },
+                           password => $data->{ 'password' }, });
+    };
+    if ( $@ ) {
+        $c->log->error("login authentication error: $@");
+        $c->res->status('503');
+        $c->stash->{ 'message' } = 'Authentication service unavailable. Please try again later.';
+        $c->stash->{ 'success' } = JSON->false();
+        $c->forward( 'View::JSON' );
+    }
+    elsif ( $authenticated ) {
 
 	    $c->log->debug("login authentication successful.");
 
