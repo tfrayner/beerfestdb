@@ -2,6 +2,7 @@ requires 'Catalyst::Runtime',                              '5.90130';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::Static::Simple';
 requires 'Catalyst::Plugin::Session::Store::FastMmap';
+requires 'Redis::Fast';
 requires 'Catalyst::Plugin::Authentication',               '0.10023';
 requires 'Catalyst::Plugin::Authorization::ACL',           '0.16';
 requires 'Catalyst::Plugin::Authorization::Roles',         '0.09';
