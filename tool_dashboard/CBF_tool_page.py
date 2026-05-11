@@ -33,7 +33,8 @@ def _inactivity_check():
 
 _inactivity_check()
 
-st.markdown(f"Welcome {st.user.name}!")
+display_name = st.user.get("name") or st.user.get("preferred_username") or st.user.get("email") or "user"
+st.markdown(f"Welcome {display_name}!")
 
 if st.button("Log out"):
     st.logout()
