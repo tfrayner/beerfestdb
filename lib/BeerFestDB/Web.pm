@@ -72,6 +72,7 @@ __PACKAGE__->config(
             sub => 'id',
             name => 'name',
             email => 'email',
+            preferred_username => 'username',
         },
         debug => 0, # Set to 1 for specific logging of OIDC plugin including setup.
     },

@@ -79,12 +79,12 @@ Plugin::OpenIDConnect:
     'dashboard':
        client_secret: 'my-secret'
        redirect_uris: 'http://localhost:8501/oauth2callback'
+       post_logout_redirect_uris: 'http://localhost:8501/oauth2callback'
   # Optional Redis store configuration for OpenID Connect session management. Likely
-  # to be required for FastCGI deployments. If not specified, sessions will be stored
-  # in memory (not recommended for production use).
-  store_class: 'Catalyst::Plugin::OpenIDConnect::Utils::Store::Redis' 
+  # Redis store for OpenID Connect session management - required for multi-worker
+  # FastCGI deployments so auth codes are shared across all worker processes.
+  store_class: 'Catalyst::Plugin::OpenIDConnect::Utils::Store::Redis'
   store_args:
-    redis:
-      server: 'localhost:6379'
-      namespace: 'oidc:beerfestdb:'
-      code_ttl: 600
+    server: 'redis:6379'
+    prefix: 'oidc:beerfestdb:'
+    code_ttl: 600
