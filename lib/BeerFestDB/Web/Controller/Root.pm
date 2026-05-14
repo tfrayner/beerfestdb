@@ -155,6 +155,7 @@ sub login : Global {
     elsif ( $authenticated ) {
 
 	    $c->log->debug("login authentication successful.");
+        $c->user->update({ date_accessed => \'CURRENT_TIMESTAMP' });
 
         # ExtJS form redirects to url_success_target URI.
 	    $c->res->status('200');
