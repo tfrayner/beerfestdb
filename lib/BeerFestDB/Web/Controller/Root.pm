@@ -154,7 +154,7 @@ sub login : Global {
     }
     elsif ( $authenticated ) {
 
-	    $c->log->debug("login authentication successful.");
+	    $c->log->info("login authentication of user '" . $data->{ 'username' } . "' successful.");
         $c->user->update({ date_accessed => \'CURRENT_TIMESTAMP' });
 
         # ExtJS form redirects to url_success_target URI.
@@ -164,7 +164,7 @@ sub login : Global {
     }
     else {
 
-	    $c->log->debug("login authentication failed.");
+	    $c->log->info("login authentication of user '" . $data->{ 'username' } . "' failed.");
 
         $c->res->status('401');
         $c->stash->{ 'message' } = 'Login failed.';
