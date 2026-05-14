@@ -65,7 +65,6 @@ __PACKAGE__->table("user");
   data_type: 'datetime'
   is_nullable: 0
   default_value: CURRENT_TIMESTAMP
-  extra: { on_update => "CURRENT_TIMESTAMP" }
 
 =head2 date_accessed
 
@@ -93,7 +92,7 @@ __PACKAGE__->add_columns(
   "date_created",
   { data_type => "datetime", is_nullable => 0, default_value => \"CURRENT_TIMESTAMP" },
   "date_modified",
-  { data_type => "datetime", is_nullable => 0, default_value => \"CURRENT_TIMESTAMP", extra => { on_update => \"CURRENT_TIMESTAMP" } },
+  { data_type => "datetime", is_nullable => 0, default_value => \"CURRENT_TIMESTAMP" },
   "date_accessed",
   { data_type => "datetime", is_nullable => 1 },
   "date_password_changed",

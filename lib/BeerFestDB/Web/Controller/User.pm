@@ -165,6 +165,8 @@ sub build_database_object : Private {
         $obj->update({ date_password_changed => \'CURRENT_TIMESTAMP' });
     }
 
+    $obj->update({ date_modified => \'CURRENT_TIMESTAMP' }) if defined $obj;
+
     return $obj;
 }
 

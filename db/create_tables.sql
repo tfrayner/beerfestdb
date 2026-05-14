@@ -1298,7 +1298,7 @@ CREATE TABLE `user` (
   `email` varchar(255) NOT NULL,
   `password` varchar(40) NOT NULL DEFAULT '*',
   `date_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `date_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `date_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `date_accessed` datetime DEFAULT NULL,
   `date_password_changed` datetime DEFAULT NULL,
   PRIMARY KEY (`user_id`),
