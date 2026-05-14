@@ -161,6 +161,10 @@ sub build_database_object : Private {
         }
     }
 
+    if ( defined $pw && $pw ne q{} && defined $obj ) {
+        $obj->update({ date_password_changed => \'CURRENT_TIMESTAMP' });
+    }
+
     return $obj;
 }
 
