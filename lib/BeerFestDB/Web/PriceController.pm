@@ -59,7 +59,7 @@ sub generate_object_viewhash {
 
     my ( $self, $obj, $c ) = @_;
 
-    my $hash = $self->SUPER::generate_object_viewhash($obj, $c);
+    my $hash = $self->next::method($obj, $c);
 
     # Format the price for display in the UI.
     my $field = $self->price_field();
@@ -83,7 +83,7 @@ sub decode_json_changes : Private {
 
     my ( $self, $c ) = @_;
 
-    my $data = $self->SUPER::decode_json_changes($c);
+    my $data = $self->next::method($c);
 
     my $field = $self->price_field();
     foreach my $rec ( @{ $data } ) {
