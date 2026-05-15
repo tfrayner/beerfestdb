@@ -114,6 +114,7 @@
 
    var url_product_index        = '[% c.uri_for( "/product" ) %]';
 
+   var csrf_token = '[% c.csrf_token %]';
 </script>
 [%- END %]
 [% content %] 

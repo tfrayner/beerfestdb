@@ -45,6 +45,8 @@ use Catalyst qw/ConfigLoader
                 Authentication
                 Authorization::Roles
                 Authorization::ACL
+
+                CSRFToken
                /;
 our $VERSION = '1.1';
 
@@ -95,6 +97,10 @@ __PACKAGE__->config(
                 }
             },
         }
+    },
+    'Plugin::CSRFToken' => {
+        'max_age' => 3600, # Token lifespan in seconds
+        'auto_check' => 1,
     },
     default_currency    => 'GBP',
     default_sale_volume => 'pint',
