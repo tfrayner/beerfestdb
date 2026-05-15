@@ -18,4 +18,4 @@ EXPOSE ${PORT}
 
 HEALTHCHECK CMD curl --fail http://localhost:${PORT}/_stcore/health
 
-ENTRYPOINT streamlit run CBF_tool_page.py --server.port=${PORT} --server.address=0.0.0.0
+ENTRYPOINT /bin/bash run_dashboard.sh --port=${PORT} --streamlit-path=streamlit
