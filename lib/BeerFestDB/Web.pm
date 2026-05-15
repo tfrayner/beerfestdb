@@ -158,11 +158,16 @@ foreach my $path ( qw(bayposition companyregion contacttype containermeasure
 }
 
 __PACKAGE__->allow_access_if( '/user', [ qw( admin ) ] );
-__PACKAGE__->allow_access( '/user/modify' );    # User-level account modification.
-__PACKAGE__->allow_access( '/user/load_form' ); # Maintains its own access config.
+__PACKAGE__->allow_access( '/user/modify' );               # User-level account modification.
+__PACKAGE__->allow_access( '/user/load_form' );            # Maintains its own access config.
+__PACKAGE__->allow_access( '/user/view' );                 # Ownership checked in action.
+__PACKAGE__->allow_access( '/user/request_password_reset' ); # Ownership checked in action.
+__PACKAGE__->allow_access( '/user/reset_password' );       # Token-based; no login required.
+__PACKAGE__->allow_access( '/user/reset_password_submit' ); # Token-based; no login required.
 __PACKAGE__->deny_access( '/user' );
 
 __PACKAGE__->allow_access_if( '/role', [ qw( admin ) ] );
+__PACKAGE__->allow_access( '/role/list' );               # Role listings only
 __PACKAGE__->deny_access( '/role' );
 
 # Areas to which access is always granted.

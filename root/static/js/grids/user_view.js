@@ -43,55 +43,87 @@ Ext.onReady(function(){
     });
 
     /* User form */
+    var formItems = [
+
+        { name:           'username',
+          fieldLabel:     'Username',
+          xtype:          'textfield',
+          readOnly:       true, },
+        
+        { name:           'name',
+          fieldLabel:     'Real name',
+          xtype:          'textfield',
+          allowBlank:     true, },
+        
+        { name:           'email',
+          fieldLabel:     'Email',
+          xtype:          'textfield',
+          vtype:          'email',
+          allowBlank:     false, },
+
+        { name:           'roles',
+          fieldLabel:     'Roles',
+          store:          role_store,
+          triggerAction:  'all',
+          mode:           'local',
+          lazyRender:     true,
+          valueField:     'role_id',
+          displayField:   'rolename',
+          emptyText:      'Select roles...',
+          hideOnSelect:   false,
+          queryMode:      'local',
+          multiSelect:    true,
+          xtype:          'lovcombo',
+          allowBlank:     true, },
+
+        { name:           'user_id',
+          value:          user_id,
+          xtype:          'hidden', },
+
+    ];
+
+    if (user_is_admin) {
+        formItems.splice(formItems.length - 1, 0, {
+            name:       'password',
+            fieldLabel: 'New password',
+            xtype:      'textfield',
+            inputType:  'password',
+            allowBlank: true,
+        });
+    }
+
     var userForm = new MyFormPanel({
 
         url:         url_user_modify,
         title:       'User details',
-            
-        items: [
-            
-            { name:           'username',
-              fieldLabel:     'Username',
-              xtype:          'textfield',
-              readOnly:       true, },
-            
-            { name:           'name',
-              fieldLabel:     'Real name',
-              xtype:          'textfield',
-              allowBlank:     true, },
-            
-            { name:           'email',
-              fieldLabel:     'Email',
-              xtype:          'textfield',
-              vtype:          'email',
-              allowBlank:     false, },
 
-            { name:           'roles',
-              fieldLabel:     'Roles',
-              store:          role_store,
-              triggerAction:  'all',
-              mode:           'local',
-              lazyRender:     true,
-              valueField:     'role_id',
-              displayField:   'rolename',
-              emptyText:      'Select roles...',
-              hideOnSelect:   false,
-              queryMode:      'local',
-              multiSelect:    true,
-              xtype:          'lovcombo',
-              allowBlank:     true, },
-
-            { name:           'user_id',
-              value:          user_id,
-              xtype:          'hidden', },
-            
-        ],
+        items: formItems,
 
         comboStores: [ role_store ],
         loadUrl:     url_user_load_form,
         idParams:    { user_id: user_id },
         waitMsg:     'Loading User details...',
     });
+
+    // After saving as admin, the server never echoes back the password
+    // hash, so the field would stay dirty and trigger the unsaved-changes
+    // warning.  Clear and reset it immediately on success.
+    if (user_is_admin) {
+        userForm.afterSave = function() {
+            var pw = userForm.getForm().findField('password');
+            if (pw) {
+                pw.setValue('');
+                pw.originalValue = '';
+            }
+            Ext.Msg.alert('Success', 'Record saved to database', function() {
+                userForm.getForm().load({
+                    url:     userForm.loadUrl,
+                    params:  userForm.idParams,
+                    waitMsg: userForm.waitMsg,
+                });
+            });
+        };
+    }
 
     var tabpanel = new Ext.TabPanel({
         activeTab: 0,

@@ -1,0 +1,50 @@
+/*
+ * Shared styles for plain-HTML BeerFestDB pages (index, reset_password, etc.)
+ */
+
+/* ── Hero banner ─────────────────────────────────────────────────────────── */
+
+#bfdb-hero {
+  background: linear-gradient(135deg, #b35c00 0%, #e8890a 60%, #f5b942 100%);
+  color: #fff;
+  text-align: center;
+  padding: 2.5em 1em 2em;
+  margin-bottom: 0;
+}
+
+#bfdb-hero h1 {
+  margin: 0 0 0.4em;
+  font-size: 2em;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+}
+
+#bfdb-hero p {
+  margin: 0;
+  font-size: 1em;
+  opacity: 0.92;
+}
+
+/* ── Content card ────────────────────────────────────────────────────────── */
+
+.bfdb-panel {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+  padding: 1.5em;
+  box-sizing: border-box;
+}
+
+.bfdb-panel h2 {
+  margin: 0 0 0.8em;
+  font-size: 1.1em;
+  padding-left: 0.6em;
+  border-left: 4px solid #e8890a;
+  color: #333;
+}
+
+.bfdb-panel > p {
+  font-size: 0.9em;
+  color: #555;
+  margin: 0 0 1em;
+}

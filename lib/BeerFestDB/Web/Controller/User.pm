@@ -87,12 +87,25 @@ sub view : Local {
 
     my ( $self, $c, $id ) = @_;
 
+    unless ( $c->user_exists ) {
+        $c->flash->{url_success_target} = '' . $c->req->uri;
+        $c->res->redirect( $c->uri_for('/login') );
+        $c->detach();
+    }
+
+    unless ( defined $id
+          && $id == eval { $c->user->user_id }
+          || $c->check_any_user_role('admin') ) {
+        $c->stash->{error} = 'You are not authorised to access these data.';
+        $c->detach( '/access_denied' );
+    }
+
     my $object = $c->model('DB::User')->find($id);
 
     unless ( $object ) {
         $c->flash->{error} = "Error: User not found.";
         $c->res->redirect( $c->uri_for('/default') );
-        $c->detach();        
+        $c->detach();
     }
 
     $c->stash->{object} = $object;
@@ -149,20 +162,26 @@ sub build_database_object : Private {
 
     my $obj = $self->next::method( $rec, $c, @other );
 
+    # Quietly drop role changes attempted by non-admin users 
     if ( defined $roles && defined $obj ) {
-        my $rs = $c->model( 'DB::UserRole' );
-        my @r = split /,/, $roles;
-        foreach my $existing ($obj->user_roles) {
+        if ( $c->check_any_user_role('admin') ) {
+            $c->log->debug("Updating roles for user_id " . $obj->user_id() . ": $roles");
+            my $rs = $c->model( 'DB::UserRole' );
+            my @r = split /,/, $roles;
+            foreach my $existing ($obj->user_roles) {
 
-            # Delete unwanted existing roles.
-            if ( ! first { $existing->get_column('role_id') == $_ } @r ) {
-                $existing->delete;
+                # Delete unwanted existing roles.
+                if ( ! first { $existing->get_column('role_id') == $_ } @r ) {
+                    $existing->delete;
+                }
             }
-        }
-        foreach my $role_id (@r) {
+            foreach my $role_id (@r) {
 
-            # Check that all the wanted roles are set.
-            $rs->find_or_create({ user_id => $obj->user_id(), role_id => $role_id });
+                # Check that all the wanted roles are set.
+                $rs->find_or_create({ user_id => $obj->user_id(), role_id => $role_id });
+            }
+        } else {
+            $c->flash->{error} = 'Role changes ignored (unauthorised).';
         }
     }
 
@@ -200,9 +219,9 @@ sub load_form : Local {
 =head2 modify
 
 Profile self-edit: allows a logged-in user to update their own C<name>
-and C<email>. Password, username and roles cannot be changed via this
-action; use C<request_password_reset> for password changes and the
-admin C<submit> action for role management.
+and C<email>. Username and roles cannot be changed via this action.
+Admin users may also set a new C<password> here; non-admin users must
+use C<request_password_reset> for password changes.
 
 =cut
 
@@ -224,7 +243,8 @@ sub modify : Local {
         }
 
         # Strip fields that must not be changed via this action.
-        delete $rec->{$_} for qw( username password roles );
+        delete $rec->{$_} for qw( username roles );
+        delete $rec->{'password'} unless $c->check_any_user_role('admin');
     }
 
     my $rs = $c->model( 'DB::User' );
