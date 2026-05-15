@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,6 +45,26 @@ BeerFestDB::Web::Controller::Root - Root Controller for BeerFestDB::Web
 =head1 METHODS
 
 =cut
+
+=head2 auto
+
+Automatically called for each request. Ensures HTTPS is used unless in 
+testing mode, and that the request method is GET/HEAD/POST.
+
+=cut
+
+sub auto :Private {
+    my ($self, $c) = @_;
+
+    # 404 unless https/testing & request method is GET/HEAD/POST
+    unless( ( $c->req->secure or $c->config->{testing} == 1 )
+            && grep /^(?:GET|HEAD|POST)$/, $c->req->method )
+        {
+            $c->detach('default');
+        }
+
+    return 1;
+}
 
 =head2 default
 
@@ -230,15 +250,31 @@ sub auto : Private {
 
 =head2 end
 
-Attempt to render a view, if needed.
+Attempt to render a view, if needed. Sets security headers on all responses.
 
 =cut 
 
-sub end : ActionClass('RenderView') {}
+sub end : ActionClass('RenderView') {
+
+    my ($self, $c) = @_;
+
+    # don't require TLS for testing
+    unless ($c->config->{testing} == 1) {
+        $c->response->header('Strict-Transport-Security' => 'max-age=3600');
+    }
+
+    $c->response->header(
+        'X-Frame-Options'           => 'DENY',
+        'Content-Security-Policy'   => "default-src 'self' http://www.google.com https://www.google.com 'unsafe-eval' 'unsafe-inline'",
+        'X-Content-Type-Options'    => 'nosniff',
+        'X-Download-Options'        => 'noopen',
+        'X-XSS-Protection'          => "1; 'mode=block'",
+    );
+}
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
