@@ -681,7 +681,7 @@ sub filter_to_latex {
     $text =~ s/ (?: ·  | \x{b7} ) /\\textperiodcentered /gxms;
     $text =~ s/ (?: ž | \x{17e} ) /\\v{z}/gxms;
     $text =~ s/ (?: Ā | \x{100} ) /\\={A}/gxms;
-    $text =~ s/ (?: ě | \x{11b} ) /\\v{A}/gxms;
+    $text =~ s/ (?: ě | \x{11b} ) /\\v{e}/gxms;
 
     return $text;
 }
