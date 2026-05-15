@@ -48,7 +48,7 @@ use Catalyst qw/ConfigLoader
 
                 CSRFToken
                /;
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 # Configure the application. 
 #
