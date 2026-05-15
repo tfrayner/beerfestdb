@@ -18,7 +18,7 @@ max_units_per_sale variables below. %]
 
 [% IF dump_class == 'product_order' -%]
 [%- FILTER stderr -%]
-Note that cask end signs created using product_order dump class info may be inaccurate, due to read-world discrepancies in actual cask delivery.
+Note that cask end signs created using product_order dump class info may be inaccurate, due to real-world discrepancies in actual cask delivery.
 [% END -%]
 [%- END %]
 
