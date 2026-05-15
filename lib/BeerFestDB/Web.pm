@@ -101,6 +101,7 @@ __PACKAGE__->config(
     'Plugin::CSRFToken' => {
         'max_age' => 3600, # Token lifespan in seconds
         'auto_check' => 1,
+        'default_secret' => 'a very long and secret string that should be overridden in production',
     },
     default_currency    => 'GBP',
     default_sale_volume => 'pint',

@@ -46,26 +46,6 @@ BeerFestDB::Web::Controller::Root - Root Controller for BeerFestDB::Web
 
 =cut
 
-=head2 auto
-
-Automatically called for each request. Ensures HTTPS is used unless in 
-testing mode, and that the request method is GET/HEAD/POST.
-
-=cut
-
-sub auto :Private {
-    my ($self, $c) = @_;
-
-    # 404 unless https/testing & request method is GET/HEAD/POST
-    unless( ( $c->req->secure or $c->config->{testing} == 1 )
-            && grep /^(?:GET|HEAD|POST)$/, $c->req->method )
-        {
-            $c->detach('default');
-        }
-
-    return 1;
-}
-
 =head2 default
 
 =cut
@@ -231,9 +211,23 @@ sub json_logout : Global {
     $c->detach( $c->view( 'JSON' ) );
 }
 
+=head2 auto
+
+Automatically called for each request. Ensures HTTPS is used unless in 
+testing mode, and that the request method is GET/HEAD/POST.
+
+=cut
+
 sub auto : Private {
 
     my ($self, $c) = @_;
+
+    # 404 unless https/testing & request method is GET/HEAD/POST
+    unless( ( $c->req->secure or $c->config->{testing} == 1 )
+            && grep /^(?:GET|HEAD|POST)$/, $c->req->method )
+        {
+            $c->detach('default');
+        }
 
     # Prepend all uri_for paths so that this works under a reverse proxy.
     my $base = $c->config->{ 'base_path' };
