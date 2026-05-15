@@ -260,15 +260,17 @@ sub end : ActionClass('RenderView') {
 
     # don't require TLS for testing
     unless ($c->config->{testing} == 1) {
-        $c->response->header('Strict-Transport-Security' => 'max-age=3600');
+        $c->response->header('Strict-Transport-Security' => 'max-age=3600; includeSubDomains');
     }
 
     $c->response->header(
-        'X-Frame-Options'           => 'DENY',
-        'Content-Security-Policy'   => "default-src 'self' http://www.google.com https://www.google.com 'unsafe-eval' 'unsafe-inline'",
+        'X-Frame-Options'           => 'SAMEORIGIN',
+        'Content-Security-Policy'   => "default-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'; form-action 'self';",
         'X-Content-Type-Options'    => 'nosniff',
         'X-Download-Options'        => 'noopen',
         'X-XSS-Protection'          => "1; 'mode=block'",
+        'Referrer-Policy'           => "strict-origin-when-cross-origin",
+        'Permissions-Policy'        => "geolocation=(), microphone=(), camera=()",
     );
 }
 
