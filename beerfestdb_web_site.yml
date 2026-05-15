@@ -112,3 +112,9 @@ Plugin::CSRFToken:
   max_age: 3600, # Token lifespan in seconds
   auto_check: 1,
   default_secret: 'a very long and secret string that should be overridden in production',
+
+# Email configuration for password reset messages.
+email:
+  from_address: 'beerfestdb@example.com'
+  smtp_host:    'localhost'
+  smtp_port:    25

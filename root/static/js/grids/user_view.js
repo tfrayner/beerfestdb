@@ -45,7 +45,7 @@ Ext.onReady(function(){
     /* User form */
     var userForm = new MyFormPanel({
 
-        url:         url_user_submit,
+        url:         url_user_modify,
         title:       'User details',
             
         items: [
@@ -54,11 +54,6 @@ Ext.onReady(function(){
               fieldLabel:     'Username',
               xtype:          'textfield',
               readOnly:       true, },
-            
-            { name:           'password',
-              fieldLabel:     'Password',
-              xtype:          'textfield',
-              allowBlank:     true, },
             
             { name:           'name',
               fieldLabel:     'Real name',
@@ -115,6 +110,30 @@ Ext.onReady(function(){
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
             { text: 'Users', handler: function() { window.location = url_user_grid; } },
+            { xtype: 'tbseparator' },
+            { text:    'Send password reset email',
+              iconCls: 'icon-email',
+              tooltip: 'Email a password reset link to this user\'s registered address',
+              handler: function() {
+                  Ext.Ajax.request({
+                      url:     url_user_request_password_reset,
+                      params:  { user_id: user_id },
+                      success: function(response) {
+                          var result = Ext.util.JSON.decode(response.responseText);
+                          if (result.success) {
+                              Ext.Msg.alert('Email sent',
+                                  'A password reset link has been sent to the registered email address.');
+                          } else {
+                              Ext.Msg.alert('Error', result.error || 'Could not send reset email.');
+                          }
+                      },
+                      failure: function(response) {
+                          var result = Ext.util.JSON.decode(response.responseText);
+                          Ext.Msg.alert('Error', result.error || 'Could not send reset email.');
+                      },
+                  });
+              },
+            },
         ],
     });
     

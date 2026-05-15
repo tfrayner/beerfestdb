@@ -14,6 +14,8 @@ requires 'Catalyst::View::JSON';
 requires 'Catalyst::View::TT';
 requires 'Digest::SHA',                                    '6.04';
 requires 'Crypt::SaltedHash',                              '0.09';
+requires 'Bytes::Random::Secure';
+requires 'MIME::Lite::TT::HTML';
 requires 'Config::YAML';
 requires 'JSON::MaybeXS';
 requires 'Cpanel::JSON::XS';
