@@ -68,7 +68,8 @@ Ext.onReady(function(){
             { name:           'email',
               fieldLabel:     'Email',
               xtype:          'textfield',
-              allowBlank:     true, },
+              vtype:          'email',
+              allowBlank:     false, },
 
             { name:           'roles',
               fieldLabel:     'Roles',

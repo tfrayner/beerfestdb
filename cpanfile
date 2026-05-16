@@ -7,6 +7,7 @@ requires 'Catalyst::Plugin::Authentication',               '0.10023';
 requires 'Catalyst::Plugin::Authorization::ACL',           '0.16';
 requires 'Catalyst::Plugin::Authorization::Roles',         '0.09';
 requires 'Catalyst::Plugin::OpenIDConnect',                '0.02';
+requires 'Catalyst::Plugin::CSRFToken';
 requires 'Catalyst::Authentication::Store::DBIx::Class',   '0.1506';
 requires 'Catalyst::Action::RenderView';
 requires 'Catalyst::View::JSON';

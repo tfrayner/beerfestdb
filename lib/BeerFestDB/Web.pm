@@ -45,8 +45,10 @@ use Catalyst qw/ConfigLoader
                 Authentication
                 Authorization::Roles
                 Authorization::ACL
+
+                CSRFToken
                /;
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 # Configure the application. 
 #
@@ -96,6 +98,11 @@ __PACKAGE__->config(
             },
         }
     },
+    'Plugin::CSRFToken' => {
+        'max_age' => 3600, # Token lifespan in seconds
+        'auto_check' => 1,
+        'default_secret' => 'a very long and secret string that should be overridden in production',
+    },
     default_currency    => 'GBP',
     default_sale_volume => 'pint',
     default_product_category => 'beer',
@@ -103,6 +110,8 @@ __PACKAGE__->config(
     stock_control_departments => [],
     awrs_urn_prefix => 'https://www.tax.service.gov.uk/check-the-awrs-register?query=',
     using_frontend_proxy => 1,  # create URLs using HTTPS scheme when behind a proxy
+    enable_catalyst_header => 0,  # Disable X-Catalyst header
+    testing => 0,  # Set to 1 to disable HTTPS requirement for testing.
  );
 
 # Load the OpenIDConnect plugin if available. ConditionalOIDC runs its

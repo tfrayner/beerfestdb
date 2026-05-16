@@ -187,15 +187,13 @@ sub _get_product_category : Private {
 
     $c->log->debug("Tracking product_category for $classname object...");
 
-    # FIXME note that this may be rather too heavy on DB queries,
-    # especially for large lists of updates.
     my %catmap = (
         'Product'               => sub { $_[0]->product_category_id() },
         'ProductCharacteristic' => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
         'FestivalProduct'       => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
-        'Gyle'                  => sub { $self->_get_product_category( $c, $_[0]->festival_product_id ) },
-        'Cask'                  => sub { $self->_get_product_category( $c, $_[0]->gyle_id ) },
-        'CaskMeasurement'       => sub { $self->_get_product_category( $c, $_[0]->cask_id ) },
+        'Gyle'                  => sub { $self->_get_product_category( $c, $_[0]->festival_product_id->product_id ) },
+        'Cask'                  => sub { $self->_get_product_category( $c, $_[0]->gyle_id->festival_product_id->product_id ) },
+        'CaskMeasurement'       => sub { $self->_get_product_category( $c, $_[0]->cask_id->gyle_id->festival_product_id->product_id ) },
         'ProductOrder'          => sub { $self->_get_product_category( $c, $_[0]->product_id ) },
         'CaskManagement'        => sub { $self->_get_product_category( $c, $_[0]->casks->first() ||
                                                                            $_[0]->product_order_id, 1 ) },
@@ -283,6 +281,60 @@ sub _confirm_category_authorisation : Private {
                                    "Attempting to edit an object which requires"
                                    . " manager or admin privileges\n");
         }
+    }
+}
+
+sub _get_festival : Private {
+
+    my ( $self, $c, $dbobj, $null_okay ) = @_;
+
+    # Sometimes we will be passed a null object during subsequent recursion; e.g. into orphaned
+    # CaskManagement objects that are fine to edit and/or delete in subsequent operations.
+    if ( ! $dbobj ) {
+        return if $null_okay; # Only CaskManagement for the moment.
+        $self->raise_exception($c, "Unable to track object back to festival.\n");
+    }
+
+    my $result_source = $dbobj->result_source();
+    my $rs            = $result_source->resultset();
+    my $classname     = $result_source->source_name();
+
+    my %catmap = (
+        'Festival'              => sub { $_[0]->name() },
+        'FestivalOpening'       => sub { $self->_get_festival( $c, $_[0]->festival_id ) },
+        'FestivalEntry'         => sub { $self->_get_festival( $c, $_[0]->festival_opening_id->festival_id ) },
+        'FestivalProduct'       => sub { $self->_get_festival( $c, $_[0]->festival_id ) },
+        'MeasurementBatch'      => sub { $self->_get_festival( $c, $_[0]->festival_id ) },
+        'Bar'                   => sub { $self->_get_festival( $c, $_[0]->festival_id ) },
+        'StillageLocation'      => sub { $self->_get_festival( $c, $_[0]->festival_id ) },
+        'OrderBatch'            => sub { $self->_get_festival( $c, $_[0]->festival_id ) },
+        'ProductOrder'          => sub { $self->_get_festival( $c, $_[0]->order_batch_id->festival_id ) },
+        'Gyle'                  => sub { $self->_get_festival( $c, $_[0]->festival_product_id->festival_id ) },
+        'Cask'                  => sub { $self->_get_festival( $c, $_[0]->gyle_id->festival_product_id->festival_id ) },
+        'CaskMeasurement'       => sub { $self->_get_festival( $c, $_[0]->cask_id->gyle_id->festival_product_id->festival_id ) },
+        'CaskManagement'        => sub { $self->_get_festival( $c, $_[0]->casks->first() ||  # Use the cask recursion
+                                                                   $_[0]->product_order_id->order_batch_id->festival_id, 1 ) },
+    );
+
+    if ( my $fun = $catmap{ $classname } ) {
+        return $fun->($dbobj);
+    }
+    else {
+        return;
+    }
+}
+
+sub _belongs_to_current_festival : Private {
+
+    my ( $self, $c, $dbobj ) = @_;
+
+    my $festival = $self->_get_festival($c, $dbobj);
+
+    if ( defined $festival ) {
+        return $festival eq $c->config->{'current_festival'};
+    }
+    else {
+        return 1;  # If it doesn't belong to a festival, it's fair game.
     }
 }
 
@@ -444,7 +496,14 @@ sub build_database_object : Private {
 
     # Note that this will raise an exception to derail the enclosing
     # transaction if the user is not authorised to make changes.
-    $self->_confirm_category_authorisation($c, $dbobj) if $dbobj->is_changed();
+    if ( $dbobj->is_changed() ) {
+        $self->_confirm_category_authorisation($c, $dbobj);
+        $self->_belongs_to_current_festival($c, $dbobj) or
+            $self->raise_exception(
+                $c,
+                "Attempting to edit an object which does not belong to the current festival.\n"
+            );
+    }
 
     unless ( $no_update ) {
         $c->log->debug(sprintf(qq{Saving %s object with ID %s...},
@@ -563,6 +622,11 @@ sub delete_database_object : Private {
     # Note that this will raise an exception to derail the enclosing
     # transaction if the user is not authorised to make changes.
     $self->_confirm_category_authorisation($c, $rec);
+    $self->_belongs_to_current_festival($c, $rec) or
+        $self->raise_exception(
+            $c,
+            "Attempting to delete an object which does not belong to the current festival.\n"
+        );
 
     eval {
         $rec->delete();

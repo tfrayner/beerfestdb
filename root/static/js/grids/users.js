@@ -59,7 +59,8 @@ Ext.onReady(function(){
           dataIndex:  'email',
           width:      150,
           editor:     new Ext.form.TextField({
-              allowBlank:     true,
+              allowBlank:     false,
+              vtype:          'email',
           })},
     ];
 

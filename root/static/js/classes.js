@@ -702,6 +702,12 @@ MyMainPanel = Ext.extend(Ext.Panel, {
     }
 });
 
+// Attach the CSRF token to every Ext.Ajax request automatically.
+// csrf_token is rendered into the page by the site/html template.
+Ext.onReady(function() {
+    Ext.Ajax.extraParams = { csrf_token: csrf_token };
+});
+
 window.onbeforeunload = function() {
     var dirty = false;
     Ext.ComponentMgr.all.each(function(cmp) {

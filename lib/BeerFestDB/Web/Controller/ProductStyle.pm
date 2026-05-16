@@ -95,7 +95,7 @@ sub list : Local {
     if ( my $category_id = $c->req()->params()->{ product_category_id } ) {
         $c->res->redirect( $c->uri_for('list_by_category', $category_id) );
     } else {
-        $self->SUPER::list($c);
+        $self->next::method($c);
     }
 }
 
