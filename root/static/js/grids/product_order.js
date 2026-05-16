@@ -261,7 +261,7 @@ Ext.onReady(function(){
               allowBlank:     true,
           })},
         { id:         'price',
-          header:     'Price',
+          header:     'Total Price',
           dataIndex:  'price',
           width:      50,
           editor:     new Ext.form.TextField({
