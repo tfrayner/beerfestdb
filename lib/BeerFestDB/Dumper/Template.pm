@@ -304,9 +304,12 @@ sub update_gyle_hash {
 
     # This is a bit hacky but it allows us to get the dispense method for a gyle.
     # Assumes only one dispense method per gyle, which is almost always true in practice.
-    my $dispense = $gyle->search_related('casks')->first()->cask_management_id()->container_size_id()->dispense_method_id();
-    if ( $dispense ) {
-        $gylehash->{dispense_method} = $dispense->description();
+    my $cask = $gyle->search_related('casks')->first();
+    if ( $cask ) {
+        my $dispense = $cask->cask_management_id()->container_size_id()->dispense_method_id();
+        if ( $dispense ) {
+            $gylehash->{dispense_method} = $dispense->description();
+        }
     }
 
     return $gylehash;
