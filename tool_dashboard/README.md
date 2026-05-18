@@ -1,5 +1,6 @@
-= Cambridge Beer Festival =
-== BeerfestDB Tool Dashboard ==
+# Cambridge Beer Festival
+
+## BeerfestDB Tool Dashboard
 
 A collection of handy little utilities for using data in beerfestdb
 
@@ -7,7 +8,7 @@ Requirements for python scripts are in requirements.txt. Put this file in /path/
 
 Also create a /path/to/.streamlit/ directory. This will hold the secrets.toml file (DO NOT commit a secrets file to github or any other version control).
 
-== Setup ==
+## Setup
 
 Create and activate a python virtual environment. Run the following to install dependencies:
 
@@ -52,7 +53,7 @@ streamlit run CBF_tool_page.py
 
 You should now be able to point your browser at the app using the URL(s) that streamlit gives you.
 
-== Docker ==
+## Docker
 
 To create a docker image, run:
 
