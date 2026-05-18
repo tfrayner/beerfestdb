@@ -147,6 +147,13 @@ configuration.
 To set up the additional tools dashboard, please see the 
 [dashboard README file](tool_dashboard/README.md) for instructions.
 
+Mobile App
+----------
+
+The [BeerFestMobile](https://github.com/tfrayner/beerfest-mobile) app
+will allow a cellar team to edit cask data (dips, vented/tapped/ready,
+notes etc.) directly in the database as they work on their stillages.
+This can save significant admin time between sessions.
 
 Credits
 -------

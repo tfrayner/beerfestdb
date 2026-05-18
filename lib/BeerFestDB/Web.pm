@@ -45,8 +45,10 @@ use Catalyst qw/ConfigLoader
                 Authentication
                 Authorization::Roles
                 Authorization::ACL
+
+                CSRFToken
                /;
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 # Configure the application. 
 #
@@ -96,6 +98,11 @@ __PACKAGE__->config(
             },
         }
     },
+    'Plugin::CSRFToken' => {
+        'max_age' => 3600, # Token lifespan in seconds
+        'auto_check' => 1,
+        'default_secret' => 'a very long and secret string that should be overridden in production',
+    },
     default_currency    => 'GBP',
     default_sale_volume => 'pint',
     default_product_category => 'beer',
@@ -103,6 +110,8 @@ __PACKAGE__->config(
     stock_control_departments => [],
     awrs_urn_prefix => 'https://www.tax.service.gov.uk/check-the-awrs-register?query=',
     using_frontend_proxy => 1,  # create URLs using HTTPS scheme when behind a proxy
+    enable_catalyst_header => 0,  # Disable X-Catalyst header
+    testing => 0,  # Set to 1 to disable HTTPS requirement for testing.
  );
 
 # Load the OpenIDConnect plugin if available. ConditionalOIDC runs its
@@ -141,20 +150,23 @@ foreach my $path ( qw(productstyle) ) {
 foreach my $path ( qw(bayposition companyregion contacttype containermeasure
                       containersize country currency dispensemethod
                       productallergentype productcharacteristictype
-                      productcategory productstyle
+                      productcategory productstyle role
                       salevolume telephonetype) ) {
     __PACKAGE__->allow_access_if( "/$path/list", [ qw( user ) ] );
     __PACKAGE__->allow_access_if( '/' . $path, [ qw( admin ) ] );
     __PACKAGE__->deny_access( '/' . $path );
 }
 
+# Special handling for user management: users can edit their own account but only admins
+# can edit other accounts or assign roles.
 __PACKAGE__->allow_access_if( '/user', [ qw( admin ) ] );
-__PACKAGE__->allow_access( '/user/modify' );    # User-level account modification.
-__PACKAGE__->allow_access( '/user/load_form' ); # Maintains its own access config.
+__PACKAGE__->allow_access( '/user/modify' );                 # User-level account modification.
+__PACKAGE__->allow_access( '/user/load_form' );              # Maintains its own access config.
+__PACKAGE__->allow_access( '/user/view' );                   # Ownership checked in action.
+__PACKAGE__->allow_access( '/user/request_password_reset' ); # Ownership checked in action.
+__PACKAGE__->allow_access( '/user/reset_password' );         # Token-based; no login required.
+__PACKAGE__->allow_access( '/user/reset_password_submit' );  # Token-based; no login required.
 __PACKAGE__->deny_access( '/user' );
-
-__PACKAGE__->allow_access_if( '/role', [ qw( admin ) ] );
-__PACKAGE__->deny_access( '/role' );
 
 # Areas to which access is always granted.
 __PACKAGE__->allow_access( '/default' );

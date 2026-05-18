@@ -68,6 +68,45 @@ changes=[1,2,3]
 { "success": true, "data": { "field1": "value", ... } }
 ```
 
+### CSRF Protection
+
+All state-mutating requests (POST) are protected by a CSRF token checked
+automatically by the server (`Catalyst::Plugin::CSRFToken` with
+`auto_check` enabled).
+
+**Token lifetime:** 3600 seconds (1 hour).
+
+**Obtaining the token:**
+
+- Every response — including those to unauthenticated GET requests such as
+  the login page — includes the current token in the `X-CSRF-Token`
+  response header.
+- HTML pages also embed the token as a JavaScript variable:
+  ```js
+  var csrf_token = '<token>';
+  ```
+
+**Sending the token:**
+
+Include the token as a form body parameter named `csrf_token` in every
+POST request:
+
+```
+csrf_token=<token>&changes=[...]
+```
+
+If the token is missing, stale, or invalid the server returns HTTP **403**.
+
+**Non-browser clients** should:
+1. Make a GET request to any endpoint (e.g. `GET /login`) and read the
+   `X-CSRF-Token` response header.
+2. Include that value as `csrf_token` in the body of all subsequent POST
+   requests.
+3. Refresh the token (repeat step 1) if a 403 is received due to token
+   expiry.
+
+---
+
 ### Authentication
 
 Two authentication mechanisms are supported:
@@ -173,6 +212,14 @@ Returns all festivals.
 #### `GET /festival/load_form?festival_id=N`
 
 Returns a single festival record.
+
+**Response:** `{success, data:{...}}`
+
+---
+
+#### `GET /festival/current_festival`
+
+Returns the record for the current festival.
 
 **Response:** `{success, data:{...}}`
 

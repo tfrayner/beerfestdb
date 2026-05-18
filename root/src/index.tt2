@@ -1,23 +1,16 @@
 [% META title = "Welcome to BeerFestDB" %]
 
+[% css_link( href = '/static/css/bfdb-pages.css' ) %]
 <style type="text/css">
-  #bfdb-hero {
-    background: linear-gradient(135deg, #b35c00 0%, #e8890a 60%, #f5b942 100%);
+  /* index-specific */
+  .bfdb-user-bar {
+    margin: 0.9em 0 0;
+    font-size: 0.85em;
+    opacity: 0.88;
+  }
+  .bfdb-user-bar a {
     color: #fff;
-    text-align: center;
-    padding: 2.5em 1em 2em;
-    margin-bottom: 0;
-  }
-  #bfdb-hero h1 {
-    margin: 0 0 0.4em;
-    font-size: 2em;
-    letter-spacing: 0.03em;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.35);
-  }
-  #bfdb-hero p {
-    margin: 0;
-    font-size: 1em;
-    opacity: 0.92;
+    text-decoration: underline;
   }
   #bfdb-panels {
     display: flex;
@@ -27,26 +20,7 @@
     margin: 0 auto;
     box-sizing: border-box;
   }
-  .bfdb-panel {
-    flex: 1;
-    background: #fff;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.13);
-    padding: 1.5em;
-    box-sizing: border-box;
-  }
-  .bfdb-panel h2 {
-    margin: 0 0 0.8em;
-    font-size: 1.1em;
-    padding-left: 0.6em;
-    border-left: 4px solid #e8890a;
-    color: #333;
-  }
-  .bfdb-panel > p {
-    font-size: 0.9em;
-    color: #555;
-    margin: 0 0 1em;
-  }
+  .bfdb-panel { flex: 1; }
   .bfdb-card {
     display: block;
     padding: 0.55em 0.9em;
@@ -89,6 +63,13 @@
   [% ELSE %]
     <p>Beer festival product management &mdash; use the panels below to navigate.</p>
   [% END %]
+  [% IF c.user_exists %]
+  <p class="bfdb-user-bar">Logged in as <strong>[% c.user.username | html %]</strong>
+    &mdash; <a href="[% c.uri_for('/user/view', c.user.user_id) %]">My Account</a>
+    &bull; <a href="[% c.uri_for('/logout') %]">Log out</a></p>
+  [% ELSE %]
+  <p class="bfdb-user-bar"><a href="[% c.uri_for('/login') %]">Log in</a></p>
+  [% END %]
 </div>
 
 <div id="bfdb-panels">
@@ -100,6 +81,7 @@
     <a class="bfdb-card" href="[% c.uri_for('/company/grid') %]">Supplier and Product Listings</a>
   </div>
 
+  [% IF c.check_any_user_role('admin') %]
   <div class="bfdb-panel" id="bfdb-admin-menu">
     <h2>Database Administration</h2>
     <p>Configuration pages restricted to admin-level users.</p>
@@ -127,6 +109,7 @@
       <a class="bfdb-card" href="[% c.uri_for('/currency/grid') %]">Currencies</a>
     </div>
   </div>
+  [% END %]
 
 </div>
 

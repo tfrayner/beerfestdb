@@ -9,6 +9,8 @@ Model::DB:
 
 current_festival:   'TestFestival'
 
+testing:            1
+
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:
 

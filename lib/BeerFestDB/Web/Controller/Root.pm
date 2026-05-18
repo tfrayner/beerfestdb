@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -154,7 +154,8 @@ sub login : Global {
     }
     elsif ( $authenticated ) {
 
-	    $c->log->debug("login authentication successful.");
+	    $c->log->info("login authentication of user '" . $data->{ 'username' } . "' successful.");
+        $c->user->update({ date_accessed => \'CURRENT_TIMESTAMP' });
 
         # ExtJS form redirects to url_success_target URI.
 	    $c->res->status('200');
@@ -163,7 +164,7 @@ sub login : Global {
     }
     else {
 
-	    $c->log->debug("login authentication failed.");
+	    $c->log->info("login authentication of user '" . $data->{ 'username' } . "' failed.");
 
         $c->res->status('401');
         $c->stash->{ 'message' } = 'Login failed.';
@@ -210,9 +211,23 @@ sub json_logout : Global {
     $c->detach( $c->view( 'JSON' ) );
 }
 
+=head2 auto
+
+Automatically called for each request. Ensures HTTPS is used unless in 
+testing mode, and that the request method is GET/HEAD/POST.
+
+=cut
+
 sub auto : Private {
 
     my ($self, $c) = @_;
+
+    # 404 unless https/testing & request method is GET/HEAD/POST
+    unless( ( $c->req->secure or $c->config->{testing} == 1 )
+            && grep /^(?:GET|HEAD|POST)$/, $c->req->method )
+        {
+            $c->detach('default');
+        }
 
     # Prepend all uri_for paths so that this works under a reverse proxy.
     my $base = $c->config->{ 'base_path' };
@@ -229,15 +244,34 @@ sub auto : Private {
 
 =head2 end
 
-Attempt to render a view, if needed.
+Attempt to render a view, if needed. Sets security headers on all responses.
 
 =cut 
 
-sub end : ActionClass('RenderView') {}
+sub end : ActionClass('RenderView') {
+
+    my ($self, $c) = @_;
+
+    # don't require TLS for testing
+    unless ($c->config->{testing} == 1) {
+        $c->response->header('Strict-Transport-Security' => 'max-age=3600; includeSubDomains');
+    }
+
+    $c->response->header(
+        'X-Frame-Options'           => 'SAMEORIGIN',
+        'Content-Security-Policy'   => "default-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'; form-action 'self';",
+        'X-Content-Type-Options'    => 'nosniff',
+        'X-Download-Options'        => 'noopen',
+        'X-XSS-Protection'          => "1; 'mode=block'",
+        'Referrer-Policy'           => "strict-origin-when-cross-origin",
+        'Permissions-Policy'        => "geolocation=(), microphone=(), camera=()",
+        'X-CSRF-Token'              => $c->csrf_token, # Expose CSRF token in header for JavaScript clients
+    );
+}
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2010-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

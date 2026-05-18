@@ -15,7 +15,7 @@ INSERT INTO `product_characteristic_type` (`product_characteristic_type_id`, `pr
 INSERT INTO `role` (`role_id`, `rolename`) VALUES (1,'admin'),(2,'user'),(3,'manager');
 INSERT INTO `sale_volume` (`sale_volume_id`,`container_measure_id`,`description`,`volume`) VALUES (1,3,'pint',1.0),(2,5,'500ml bottle',1.0),(3,6,'175ml glass',1.0);
 INSERT INTO `telephone_type` (`telephone_type_id`, `description`) VALUES (2,'fax'),(1,'landline'),(3,'mobile');
-INSERT INTO `user` (`user_id`, `username`, `name`, `email`, `password`) VALUES (1,'admin',NULL,NULL,'{SSHA}phihZR8gSGUPNV0GYRRixWhlNS6rnO9q'),(2,'cellar',NULL,NULL,'{SSHA}CqSE3cPzRBmuAnVo7yhusv1EfkqdKIKK');
+INSERT INTO `user` (`user_id`, `username`, `name`, `email`, `password`) VALUES (1,'admin','Administrator','admin@localhost','{SSHA}phihZR8gSGUPNV0GYRRixWhlNS6rnO9q'),(2,'cellar','Cellar Team','cellar@localhost','{SSHA}CqSE3cPzRBmuAnVo7yhusv1EfkqdKIKK');
 INSERT INTO `user_role` (`user_role_id`, `user_id`, `role_id`) VALUES (1,1,1),(2,1,2),(3,2,3),(4,2,2);
 
 insert into role (`rolename`) values ('cellar');

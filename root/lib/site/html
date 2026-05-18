@@ -111,9 +111,12 @@
    var url_role_delete          = '[% c.uri_for( "/role/delete" ) %]';
    var url_user_submit          = '[% c.uri_for( "/user/submit" ) %]';
    var url_user_delete          = '[% c.uri_for( "/user/delete" ) %]';
+   var url_user_modify                  = '[% c.uri_for( "/user/modify" ) %]';
+   var url_user_request_password_reset  = '[% c.uri_for( "/user/request_password_reset" ) %]';
 
    var url_product_index        = '[% c.uri_for( "/product" ) %]';
 
+   var csrf_token = '[% c.csrf_token %]';
 </script>
 [%- END %]
 [% content %] 
