@@ -265,6 +265,7 @@ sub end : ActionClass('RenderView') {
         'X-XSS-Protection'          => "1; 'mode=block'",
         'Referrer-Policy'           => "strict-origin-when-cross-origin",
         'Permissions-Policy'        => "geolocation=(), microphone=(), camera=()",
+        'X-CSRF-Token'              => $c->csrf_token, # Expose CSRF token in header for JavaScript clients
     );
 }
 
