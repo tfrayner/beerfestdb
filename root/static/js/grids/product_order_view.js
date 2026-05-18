@@ -159,7 +159,7 @@ Ext.onReady(function(){
               allowBlank:     true },
 
             { name:           'price',
-              fieldLabel:     'Sale Price',
+              fieldLabel:     'Total Price',
               xtype:          'textfield',
               allowBlank:     true, },
             

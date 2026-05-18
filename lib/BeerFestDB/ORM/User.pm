@@ -152,6 +152,12 @@ __PACKAGE__->many_to_many(
     "roles" => "user_roles", "role_id"
 );
 
+__PACKAGE__->has_many(
+  "password_reset_tokens",
+  "BeerFestDB::ORM::PasswordResetToken",
+  { "foreign.user_id" => "self.user_id" },
+);
+
 sub repr {
     my ( $self ) = @_; return $self->username;
 }

@@ -26,6 +26,11 @@ use namespace::autoclean;
 use Crypt::SaltedHash;
 use List::Util qw(first);
 use JSON::MaybeXS;
+use Bytes::Random::Secure qw(random_bytes);
+use Digest::SHA qw(sha256_hex);
+use MIME::Base64 qw(encode_base64url);
+use MIME::Lite::TT::HTML;
+use DateTime;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -82,12 +87,25 @@ sub view : Local {
 
     my ( $self, $c, $id ) = @_;
 
+    unless ( $c->user_exists ) {
+        $c->flash->{url_success_target} = '' . $c->req->uri;
+        $c->res->redirect( $c->uri_for('/login') );
+        $c->detach();
+    }
+
+    unless ( defined $id
+          && $id == eval { $c->user->user_id }
+          || $c->check_any_user_role('admin') ) {
+        $c->stash->{error} = 'You are not authorised to access these data.';
+        $c->detach( '/access_denied' );
+    }
+
     my $object = $c->model('DB::User')->find($id);
 
     unless ( $object ) {
         $c->flash->{error} = "Error: User not found.";
         $c->res->redirect( $c->uri_for('/default') );
-        $c->detach();        
+        $c->detach();
     }
 
     $c->stash->{object} = $object;
@@ -144,20 +162,26 @@ sub build_database_object : Private {
 
     my $obj = $self->next::method( $rec, $c, @other );
 
+    # Quietly drop role changes attempted by non-admin users 
     if ( defined $roles && defined $obj ) {
-        my $rs = $c->model( 'DB::UserRole' );
-        my @r = split /,/, $roles;
-        foreach my $existing ($obj->user_roles) {
+        if ( $c->check_any_user_role('admin') ) {
+            $c->log->debug("Updating roles for user_id " . $obj->user_id() . ": $roles");
+            my $rs = $c->model( 'DB::UserRole' );
+            my @r = split /,/, $roles;
+            foreach my $existing ($obj->user_roles) {
 
-            # Delete unwanted existing roles.
-            if ( ! first { $existing->get_column('role_id') == $_ } @r ) {
-                $existing->delete;
+                # Delete unwanted existing roles.
+                if ( ! first { $existing->get_column('role_id') == $_ } @r ) {
+                    $existing->delete;
+                }
             }
-        }
-        foreach my $role_id (@r) {
+            foreach my $role_id (@r) {
 
-            # Check that all the wanted roles are set.
-            $rs->find_or_create({ user_id => $obj->user_id(), role_id => $role_id });
+                # Check that all the wanted roles are set.
+                $rs->find_or_create({ user_id => $obj->user_id(), role_id => $role_id });
+            }
+        } else {
+            $c->flash->{error} = 'Role changes ignored (unauthorised).';
         }
     }
 
@@ -192,26 +216,285 @@ sub load_form : Local {
     $self->form_json_and_detach( $c, $rs, $pk );
 }
 
-# FIXME this is just a vague outline at the moment. It's intended as a
-# means for a given user to be able to edit their own account
-# (e.g. change password).
+=head2 modify
+
+Profile self-edit: allows a logged-in user to update their own C<name>
+and C<email>. Username and roles cannot be changed via this action.
+Admin users may also set a new C<password> here; non-admin users must
+use C<request_password_reset> for password changes.
+
+=cut
+
 sub modify : Local {
 
     my ( $self, $c ) = @_;
 
-    # Quick check for authorisation; we may need to put in other
-    # checks for content FIXME.
     my $data = $self->decode_json_changes($c);
 
     foreach my $rec ( @{ $data } ) {
-        if ( $rec->{'user_id'} != eval{ $c->user->user_id } ) {
+
+        my $target_id = $rec->{'user_id'};
+
+        unless ( defined $target_id
+              && $target_id == eval { $c->user->user_id }
+              || $c->check_any_user_role('admin') ) {
             $c->stash->{error} = 'You are not authorised to edit these data.';
             $c->detach( '/access_denied' );
         }
+
+        # Strip fields that must not be changed via this action.
+        delete $rec->{$_} for qw( username roles );
+        delete $rec->{'password'} unless $c->check_any_user_role('admin');
     }
 
-    # Pass-through to submit action for the moment FIXME?
-    $self->submit( $c );
+    my $rs = $c->model( 'DB::User' );
+    $self->write_to_resultset( $c, $rs );
+}
+
+=head2 request_password_reset
+
+Generates a single-use, time-limited (15-minute) password-reset token,
+stores its SHA-256 hash in the database, and emails the raw token to
+the user's registered address.
+
+=cut
+
+sub request_password_reset : Local {
+
+    my ( $self, $c ) = @_;
+
+    # Must be logged in, or an admin acting on another user's behalf.
+    unless ( $c->user_exists ) {
+        $c->stash->{error} = 'You must be logged in to request a password reset.';
+        $c->detach( '/access_denied' );
+    }
+
+    my $user_id = $c->request->param('user_id');
+    unless ( defined $user_id && $user_id =~ /^\d+$/ ) {
+        $c->stash->{error} = 'Invalid user_id.';
+        $c->detach( '/access_denied' );
+    }
+
+    unless ( $user_id == eval { $c->user->user_id }
+          || $c->check_any_user_role('admin') ) {
+        $c->stash->{error} = 'You are not authorised to reset this password.';
+        $c->detach( '/access_denied' );
+    }
+
+    my $user = $c->model('DB::User')->find( $user_id );
+    unless ( $user ) {
+        $c->stash->{ success } = JSON->false();
+        $c->stash->{ error }   = 'User not found.';
+        $c->forward( 'View::JSON' );
+        return;
+    }
+
+    my $email_addr = $user->email;
+    unless ( defined $email_addr && $email_addr ne q{} ) {
+        $c->stash->{ success } = JSON->false();
+        $c->stash->{ error }   = 'No email address is registered for this account.';
+        $c->forward( 'View::JSON' );
+        return;
+    }
+
+    # Remove any existing unused tokens for this user.
+    $c->model('DB::PasswordResetToken')->search({
+        user_id => $user_id,
+        used    => 0,
+    })->delete;
+
+    # Generate a cryptographically secure random token.
+    my $raw_token  = encode_base64url( random_bytes(32) );
+    my $token_hash = sha256_hex( $raw_token );
+    my $expires_at = DateTime->now->add( minutes => 15 );
+    my $expires_str = sprintf( '%04d-%02d-%02d %02d:%02d:%02d',
+        $expires_at->year, $expires_at->month,  $expires_at->day,
+        $expires_at->hour, $expires_at->minute, $expires_at->second );
+
+    $c->model('DB::PasswordResetToken')->create({
+        user_id    => $user_id,
+        token_hash => $token_hash,
+        expires_at => $expires_str,
+        used       => 0,
+    });
+
+    my $reset_url = $c->uri_for( '/user/reset_password', { token => $raw_token } )->as_string;
+
+    my $email_cfg = $c->config->{ email } || {};
+    my $from      = $email_cfg->{ from_address } || 'beerfestdb@localhost';
+    my $smtp_host = $email_cfg->{ smtp_host }    || 'localhost';
+    my $smtp_port = $email_cfg->{ smtp_port }    || 25;
+
+    eval {
+        my $tt_vars = {
+            username  => $user->username,
+            reset_url => $reset_url,
+            expires   => '15 minutes',
+        };
+        my $msg = MIME::Lite::TT::HTML->new(
+            From     => $from,
+            To       => $email_addr,
+            Subject  => 'BeerFestDB password reset',
+            Template => {
+                text => 'email/password_reset_text.tt2',
+                html => 'email/password_reset_html.tt2',
+            },
+            TmplOptions => { INCLUDE_PATH => $c->path_to('root', 'src') },
+            TmplParams  => $tt_vars,
+        );
+        $msg->send( 'smtp', $smtp_host, Port => $smtp_port );
+    };
+    if ( $@ ) {
+        $c->log->error( "Failed to send password reset email: $@" );
+        $c->stash->{ success } = JSON->false();
+        $c->stash->{ error }   = 'Failed to send password reset email. Please contact an administrator.';
+        $c->forward( 'View::JSON' );
+        return;
+    }
+
+    $c->stash->{ success } = JSON->true();
+    $c->forward( 'View::JSON' );
+}
+
+=head2 reset_password
+
+Renders the password reset form. Validates the raw token supplied in
+C<?token=...> before displaying the form; redirects to the login page
+if the token is absent, already used, or expired.
+
+=cut
+
+sub reset_password : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $raw_token = $c->request->param('token');
+
+    my $token_row = $self->_validate_reset_token( $c, $raw_token )
+        or return;   # _validate_reset_token handles redirect on failure
+
+    $c->stash->{token}    = $raw_token;
+    $c->stash->{username} = $token_row->user->username;
+    $c->stash->{template} = 'user/reset_password.tt2';
+}
+
+=head2 reset_password_submit
+
+Handles submission of the password reset form. Re-validates the token
+inside a transaction, hashes the new password, updates the user record,
+and marks the token as used.
+
+=cut
+
+sub reset_password_submit : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $raw_token   = $c->request->param('token');
+    my $new_pw      = $c->request->param('new_password');
+    my $confirm_pw  = $c->request->param('confirm_password');
+
+    unless ( defined $new_pw && $new_pw ne q{} ) {
+        $c->flash->{error} = 'Password must not be empty.';
+        $c->res->redirect( $c->uri_for( '/user/reset_password', { token => $raw_token } ) );
+        $c->detach();
+    }
+
+    unless ( $new_pw eq $confirm_pw ) {
+        $c->flash->{error} = 'Passwords do not match.';
+        $c->res->redirect( $c->uri_for( '/user/reset_password', { token => $raw_token } ) );
+        $c->detach();
+    }
+
+    my $schema = $c->model('DB::User')->result_source->schema;
+
+    my $error;
+    eval {
+        $schema->txn_do( sub {
+
+            # Re-validate inside the transaction to guard against races.
+            my $token_row = $self->_validate_reset_token( $c, $raw_token )
+                or die "invalid token\n";
+
+            my $csh = Crypt::SaltedHash->new( algorithm => 'SHA-1' );
+            $csh->add( $new_pw );
+            my $hashed_pw = $csh->generate();
+
+            $token_row->user->update({
+                password             => $hashed_pw,
+                date_password_changed => \'CURRENT_TIMESTAMP',
+                date_modified        => \'CURRENT_TIMESTAMP',
+            });
+
+            $token_row->update({ used => 1 });
+        });
+    };
+    if ( $@ && $@ ne "invalid token\n" ) {
+        $c->log->error( "Password reset transaction failed: $@" );
+        $c->flash->{error} = 'An error occurred while resetting your password. Please try again.';
+        $c->res->redirect( $c->uri_for( '/user/reset_password', { token => $raw_token } ) );
+        $c->detach();
+    }
+
+    # On success (or handled invalid-token redirect from _validate_reset_token):
+    unless ( $error ) {
+        $c->flash->{message} = 'Your password has been updated. Please log in with your new password.';
+        $c->res->redirect( $c->uri_for('/login') );
+        $c->detach();
+    }
+}
+
+# ------------------------------------------------------------------
+# Private helper
+
+sub _validate_reset_token : Private {
+
+    my ( $self, $c, $raw_token ) = @_;
+
+    unless ( defined $raw_token && $raw_token ne q{} ) {
+        $c->flash->{error} = 'No reset token provided.';
+        $c->res->redirect( $c->uri_for('/login') );
+        $c->detach();
+        return;
+    }
+
+    my $token_hash = sha256_hex( $raw_token );
+    my $token_row  = $c->model('DB::PasswordResetToken')->find({ token_hash => $token_hash });
+
+    unless ( $token_row ) {
+        $c->flash->{error} = 'Invalid or expired password reset link.';
+        $c->res->redirect( $c->uri_for('/login') );
+        $c->detach();
+        return;
+    }
+
+    if ( $token_row->used ) {
+        $c->flash->{error} = 'This password reset link has already been used.';
+        $c->res->redirect( $c->uri_for('/login') );
+        $c->detach();
+        return;
+    }
+
+    # Compare expiry in UTC.
+    my $now     = DateTime->now;
+    my $expires = $token_row->expires_at;
+    # expires_at comes back as a string from the DB; parse it.
+    if ( ! ref $expires ) {
+        my ( $y, $mo, $d, $h, $mi, $s ) = split /\D+/, $expires;
+        $expires = DateTime->new(
+            year => $y, month => $mo, day => $d,
+            hour => $h, minute => $mi, second => $s,
+        );
+    }
+
+    if ( DateTime->compare( $now, $expires ) >= 0 ) {
+        $c->flash->{error} = 'This password reset link has expired. Please request a new one.';
+        $c->res->redirect( $c->uri_for('/login') );
+        $c->detach();
+        return;
+    }
+
+    return $token_row;
 }
 
 sub generate_object_viewhash : Private {
