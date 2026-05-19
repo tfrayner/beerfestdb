@@ -5,6 +5,7 @@ import streamlit as st
 import yaml
 from pathlib import Path
 from bfdb_yaml import current_festival
+from datetime import datetime
 
 #%%
 conn = st.connection('cbf', type='sql')
@@ -31,6 +32,7 @@ conn.close()
 
 st.header(f'{festivalname}')
 st.write("Use the menu in the left sidebar to choose another festival")
+st.write("Time of last database query: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 ## fish the actual number out and assign to caskmax
 
