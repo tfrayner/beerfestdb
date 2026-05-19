@@ -12,7 +12,7 @@ st.title('CBF vegan and gluten-free beers')
 festivalname = st.session_state['festival']
 
 #%%
-vsql = '''select c.name as Brewery, c.name as Beer, p.nominal_abv as ABV, ps.description as Style, p.description as 'Tasting Notes'
+vsql = '''select c.name as Brewery, p.name as Beer, p.nominal_abv as ABV, ps.description as Style, p.description as 'Tasting Notes'
 from product p, festival f, festival_product fp, company c, product_style ps
 where f.name = :festivalname
 and p.company_id = c.company_id
