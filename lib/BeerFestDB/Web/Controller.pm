@@ -312,8 +312,8 @@ sub _get_festival : Private {
         'Gyle'                  => sub { $self->_get_festival( $c, $_[0]->festival_product_id->festival_id ) },
         'Cask'                  => sub { $self->_get_festival( $c, $_[0]->gyle_id->festival_product_id->festival_id ) },
         'CaskMeasurement'       => sub { $self->_get_festival( $c, $_[0]->cask_id->gyle_id->festival_product_id->festival_id ) },
-        'CaskManagement'        => sub { $self->_get_festival( $c, $_[0]->casks->first() ||  # Use the cask recursion
-                                                                   $_[0]->product_order_id->order_batch_id->festival_id, 1 ) },
+        'CaskManagement'        => sub { $self->_get_festival( $c, $_[0]->casks->first() ||  # Use the cask or PO recursion
+                                                                   $_[0]->product_order_id, 1 ) },
     );
 
     if ( my $fun = $catmap{ $classname } ) {
@@ -656,6 +656,11 @@ sub delete_from_resultset : Private {
         );
     };
     if ( $@ or scalar @{ $c->error } ) {
+        if ( ! scalar @{ $c->error } ) {
+
+            # Generate a log error if nothing is to be displayed in the web interface.
+            $c->log->error( $@ );
+        }
         $self->detach_with_txn_failure( $c );
     };
 
