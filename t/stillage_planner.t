@@ -36,15 +36,15 @@ sub make_planner {
 #
 # The pristine TestFestivalDB provides:
 #   Festival 1, Company 1 (TestBrewer), Product 1 (TestBeer),
-#   FestivalProduct 1, Gyle 1, StillageLocation 1 (TestStillage),
-#   CaskManagement 1 (firkin, cellar_ref=1, stillage_location_id=1), Cask 1.
+#   OrderBatch 1, StillageLocation 1 (TestStillage),
+#   CaskManagement 1 (firkin, cellar_ref=1, stillage_location_id=1).
 #
 # We add:
 #   - "PlannerTestStillage" (StillageLocation 2) for build_slot_groups to find
 #   - BayPosition vocab rows (Top Front id=1, Bottom Front id=6)
-#   - Two more companies/beers with several firkin casks each,
-#     with stillage_location_id => undef (unassigned -- the planning targets)
-#   - One SOR cask to exercise the SOR deck penalty
+#   - Two more companies/products, each with a ProductOrder and several
+#     unassigned CaskManagement rows (stillage_location_id => undef)
+#   - One SOR cask (is_sale_or_return=1) to exercise the SOR deck penalty
 
 # PlannerTestStillage (referenced by t/data/stillage_plan_test.yml)
 $s->resultset('StillageLocation')->find_or_create({
@@ -70,18 +70,17 @@ $s->resultset('Product')->find_or_create({
     product_category_id => 2,
     name                => 'Amber',
 });
-$s->resultset('FestivalProduct')->find_or_create({
-    festival_product_id => 2,
-    product_id          => 2,
-    festival_id         => 1,
-    sale_volume_id      => 1,
-    sale_currency_id    => 1,
-});
-$s->resultset('Gyle')->find_or_create({
-    gyle_id               => 2,
-    company_id            => 2,
-    festival_product_id   => 2,
-    internal_reference    => 2,
+
+# ProductOrder 1: AardvarkBrew Amber firkins
+$s->resultset('ProductOrder')->find_or_create({
+    product_order_id       => 1,
+    order_batch_id         => 1,
+    product_id             => 2,
+    distributor_company_id => 2,
+    container_size_id      => 1,   # firkin
+    cask_count             => 2,
+    currency_id            => 1,
+    is_sale_or_return      => 0,
 });
 
 # CaskManagement 2 & 3: two unassigned firkins for AardvarkBrew Amber
@@ -91,26 +90,18 @@ $s->resultset('CaskManagement')->find_or_create({
     festival_id          => 1,
     container_size_id    => 1,   # firkin
     currency_id          => 1,
+    product_order_id     => 1,
     stillage_location_id => undef,
     cellar_reference     => 10,
-});
-$s->resultset('Cask')->find_or_create({
-    cask_id           => 2,
-    gyle_id           => 2,
-    cask_management_id => 2,
 });
 $s->resultset('CaskManagement')->find_or_create({
     cask_management_id   => 3,
     festival_id          => 1,
     container_size_id    => 1,
     currency_id          => 1,
+    product_order_id     => 1,
     stillage_location_id => undef,
     cellar_reference     => 11,
-});
-$s->resultset('Cask')->find_or_create({
-    cask_id           => 3,
-    gyle_id           => 2,
-    cask_management_id => 3,
 });
 
 # --- Company 3 / ZymurgyZone ---
@@ -125,48 +116,39 @@ $s->resultset('Product')->find_or_create({
     product_category_id => 2,
     name                => 'Zenith',
 });
-$s->resultset('FestivalProduct')->find_or_create({
-    festival_product_id => 3,
-    product_id          => 3,
-    festival_id         => 1,
-    sale_volume_id      => 1,
-    sale_currency_id    => 1,
-});
-$s->resultset('Gyle')->find_or_create({
-    gyle_id               => 3,
-    company_id            => 3,
-    festival_product_id   => 3,
-    internal_reference    => 3,
+
+# ProductOrder 2: ZymurgyZone Zenith firkins
+$s->resultset('ProductOrder')->find_or_create({
+    product_order_id       => 2,
+    order_batch_id         => 1,
+    product_id             => 3,
+    distributor_company_id => 3,
+    container_size_id      => 1,   # firkin
+    cask_count             => 2,
+    currency_id            => 1,
+    is_sale_or_return      => 0,
 });
 
 # CaskManagement 4 & 5: two unassigned firkins for ZymurgyZone Zenith
-# CaskManagement 5 is SOR
+# CaskManagement 5 is SOR (flag set directly on the cask_management row)
 $s->resultset('CaskManagement')->find_or_create({
     cask_management_id   => 4,
     festival_id          => 1,
     container_size_id    => 1,
     currency_id          => 1,
+    product_order_id     => 2,
     stillage_location_id => undef,
     cellar_reference     => 20,
-});
-$s->resultset('Cask')->find_or_create({
-    cask_id           => 4,
-    gyle_id           => 3,
-    cask_management_id => 4,
 });
 $s->resultset('CaskManagement')->find_or_create({
     cask_management_id    => 5,
     festival_id           => 1,
     container_size_id     => 1,
     currency_id           => 1,
+    product_order_id      => 2,
     stillage_location_id  => undef,
     cellar_reference      => 21,
     is_sale_or_return     => 1,
-});
-$s->resultset('Cask')->find_or_create({
-    cask_id           => 5,
-    gyle_id           => 3,
-    cask_management_id => 5,
 });
 
 # ── Config tests ──────────────────────────────────────────────────────────────
@@ -250,15 +232,15 @@ subtest 'load_casks loads only unassigned casks' => sub {
     }
 
     # Verify cask numbering within each beer
-    my %by_fp;
-    push @{ $by_fp{ $_->festival_product_id } }, $_ for @$entries;
-    for my $fp_id ( keys %by_fp ) {
+    my %by_product;
+    push @{ $by_product{ $_->product_group_id } }, $_ for @$entries;
+    for my $prod_id ( keys %by_product ) {
         my @beer = sort { $a->cask_number <=> $b->cask_number }
-                        @{ $by_fp{$fp_id} };
+                        @{ $by_product{$prod_id} };
         is( $beer[0]->cask_number, 1,
-            "first cask of fp $fp_id numbered 1" );
+            "first cask of product $prod_id numbered 1" );
         is( $beer[-1]->cask_count, scalar @beer,
-            "cask_count matches total for fp $fp_id" );
+            "cask_count matches total for product $prod_id" );
     }
 };
 

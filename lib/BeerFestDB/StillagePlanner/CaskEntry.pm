@@ -46,7 +46,7 @@ BeerFestDB::StillagePlanner::CaskEntry - Cask descriptor for stillage planning
       cask_count          => 3,
       is_sale_or_return   => 0,
       container_type      => 'firkin',
-      festival_product_id => 42,
+      product_group_id    => 42,
   );
 
 =head1 DESCRIPTION
@@ -162,14 +162,14 @@ has 'container_type' => (
     required => 1,
 );
 
-=head2 festival_product_id
+=head2 product_group_id
 
-Integer primary key of the C<festival_product> row.  Used to group
+Integer primary key of the C<product> row.  Used to group
 casks that belong to the same beer during scoring.
 
 =cut
 
-has 'festival_product_id' => (
+has 'product_group_id' => (
     is       => 'ro',
     isa      => 'Int',
     required => 1,

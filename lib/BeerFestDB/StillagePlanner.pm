@@ -247,18 +247,22 @@ sub load_casks {
     my @entries;
     for my $cm (@caskmans) {
 
-        my ($cask) = $cm->casks->search(
-            { is_condemned => [ 0, undef ] } )->all;
-        next unless defined $cask;
+        # Resolve product and brewery via product_order.  This path works
+        # before the cask/festival_product tables have been populated.
+        my $po = $cm->product_order_id;
+        unless ( defined $po ) {
+            warn "Skipping cask_management "
+                . $cm->get_column('cask_management_id')
+                . ": no product_order_id set\n";
+            next;
+        }
 
-        my $gyle    = $cask->gyle_id;
-        my $fp      = $gyle->festival_product_id;
-        my $product = $fp->product_id;
-        my $company = $product->company_id;
+        my $product      = $po->product_id;
+        my $company      = $product->company_id;
 
         my $beer_name    = $product->name;
         my $brewery_name = $company->name;
-        my $fp_id        = $fp->get_column('festival_product_id');
+        my $prod_id      = $product->get_column('product_id');
         my $sort_key     = lc("$brewery_name $beer_name");
 
         my $container_type = $cm->container_size_id->description;
@@ -281,22 +285,22 @@ sub load_casks {
             cask_count          => 1,      # placeholder; corrected below
             is_sale_or_return   => ( $cm->is_sale_or_return // 0 ) ? 1 : 0,
             container_type      => $container_type,
-            festival_product_id => $fp_id,
+            product_group_id    => $prod_id,
             cask_width          => $cask_width,
         );
     }
 
     # Number casks within each beer by ascending cellar_reference
-    my %by_fp;
+    my %by_product;
     for my $entry (@entries) {
-        push @{ $by_fp{ $entry->festival_product_id } }, $entry;
+        push @{ $by_product{ $entry->product_group_id } }, $entry;
     }
 
-    for my $fp_id ( sort keys %by_fp ) {
+    for my $prod_id ( sort keys %by_product ) {
         my @beer_casks = sort {
             $a->cask_management->get_column('cellar_reference')
                 <=> $b->cask_management->get_column('cellar_reference')
-        } @{ $by_fp{$fp_id} };
+        } @{ $by_product{$prod_id} };
 
         my $count = scalar @beer_casks;
         for my $i ( 0 .. $#beer_casks ) {
@@ -633,10 +637,10 @@ sub _score_assignment {
         my $gi = $assign->[$ci];
         next if $gi == DECK_IDX;
         my $bay_id = $groups->[$gi]->bay_id;
-        $beer_bays{ $casks->[$ci]->festival_product_id }{$bay_id} = 1;
+        $beer_bays{ $casks->[$ci]->product_group_id }{$bay_id} = 1;
     }
-    for my $fp_id ( keys %beer_bays ) {
-        my $n = scalar keys %{ $beer_bays{$fp_id} };
+    for my $prod_id ( keys %beer_bays ) {
+        my $n = scalar keys %{ $beer_bays{$prod_id} };
         $score += ( $n - 1 ) * $w_prox if $n > 1;
     }
 
