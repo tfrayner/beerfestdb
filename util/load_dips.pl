@@ -27,6 +27,7 @@ use Getopt::Long;
 use Pod::Usage;
 use Scalar::Util qw(looks_like_number);
 use BeerFestDB::ORM;
+use BeerFestDB::Web;
 
 use Data::Dumper;
 
