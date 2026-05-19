@@ -4,6 +4,23 @@
 # Copy and customise this file for each festival.  Pass it to the
 # plan_stillage.pl utility with --config.
 
+# ── Product category filter ───────────────────────────────────────────────────
+# Optional.  When present, only cask_management rows whose product belongs to
+# one of the listed product_category descriptions will be planned.  Omit this
+# section (or leave it empty) to include all categories.
+#
+# product_categories:
+#   - beer
+#   - foreign beer
+
+# ── Dispense method filter ────────────────────────────────────────────────────
+# Optional.  When present, only cask_management rows whose container size has
+# a matching dispense_method description will be planned.  Omit this section
+# (or leave it empty) to include all dispense methods.
+#
+# dispense_methods:
+#   - cask
+
 # ── Physical margins ──────────────────────────────────────────────────────────
 
 # Fraction of a cask's width to add as a spacing gap on each side.

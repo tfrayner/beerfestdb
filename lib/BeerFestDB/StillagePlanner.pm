@@ -215,15 +215,22 @@ has '_used_width' => (
 
 Loads all active, unassigned C<cask_management> rows for the planner's
 festival from the database (i.e. rows where C<stillage_location_id> is
-NULL and C<cask_graveyard> is NULL, and whose linked C<cask> is not
-condemned).
+NULL and C<cask_graveyard> is NULL).  Product and brewery information
+is resolved via the linked C<product_order>.
 
-For each row the brewery name, beer name, container type, and physical
-width are resolved via the ORM and the config.  Cask numbers within
-each beer are assigned in ascending C<cellar_reference> order.
+If the config specifies a C<product_categories> list, only casks whose
+product belongs to one of the named categories are included; all others
+are silently skipped.
 
-Casks whose container size description is absent from the config are
-skipped with a warning.
+If the config specifies a C<dispense_methods> list, only casks whose
+container size has a matching dispense method are included; all others
+are silently skipped.
+
+Casks whose C<product_order_id> is NULL, or whose container size
+description is absent from the config, are skipped with a warning.
+
+Cask numbers within each product are assigned in ascending
+C<cellar_reference> order.
 
 Returns the number of cask entries loaded.
 
@@ -235,6 +242,19 @@ sub load_casks {
     my $db          = $self->database;
     my $festival_id = $self->festival->get_column('festival_id');
     my $config      = $self->config;
+
+    # Build a category allowlist (lower-cased) if the config restricts
+    # which product categories to include.  Empty hash → no restriction.
+    my %allowed_categories;
+    if ( my $cats = $config->product_categories ) {
+        %allowed_categories = map { lc($_) => 1 } @$cats;
+    }
+
+    # Build a dispense-method allowlist (lower-cased) if configured.
+    my %allowed_dispense_methods;
+    if ( my $dms = $config->dispense_methods ) {
+        %allowed_dispense_methods = map { lc($_) => 1 } @$dms;
+    }
 
     my @caskmans = $db->resultset('CaskManagement')->search(
         {
@@ -260,12 +280,25 @@ sub load_casks {
         my $product      = $po->product_id;
         my $company      = $product->company_id;
 
+        # Apply product category filter if one is configured
+        if ( %allowed_categories ) {
+            my $cat = lc( $product->product_category_id->description );
+            next unless $allowed_categories{$cat};
+        }
+
         my $beer_name    = $product->name;
         my $brewery_name = $company->name;
         my $prod_id      = $product->get_column('product_id');
         my $sort_key     = lc("$brewery_name $beer_name");
 
-        my $container_type = $cm->container_size_id->description;
+        my $cs             = $cm->container_size_id;
+        my $container_type = $cs->description;
+
+        # Apply dispense method filter if one is configured
+        if ( %allowed_dispense_methods ) {
+            my $dm = lc( $cs->dispense_method_id->description );
+            next unless $allowed_dispense_methods{$dm};
+        }
 
         my $cask_width;
         eval { $cask_width = $config->container_width_for($container_type) };

@@ -166,6 +166,61 @@ subtest 'Config loads YAML correctly' => sub {
     is( $cfg->weight('proximity', 5),            5,   'prox weight 5' );
     is( $cfg->weight('deck', 20),               20,   'deck weight 20' );
     is( $cfg->weight('sor_deck_multiplier', 0.1), 0.1,'SOR multiplier 0.1' );
+
+    # product_categories is set in the test YAML
+    my $cats = $cfg->product_categories;
+    ok( defined $cats && ref($cats) eq 'ARRAY', 'product_categories returns arrayref' );
+    is( $cats->[0], 'foreign beer', 'first category is foreign beer' );
+
+    # dispense_methods is set in the test YAML
+    my $dms = $cfg->dispense_methods;
+    ok( defined $dms && ref($dms) eq 'ARRAY', 'dispense_methods returns arrayref' );
+    is( $dms->[0], 'cask', 'first dispense method is cask' );
+};
+
+# ── product_categories filter test ───────────────────────────────────────────
+
+subtest 'load_casks respects product_categories filter' => sub {
+    # Config with product_categories: [beer] -- test products are all
+    # 'foreign beer' (category_id=2), so the filter should exclude them all.
+    my $filter_cfg = BeerFestDB::StillagePlanner::Config->new(
+        config_file => 't/data/stillage_plan_filter_test.yml',
+    );
+    my $cats = $filter_cfg->product_categories;
+    is( $cats->[0], 'beer', 'filter config has beer category' );
+
+    my $fest = $s->resultset('Festival')->find(1);
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $fest,
+        config   => $filter_cfg,
+    );
+    my $n;
+    lives_ok { $n = $p->load_casks() } 'load_casks with category filter lives';
+    is( $n, 0, 'category filter excludes all foreign beer casks' );
+};
+
+# ── dispense_methods filter test ──────────────────────────────────────────────
+
+subtest 'load_casks respects dispense_methods filter' => sub {
+    # Config with dispense_methods: [key keg] -- test casks all use
+    # container_size_id=1 (firkin, dispense_method='cask'), so the filter
+    # should exclude them all.
+    my $dm_filter_cfg = BeerFestDB::StillagePlanner::Config->new(
+        config_file => 't/data/stillage_plan_dm_filter_test.yml',
+    );
+    my $dms = $dm_filter_cfg->dispense_methods;
+    is( $dms->[0], 'key keg', 'DM filter config has key keg method' );
+
+    my $fest = $s->resultset('Festival')->find(1);
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $fest,
+        config   => $dm_filter_cfg,
+    );
+    my $n;
+    lives_ok { $n = $p->load_casks() } 'load_casks with DM filter lives';
+    is( $n, 0, 'DM filter excludes all cask-dispense casks' );
 };
 
 # ── SlotGroup tests ───────────────────────────────────────────────────────────

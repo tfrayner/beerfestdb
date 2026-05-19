@@ -1,18 +1,12 @@
 ---
-# Test YAML config for BeerFestDB::StillagePlanner tests.
-# Uses "PlannerTestStillage" which is created by the test fixtures.
+# Test YAML config with a dispense_methods filter that excludes the test
+# fixtures (which use container_size_id=1 / firkin / dispense_method 'cask').
+# Used by t/stillage_planner.t to verify the dispense method filter works.
 
 margin: 0.10
 
-# Test products use product_category_id=2 ('foreign beer').
-# This verifies the category filter passes matching products through.
-product_categories:
-  - foreign beer
-
-# Test container sizes use dispense_method_id=1 ('cask').
-# This verifies the dispense method filter passes matching casks through.
 dispense_methods:
-  - cask
+  - key keg
 
 container_widths:
   firkin: 0.45

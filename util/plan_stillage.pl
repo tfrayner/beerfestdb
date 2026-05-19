@@ -186,6 +186,13 @@ unplaced casks for a festival (C<cask_management> rows whose
 C<stillage_location_id> is NULL and C<cask_graveyard> is NULL) to the
 bay positions defined in the YAML config file.
 
+If the config contains a C<product_categories> list, only casks whose
+product belongs to one of the named categories are considered.  If it
+contains a C<dispense_methods> list, only casks whose container size
+has a matching dispense method are considered.  These filters may be
+combined and allow separate planning runs for e.g. cask beer vs.
+bottle and keyleg products.
+
 The script prints a human-readable plan to standard output.  Pass
 C<--apply> to write C<stillage_location_id>, C<stillage_bay>, and
 C<bay_position_id> back to the C<cask_management> table.  Casks that

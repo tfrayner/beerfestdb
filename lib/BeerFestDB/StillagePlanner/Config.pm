@@ -192,6 +192,52 @@ sub weight {
     return ( $self->_data->{weights} // {} )->{$name} // $default;
 }
 
+=head2 product_categories
+
+Returns an array-ref of C<product_category> description strings that
+should be included in the plan (e.g. C<["beer", "foreign beer"]>),
+or C<undef> if no C<product_categories> key is present in the config
+(meaning B<all> product categories are included).
+
+Example YAML:
+
+  product_categories:
+    - beer
+    - foreign beer
+
+=cut
+
+sub product_categories {
+    my ($self) = @_;
+    my $cats = $self->_data->{product_categories};
+    return undef unless defined $cats;
+    return ref($cats) eq 'ARRAY' ? $cats : [$cats];
+}
+
+=head2 dispense_methods
+
+Returns an array-ref of C<dispense_method> description strings that
+should be included in the plan (e.g. C<["cask"]>),
+or C<undef> if no C<dispense_methods> key is present in the config
+(meaning B<all> dispense methods are included).
+
+The dispense method is taken from the C<container_size> linked to each
+C<cask_management> row.
+
+Example YAML:
+
+  dispense_methods:
+    - cask
+
+=cut
+
+sub dispense_methods {
+    my ($self) = @_;
+    my $dms = $self->_data->{dispense_methods};
+    return undef unless defined $dms;
+    return ref($dms) eq 'ARRAY' ? $dms : [$dms];
+}
+
 =head2 build_slot_groups($schema)
 
 Constructs and returns an array-ref of
