@@ -22,6 +22,9 @@ use warnings;
 use Test::More;
 use File::Find;
 
+# Set the db config, but note that we're not initiating the db itself.
+$ENV{BEERFESTDB_WEB_CONFIG} = 't/test_beerfestdb_web_submit.yml';
+
 # Collect all .pl scripts under script/ and util/, excluding Makefile.PL.
 my @scripts;
 find(
