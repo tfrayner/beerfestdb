@@ -42,8 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
             { field: 'name',           headerName: 'Name',        cellEditor: 'agTextCellEditor',   flex: 1 },
             { field: 'year',           headerName: 'Year',        cellEditor: 'agNumberCellEditor', width: 80 },
             { field: 'description',    headerName: 'Description', cellEditor: 'agTextCellEditor',   flex: 1 },
-            { field: 'fst_start_date', headerName: 'Start Date',  cellEditorFramework: FlatpickrDateEditor, width: 120 },
-            { field: 'fst_end_date',   headerName: 'End Date',    cellEditorFramework: FlatpickrDateEditor, width: 120 },
+            { field: 'fst_start_date', headerName: 'Start Date',  cellEditor: FlatpickrDateEditor, width: 120 },
+            { field: 'fst_end_date',   headerName: 'End Date',    cellEditor: FlatpickrDateEditor, width: 120 },
         ],
     });
 });

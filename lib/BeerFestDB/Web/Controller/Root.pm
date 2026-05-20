@@ -259,7 +259,7 @@ sub end : ActionClass('RenderView') {
 
     $c->response->header(
         'X-Frame-Options'           => 'SAMEORIGIN',
-        'Content-Security-Policy'   => "default-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'; form-action 'self';",
+        'Content-Security-Policy'   => "default-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self'; form-action 'self';",
         'X-Content-Type-Options'    => 'nosniff',
         'X-Download-Options'        => 'noopen',
         'X-XSS-Protection'          => "1; 'mode=block'",

@@ -305,7 +305,7 @@ function createEditorGrid(config) {
     wrapper.className = 'bfdb-grid-wrapper d-flex flex-column h-100';
 
     const gridDiv = document.createElement('div');
-    gridDiv.className = 'ag-theme-alpine flex-grow-1';
+    gridDiv.className = 'ag-theme-alpine';
 
     /* ---- toolbar ---- */
     const toolbar = document.createElement('div');
@@ -321,6 +321,10 @@ function createEditorGrid(config) {
     wrapper.append(toolbar, gridDiv);
     container.appendChild(wrapper);
 
+    /* ---- Size the grid div to fill available height below toolbar ---- */
+    gridDiv.style.width = '100%';
+    gridDiv.style.height = 'calc(100% - ' + (toolbar.getBoundingClientRect().height || 48) + 'px)';
+
     /* ---- AG Grid ---- */
     const gridOptions = {
         columnDefs:   colDefs,
@@ -330,9 +334,9 @@ function createEditorGrid(config) {
             filter:     true,
             editable:   true,
         },
-        rowSelection:              'multiple',
-        suppressRowClickSelection: true,   // require checkbox / programmatic select
+        selection: { mode: 'multiRow', enableClickSelection: false },
         stopEditingWhenCellsLoseFocus: true,
+        rowData: [],
         getRowClass: function (params) {
             return (params.data && params.data.__dirty) ? 'bfdb-dirty-row' : '';
         },
@@ -420,7 +424,7 @@ function createEditorGrid(config) {
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 const rows = Array.isArray(data) ? data : (data.objects || data.data || []);
-                api.setGridOption('rowData', rows);
+                api.updateGridOptions({ rowData: rows });
                 if (config.onReady) config.onReady(api);
             })
             .catch(function (err) { bfdbAlert('Load Error', err.message); });
@@ -491,6 +495,7 @@ function createViewGrid(config) {
     const api = agGrid.createGrid(gridDiv, {
         columnDefs:    colDefs,
         defaultColDef: { sortable: true, resizable: true, filter: true, editable: false },
+        rowData: [],
     });
 
     if (config.loadUrl) {
@@ -503,7 +508,7 @@ function createViewGrid(config) {
         fetch(url.toString())
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                api.setGridOption('rowData', Array.isArray(data) ? data : (data.objects || data.data || []));
+                api.updateGridOptions({ rowData: Array.isArray(data) ? data : (data.objects || data.data || []) });
                 if (config.onReady) config.onReady(api);
             })
             .catch(function (err) { bfdbAlert('Load Error', err.message); });
@@ -776,7 +781,7 @@ function createViewForm(config) {
         fetch(url.toString())
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                const obj = data.object || data;
+                const obj = data.object || data.data || data;
                 _originalValues = Object.assign({}, obj);
                 config.fields.forEach(function (fld) {
                     const type = fld.type || 'text';

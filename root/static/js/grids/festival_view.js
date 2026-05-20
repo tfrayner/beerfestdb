@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
         columns: [
             { field: 'description', headerName: 'Order Batch Description', editable: true, flex: 1 },
             { field: 'order_date',  headerName: 'Order Date',
-              cellEditorFramework: FlatpickrDateEditor, editable: true },
+              cellEditor: FlatpickrDateEditor, editable: true },
         ],
     });
 
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         columns: [
             { field: 'measurement_time', headerName: 'Measurement Batch Time',
-              cellEditorFramework: FlatpickrDateTimeEditor, editable: true, flex: 1 },
+              cellEditor: FlatpickrDateTimeEditor, editable: true, flex: 1 },
             { field: 'description',      headerName: 'Description (optional)',  editable: true },
         ],
     });

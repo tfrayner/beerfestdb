@@ -40,6 +40,14 @@
     min-height: 0;
 }
 
+/* site/layout wrapper inside .bfdb-content — must also fill its parent */
+#content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
 #datagrid {
     flex: 1 1 auto;
     display: flex;
@@ -55,9 +63,10 @@
 }
 
 /* AG Grid fills its parent */
-.bfdb-grid-wrapper .ag-theme-alpine,
-.bfdb-grid-wrapper .flex-grow-1 {
+.bfdb-grid-wrapper .ag-theme-alpine {
+    flex: 1 1 auto;
     min-height: 300px;
+    width: 100%;
 }
 
 /* Row dirty indicator */
