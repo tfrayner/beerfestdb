@@ -35,7 +35,7 @@ Most resource controllers implement the following standard actions:
 |---|---|---|---|
 | `list` | GET | `/{prefix}/list[/...]` | Returns `{success, objects:[...]}` |
 | `load_form` | GET | `/{prefix}/load_form?{pk}=N` | Returns `{success, data:{...}}` for a single record |
-| `submit` | POST | `/{prefix}/submit` | Create or update records. Body param `changes` = JSON array of record hashes. Returns `{success}` |
+| `submit` | POST | `/{prefix}/submit` | Create or update records. Body param `changes` = JSON array of record hashes. Returns `{success, ids:[...]}` listing the database ids for changed records |
 | `delete` | POST | `/{prefix}/delete` | Delete records. Body param `changes` = JSON array of integer IDs. Returns `{success}` |
 | `grid` | GET | `/{prefix}/grid[/...]` | HTML page (not a JSON endpoint) |
 | `view` | GET | `/{prefix}/view/{id}` | HTML page (not a JSON endpoint) |

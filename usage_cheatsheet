@@ -15,16 +15,16 @@ string.toUpperCase() or string.toLowerCase() table entry.
 
 Summer Festival
 
-1. Create festival - use web interface
-2. Create "Main Beer Order" order batch - web interface
-3. a. Can enter small things (e.g. early orders a la Buxton) manually
+1. Edit beerfestdb_web.yml to set current_festival to the new festival name. It is important that this is the first step.
+2. Create festival - use web interface
+3. Create "Main Beer Order" order batch - web interface
+4. a. Can enter small things (e.g. early orders a la Buxton) manually
 	good idea to confirm that it "takes" by reloading page
    b. Most order data will go in via load_data.pl
-4. Edit beerfestdb_web.yml to update festival name.
-	Consult USAGE.txt for other (temporary) edits to beerfestdb_web.yml as needed to allow convenient loading.
-5. If using a logo on orders, update the file, i.e. add current to home/images/directory; otherwise skip to step 7.
-6. Update beerfestdb/util/templates/order_template.tt2 to refer to shiny new logo.
-7. Use dump_to_template.pl to generate order .tex files. You know the rest. e.g.
+5. Edit beerfestdb_web.yml with (temporary) edits as needed to allow convenient loading (consult USAGE.txt for details).
+6. If using a logo on orders, update the file, i.e. add current to home/images/directory; otherwise skip to step 7.
+7. Update beerfestdb/util/templates/order_template.tt2 to refer to shiny new logo.
+8. Use dump_to_template.pl to generate order .tex files. You know the rest. e.g.
 	> dump_to_template.pl -t templates/order_template.tt2 \
                       -l images/cake.png -o distributor > some_order.tex
 	also note: if you don't know what to put for -o option, run script without it and it'll prompt you

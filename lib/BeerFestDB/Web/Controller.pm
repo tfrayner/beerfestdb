@@ -485,8 +485,8 @@ sub build_database_object : Private {
     $c->log->debug("Querying data: " . Dumper \%dbobj_info);
     my $dbobj = $rs->find_or_new( \%dbobj_info );
     $c->log->debug(sprintf(qq{Found object: %s with ID %s},
-                            $dbobj->result_source()->source_name(),
-                            $dbobj->id));
+                            $dbobj->result_source()->source_name() // 'unknown',
+                            $dbobj->id // 'null'));
 
     # Secondly, deal with simple table-based attributes.
     my $hashrefs = $self->_add_object_column_attributes($dbobj, $rec, \@primary_cols, $mv_map);
@@ -507,8 +507,8 @@ sub build_database_object : Private {
 
     unless ( $no_update ) {
         $c->log->debug(sprintf(qq{Saving %s object with ID %s...},
-                                $dbobj->result_source()->source_name(),
-                                $dbobj->id));
+                                $dbobj->result_source()->source_name() // 'unknown',
+                                $dbobj->id // 'null'));
         eval {
             $dbobj->update_or_insert();
         };
@@ -583,12 +583,15 @@ sub write_to_resultset : Private {
 
     my $data = $self->decode_json_changes( $c );
 
+    my @ids;
+
     # Wrap everything in a transaction - all should pass, or none.
     eval {
         $rs->result_source()->schema()->txn_do(
             sub {
                 foreach my $rec ( @{ $data } ) {
                     my $dbobj = $self->build_database_object( $rec, $c, $rs );
+                    push @ids, $dbobj->id;
                 }
             }
         );
@@ -603,6 +606,7 @@ sub write_to_resultset : Private {
     };
 
     $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'ids' } = \@ids;
     $c->forward( 'View::JSON' );
 
     return;

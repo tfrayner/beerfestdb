@@ -6,6 +6,7 @@ beerfestdb_web.yml
 *~
 t/testing.db
 t/pristine_testing.db
+t/testing_submit.db
 .Rhistory
 .RData
 R/.Rhistory
