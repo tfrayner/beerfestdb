@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,157 +16,52 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
+document.addEventListener('DOMContentLoaded', function () {
+    // Bootstrap tab panel
+    const container = document.getElementById('datagrid');
+    container.innerHTML =
+        '<ul class="nav nav-tabs mb-0" id="user-tabs">' +
+          '<li class="nav-item"><a class="nav-link active" href="#tab-users" data-bs-toggle="tab">Users</a></li>' +
+          '<li class="nav-item"><a class="nav-link"        href="#tab-roles" data-bs-toggle="tab">Roles</a></li>' +
+        '</ul>' +
+        '<div class="tab-content flex-grow-1 d-flex flex-column">' +
+          '<div class="tab-pane active flex-grow-1 d-flex flex-column" id="tab-users"  style="min-height:400px"></div>' +
+          '<div class="tab-pane        flex-grow-1 d-flex flex-column" id="tab-roles"  style="min-height:400px"></div>' +
+        '</div>';
 
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    var User = Ext.data.Record.create([
-        { name: 'user_id',   type: 'int' },
-        { name: 'username',  type: 'string' },
-        { name: 'password',  type: 'string' },
-        { name: 'name',      type: 'string' },
-        { name: 'email',     type: 'string' },
-    ]);
-
-    var user_store = new Ext.data.JsonStore({
-        url:        url_object_list,
-        root:       'objects',
-        fields:     User
-    });
-    
-    var user_content_cols = [
-        { id:         'username',
-          header:     'Username',
-          dataIndex:  'username',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-          })},
-        { id:         'name',
-          header:     'Real name',
-          dataIndex:  'name',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-        { id:         'email',
-          header:     'Email',
-          dataIndex:  'email',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-              vtype:          'email',
-          })},
-    ];
-
-    function viewUserLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'user/view/{user_id}');
-        window.location=t.apply({user_id: record.get('user_id')});
-    };
-
-    function recordUserChanges (record) {
-        var fields = record.getChanges();
-        fields.user_id = record.get( 'user_id' );
-        return(fields);
-    }
-
-    var userGrid = new MyEditorGrid(
-        {
-            objLabel:           'User',
-            idField:            'user_id',
-            autoExpandColumn:   'username',
-            store:              user_store,
-            contentCols:        user_content_cols,
-            viewLink:           viewUserLink,
-            deleteUrl:          url_user_delete,
-            submitUrl:          url_user_submit,
-            recordChanges:      recordUserChanges,
-        }
-    );
-
-    var Role = Ext.data.Record.create([
-        { name: 'role_id',   type: 'int' },
-        { name: 'rolename',      type: 'string' },
-    ]);
-
-    var role_store = new Ext.data.JsonStore({
-        url:        url_role_list,
-        root:       'objects',
-        fields:     Role
-    });
-    
-    var role_content_cols = [
-        { id:         'rolename',
-          header:     'Role Name',
-          dataIndex:  'rolename',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-          })},
-    ];
-
-    function viewRoleLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'role/view/{role_id}');
-        window.location=t.apply({role_id: record.get('role_id')});
-    };
-
-    function recordRoleChanges (record) {
-        var fields = record.getChanges();
-        fields.role_id = record.get( 'role_id' );
-        return(fields);
-    }
-
-    var roleGrid = new MyEditorGrid(
-        {
-            objLabel:           'Role',
-            idField:            'role_id',
-            autoExpandColumn:   'name',
-            store:              role_store,
-            contentCols:        role_content_cols,
-            viewLink:           viewRoleLink,
-            deleteUrl:          url_role_delete,
-            submitUrl:          url_role_submit,
-            recordChanges:      recordRoleChanges,
-        }
-    ); 
-
-    var tabpanel = new Ext.TabPanel({
-        activeTab: 0,
-        items: [
-            {
-                title: 'Users',
-                layout: 'fit',
-                items: userGrid,
-            },
-            {
-                title: 'Roles',
-                layout: 'fit',
-                items: roleGrid,
-            }
+    createEditorGrid({
+        container:     '#tab-users',
+        loadUrl:       url_object_list,
+        submitUrl:     url_user_submit,
+        deleteUrl:     url_user_delete,
+        idField:       'user_id',
+        objLabel:      'User',
+        firstEditCol:  'username',
+        viewLinkUrl:   function (row) { return url_base + 'user/view/' + row.user_id; },
+        recordChanges: function (row) {
+            return { user_id: row.user_id, username: row.username, name: row.name, email: row.email };
+        },
+        columns: [
+            { field: 'username', headerName: 'Username',  cellEditor: 'agTextCellEditor', flex: 1 },
+            { field: 'name',     headerName: 'Real Name', cellEditor: 'agTextCellEditor', flex: 1 },
+            { field: 'email',    headerName: 'Email',     cellEditor: 'agTextCellEditor', flex: 1 },
         ],
     });
 
-
-    var panel = new MyMainPanel({
-        title: 'Database Users and Roles',
-        layout: 'fit',
-        items: tabpanel,
-        tbar:
-        [
-            { text: 'Home',
-              handler: function() { window.location = url_base; } },
+    createEditorGrid({
+        container:     '#tab-roles',
+        loadUrl:       url_role_list,
+        submitUrl:     url_role_submit,
+        deleteUrl:     url_role_delete,
+        idField:       'role_id',
+        objLabel:      'Role',
+        firstEditCol:  'rolename',
+        viewLinkUrl:   function (row) { return url_base + 'role/view/' + row.role_id; },
+        recordChanges: function (row) { return { role_id: row.role_id, rolename: row.rolename }; },
+        columns: [
+            { field: 'rolename', headerName: 'Role Name', cellEditor: 'agTextCellEditor', flex: 1 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

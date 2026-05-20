@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,101 +16,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    var Country = Ext.data.Record.create([
-        { name: 'country_id',   type: 'int' },
-        { name: 'country_name', type: 'string' },
-        { name: 'country_code_iso2', type: 'string' },
-        { name: 'country_code_iso3', type: 'string' },
-        { name: 'country_code_num3', type: 'string' },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_country_list,
-        root:       'objects',
-        fields:     Country
-    });
-    
-    var content_cols = [
-        { id:         'country_name',
-          header:     'Country Name',
-          dataIndex:  'country_name',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-          })},
-        { id:         'country_code_iso2',
-          header:     'ISO 3166-1 alpha-2 code',
-          dataIndex:  'country_code_iso2',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-              maxLength:      2,
-          })},
-        { id:         'country_code_iso3',
-          header:     'ISO 3166-1 alpha-3 code',
-          dataIndex:  'country_code_iso3',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-              maxLength:      3,
-          })},
-        { id:         'country_code_num3',
-          header:     'ISO 3166-1 numeric code',
-          dataIndex:  'country_code_num3',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-              maxLength:      3,
-          })}, 
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'country/view/{country_id}');
-        window.location=t.apply({country_id: record.get('country_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.country_id = record.get( 'country_id' );
-        return(fields);
-    }
-
-    var panel = new MyMainPanel({
-        title: 'All Countries',
-        layout: 'fit',
-        items: new MyEditorGrid(
-            {
-                objLabel:           'Country',
-                idField:            'country_id',
-                autoExpandColumn:   'country_name',
-                store:              store,
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_country_delete,
-                submitUrl:          url_country_submit,
-                recordChanges:      recordChanges,
-            }
-        ),
-        tbar:
-        [
-            { text: 'Home',
-              handler: function() { window.location = url_base; } },
+document.addEventListener('DOMContentLoaded', function () {
+    createEditorGrid({
+        container:     '#datagrid',
+        loadUrl:       url_country_list,
+        submitUrl:     url_country_submit,
+        deleteUrl:     url_country_delete,
+        idField:       'country_id',
+        objLabel:      'Country',
+        firstEditCol:  'country_name',
+        viewLinkUrl:   function (row) { return url_base + 'country/view/' + row.country_id; },
+        recordChanges: function (row) { return { country_id: row.country_id, country_name: row.country_name, country_code_iso2: row.country_code_iso2, country_code_iso3: row.country_code_iso3, country_code_num3: row.country_code_num3 }; },
+        columns: [
+            { field: 'country_name', headerName: 'Country Name', flex: 1 },
+            { field: 'country_code_iso2', headerName: 'ISO alpha-2', width: 120 },
+            { field: 'country_code_iso3', headerName: 'ISO alpha-3', width: 120 },
+            { field: 'country_code_num3', headerName: 'ISO numeric', width: 120 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

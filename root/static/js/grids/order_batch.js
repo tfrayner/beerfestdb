@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,61 +16,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    /* Category listing */
-    var category_store = new Ext.data.JsonStore({
-        url:        url_category_list,
-        root:       'objects',
-        fields:     [{ name: 'product_category_id',   type: 'int'    },
-                     { name: 'description',           type: 'string' }],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
+document.addEventListener('DOMContentLoaded', function () {
+    createViewGrid({
+        container:   '#datagrid',
+        loadUrl:     url_category_list,
+        viewLinkUrl: function (row) {
+            return url_base + 'productorder/grid/' + order_batch_id + '/' + row.product_category_id;
         },
-    });
-
-    var myGrid = new MyViewGrid(
-        {
-            store:              category_store,
-            columns: [
-                { id:        'description',
-                  header:    'Product Category',
-                  dataIndex: 'description' },
-            ],
-            viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate(url_base + '/productorder/grid/{order_batch_id}/{product_category_id}');
-                window.location=t.apply({
-                        product_category_id: record.get('product_category_id'),
-                        order_batch_id:      order_batch_id,
-                    })
-            },
-            objLabel: 'orders in this product category',
-        }
-    );
-
-    var panel = new MyMainPanel({
-        title: festivalname + ': ' + orderbatchname,
-        layout: 'fit',
-        items: myGrid,
-        tbar:
-        [
-            { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
+        columns: [
+            { field: 'description', headerName: 'Product Category', editable: false, flex: 1 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

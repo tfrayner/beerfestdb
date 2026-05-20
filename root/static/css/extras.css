@@ -30,3 +30,55 @@
     background-position: center center !important;
     background-repeat: no-repeat;
 }
+
+/* ── AG Grid layout ───────────────────────────────────────────────────────── */
+
+/* Grid-page containers: fill the space below the navbar */
+.bfdb-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#datagrid {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0.5rem;
+}
+
+/* The wrapper div created by createEditorGrid / createViewGrid */
+.bfdb-grid-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* AG Grid fills its parent */
+.bfdb-grid-wrapper .ag-theme-alpine,
+.bfdb-grid-wrapper .flex-grow-1 {
+    min-height: 300px;
+}
+
+/* Row dirty indicator */
+.bfdb-dirty-row {
+    background-color: #fff8e1 !important;
+}
+
+/* View-link action cell */
+.bfdb-row-link {
+    display: inline-block;
+    text-decoration: none;
+}
+
+/* ── Icon spans (Silk icon set, 16×16) ────────────────────────────────────── */
+/* Used inside toolbar button labels: <span class="icon-plus"></span> Text   */
+[class^="icon-"], [class*=" icon-"] {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    vertical-align: text-bottom;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+}

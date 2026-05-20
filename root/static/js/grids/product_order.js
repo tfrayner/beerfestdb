@@ -1,404 +1,133 @@
-/*
- * This file is part of BeerFestDB, a beer festival product management
- * system.
- * 
- * Copyright (C) 2010 Tim F. Rayner
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
- */
+// product_order.js — Product orders editor grid (with cascading company→product combos)
+document.addEventListener('DOMContentLoaded', function () {
+    var brewerOptions      = [];
+    var productOptions     = [];
+    var distributorOptions = [];
+    var caskSizeOptions    = [];
+    var currencyOptions    = [];
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-
-    /* Brewer lookups */
-    var brewer_store = new Ext.data.JsonStore({
-        url:        url_company_list,
-        myLoadParams: { brewer_order_batch_id: order_batch_id },
-        root:       'objects',
-        fields:     [{ name: 'company_id', type: 'int' },
-                     { name: 'name',       type: 'string'}],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-        idProperty: 'company_id',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
-    });
-
-    /* Product lookups */
-    var product_store = new Ext.data.JsonStore({
-        url:        url_product_list,
-        root:       'objects',
-        fields:     [{ name: 'product_id', type: 'int'    },
-                     { name: 'company_id', type: 'int'    },
-                     { name: 'name',       type: 'string' }],
-        idProperty: 'product_id',
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-
-    /* Distributor lookups */
-    var distributor_store = new Ext.data.JsonStore({
-        url:        url_company_list,
-        myLoadParams: { supplier_order_batch_id: order_batch_id },
-        root:       'objects',
-        fields:     [{ name: 'company_id', type: 'int'    },
-                     { name: 'name',       type: 'string' }],
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-        idProperty: 'company_id',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
-    });
-
-    /* Currency lookups */
-    var currency_store = new Ext.data.JsonStore({
-        url:        url_currency_list,
-        root:       'objects',
-        fields:     [{ name: 'currency_id',   type: 'int'    },
-                     { name: 'currency_code', type: 'string' }],
-        idProperty: 'currency_id',
-        sortInfo:   {
-            field:     'currency_code',
-            direction: 'ASC',
-        },
-    });
-
-    /* Cask size lookups */
-    var cask_size_store = new Ext.data.JsonStore({
-        url:        url_cask_size_list,
-        root:       'objects',
-        fields:     [{ name: 'container_size_id', type: 'int'    },
-                     { name: 'description',       type: 'string' }],
-        idProperty: 'container_size_id',
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-
-    /* Main product order records and store */
-    var ProductOrder = Ext.data.Record.create([
-        { name: 'product_order_id',       type: 'int' },
-        { name: 'company_id',             type: 'int', sortType: myMakeSortTypeFun(brewer_store, 'name') },
-        { name: 'product_id',             type: 'int', sortType: myMakeSortTypeFun(product_store, 'name') },
-        { name: 'order_batch_id',         type: 'int' },
-        { name: 'distributor_id',         type: 'int', sortType: myMakeSortTypeFun(distributor_store, 'name') },
-        { name: 'cask_count',             type: 'int' },
-        { name: 'container_size_id',      type: 'int', sortType: myMakeSortTypeFun(cask_size_store, 'description') },
-        { name: 'currency_id',            type: 'int', sortType: myMakeSortTypeFun(currency_store, 'currency_code') },
-        { name: 'price',                  type: 'string' },
-        { name: 'is_final',               type: 'int' },
-        { name: 'is_received',            type: 'int' },
-        { name: 'is_sale_or_return',      type: 'int' },
-        { name: 'comment',                type: 'string' },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_object_list,
-        root:       'objects',
-        fields:     ProductOrder,
+    createEditorGrid({
+        container:   document.getElementById('datagrid'),
+        loadUrl:     url_object_list,
+        submitUrl:   url_productorder_submit,
+        deleteUrl:   url_productorder_delete,
+        idField:     'product_order_id',
+        objLabel:    'Product Order',
         defaultData: { currency_id: default_currency },
-    });
-
-    /* Brewer drop-down */
-    var brewer_combo = new Ext.form.ComboBox({
-        triggerAction:  'all',
-        mode:           'local',
-        forceSelection: true,
-        allowBlank:     false,
-        typeAhead:      true,
-        store:          brewer_store,
-        valueField:     'company_id',
-        displayField:   'name',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-        listeners: {
-            change: function(evt, t, o) {
-                /* t is the reference to the brewer_combo.
-                   We have evt.record available only because we copied it in
-                   the beforeEdit event from myGrid */
-                evt.record.set('product_id', null);
-                evt.render();
-            },
-            beforeQuery: function() { 
-                if ( this.store.isPartial ) {
-                    this.store.reload({ params: { brewer_order_batch_id: null }});
-                    this.store.sort();
-                }
-                this.store.isPartial = 0;
-            },
+        viewLinkUrl: function (row) {
+            return url_base + 'productorder/view/' + row.product_order_id;
         },
-    });
-
-    /* Product drop-down */
-    /* We need this to reload upon brewer reselection.
-       See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
-    var product_combo = new Ext.form.ComboBox({
-        triggerAction:  'all',
-        mode:           'local',
-        lastQuery:      '',  /* to make sure the filter in the store
-                                is not cleared the first time the ComboBox trigger is used */
-        forceSelection: true,
-        allowBlank:     false,
-        typeAhead:      false, // bypasses the filter; FIXME in future?
-        store:          product_store,
-        valueField:     'product_id',
-        displayField:   'name',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-        listeners: {
-            beforeQuery: function(query) { 
-                var currentRowId = myGrid.getSelectionModel().getSelected().data.company_id;
-                this.store.reload( { params: { company_id: currentRowId }, add: true } );
-                this.store.clearFilter();
-                this.store.filter( { property:   'company_id',
-                                     value:      currentRowId,
-                                     exactMatch: true } );
-            }
-        }, 
-    });
-    
-    /* Distributor drop-down */
-    var distributor_combo = new Ext.form.ComboBox({
-        forceSelection: true,
-        allowBlank:     false,
-        typeAhead:      true,
-        triggerAction:  'all',
-        mode:           'local',
-        store:          distributor_store,
-        valueField:     'company_id',
-        displayField:   'name',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-        listeners: {
-            beforeQuery: function() {
-                if ( this.store.isPartial ) {
-                    this.store.reload( { params: { supplier_order_batch_id: null } } );
-                    this.store.sort();
-                }
-                this.store.isPartial = 0;
-            },
+        recordChanges: function (row, changes) {
+            changes.product_order_id = row.product_order_id;
+            changes.currency_id      = row.currency_id;
+            changes.order_batch_id   = order_batch_id;
+            return changes;
         },
-    });
-    
-    /* Currency drop-down */
-    var currency_combo = new Ext.form.ComboBox({
-        forceSelection: true,
-        allowBlank:     false,
-        typeAhead:      true,
-        triggerAction:  'all',
-        mode:           'local',
-        store:          currency_store,
-        valueField:     'currency_id',
-        displayField:   'currency_code',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-    });
-    
-    /* Cask size drop-down */
-    var cask_size_combo = new Ext.form.ComboBox({
-        forceSelection: true,
-        allowBlank:     false,
-        typeAhead:      true,
-        triggerAction:  'all',
-        mode:           'local',
-        store:          cask_size_store,
-        valueField:     'container_size_id',
-        displayField:   'description',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-    });
-    
-    var content_cols = [
-        { id:         'distributor_id',
-          header:     'Distributor',
-          dataIndex:  'distributor_id',
-          width:      130,
-          renderer:   MyComboRenderer(distributor_combo),
-          editor:     distributor_combo, },
-        { id:         'company_id',
-          header:     'Brewer',
-          dataIndex:  'company_id',
-          width:      130,
-          renderer:   MyComboRenderer(brewer_combo),
-          editor:     brewer_combo, },            
-        { id:         'product_id',
-          header:     'Product',
-          dataIndex:  'product_id',
-          width:      130,
-          renderer:   MyComboRenderer(product_combo),
-          editor:     product_combo, },
-        { id:         'container_size_id',
-          header:     'Cask Size',
-          dataIndex:  'container_size_id',
-          width:      80,
-          renderer:   MyComboRenderer(cask_size_combo),
-          editor:     cask_size_combo, },
-        { id:         'cask_count',
-          header:     'No. Casks',
-          dataIndex:  'cask_count',
-          width:      80,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-        { id:         'price',
-          header:     'Total Price',
-          dataIndex:  'price',
-          width:      50,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-        { id:         'currency_id',
-          header:     'Currency',
-          dataIndex:  'currency_id',
-          width:      50,
-          renderer:   MyComboRenderer(currency_combo),
-          editor:     currency_combo, },
-        { id:         'comment',
-          header:     'Comment',
-          dataIndex:  'comment',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-        { id:         'is_sale_or_return',
-          header:     'SOR',
-          dataIndex:  'is_sale_or_return',
-          width:      40,
-          renderer:   MyCheckboxRenderer(),
-          editor:     new Ext.form.Checkbox({
-          })},
-        { id:         'is_final',
-          header:     'Ordered',
-          dataIndex:  'is_final',
-          width:      60,
-          renderer:   MyCheckboxRenderer(),
-          editor:     new Ext.form.Checkbox({
-          })},
-        { id:         'is_received',
-          header:     'Arrived',
-          dataIndex:  'is_received',
-          width:      60,
-          renderer:   MyCheckboxRenderer(),
-          editor:     new Ext.form.Checkbox({
-          })},
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'productorder/view/{product_order_id}');
-        window.location=t.apply({product_order_id: record.get('product_order_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.product_order_id = record.get( 'product_order_id' );
-        fields.currency_id      = record.get( 'currency_id' );
-        fields.order_batch_id   = order_batch_id;
-        return(fields);
-    }
-
-    var reloadStores = new Array();
-    reloadStores.push( product_store );
-
-    var myGrid = new MyEditorGrid(
-        {
-            objLabel:           'Product Order',
-            idField:            'product_order_id',
-            autoExpandColumn:   'product_id',
-            store:              store,
-            comboStores:        [ distributor_store, brewer_store, product_store,
-                                  cask_size_store, currency_store ],
-            contentCols:        content_cols,
-            viewLink:           viewLink,
-            deleteUrl:          url_productorder_delete,
-            submitUrl:          url_productorder_submit,
-            recordChanges:      recordChanges,
-            view: new Ext.grid.GridView({
-
-                // Set CSS on disabled records.
-                getRowClass: function (rec, idx, rowParams, store){
-                    if (rec.get('is_received') == 1 && ! rec.isModified('is_received') ) {
-              	        return 'disabled-record';
-                    }
-                },
-            }),
-            listeners: {
-                beforeedit: function(e) {
-
-                    // reference to the currently clicked cell
-                    var ed = e.grid.getColumnModel().getCellEditor(e.column, e.row);    
-                    if (ed && ed.field) {
-                        // copy these references to the current editor (brewer_combo in our case)
-                        Ext.copyTo(ed.field, e, 'grid,record,field,row,column');
-                    }
-
-                    // Disallow editing of records which we've physically received.
-                    rec = e.record;
-                    if (rec.get('is_received') == 1 && ! rec.isModified('is_received') ) {
-                        return false;
-                    }
+        comboUrls: [
+            {
+                url:    url_company_list,
+                params: { brewer_order_batch_id: order_batch_id },
+                onLoad: function (data) {
+                    brewerOptions = (data.objects || data).map(function (o) {
+                        return { value: o.company_id, label: o.name };
+                    });
                 },
             },
-            reloadableStores: reloadStores,
-        }
-    );
-
-    /* Add an extra warning to the user. */
-    var sb = myGrid.getTopToolbar().get(1);
-    sb.events['click'].clearListeners();
-    sb.addListener({
-        click:  function(evt) {
-            this.grid.stopEditing();
-            // Only fire off an alert if there are any is_received==1 records FIXME.
-            Ext.Msg.show({
-                title:    'Caution',
-                msg:      'If products are marked as "Arrived", further editing will be disabled. Continue?',
-                buttons:  Ext.Msg.YESNO,
-                icon:     Ext.MessageBox.QUESTION,
-                fn:       function(btn, text){
-                    if (btn == 'yes'){
-                        saveGridRecords(sb);
-                    };
+            {
+                url:    url_product_list,
+                onLoad: function (data) {
+                    var all = (data.objects || data);
+                    productOptions = all.map(function (o) {
+                        return { value: o.product_id, label: o.name, company_id: o.company_id };
+                    });
                 },
-            });
-        },
-    });
-
-    var panel = new MyMainPanel({
-        title: orderbatchname + ': ' + categoryname,
-        layout: 'fit',
-        items: myGrid,
-        tbar:
-        [
-            { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
-            { text: 'Order Batch', handler: function() { window.location = url_order_batch_view; } },
+            },
+            {
+                url:    url_company_list,
+                params: { supplier_order_batch_id: order_batch_id },
+                onLoad: function (data) {
+                    distributorOptions = (data.objects || data).map(function (o) {
+                        return { value: o.company_id, label: o.name };
+                    });
+                },
+            },
+            {
+                url:    url_cask_size_list,
+                onLoad: function (data) {
+                    caskSizeOptions = (data.objects || data).map(function (o) {
+                        return { value: o.container_size_id, label: o.description };
+                    });
+                },
+            },
+            {
+                url:    url_currency_list,
+                onLoad: function (data) {
+                    currencyOptions = (data.objects || data).map(function (o) {
+                        return { value: o.currency_id, label: o.currency_code };
+                    });
+                },
+            },
         ],
+        columns: [
+            { field: 'distributor_id',   headerName: 'Distributor',
+              cellRenderer: function (p) {
+                  var o = distributorOptions.find(function (x) { return String(x.value) === String(p.value); });
+                  return o ? o.label : (p.value || '');
+              },
+              cellEditor: TomSelectCellEditor,
+              cellEditorParams: function () { return { values: distributorOptions }; },
+              editable: true },
+            { field: 'company_id',       headerName: 'Brewer',
+              cellRenderer: function (p) {
+                  var o = brewerOptions.find(function (x) { return String(x.value) === String(p.value); });
+                  return o ? o.label : (p.value || '');
+              },
+              cellEditor: TomSelectCellEditor,
+              cellEditorParams: function () { return { values: brewerOptions }; },
+              editable: true },
+            { field: 'product_id',       headerName: 'Product',
+              cellRenderer: function (p) {
+                  var o = productOptions.find(function (x) { return String(x.value) === String(p.value); });
+                  return o ? o.label : (p.value || '');
+              },
+              cellEditor: TomSelectCellEditor,
+              cellEditorParams: function (params) {
+                  var companyId = params.data ? params.data.company_id : null;
+                  var filtered = companyId
+                      ? productOptions.filter(function (o) { return String(o.company_id) === String(companyId); })
+                      : productOptions;
+                  return { values: filtered };
+              },
+              editable: true, flex: 1 },
+            { field: 'container_size_id', headerName: 'Cask Size',
+              cellRenderer: function (p) {
+                  var o = caskSizeOptions.find(function (x) { return String(x.value) === String(p.value); });
+                  return o ? o.label : (p.value || '');
+              },
+              cellEditor: TomSelectCellEditor,
+              cellEditorParams: function () { return { values: caskSizeOptions }; },
+              editable: true },
+            { field: 'cask_count',       headerName: 'No. Casks',   editable: true },
+            { field: 'price',            headerName: 'Total Price',  editable: true },
+            { field: 'currency_id',      headerName: 'Currency',
+              cellRenderer: function (p) {
+                  var o = currencyOptions.find(function (x) { return String(x.value) === String(p.value); });
+                  return o ? o.label : (p.value || '');
+              },
+              cellEditor: TomSelectCellEditor,
+              cellEditorParams: function () { return { values: currencyOptions }; },
+              editable: true },
+            { field: 'comment',          headerName: 'Comment',      editable: true },
+            { field: 'is_sale_or_return', headerName: 'SOR',
+              cellRenderer: makeCheckboxRenderer(), editable: true },
+            { field: 'is_final',         headerName: 'Ordered',
+              cellRenderer: makeCheckboxRenderer(), editable: true },
+            { field: 'is_received',      headerName: 'Arrived',
+              cellRenderer: makeCheckboxRenderer(), editable: true },
+        ],
+        onReady: function (api) {
+            // Warn before saving that received items will be locked for editing
+            // (handled through normal save flow — no special override needed in AG Grid)
+        },
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

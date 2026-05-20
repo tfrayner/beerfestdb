@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,61 +16,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    /* Stillage listing */
-    var stillage_store = new Ext.data.JsonStore({
-        url:        url_stillage_list,
-        root:       'objects',
-        fields:     [{ name: 'stillage_location_id',  type: 'int'    },
-                     { name: 'description',           type: 'string' }],
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
+document.addEventListener('DOMContentLoaded', function () {
+    createViewGrid({
+        container:   '#datagrid',
+        loadUrl:     url_stillage_list,
+        viewLinkUrl: function (row) {
+            return url_base + 'caskmeasurement/grid/' + measurement_batch_id + '/' + row.stillage_location_id;
         },
-    });
-
-    var myGrid = new MyViewGrid(
-        {
-            store:              stillage_store,
-            columns: [
-                { id:        'description',
-                  header:    'Stillage Name',
-                  dataIndex: 'description' },
-            ],
-            viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate(url_base + 'caskmeasurement/grid/{measurement_batch_id}/{stillage_location_id}');
-                window.location=t.apply({
-                        stillage_location_id: record.get('stillage_location_id'),
-                        measurement_batch_id: measurement_batch_id,
-                    })
-            },
-            objLabel: 'measurements from this stillage location',
-        }
-    );
-
-    var panel = new MyMainPanel({
-        title: festivalname + ': ' + batchtime,
-        layout: 'fit',
-        items: myGrid,
-        tbar:
-        [
-            { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
+        columns: [
+            { field: 'description', headerName: 'Stillage Name', editable: false, flex: 1 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

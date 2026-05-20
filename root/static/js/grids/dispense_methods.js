@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,74 +16,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    var DispenseMethod = Ext.data.Record.create([
-        { name: 'dispense_method_id', type: 'int' },
-        { name: 'description',        type: 'string' },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_dispense_method_list,
-        root:       'objects',
-        fields:     DispenseMethod
-    });
-    
-    var content_cols = [
-        { id:         'description',
-          header:     'Description',
-          dataIndex:  'description',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'dispensemethod/view/{dispense_method_id}');
-        window.location=t.apply({dispense_method_id: record.get('dispense_method_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.dispense_method_id = record.get( 'dispense_method_id' );
-        return(fields);
-    }
-
-    var panel = new MyMainPanel({
-        title: 'All Dispense Methods',
-        layout: 'fit',
-        items: new MyEditorGrid(
-            {
-                objLabel:           'Dispense Method',
-                idField:            'dispense_method_id',
-                autoExpandColumn:   'description',
-                store:              store,
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_dispense_method_delete,
-                submitUrl:          url_dispense_method_submit,
-                recordChanges:      recordChanges,
-            }
-        ),
-        tbar:
-        [
-            { text: 'Home',
-              handler: function() { window.location = url_base; } },
+document.addEventListener('DOMContentLoaded', function () {
+    createEditorGrid({
+        container:    '#datagrid',
+        loadUrl:      url_dispense_method_list,
+        submitUrl:    url_dispense_method_submit,
+        deleteUrl:    url_dispense_method_delete,
+        idField:      'dispense_method_id',
+        objLabel:     'Dispense Method',
+        firstEditCol: 'description',
+        viewLinkUrl:  function (row) { return url_base + 'dispensemethod/view/' + row.dispense_method_id; },
+        recordChanges: function (row) { return { dispense_method_id: row.dispense_method_id, description: row.description }; },
+        columns: [
+            { field: 'description', headerName: 'Description', flex: 1 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

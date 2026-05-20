@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,42 +16,19 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
+/* main.js — used by the index/home page.
+ *
+ * The index.tt2 template provides the page content directly via
+ * Bootstrap cards and links, so this file just handles any dynamic
+ * behaviour needed on the main page (currently none).
+ *
+ * The navbar logout link in root/lib/site/html renders a plain anchor
+ * tag, so no JS logout wiring is needed here.
+ */
 
-    Ext.QuickTips.init();
-
-    var mainMenu = new Ext.Panel({
-        title: 'Main Menu',
-        layout: 'fit',
-        contentEl: 'main-menu',
-    });
-    var adminMenu = new Ext.Panel({
-        title: 'Database Administration',
-        layout: 'fit',
-        contentEl: 'admin-menu',
-    });
-
-    var tabPanel = new Ext.TabPanel({
-        items: [
-            mainMenu,
-            adminMenu,
-        ],
-        activeTab: 0
-    });
-
-    var panel = new MyMainPanel({
-        title: 'BeerFestDB Main Page',
-        items: [ tabPanel ],
-        layout: 'fit',
-    });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
+document.addEventListener('DOMContentLoaded', function () {
+    /* Reserved for future main-page dynamic behaviour. */
 });
 

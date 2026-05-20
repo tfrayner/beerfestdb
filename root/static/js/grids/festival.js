@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,111 +16,34 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    var Festival = Ext.data.Record.create([
-        { name: 'festival_id', type: 'int',    allowBlank: false },
-        { name: 'year',        type: 'int' ,   allowBlank: false },
-        { name: 'name',        type: 'string', allowBlank: false },
-        { name: 'description', type: 'string' },
-        { name: 'fst_start_date',  type: 'date', dateFormat: 'Y-m-d' },
-        { name: 'fst_end_date',    type: 'date', dateFormat: 'Y-m-d' },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_festival_list,
-        root:       'objects',
-        fields:     Festival
-    });
-
-    var content_cols = [
-        { id:         'year',
-          header:     'Year',
-          dataIndex:  'year',
-          width:      30,
-          // FIXME make this a drop-down or something.
-          editor:     new Ext.form.NumberField({
-              allowBlank:     false,
-              allowDecimals:  false,
-              maxLength:      4,
-              minLength:      4,
-          })},
-        { id:         'name',
-          header:     'Name',
-          dataIndex:  'name',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-          })},
-        { id:         'description',
-          header:     'Description',
-          dataIndex:  'description',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-        { id:         'fst_start_date',
-          header:     'Start date',
-          dataIndex:  'fst_start_date',
-          width:      100,
-          editor:     new Ext.form.DateField({
-              allowBlank:     true,
-          }),
-          renderer:   Ext.util.Format.dateRenderer('Y-m-d'),},
-        { id:         'fst_end_date',
-          header:     'End date',
-          dataIndex:  'fst_end_date',
-          width:      100,
-          editor:     new Ext.form.DateField({
-              allowBlank:     true,
-          }),
-          renderer:   Ext.util.Format.dateRenderer('Y-m-d'),},
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate( url_base + 'festival/view/{festival_id}');
-        window.location=t.apply({festival_id: record.get('festival_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.festival_id = record.get( 'festival_id' );
-        return(fields);
-    }
-
-    var panel = new MyMainPanel({
-        title: 'Festival listing',
-        layout: 'fit',
-        items: new MyEditorGrid(
-            {
-                objLabel:           'Festival',
-                idField:            'festival_id',
-                autoExpandColumn:   'name',
-                store:              store,
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_festival_delete,
-                submitUrl:          url_festival_submit,
-                recordChanges:      recordChanges,
-            }
-        ),
-        tbar:
-        [
-            { text: 'Home', handler: function() { window.location = url_base; } },
+document.addEventListener('DOMContentLoaded', function () {
+    createEditorGrid({
+        container:     '#datagrid',
+        loadUrl:       url_festival_list,
+        submitUrl:     url_festival_submit,
+        deleteUrl:     url_festival_delete,
+        idField:       'festival_id',
+        objLabel:      'Festival',
+        firstEditCol:  'name',
+        viewLinkUrl:   function (row) { return url_base + 'festival/view/' + row.festival_id; },
+        recordChanges: function (row) {
+            return {
+                festival_id:    row.festival_id,
+                name:           row.name,
+                year:           row.year,
+                description:    row.description,
+                fst_start_date: row.fst_start_date,
+                fst_end_date:   row.fst_end_date,
+            };
+        },
+        columns: [
+            { field: 'name',           headerName: 'Name',        cellEditor: 'agTextCellEditor',   flex: 1 },
+            { field: 'year',           headerName: 'Year',        cellEditor: 'agNumberCellEditor', width: 80 },
+            { field: 'description',    headerName: 'Description', cellEditor: 'agTextCellEditor',   flex: 1 },
+            { field: 'fst_start_date', headerName: 'Start Date',  cellEditorFramework: FlatpickrDateEditor, width: 120 },
+            { field: 'fst_end_date',   headerName: 'End Date',    cellEditorFramework: FlatpickrDateEditor, width: 120 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

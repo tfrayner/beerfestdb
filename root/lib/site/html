@@ -1,8 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 <html>
  <head>
   <title>[% template.title or site.title %]</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 [% IF ! generate_bare_html -%]
  <script type="text/javascript">
    <!-- We must set our base URLs before defining our custom classes (in /static/js/classes.js). -->
@@ -10,18 +11,18 @@
    var url_success_target = '[% url_success_target || "/" %]';
  </script>
 [%-
-  css_link( href = "/static/ext/resources/css/ext-all.css" );
-  css_link( href = "/static/tp_skin/resources/css/xtheme-tp.css" );
-  css_link( href = "/static/css/Ext.ux.grid.RowActions.css" );
-  css_link( href = "/static/css/Ext.ux.form.LovCombo.css" );
+  css_link( href = "/static/bootstrap5/bootstrap.min.css" );
+  css_link( href = "/static/ag-grid/ag-grid.min.css" );
+  css_link( href = "/static/ag-grid/ag-theme-alpine.min.css" );
+  css_link( href = "/static/tom-select/tom-select.bootstrap5.min.css" );
+  css_link( href = "/static/flatpickr/flatpickr.min.css" );
   css_link( href = "/static/css/icons.css" );
   css_link( href = "/static/css/extras.css" );
 
-  js_link( src = "/static/ext/adapter/ext/ext-base.js" );
-  js_link( src = "/static/ext/ext-all.js" );
-  js_link( src = "/static/js/Ext.ux.grid.RowActions.js" );
-  js_link( src = "/static/js/Ext.ux.form.LovCombo.js" );
-  js_link( src = "/static/js/Ext.ux.form.DateTime.js" );
+  js_link( src = "/static/bootstrap5/bootstrap.bundle.min.js" );
+  js_link( src = "/static/ag-grid/ag-grid-community.min.js" );
+  js_link( src = "/static/tom-select/tom-select.complete.min.js" );
+  js_link( src = "/static/flatpickr/flatpickr.min.js" );
   js_link( src = "/static/js/classes.js" );
 -%]
   <style type="text/css">
@@ -30,8 +31,17 @@
 [%- END %]
  <link rel="shortcut icon" href="[% c.uri_for( "/favicon.ico") %]" />
  </head>
- <body>
+ <body class="d-flex flex-column vh-100">
 [%- IF ! generate_bare_html -%]
+<nav class="navbar navbar-dark bg-dark px-3 flex-shrink-0">
+  <a class="navbar-brand" href="[% c.uri_for('/') %]">BeerFestDB</a>
+  <span class="navbar-text text-white flex-grow-1 ms-3">[% template.title or site.title %]</span>
+[%- IF c.user -%]
+  <span class="navbar-text text-white-50 me-3 small">[% c.user.username %]</span>
+  <a class="btn btn-sm btn-outline-light" href="[% c.uri_for('/logout') %]">Log out</a>
+[%- END -%]
+</nav>
+<div class="flex-grow-1 overflow-auto bfdb-content">
    <!-- These variables may be overridden in the content section. -->
  <script type="text/javascript">
    var url_cask_size_list       = '[% c.uri_for( "/containersize/list" ) %]';
@@ -119,6 +129,9 @@
    var csrf_token = '[% c.csrf_token %]';
 </script>
 [%- END %]
-[% content %] 
+[% content %]
+[%- IF ! generate_bare_html -%]
+</div><!-- /.bfdb-content -->
+[%- END %]
  </body>
 </html>

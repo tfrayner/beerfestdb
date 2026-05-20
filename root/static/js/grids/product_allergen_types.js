@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,74 +16,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    var ProductAllergen = Ext.data.Record.create([
-        { name: 'product_allergen_type_id', type: 'int' },
-        { name: 'description',              type: 'string' },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_product_allergen_list,
-        root:       'objects',
-        fields:     ProductAllergen
-    });
-    
-    var content_cols = [
-        { id:         'description',
-          header:     'Description',
-          dataIndex:  'description',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'productallergentype/view/{product_allergen_type_id}');
-        window.location=t.apply({product_allergen_type_id: record.get('product_allergen_type_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.product_allergen_type_id = record.get( 'product_allergen_type_id' );
-        return(fields);
-    }
-
-    var panel = new MyMainPanel({
-        title: 'All Product Allergens',
-        layout: 'fit',
-        items: new MyEditorGrid(
-            {
-                objLabel:           'Product Allergen',
-                idField:            'product_allergen_type_id',
-                autoExpandColumn:   'description',
-                store:              store,
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_product_allergen_delete,
-                submitUrl:          url_product_allergen_submit,
-                recordChanges:      recordChanges,
-            }
-        ),
-        tbar:
-        [
-            { text: 'Home',
-              handler: function() { window.location = url_base; } },
+document.addEventListener('DOMContentLoaded', function () {
+    createEditorGrid({
+        container:     '#datagrid',
+        loadUrl:       url_product_allergen_list,
+        submitUrl:     url_product_allergen_submit,
+        deleteUrl:     url_product_allergen_delete,
+        idField:       'product_allergen_type_id',
+        objLabel:      'Product Allergen',
+        firstEditCol:  'description',
+        viewLinkUrl:   function (row) { return url_base + 'productallergentype/view/' + row.product_allergen_type_id; },
+        recordChanges: function (row) { return { product_allergen_type_id: row.product_allergen_type_id, description: row.description }; },
+        columns: [
+            { field: 'description', headerName: 'Description', flex: 1 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-
