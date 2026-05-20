@@ -27,6 +27,7 @@ my @scripts;
 find(
     sub {
         return unless /\.pl$/;
+        return if /^generate_orm\.pl$/; # code generating script, not used in production.
         push @scripts, $File::Find::name;
     },
     qw( script util ),

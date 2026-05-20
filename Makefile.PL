@@ -54,5 +54,5 @@ WriteMakefile(
             },
         },
     },
-    clean => { FILES => 't/pristine_testing.db t/testing.db' },
+    clean => { FILES => 't/pristine_testing.db t/testing.db t/testing_submit.db' },
 );

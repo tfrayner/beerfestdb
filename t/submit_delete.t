@@ -25,7 +25,7 @@
 use strict;
 use warnings;
 
-use JSON;
+use JSON::MaybeXS;
 use Test::More;
 
 # $schema is set inside the BEGIN block below and used at runtime for
