@@ -89,7 +89,8 @@ sub decode_json_changes : Private {
     my $field = $self->price_field();
     foreach my $rec ( @{ $data } ) {
         # Note that $rec is just an integer if we're deleting records
-        if ( reftype($rec) eq 'HASH' && exists $rec->{$field} ) {
+        my $type = reftype($rec) // 'scalar';
+        if ( $type eq 'HASH' && exists $rec->{$field} ) {
             my $currency = $self->_fetch_currency($rec, $c);
             $rec->{$field} = $self->parse_price(
                 $rec->{$field}, $currency
