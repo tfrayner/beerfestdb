@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     createViewForm({
         container:  document.getElementById('datagrid'),
-        loadUrl:    url_festivalproduct_load_form,
+        loadUrl:    url_fp_load_form,
         idParams:   { festival_product_id: festival_product_id },
         submitUrl:  url_festivalproduct_submit,
         fields: [

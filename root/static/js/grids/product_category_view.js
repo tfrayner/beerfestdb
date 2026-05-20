@@ -21,8 +21,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     createViewForm({
         container:  '#datagrid',
-        loadUrl:    url_category_load_form,
-        submitUrl:  url_category_submit,
+        loadUrl:    url_product_category_load_form,
+        submitUrl:  url_product_category_submit,
         idParams:   { product_category_id: product_category_id },
         fields: [
             { name: 'description', label: 'Category Name' },

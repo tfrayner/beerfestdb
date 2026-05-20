@@ -21,7 +21,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     createViewForm({
         container:  '#datagrid',
-        loadUrl:    url_product_allergen_load_form,
+        loadUrl:    url_product_allergen_type_load_form,
         submitUrl:  url_product_allergen_submit,
         idParams:   { product_allergen_type_id: product_allergen_type_id },
         fields: [

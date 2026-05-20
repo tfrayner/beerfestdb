@@ -26,9 +26,9 @@ document.addEventListener('DOMContentLoaded', function () {
           '<li class="nav-item"><a class="nav-link active" href="#tab-users" data-bs-toggle="tab">Users</a></li>' +
           '<li class="nav-item"><a class="nav-link"        href="#tab-roles" data-bs-toggle="tab">Roles</a></li>' +
         '</ul>' +
-        '<div class="tab-content flex-grow-1 d-flex flex-column">' +
-          '<div class="tab-pane active flex-grow-1 d-flex flex-column" id="tab-users"  style="min-height:400px"></div>' +
-          '<div class="tab-pane        flex-grow-1 d-flex flex-column" id="tab-roles"  style="min-height:400px"></div>' +
+        '<div class="tab-content" style="flex:1 1 auto;min-height:0">' +
+          '<div class="tab-pane show active" id="tab-users" style="min-height:400px"></div>' +
+          '<div class="tab-pane"             id="tab-roles" style="min-height:400px"></div>' +
         '</div>';
 
     createEditorGrid({

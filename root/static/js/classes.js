@@ -323,7 +323,14 @@ function createEditorGrid(config) {
 
     /* ---- Size the grid div to fill available height below toolbar ---- */
     gridDiv.style.width = '100%';
-    gridDiv.style.height = 'calc(100% - ' + (toolbar.getBoundingClientRect().height || 48) + 'px)';
+    (function sizeGrid() {
+        var h = container.getBoundingClientRect().height - (toolbar.getBoundingClientRect().height || 48);
+        gridDiv.style.height = Math.max(h, 200) + 'px';
+    }());
+    window.addEventListener('resize', function () {
+        var h = container.getBoundingClientRect().height - (toolbar.getBoundingClientRect().height || 48);
+        gridDiv.style.height = Math.max(h, 200) + 'px';
+    });
 
     /* ---- AG Grid ---- */
     const gridOptions = {
