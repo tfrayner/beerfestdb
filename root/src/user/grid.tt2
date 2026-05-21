@@ -5,3 +5,5 @@
 </script>
 
 [% js_link( src = '/static/js/grids/users.js' ) %]
+
+<div id="datagrid"></div>
