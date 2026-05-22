@@ -2,6 +2,9 @@
 import mysql.connector
 import streamlit as st
 import pandas as pd
+from CBF_logger import make_logger
+
+logger = make_logger(__file__)
 
 #%%
 conn = st.connection('cbf', type='sql')
@@ -12,6 +15,7 @@ st.title('CBF beer allergen lookup')
 festivalname = st.session_state['festival']
 
 alsql = '''select description as allergen from product_allergen_type;'''
+logger.debug("Executing SQL query to fetch allergen types")
 aldf = conn.query(alsql)
 allergenlist = aldf['allergen'].to_list()
 
@@ -49,6 +53,7 @@ and p.product_style_id = ps.product_style_id
 and a.present = '1';'''
 
 #%%
+logger.debug("Executing SQL query to fetch beers containing the selected allergen")
 adf = conn.query(asql, params={"festivalname": festivalname, "allergen": allergen})
 
 
@@ -56,9 +61,11 @@ adf = conn.query(asql, params={"festivalname": festivalname, "allergen": allerge
 conn.close()
 
 def csv_for_download(df):
+    logger.debug("Converting DataFrame to CSV for download")
     return df.to_csv().encode("utf-8")
 
 def tsv_for_download(df):
+    logger.debug("Converting DataFrame to TSV for download")
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
 acsv = csv_for_download(adf)
@@ -72,9 +79,11 @@ st.header("Allergen finder")
 conn.close()
 
 def csv_for_download(df):
+    logger.debug("Converting DataFrame to CSV for download")
     return df.to_csv().encode("utf-8")
 
 def tsv_for_download(df):
+    logger.debug("Converting DataFrame to TSV for download")
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
 acsv = csv_for_download(adf)
