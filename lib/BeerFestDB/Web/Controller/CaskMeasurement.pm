@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::CaskMeasurement;
 use Moose;
 use namespace::autoclean;
 
-use JSON::MaybeXS qw/is_bool/;
+use JSON::MaybeXS qw(JSON is_bool);
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -182,7 +182,7 @@ sub list : Local {
         push @casks, \%cask_info;
     }
 
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
     $c->stash->{ 'objects' } = \@casks;
     $c->forward( 'View::JSON' );
 }
@@ -232,7 +232,7 @@ sub submit : Local {
         $self->detach_with_txn_failure( $c, $@ );
     }
     
-    $c->stash->{success} = JSON->true();
+    $c->stash->{success} = JSON()->true();
 
     $c->forward( 'View::JSON' );
 }

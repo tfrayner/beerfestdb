@@ -27,7 +27,7 @@ use List::Util qw(first);
 use Carp;
 use utf8;
 use Encode;
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON is_bool);
 use Data::Dumper;
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -71,7 +71,7 @@ sub generate_json_and_detach : Private {
         push @objects, $self->generate_object_viewhash($obj, $c);
     }
 
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
     $c->stash->{ 'objects' } = \@objects;
     $c->forward( 'View::JSON' );
 }
@@ -114,15 +114,15 @@ sub form_json_and_detach : Private {
 
         if ( $obj ) {
             $c->stash->{ 'data' } = $self->generate_object_viewhash( $obj, $c );
-            $c->stash->{ 'success' } = JSON->true();
+            $c->stash->{ 'success' } = JSON()->true();
         }
         else {
-            $c->stash->{ 'success' } = JSON->false();
+            $c->stash->{ 'success' } = JSON()->false();
             $c->stash->{ 'error' } = qq{Error: Unable to find $pk "$id".};
         }
     }
     else {
-        $c->stash->{ 'success' } = JSON->false();
+        $c->stash->{ 'success' } = JSON()->false();
         $c->stash->{ 'error' } = "Error: $pk is not defined.";
     }
 
@@ -297,16 +297,16 @@ sub _add_object_column_attributes : Private {
 
             # For some reason these don't want to autoconvert, so we
             # do this manually.
-            if ( UNIVERSAL::isa($dbval, 'JSON::PP::Boolean') ) {
+            if ( is_bool($dbval) ) {
                 $dbval = $dbval ? 1 : 0;
             }
 
-	    # Don't try and save empty strings as integers - strict
-	    # MySQL mode complains.
-	    my $dt = $dbobj->result_source()
-		           ->column_info( $lookup )
-			   ->{data_type};
-	    if ( defined $dbval && $dbval eq q{} ) {
+            # Don't try and save empty strings as integers - strict
+	        # MySQL mode complains.
+	        my $dt = $dbobj->result_source()
+		                   ->column_info( $lookup )
+                           ->{data_type};
+	        if ( defined $dbval && $dbval eq q{} ) {
                 if ( $dt eq 'tinyint' ) {
                     $dbval = 0;
                 }
@@ -529,7 +529,7 @@ sub write_to_resultset : Private {
         $self->detach_with_txn_failure( $c );
     };
 
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
     $c->forward( 'View::JSON' );
 
     return;
@@ -581,7 +581,7 @@ sub delete_from_resultset : Private {
         $self->detach_with_txn_failure( $c );
     };
 
-    $c->stash->{ 'success' } = JSON->false();
+    $c->stash->{ 'success' } = JSON()->false();
     $c->forward( 'View::JSON' );
 }
 
@@ -600,7 +600,7 @@ sub detach_with_txn_failure : Private {
     $c->response->status('403');  # Forbidden; must use this or
                                   # similar for ExtJS to detect
                                   # failure.
-    $c->stash->{ 'success' } = JSON->false();
+    $c->stash->{ 'success' } = JSON()->false();
     $c->stash->{ 'error' }   = $error;
     $c->forward( 'View::JSON' );
 }

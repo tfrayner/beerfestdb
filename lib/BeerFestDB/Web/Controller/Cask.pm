@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::Cask;
 use Moose;
 use namespace::autoclean;
 
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON);
 use Data::Dumper;
 
 BEGIN {extends 'BeerFestDB::Web::PriceController'; }
@@ -304,7 +304,7 @@ sub list_dips : Local {
     }
 
     $c->stash->{ 'objects' } = $dips;
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
 
     $c->forward( 'View::JSON' );
 }
