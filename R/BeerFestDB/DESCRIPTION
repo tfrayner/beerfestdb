@@ -18,3 +18,5 @@ Depends:
   dplyr,
   tidyr,
   purrr
+Suggests:
+  testthat (>= 3.0.0)

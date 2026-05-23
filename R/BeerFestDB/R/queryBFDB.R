@@ -28,10 +28,16 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL, auth, .opts
   terms <- sort(Reduce(union, sapply(objects, names)))
   cleaned <- lapply(objects, function(x) {
     w <- terms[!terms %in% names(x)]
-    v <- rep(NA, length(w))
+    v <- rep(NA_character_, length(w))
     names(v) <- w
     x <- c(x, v)
-    return(x[terms])
+    x <- x[terms]
+    ## Convert each element to a character scalar so that do.call(rbind, ...)
+    ## produces a character matrix rather than a list-matrix, preserving NAs.
+    vapply(x, function(el) {
+      if (is.null(el) || (length(el) == 1L && is.na(el))) NA_character_
+      else as.character(el)[[1L]]
+    }, character(1L))
   })
 
   res <- as.data.frame(do.call("rbind", cleaned), stringsAsFactors = FALSE)
