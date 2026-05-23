@@ -22,7 +22,7 @@
 package BeerFestDB::Web::Controller::Root;
 use Moose;
 use namespace::autoclean;
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON);
 
 use Data::Dumper;
 
@@ -130,7 +130,7 @@ sub login : Global {
 
     }
 
-    my $j = JSON->new;
+    my $j = JSON()->new;
     my $json_req = $c->request->param( 'data' );
 
     $c->res->status('403');
@@ -148,7 +148,7 @@ sub login : Global {
 
         # ExtJS form redirects to url_success_target URI.
 	    $c->res->status('200');
-        $c->stash->{ 'success' } = JSON->true();
+        $c->stash->{ 'success' } = JSON()->true();
         $c->forward( 'View::JSON' );
     }
     else {
@@ -157,7 +157,7 @@ sub login : Global {
 
         $c->res->status('401');
         $c->stash->{ 'message' } = 'Login failed.';
-        $c->stash->{ 'success' } = JSON->false();
+        $c->stash->{ 'success' } = JSON()->false();
         $c->forward( 'View::JSON' );
     }
 
@@ -178,7 +178,7 @@ sub logout : Global {
     $c->logout;
 
     $c->flash->{ 'message' } = 'Successfully logged out.';
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
     $c->res->redirect( $c->uri_for('/') );
 }
 
@@ -196,7 +196,7 @@ sub json_logout : Global {
     $c->logout;
     
     $c->flash->{ 'message' } = 'Successfully logged out.';
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
     $c->detach( $c->view( 'JSON' ) );
 }
 

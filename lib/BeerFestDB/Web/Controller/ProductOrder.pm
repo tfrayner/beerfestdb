@@ -22,7 +22,7 @@
 package BeerFestDB::Web::Controller::ProductOrder;
 use Moose;
 use namespace::autoclean;
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON);
 
 BEGIN {extends 'BeerFestDB::Web::PriceController'};
 
@@ -148,7 +148,7 @@ sub submit : Local {
         $self->detach_with_txn_failure( $c, $@ );
     }
 
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
     $c->forward( 'View::JSON' );
 }
 
