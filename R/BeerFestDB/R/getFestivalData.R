@@ -17,6 +17,42 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+###############################################################################
+#' Retrieve full festival dip data from the BeerFestDB database
+#' @description Downloads and assembles the complete cask data frame for a
+#'   named festival and product category from the BeerFestDB JSON API.  Cask
+#'   metadata, product details, dip measurements, stillage assignments, and
+#'   brewery region information are all joined into a single data frame.
+#' @details Requires an authenticated connection to a running BeerFestDB
+#'   instance.  If \code{auth} is \code{NULL} or not a \code{CURLHandle},
+#'   the user is prompted for credentials.  Gyle-level ABV values take
+#'   precedence over nominal product ABV where available.  Dip volumes are
+#'   converted to gallons using the container-size data stored in the database.
+#' @param baseuri Base URI of the BeerFestDB web application
+#'   (e.g., \code{"https://example.org/bfdb"}).
+#' @param festname Character string matching the \code{name} field of the
+#'   target festival in the database.
+#' @param prodcat Character string matching the \code{description} field of
+#'   the desired product category (e.g., \code{"Beer"}).
+#' @param auth Authentication object: a \code{CURLHandle} with a live
+#'   session, a list with elements \code{username} and \code{password}, or
+#'   \code{NULL} to prompt interactively.
+#' @param .opts Named list of additional options forwarded to
+#'   \code{\link[RCurl]{curlPerform}}.
+#' @return A data frame with one row per cask.  Columns include cask metadata
+#'   (\code{cask_id}, \code{cask_volume}, \code{festival_ref},
+#'   \code{is_condemned}, \code{is_sale_or_return}, \code{cask_price},
+#'   \code{sale_price}, \code{comment}, \code{order_batch}, \code{size_name}),
+#'   product details (\code{product_name}, \code{company_name}, \code{style},
+#'   \code{abv}), location details (\code{region}, \code{stillage}), and one
+#'   \code{dip.*} column per measurement batch containing the recorded volume
+#'   in gallons.
+#' @seealso \code{\link{analyseData}}, \code{\link{getBFData}},
+#'   \code{\link{retrieveDips}}
+#' @importFrom dplyr %>% pull rename mutate arrange left_join select any_of matches
+#' @importFrom tidyr replace_na
+#' @export
+###############################################################################
 getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = list()) {
   if (is.null(auth) || !inherits(auth, "CURLHandle")) {
     auth <- .getBFDBHandle(baseuri = baseuri, auth = auth, .opts = .opts)
@@ -180,7 +216,7 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
     params = festival_id,
     columns = c("order_batch_id", "description")
   )
-  # In the absence of an order batch in the database, the returned value will be NA 
+  # In the absence of an order batch in the database, the returned value will be NA
   if (nrow(orderbatch) > 0) {
     orderbatch <- orderbatch %>%
       rename(order_batch = "description")
