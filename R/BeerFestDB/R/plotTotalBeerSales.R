@@ -19,6 +19,21 @@
 ##
 ## $Id$
 
+###############################################################################
+#' Plot overall beer sales over time
+#' @description Sums per-session sales across all products and draws a line
+#'   chart of total gallons sold per session.
+#' @param pd A data frame or matrix of per-session sales volumes (gallons),
+#'   with one row per cask and one column per session.  Typically computed as
+#'   consecutive differences of the dip columns returned by
+#'   \code{\link{getFestivalData}}.
+#' @param ... Additional arguments passed to \code{\link[graphics]{plot}}.
+#' @return Invisibly returns \code{NULL} (called for its side effect of
+#'   producing a plot).
+#' @seealso \code{\link{analyseData}}
+#' @importFrom graphics plot axis
+#' @export
+###############################################################################
 plotTotalBeerSales <- function(pd, ...) {
   d <- apply(pd, 2, sum)
 

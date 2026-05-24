@@ -19,8 +19,37 @@
 ##
 ## $Id$
 
+###############################################################################
+#' Plot the fraction of product remaining over time
+#' @description Draws a multi-line chart showing the fraction of the starting
+#'   volume remaining at each dip time for each group (cluster).  Typically
+#'   called via \code{\link{plotSalesRate}} rather than directly.
+#' @param data A matrix or data frame with groups as rows and dip times as
+#'   columns.  Typically the output of \code{\link{aggData}} divided by its
+#'   first column.
+#' @param clusters Character vector of row names from \code{data} to include
+#'   in the plot.  Defaults to all rows.
+#' @param cols A vector of colours, one per cluster.  Expanded via
+#'   \code{\link[grDevices]{colorRampPalette}} when more clusters than colours
+#'   are present.
+#' @param lty Line-type vector (recycled as needed by
+#'   \code{\link[graphics]{matplot}}).
+#' @param ylim Numeric vector of length two giving the y-axis limits.
+#' @param leg.pos Position keyword for the legend, passed to
+#'   \code{\link[graphics]{legend}}.
+#' @param ylab Y-axis label.
+#' @param ... Additional arguments passed to \code{\link[graphics]{matplot}}.
+#' @return Invisibly returns \code{NULL} (called for its side effect of
+#'   producing a plot).
+#' @seealso \code{\link{plotSalesRate}}, \code{\link{aggData}}
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom grDevices colorRampPalette
+#' @importFrom graphics matplot axis legend
+#' @export
+###############################################################################
 plotFractions <- function(data, clusters = rownames(data),
-                          cols = 1:9, lty = 1:9, ylim = c(0, 1),
+                          cols = brewer.pal(9, "Set1"), lty = 1:9,
+                          ylim = c(0, 1),
                           leg.pos = "bottomleft",
                           ylab = "Fraction remaining", ...) {
   if (length(clusters) > length(cols)) {

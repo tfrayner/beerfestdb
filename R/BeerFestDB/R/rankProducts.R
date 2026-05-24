@@ -19,6 +19,33 @@
 ##
 ## $Id$
 
+###############################################################################
+#' Rank products by their observed sale rate (experimental)
+#' @description Estimates the sale rate for each active cask using a linear
+#'   model, averages the per-cask rates by product, and returns products
+#'   sorted from slowest to fastest seller.  This is quite experimental due
+#'   to the complexities of determining a sale rate from sparse data affected
+#'   by multiple confounding factors.
+#' @details Casks that show no change over the query period are excluded
+#'   before fitting.  Each cask's rate is estimated independently via
+#'   \code{\link{productSaleRate}} and then averaged across all casks of the
+#'   same product.  The \code{drop} argument is used to exclude the final
+#'   sessions of the festival, where sales typically become non-linear.
+#' @param cp A data frame of cask/dip data, typically from
+#'   \code{\link{getFestivalData}}.
+#' @param drop A character vector of dip-time column names to exclude from
+#'   the analysis (typically the last sessions of the festival).
+#' @param w A logical vector selecting the volume and dip columns of
+#'   \code{cp}.
+#' @return A data frame with one row per product, sorted ascending by
+#'   \code{gallons_per_session}.  Columns: \code{company_name},
+#'   \code{product_name}, \code{style}, \code{abv},
+#'   \code{gallons_per_session}.
+#' @seealso \code{\link{productSaleRate}}, \code{\link{analyseData}}
+#' @importFrom dplyr %>% group_by summarise arrange
+#' @importFrom stats lm aggregate
+#' @export
+###############################################################################
 rankProducts <- function(cp, drop, w) {
   ## Doesn't work very well since occasionally a cask gets held back.
   #    byprod <- aggData(cp, c('company_name','product_name'))

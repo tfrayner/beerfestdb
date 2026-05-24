@@ -19,6 +19,27 @@
 ##
 ## $Id$
 
+###############################################################################
+#' Aggregate dip data by a given factor
+#' @description Aggregates (sums) the columns of \code{cp} selected by the
+#'   logical vector \code{w}, grouped by one or more named columns.  Grouping
+#'   columns are dropped from the result, row names are set to the pasted
+#'   group-key values, and the first aggregated column is renamed
+#'   \code{"Start"}.
+#' @param cp A data frame of cask/dip data, typically from
+#'   \code{\link{getFestivalData}}.
+#' @param colname A character vector of one or more column names in \code{cp}
+#'   to use as grouping variables.
+#' @param w A logical vector of the same length as \code{ncol(cp)} selecting
+#'   the columns to aggregate.  Defaults to \code{TRUE} (all columns).
+#' @return A data frame with one row per unique group.  Row names are the
+#'   pasted group-key values (separated by \code{":"}), grouping columns are
+#'   absent, and the first column is named \code{"Start"}.
+#' @seealso \code{\link{getFestivalData}}, \code{\link{plotSalesRate}},
+#'   \code{\link{plotModelCoeffs}}
+#' @importFrom stats aggregate
+#' @export
+###############################################################################
 aggData <- function(cp, colname, w = TRUE) {
   dp <- aggregate(cp[, w], lapply(colname, function(x) {
     cp[, x]

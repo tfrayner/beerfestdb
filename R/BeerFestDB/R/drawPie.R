@@ -19,7 +19,41 @@
 ##
 ## $Id$
 
-drawPie <- function(cp, colname, cols = 1:9, radius = 0.8, ...) {
+###############################################################################
+#' Draw a pie chart of row counts from a given category
+#' @description Takes a data frame and a column name, counts the number of
+#'   rows in each category, and draws a pie chart illustrating the relative
+#'   numbers of rows per category.  Categories that together account for less
+#'   than 1\% of the total are collapsed into an \code{"Other"} slice.
+#' @details The default output of \code{\link{getFestivalData}} lists dip
+#'   measurements by cask.  To obtain counts of distinct products per category
+#'   you should first aggregate the data frame as shown in the example below.
+#' @param cp A data frame.
+#' @param colname A character string naming the column in \code{cp} to tally.
+#' @param cols A vector of colours used to fill the pie slices.  Expanded via
+#'   \code{\link[grDevices]{colorRampPalette}} when more slices than colours
+#'   are required.
+#' @param radius Radius of the pie chart passed to
+#'   \code{\link[graphics]{pie}}.
+#' @param ... Additional arguments passed to \code{\link[graphics]{pie}}.
+#' @return Invisibly returns \code{NULL} (called for its side effect of
+#'   producing a plot).
+#' @examples
+#' \dontrun{
+#'   cp <- getFestivalData(baseuri, festname, prodcat)
+#'   byprod <- aggregate(cp[, c("region", "style")],
+#'                       list(cp$company_name, cp$product_name), unique)
+#'   drawPie(byprod, "region")
+#' }
+#' @seealso \code{\link{getFestivalData}}, \code{\link{analyseData}}
+#' @importFrom grDevices colorRampPalette
+#' @importFrom graphics pie
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom stats aggregate
+#' @export
+###############################################################################
+drawPie <- function(cp, colname, cols = brewer.pal(9, "Set1"),
+                    radius = 0.8, ...) {
   counts <- aggregate(rep(1, nrow(cp)), list(cp[, colname]), sum)
 
   w <- counts[, 2] / sum(counts[, 2]) < 0.01

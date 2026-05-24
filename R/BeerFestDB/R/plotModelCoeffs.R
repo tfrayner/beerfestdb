@@ -19,6 +19,28 @@
 ##
 ## $Id$
 
+###############################################################################
+#' Plot a bar chart comparing starting quantities with observed sales rates
+#' @description Fits a linear model of cumulative sales as a function of dip
+#'   time and category, then draws a horizontal grouped bar chart comparing
+#'   each category's observed sale-rate share with the share predicted from
+#'   its starting volume.
+#' @param cp A data frame of cask/dip data, typically from
+#'   \code{\link{getFestivalData}}.
+#' @param colname A character string naming the column in \code{cp} to use
+#'   as the grouping category (e.g., \code{"style"}, \code{"region"}).
+#' @param drop A character vector of dip-time column names to exclude from
+#'   the model (typically the final sessions where sales become non-linear).
+#' @param w A logical vector selecting the volume and dip columns of
+#'   \code{cp}.
+#' @param ... Additional arguments (currently unused).
+#' @return Invisibly returns \code{NULL} (called for its side effect of
+#'   producing a plot).
+#' @seealso \code{\link{aggData}}, \code{\link{analyseData}}
+#' @importFrom graphics barplot text par
+#' @importFrom stats aggregate lm
+#' @export
+###############################################################################
 plotModelCoeffs <- function(cp, colname, drop, w = TRUE, ...) {
   pred <- aggregate(cp$cask_volume, list(cp[, colname]), sum)[, 2]
   pred <- (pred / sum(pred)) * 100

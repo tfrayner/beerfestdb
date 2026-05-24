@@ -19,6 +19,23 @@
 ##
 ## $Id$
 
+###############################################################################
+#' Calculate the sale rate for a single cask using a linear model
+#' @description Estimates the sale rate (gallons per session) for a single
+#'   cask by fitting a linear model to its trimmed, normalised dip readings.
+#'   Leading and trailing non-sale plateaux are removed before fitting.
+#'   Used internally by \code{\link{rankProducts}}.
+#' @param y A numeric vector of dip readings (volume remaining in gallons)
+#'   for a single cask, ordered by measurement session.
+#' @return A named numeric vector with two elements:
+#'   \describe{
+#'     \item{Estimate}{Estimated gallons sold per session (positive).}
+#'     \item{Std. Error}{Standard error of the estimate from \code{\link[stats]{lm}}.}
+#'   }
+#' @seealso \code{\link{rankProducts}}
+#' @importFrom stats lm
+#' @export
+###############################################################################
 productSaleRate <- function(y) {
   ## Trim off initial non-sale period.
   y <- c(y[1], y[y != y[1]])
