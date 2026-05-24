@@ -29,6 +29,7 @@ Note that cask end signs created using product_order dump class info may be inac
 \usepackage[a4paper, landscape]{geometry}
 
 \usepackage[absolute]{textpos}
+%\usepackage[absolute, showboxes]{textpos} % for debugging layout; remove showboxes option for production
 \usepackage[british]{babel}
 \usepackage{times}
 \usepackage{graphicx}
@@ -63,20 +64,28 @@ Note that cask end signs created using product_order dump class info may be inac
 [%-# Vegan flag and Allergen data (replaces old hardcoded CAMRA logo) -%]
 \fontsize{14}{16}
 \selectfont
-\begin{textblock}{0.15}(0.80,0.04)
+\begin{textblock}{0.19}(0.80,0.00)
 
-[% IF cask.is_vegan %]\textbf{Suitable for Vegans}[% END %]
+[% IF cask.is_vegan %]\begin{center}\textbf{Suitable for Vegans}\end{center}[% END %]
 
 [% SET allergens = cask.allergens %]
-[% SET started   = 0 %]
-\textbf{Contains:}
-[% FOREACH allergen IN allergens.pairs -%]
+[% SET contains_list     = [] %]
+[% SET not_contains_list = [] %]
+[%- FOREACH allergen IN allergens.pairs -%]
   [%- IF allergen.value.defined && allergen.value == 1 -%]
-  [%- IF started == 1 -%], [%- END -%]
-  [% allergen.key -%]
-  [%- SET started = 1 -%]
+    [%- contains_list.push(allergen.key) -%]
+  [%- ELSIF allergen.value.defined && allergen.value == 0 -%]
+    [%- not_contains_list.push(allergen.key) -%]
   [%- END -%]
-[% END %] \\
+[%- END -%]
+[%- SET max_len  = (contains_list.size > not_contains_list.size) ? contains_list.size : not_contains_list.size -%]
+[%- SET last_idx = max_len - 1 -%]
+\begin{tabular}{@{}c|c@{}}
+\underline{Contains} & \underline{Does not contain} \\[2pt]
+[%- FOREACH i IN [0 .. last_idx] %]
+[% contains_list.$i %] & [% not_contains_list.$i %] \\
+[%- END %]
+\end{tabular} \\
 
 \end{textblock}
 
@@ -84,9 +93,9 @@ Note that cask end signs created using product_order dump class info may be inac
 
 \fontsize{24}{30}
 \selectfont
-\begin{textblock}{0.15}(0.04,0.02)
+\begin{textblock}{0.16}(0.04,0.02)
 [% SET chars = cask.characteristics %]
-[% IF chars.colour.defined && chars.colour != '' %] {\fontsize{14}{16}\selectfont Colour:} \textbf{[% chars.colour | latexify %]} \\\\ [% END %]
+[% IF chars.colour.defined && chars.colour != '' %] {\fontsize{14}{16}\selectfont Colour:} \textbf{[% chars.colour | latexify %]} \\\\\\ [% END %]
 [% IF chars.clarity.defined && chars.clarity != '' %] {\fontsize{14}{16}\selectfont Clarity:} \textbf{[% chars.clarity | latexify | upper %]} \\ [% END %]
 \end{textblock}
 
