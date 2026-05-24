@@ -26,7 +26,7 @@ use namespace::autoclean;
 use List::Util qw( min first );
 use Digest::SHA qw( sha1_hex );
 use Carp;
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON);
 
 BEGIN {extends 'BeerFestDB::Web::PriceController'; }
 
@@ -274,11 +274,11 @@ sub list_status : Local {
 
     if ( my $rc = $@ ) {
         $rc =~ s/\n \z//xms;
-        $c->stash->{success} = JSON->false();
+        $c->stash->{success} = JSON()->false();
         $c->stash->{error}   = $rc;
     }
     else {
-        $c->stash->{success} = JSON->true();
+        $c->stash->{success} = JSON()->true();
         $c->stash->{objects} = $objects;
     }
 
@@ -338,8 +338,8 @@ sub _build_allergen_data : Private {
         if ( defined $pa->present ) {
             $allergen_data{ $pa->product_allergen_type_id->description() }
                 = $pa->present
-                ? JSON->true()
-                : JSON->false();
+                ? JSON()->true()
+                : JSON()->false();
         }
     }
 
@@ -366,7 +366,7 @@ sub _build_product_data : Private {
         abv          => $product->nominal_abv(),
         style        => $style ? $style->description() : undef,
         description  => $product->description(),
-	long_description => $product->long_description(),
+        long_description => $product->long_description(),
         allergens    => $self->_build_allergen_data( $product, $c ),
         is_vegan     => $product->is_vegan(),
     };
