@@ -1,7 +1,7 @@
 ##
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
-## 
+##
 ## Copyright (C) 2011 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -19,13 +19,14 @@
 ##
 ## $Id$
 
-plotTotalBeerSales <- function( pd, ... ) {
-    d <- apply(pd, 2, sum)
-    
-    plot(d, ylim=c(0, max(d) ),
-         lwd=2, type='l', ylab='Gallons sold', xlab='Day',
-         axes=FALSE, cex.lab=1.5, ...)
-    axis(2, cex.axis=1.5)
-    axis(1, cex.axis=1.5, labels=colnames(pd), at=1:ncol(pd))
-}
+plotTotalBeerSales <- function(pd, ...) {
+  d <- apply(pd, 2, sum)
 
+  plot(d,
+    ylim = c(0, max(d)),
+    lwd = 2, type = "l", ylab = "Gallons sold", xlab = "Day",
+    axes = FALSE, cex.lab = 1.5, ...
+  )
+  axis(2, cex.axis = 1.5)
+  axis(1, cex.axis = 1.5, labels = colnames(pd), at = 1:ncol(pd))
+}

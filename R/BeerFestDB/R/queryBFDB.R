@@ -35,8 +35,11 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL, auth, .opts
     ## Convert each element to a character scalar so that do.call(rbind, ...)
     ## produces a character matrix rather than a list-matrix, preserving NAs.
     vapply(x, function(el) {
-      if (is.null(el) || (length(el) == 1L && is.na(el))) NA_character_
-      else as.character(el)[[1L]]
+      if (is.null(el) || (length(el) == 1L && is.na(el))) {
+        NA_character_
+      } else {
+        as.character(el)[[1L]]
+      }
     }, character(1L))
   })
 

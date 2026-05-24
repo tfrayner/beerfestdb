@@ -1,7 +1,7 @@
 ##
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
-## 
+##
 ## Copyright (C) 2011 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -19,9 +19,8 @@
 ##
 ## $Id$
 
-plotSalesRate <- function( cp, colname, w=TRUE, ... ) {
-    dp <- aggData( cp, colname, w )
-    cols <- brewer.pal(9, 'Set1')
-    plotFractions( dp / dp[,1], cols=cols, ... )
+plotSalesRate <- function(cp, colname, w = TRUE, ...) {
+  dp <- aggData(cp, colname, w)
+  cols <- brewer.pal(9, "Set1")
+  plotFractions(dp / dp[, 1], cols = cols, ...)
 }
-

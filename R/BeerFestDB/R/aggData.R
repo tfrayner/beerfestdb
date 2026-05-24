@@ -1,7 +1,7 @@
 ##
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
-## 
+##
 ## Copyright (C) 2011 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -19,13 +19,15 @@
 ##
 ## $Id$
 
-aggData <- function( cp, colname, w=TRUE ) {
-    dp <- aggregate( cp[ ,w], lapply(colname, function(x) { cp[, x] }), sum)
+aggData <- function(cp, colname, w = TRUE) {
+  dp <- aggregate(cp[, w], lapply(colname, function(x) {
+    cp[, x]
+  }), sum)
 
-    rownames(dp) <- apply(dp[,c(1:length(colname)), drop=FALSE], 1, paste, collapse=':')
-    dp <- dp[,-c(1:length(colname)), drop=FALSE]
-    colnames(dp)[1] <- 'Start'
+  rownames(dp) <- apply(dp[, c(1:length(colname)), drop = FALSE], 1,
+                        paste, collapse = ":")
+  dp <- dp[, -c(1:length(colname)), drop = FALSE]
+  colnames(dp)[1] <- "Start"
 
-    return(dp)
+  return(dp)
 }
-

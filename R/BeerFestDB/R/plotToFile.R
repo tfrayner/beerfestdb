@@ -1,7 +1,7 @@
 ##
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
-## 
+##
 ## Copyright (C) 2011 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -19,9 +19,8 @@
 ##
 ## $Id$
 
-plotToFile <- function( file, fn, ... ) {
-    pdf( file=file )
-    fn( ... )
-    dev.off()
+plotToFile <- function(file, fn, ...) {
+  pdf(file = file)
+  fn(...)
+  dev.off()
 }
-

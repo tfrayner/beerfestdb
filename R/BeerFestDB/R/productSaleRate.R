@@ -1,7 +1,7 @@
 ##
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
-## 
+##
 ## Copyright (C) 2011 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -20,23 +20,21 @@
 ## $Id$
 
 productSaleRate <- function(y) {
+  ## Trim off initial non-sale period.
+  y <- c(y[1], y[y != y[1]])
 
-    ## Trim off initial non-sale period.
-    y <- c(y[1], y[ y!=y[1] ])
+  ## Trim off trailing non-sale period.
+  n <- length(y)
+  y <- c(y[y != y[n]], y[n])
 
-    ## Trim off trailing non-sale period.
-    n <- length(y)
-    y <- c(y[ y!=y[n] ], y[n])
+  ## Normalise to zero at end of sale period.
+  y <- y - y[length(y)]
 
-    ## Normalise to zero at end of sale period.
-    y <- y - y[length(y)]
+  m <- 1:length(y) - 1
 
-    m <- 1:length(y) - 1
+  l <- lm(y ~ m)
 
-    l <- lm( y ~ m )
-
-    ## FIXME we could also return the std. error here.
-    suppressWarnings(r <- summary(l)$coefficients[-1, c(1,2)])
-    return( c(-r[1], r[2] ) )
+  ## FIXME we could also return the std. error here.
+  suppressWarnings(r <- summary(l)$coefficients[-1, c(1, 2)])
+  return(c(-r[1], r[2]))
 }
-

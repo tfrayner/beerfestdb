@@ -180,7 +180,7 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
     params = festival_id,
     columns = c("order_batch_id", "description")
   )
-  # In the absence of an order batch in the database, the returned value will be NA 
+  # In the absence of an order batch in the database, the returned value will be NA
   if (nrow(orderbatch) > 0) {
     orderbatch <- orderbatch %>%
       rename(order_batch = "description")
