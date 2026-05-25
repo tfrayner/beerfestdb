@@ -28,7 +28,7 @@ Ext.onReady(function(){
     /* Brewer lookups */
     var brewer_store = new Ext.data.JsonStore({
         url:        url_company_list,
-        myLoadParams: { brewer_order_batch_id: order_batch_id },
+        myLoadParams: { brewer_order_batch_id: null },
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}],
@@ -37,7 +37,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
         idProperty: 'company_id',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
 
     /* Product lookups */
@@ -57,7 +56,7 @@ Ext.onReady(function(){
     /* Distributor lookups */
     var distributor_store = new Ext.data.JsonStore({
         url:        url_company_list,
-        myLoadParams: { supplier_order_batch_id: order_batch_id },
+        myLoadParams: { supplier_order_batch_id: null },
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int'    },
                      { name: 'name',       type: 'string' }],
@@ -66,7 +65,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
         idProperty: 'company_id',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
 
     /* Currency lookups */
@@ -131,22 +129,6 @@ Ext.onReady(function(){
         displayField:   'name',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
-        listeners: {
-            change: function(evt, t, o) {
-                /* t is the reference to the brewer_combo.
-                   We have evt.record available only because we copied it in
-                   the beforeEdit event from myGrid */
-                evt.record.set('product_id', null);
-                evt.render();
-            },
-            beforeQuery: function() { 
-                if ( this.store.isPartial ) {
-                    this.store.reload({ params: { brewer_order_batch_id: null }});
-                    this.store.sort();
-                }
-                this.store.isPartial = 0;
-            },
-        },
     });
 
     /* Product drop-down */
@@ -176,6 +158,25 @@ Ext.onReady(function(){
             }
         }, 
     });
+
+    /* Override findRecord to also search the store snapshot (the full unfiltered
+       dataset).  assertValue() in GridEditor.completeEdit() calls findRecord and
+       will call clearValue() if the record is not found – which happens whenever
+       the store is filtered to a different company than the row being completed.
+       Searching the snapshot ensures the product is always found regardless of
+       whatever company filter is currently active. */
+    product_combo.findRecord = function(prop, value) {
+        var record;
+        this.store.data.each(function(r) {
+            if (r.data[prop] == value) { record = r; return false; }
+        });
+        if (!record && this.store.snapshot) {
+            this.store.snapshot.each(function(r) {
+                if (r.data[prop] == value) { record = r; return false; }
+            });
+        }
+        return record || false;
+    };
     
     /* Distributor drop-down */
     var distributor_combo = new Ext.form.ComboBox({
@@ -189,15 +190,6 @@ Ext.onReady(function(){
         displayField:   'name',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
-        listeners: {
-            beforeQuery: function() {
-                if ( this.store.isPartial ) {
-                    this.store.reload( { params: { supplier_order_batch_id: null } } );
-                    this.store.sort();
-                }
-                this.store.isPartial = 0;
-            },
-        },
     });
     
     /* Currency drop-down */
@@ -316,9 +308,6 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var reloadStores = new Array();
-    reloadStores.push( product_store );
-
     var myGrid = new MyEditorGrid(
         {
             objLabel:           'Product Order',
@@ -357,8 +346,16 @@ Ext.onReady(function(){
                         return false;
                     }
                 },
+                afteredit: function(e) {
+                    /* When the brewer changes, clear the product so the user
+                       must pick one that belongs to the new brewer. */
+                    if (e.field === 'company_id' && e.value !== e.originalValue) {
+                        e.record.set('product_id', null);
+                        product_combo.clearValue();
+                    }
+                },
             },
-            reloadableStores: reloadStores,
+            reloadableStores: [],
         }
     );
 
@@ -377,6 +374,7 @@ Ext.onReady(function(){
                 fn:       function(btn, text){
                     if (btn == 'yes'){
                         saveGridRecords(sb);
+                        product_store.load();
                     };
                 },
             });

@@ -51,8 +51,8 @@ connection password. This step is optional, but __*highly recommended*__.
 2. (OPTIONAL) Run these commands to rebuild the Docker image:
 
         docker build -t tfrayner/catalyst-base:1.1 -f Dockerfile-catalyst .
-        docker build -t tfrayner/beerfestdb-base:1.1 -f Dockerfile-base .
-        docker build -t tfrayner/beerfestdb:1.1 .
+        docker build -t tfrayner/beerfestdb-base:1.2 -f Dockerfile-base .
+        docker build -t tfrayner/beerfestdb:1.2 .
 
 Alternatively, for a quick start we recommend that you simply use the official images
 from Docker Hub, skipping directly to the next step.
