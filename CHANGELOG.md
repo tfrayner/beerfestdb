@@ -2,6 +2,43 @@
 
 This file documents the revision history for BeerFestDB and associated tools.
 
+## [1.2rc] - Unreleased
+- Data model improvements:
+  - Added support for **ProductCharacteristic** (e.g. colour, clarity) with full
+      CRUD UI, loader support, and cask-end template integration
+  - **Password reset system** with email-based workflow
+  - Basic user account date tracking (created/accessed/modified/password changed)
+  - User email now `NOT NULL`
+- Web interface improvements:
+  - Added **Country, Currency, ContainerMeasure, BayPosition** admin controlled vocabulary pages
+  - Added **CategoryAuth** admin views for role-based access control
+  - Add CSRF and current\_festival features supporting the mobile app integration
+  - **Confine update/delete/insert operations via webUI/API to the current festival**
+  - Updated JS validation of email addresses
+  - **Fixed Grid navigation using tab key**
+  - Reinstated allergen "Does Not Contain" listing
+  - Re-styled main landing page and improved layout
+  - Add configurable link to external AWRS website
+  - **Full JSON API documentation**
+- Reporting / tool dashboard improvements:
+  - Advanced dump-to-template **include filters** with test coverage (#31)
+  - Added **brewery- and beer-finding page** to the tool dashboard
+  - Improved landing page layout; modularised festival selection (#104)
+  - Streamlit script wrapped with restart-on-healthcheck-fail
+- Deployment improvements:
+  - Reorganised Docker Compose example with dashboard included
+  - Docker tests now run for PRs to feature branches
+- Security improvements:
+  - **CSRF protection** across the application
+  - Improved HTTP security headers including Content Security Policy
+  - Requiring HTTPS in production; additional security headers
+- Testing improvements:
+  - **Test suite for controller submit/delete actions**
+  - Tests that all scripts (`*.pl`) compile without error
+  - Tests for `ProductCharacteristicType` controller
+  - Improved R package test coverage and doc coverage using roxygen2
+  - Tests for comment/missing-data skipping in CsvParser
+
 ## [1.1] - 2026-05-25
 - Data model improvements:
   - Added support for **cask graveyard information**
