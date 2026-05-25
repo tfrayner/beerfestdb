@@ -52,7 +52,7 @@ Ext.onReady(function(){
     });
     
     /* Container measure drop-down */
-    var measure_combo = new Ext.form.ComboBox({
+    var measure_combo = new MyGridComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',

@@ -121,7 +121,7 @@ Ext.onReady(function(){
         },
     });
 
-    var dipbatch_combo = new Ext.form.ComboBox({
+    var dipbatch_combo = new MyGridComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',

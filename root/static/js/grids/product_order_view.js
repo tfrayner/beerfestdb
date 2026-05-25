@@ -38,7 +38,7 @@ Ext.onReady(function(){
         },
     });
 
-    var distributor_combo = new Ext.form.ComboBox({
+    var distributor_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -64,7 +64,7 @@ Ext.onReady(function(){
         },
     });
 
-    var currency_combo = new Ext.form.ComboBox({
+    var currency_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -90,7 +90,7 @@ Ext.onReady(function(){
         },
     });
 
-    var casksize_combo = new Ext.form.ComboBox({
+    var casksize_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,

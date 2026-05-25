@@ -38,7 +38,7 @@ Ext.onReady(function(){
         },
     });
 
-    var company_combo = new Ext.form.ComboBox({
+    var company_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -77,7 +77,7 @@ Ext.onReady(function(){
         },
     });
 
-    var currency_combo = new Ext.form.ComboBox({
+    var currency_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -103,7 +103,7 @@ Ext.onReady(function(){
         },
     });
 
-    var casksize_combo = new Ext.form.ComboBox({
+    var casksize_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -134,7 +134,7 @@ Ext.onReady(function(){
         },
     });
 
-    var gyle_combo = new Ext.form.ComboBox({
+    var gyle_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,

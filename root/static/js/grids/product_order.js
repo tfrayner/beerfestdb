@@ -117,32 +117,8 @@ Ext.onReady(function(){
         defaultData: { currency_id: default_currency },
     });
 
-    /* Override findRecord on a combo to search both the filtered store.data
-       and the full store.snapshot.  This is needed because:
-         1. product_combo filters its store by company on each beforeQuery.
-         2. brewer_combo and distributor_combo use typeAhead, and ExtJS's local
-            doQuery calls store.filter(displayField, typedText) which is never
-            automatically cleared when the combo closes.
-       In both cases the value we want is in the snapshot but not in data, so the
-       default findRecord (which only searches data) returns nothing and the
-       renderer shows a blank cell. */
-    function applySnapshotFindRecord(combo) {
-        combo.findRecord = function(prop, value) {
-            var record;
-            this.store.data.each(function(r) {
-                if (r.data[prop] == value) { record = r; return false; }
-            });
-            if (!record && this.store.snapshot) {
-                this.store.snapshot.each(function(r) {
-                    if (r.data[prop] == value) { record = r; return false; }
-                });
-            }
-            return record || false;
-        };
-    }
-
     /* Brewer drop-down */
-    var brewer_combo = new Ext.form.ComboBox({
+    var brewer_combo = new MyGridComboBox({
         triggerAction:  'all',
         mode:           'local',
         forceSelection: true,
@@ -155,12 +131,10 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
     });
 
-    applySnapshotFindRecord(brewer_combo);
-
     /* Product drop-down */
     /* We need this to reload upon brewer reselection.
        See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
-    var product_combo = new Ext.form.ComboBox({
+    var product_combo = new MyGridComboBox({
         triggerAction:  'all',
         mode:           'local',
         lastQuery:      '',  /* to make sure the filter in the store
@@ -185,10 +159,8 @@ Ext.onReady(function(){
         }, 
     });
 
-    applySnapshotFindRecord(product_combo);
-
     /* Distributor drop-down */
-    var distributor_combo = new Ext.form.ComboBox({
+    var distributor_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -201,10 +173,8 @@ Ext.onReady(function(){
         listClass:      'x-combo-list-small',
     });
 
-    applySnapshotFindRecord(distributor_combo);
-
     /* Currency drop-down */
-    var currency_combo = new Ext.form.ComboBox({
+    var currency_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -218,7 +188,7 @@ Ext.onReady(function(){
     });
     
     /* Cask size drop-down */
-    var cask_size_combo = new Ext.form.ComboBox({
+    var cask_size_combo = new MyGridComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,

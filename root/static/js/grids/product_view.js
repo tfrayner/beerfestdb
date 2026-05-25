@@ -117,7 +117,7 @@ Ext.onReady(function(){
         },
     });
 
-    var product_characteristic_type_combo = new Ext.form.ComboBox({
+    var product_characteristic_type_combo = new MyGridComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',

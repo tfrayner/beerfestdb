@@ -62,7 +62,7 @@ Ext.onReady(function(){
     });
 
     /* Company region drop-down */
-    var region_combo = new Ext.form.ComboBox({
+    var region_combo = new MyGridComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',
