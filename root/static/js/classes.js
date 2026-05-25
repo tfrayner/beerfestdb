@@ -295,8 +295,25 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                 sortable: true
             },
             columns: [].concat(sm, action, this.contentCols),
-        }); 
-        
+        });
+
+        // Wrap renderers for required columns: dynamically add bfd-required-cell
+        // to the <td> CSS class when the cell value is empty, so that unfilled
+        // required cells are highlighted even in the non-editing display state.
+        Ext.each(col_model.config, function(col) {
+            if (!col.editor || col.editor.allowBlank !== false) { return; }
+            var origRenderer = col.renderer;
+            col.renderer = function(value, meta, record, rowIndex, colIndex, store) {
+                var html = origRenderer
+                    ? origRenderer.apply(this, arguments)
+                    : (value !== null && value !== undefined ? String(value) : '');
+                if (value === null || value === undefined || String(value) === '') {
+                    meta.css = (meta.css ? meta.css + ' ' : '') + 'bfd-required-cell';
+                }
+                return html;
+            };
+        });
+
         Ext.apply(this, {
             cm:                 col_model,
             sm:                 sm,
@@ -760,6 +777,45 @@ MyMainPanel = Ext.extend(Ext.Panel, {
 Ext.onReady(function() {
     Ext.Ajax.extraParams = { csrf_token: csrf_token };
 });
+
+// Required-field highlighting.
+// Fields with allowBlank: false show a pale yellow background when empty and
+// revert to the normal background once a value has been entered.  Covers both
+// MyFormPanel form fields and MyEditorGrid cell editors (editing state).
+// The non-editing display state is handled by the renderer wrapper in
+// MyEditorGrid.initComponent above.
+(function() {
+    function updateRequired(field) {
+        if (!field.el) { return; }
+        var v = field.getValue();
+        var isEmpty = (v === null || v === undefined || String(v) === '');
+        field.el[isEmpty ? 'addClass' : 'removeClass']('bfd-required');
+    }
+
+    /* Override Ext.form.Field.prototype.afterRender once, here, to stamp
+     * a CSS class on any field with allowBlank === false. This covers every form
+     * field and grid cell editor in one place.
+     */
+    var origAfterRender = Ext.form.Field.prototype.afterRender;
+    Ext.form.Field.prototype.afterRender = function() {
+        origAfterRender.apply(this, arguments);
+        if (this.allowBlank !== false) { return; }
+        var field = this;
+        updateRequired(field);
+        // Update on user-driven change (blur for text fields, select for combos).
+        field.on('change', function() { updateRequired(field); });
+        // Patch setValue on this instance so that programmatic loads
+        // (e.g. form.load()) also trigger a re-check.  Deferred 10 ms to allow
+        // ComboBox to finish updating its internal this.value before getValue()
+        // is called.
+        var origSetValue = field.setValue;
+        field.setValue = function(v) {
+            origSetValue.apply(this, arguments);
+            Ext.defer(function() { updateRequired(field); }, 10);
+            return this;
+        };
+    };
+}());
 
 window.onbeforeunload = function() {
     var dirty = false;
