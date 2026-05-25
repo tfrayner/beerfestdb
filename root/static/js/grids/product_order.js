@@ -117,6 +117,30 @@ Ext.onReady(function(){
         defaultData: { currency_id: default_currency },
     });
 
+    /* Override findRecord on a combo to search both the filtered store.data
+       and the full store.snapshot.  This is needed because:
+         1. product_combo filters its store by company on each beforeQuery.
+         2. brewer_combo and distributor_combo use typeAhead, and ExtJS's local
+            doQuery calls store.filter(displayField, typedText) which is never
+            automatically cleared when the combo closes.
+       In both cases the value we want is in the snapshot but not in data, so the
+       default findRecord (which only searches data) returns nothing and the
+       renderer shows a blank cell. */
+    function applySnapshotFindRecord(combo) {
+        combo.findRecord = function(prop, value) {
+            var record;
+            this.store.data.each(function(r) {
+                if (r.data[prop] == value) { record = r; return false; }
+            });
+            if (!record && this.store.snapshot) {
+                this.store.snapshot.each(function(r) {
+                    if (r.data[prop] == value) { record = r; return false; }
+                });
+            }
+            return record || false;
+        };
+    }
+
     /* Brewer drop-down */
     var brewer_combo = new Ext.form.ComboBox({
         triggerAction:  'all',
@@ -130,6 +154,8 @@ Ext.onReady(function(){
         lazyRender:     true,
         listClass:      'x-combo-list-small',
     });
+
+    applySnapshotFindRecord(brewer_combo);
 
     /* Product drop-down */
     /* We need this to reload upon brewer reselection.
@@ -159,25 +185,8 @@ Ext.onReady(function(){
         }, 
     });
 
-    /* Override findRecord to also search the store snapshot (the full unfiltered
-       dataset).  assertValue() in GridEditor.completeEdit() calls findRecord and
-       will call clearValue() if the record is not found – which happens whenever
-       the store is filtered to a different company than the row being completed.
-       Searching the snapshot ensures the product is always found regardless of
-       whatever company filter is currently active. */
-    product_combo.findRecord = function(prop, value) {
-        var record;
-        this.store.data.each(function(r) {
-            if (r.data[prop] == value) { record = r; return false; }
-        });
-        if (!record && this.store.snapshot) {
-            this.store.snapshot.each(function(r) {
-                if (r.data[prop] == value) { record = r; return false; }
-            });
-        }
-        return record || false;
-    };
-    
+    applySnapshotFindRecord(product_combo);
+
     /* Distributor drop-down */
     var distributor_combo = new Ext.form.ComboBox({
         forceSelection: true,
@@ -191,7 +200,9 @@ Ext.onReady(function(){
         lazyRender:     true,
         listClass:      'x-combo-list-small',
     });
-    
+
+    applySnapshotFindRecord(distributor_combo);
+
     /* Currency drop-down */
     var currency_combo = new Ext.form.ComboBox({
         forceSelection: true,
@@ -373,6 +384,10 @@ Ext.onReady(function(){
                 icon:     Ext.MessageBox.QUESTION,
                 fn:       function(btn, text){
                     if (btn == 'yes'){
+                        /* Clear any typeahead filters left on the combo stores
+                           so they render correctly after the grid reloads. */
+                        brewer_store.clearFilter();
+                        distributor_store.clearFilter();
                         saveGridRecords(sb);
                         product_store.load();
                     };
