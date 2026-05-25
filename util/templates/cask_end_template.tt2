@@ -169,7 +169,7 @@ Note that cask end signs created using product_order dump class info may be inac
 
   \begin{textblock}{0.8}[0.5, 0.5](0.5,0.50)
   \begin{center}
-  \fontsize{[% product_font_size %]}{94}
+  \fontsize{[% product_font_size %]}{66}
   \selectfont
   \textbf{[% cask.product | latexify -%]
   [%- IF cask.category == 'apple juice' %] APPLE JUICE[% END %]}

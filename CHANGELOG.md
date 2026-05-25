@@ -2,7 +2,7 @@
 
 This file documents the revision history for BeerFestDB and associated tools.
 
-## [1.1rc] -  Unreleased
+## [1.1] - 2026-05-25
 - Data model improvements:
   - Added support for **cask graveyard information**
   - Added support for **product is_vegan flag**
@@ -17,6 +17,8 @@ This file documents the revision history for BeerFestDB and associated tools.
   - Tool dashboard: fetch programme notes view, stock management tools
   - Docker image for the tool dashboard with startup script, favicon, and
       support for changing the listening port
+  - Draft example **long bar menu template** added
+  - **Arbitrary small label printer** script
   - New Quarto report code and supporting R functions
   - Dump cask and sale price info in getFestivalData R function
 - Deployment improvements:
@@ -34,12 +36,17 @@ This file documents the revision history for BeerFestDB and associated tools.
   - Bug fix for user/role UI support
   - Alter cask_price load to disambiguate order_price handling
   - Add low-no alcohol category to cask end template
-  - Critical security bugfixes (April 2026)
+  - **Critical security bugfixes (April 2026) (LLM-driven security audit)**
+  - Migrate fully away from JSON::DWIW to JSON::MaybeXS
+  - Fix for #146: save cask details in absence of dip data
+  - Skip fields with NA, NULL and similar missing-data strings (#101)
+  - Fix dump where gyle has no casks
+  - Fix UTF-8 encoding for `upload_beerlist.pl`
 - Other:
   - New Mermaid-format entity-relationship diagram replacing old version
   - Refactored CSV file value parsing into a common Role mixin
 
-## [1.0] -  2020-05-25
+## [1.0] - 2020-05-25
 - Deployment improvements:
   - **First working Dockerised deployment**
   - Docker Compose configuration for containerised operation
