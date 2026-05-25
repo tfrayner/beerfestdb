@@ -118,7 +118,7 @@ Ext.onReady(function(){
     });
 
     /* Brewer drop-down */
-    var brewer_combo = new MyGridComboBox({
+    var brewer_combo = new MyComboBox({
         triggerAction:  'all',
         mode:           'local',
         forceSelection: true,
@@ -134,7 +134,7 @@ Ext.onReady(function(){
     /* Product drop-down */
     /* We need this to reload upon brewer reselection.
        See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
-    var product_combo = new MyGridComboBox({
+    var product_combo = new MyComboBox({
         triggerAction:  'all',
         mode:           'local',
         lastQuery:      '',  /* to make sure the filter in the store
@@ -160,7 +160,7 @@ Ext.onReady(function(){
     });
 
     /* Distributor drop-down */
-    var distributor_combo = new MyGridComboBox({
+    var distributor_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -174,7 +174,7 @@ Ext.onReady(function(){
     });
 
     /* Currency drop-down */
-    var currency_combo = new MyGridComboBox({
+    var currency_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -188,7 +188,7 @@ Ext.onReady(function(){
     });
     
     /* Cask size drop-down */
-    var cask_size_combo = new MyGridComboBox({
+    var cask_size_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,

@@ -68,7 +68,7 @@ Ext.onReady(function(){
     });
 
     /* Supplier drop-down */
-    var brewer_combo = new MyGridComboBox({
+    var brewer_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -82,7 +82,7 @@ Ext.onReady(function(){
     });
 
     /* Product Style drop-down */
-    var style_combo = new MyGridComboBox({
+    var style_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',

@@ -610,26 +610,26 @@ emptySelect = '-- Select --';
  * this can yield rendering errors in grids after save+reload, because the store's 
  * lastQuery is still set to the old value, so the store.data contains only the one record
  * matching that value, and the combo's default findRecord method only looks in store.data,
- * not store.snapshot (the full unfiltered dataset). MyGridComboBox addresses this limitation.
+ * not store.snapshot (the full unfiltered dataset). MyComboBox addresses this limitation.
  * 
- * The MyComboBox subclass is simply a wrapper which adds an optional blank selection at
+ * The MyComboBox subclass also adds an optional blank selection at
  * the top of the list, for use in form fields where a selected value is optional.
  * 
  * Some combo boxes are managing many-to-many relationships; for these we use the LovCombo class.
  * 
- * For all other combo boxes, we currently use the standard Ext.form.ComboBox, configured
- * with local mode and a custom sortType.
+ * We currently try to avoid standard Ext.form.ComboBox, but it could be used if
+ * allowBlank=false and typeAhead=false and there are no other special requirements.
  */
 
-/* ComboBox subclass which adds an optional blank selection at the top of the 
- * list. To be used for form fields where a selected value is optional (i.e.
- * nullable in database).
- */
 MyComboBox = Ext.extend(Ext.form.ComboBox, {
     noSelection:null,
 	
     initComponent : function(){
 		
+        /* ComboBox override which adds an optional blank selection at the top of the 
+         * list. To be used for form fields where a selected value is optional (i.e.
+         * nullable in database). Not triggered if noSelection is null.
+         */
         if(this.noSelection && this.store){
             var data = {};
             data[this.valueField] = null; 
@@ -643,25 +643,18 @@ MyComboBox = Ext.extend(Ext.form.ComboBox, {
             this.store.sort(this.displayField,'asc');
 	    }
         MyComboBox.superclass.initComponent.apply(this, arguments);
-    }
-});
+    },
 
-Ext.reg('mycombo', MyComboBox);
-
-/* ComboBox subclass for use in local-mode editor grid columns.
- *
- * ExtJS's local-mode doQuery calls store.filter(displayField, query) whenever
- * the user types into a combo (typeAhead).  That filter is never automatically
- * cleared when the combo closes, so store.data ends up containing only the one
- * record the user last typed/selected.  The default findRecord only searches
- * store.data; it therefore misses every other value, causing MyComboRenderer
- * to return '' for all unchanged rows after a save+reload.
- *
- * This subclass overrides findRecord to fall back to store.snapshot (the full
- * unfiltered dataset) when the value is not found in the filtered store.data.
- */
-MyGridComboBox = Ext.extend(Ext.form.ComboBox, {
-
+    /* ExtJS's local-mode doQuery calls store.filter(displayField, query) whenever
+     * the user types into a combo (typeAhead).  That filter is never automatically
+     * cleared when the combo closes, so store.data ends up containing only the one
+     * record the user last typed/selected.  The default findRecord only searches
+     * store.data; it therefore misses every other value, causing MyComboRenderer
+     * to return '' for all unchanged rows after a save+reload.
+     *
+     * This overrides findRecord to fall back to store.snapshot (the full
+     * unfiltered dataset) when the value is not found in the filtered store.data.
+     */
     findRecord: function(prop, value) {
         var record;
         this.store.data.each(function(r) {
@@ -676,7 +669,7 @@ MyGridComboBox = Ext.extend(Ext.form.ComboBox, {
     },
 });
 
-Ext.reg('mygridcombo', MyGridComboBox);
+Ext.reg('mycombo', MyComboBox);
 
 MyLoginPanel = Ext.extend(Ext.form.FormPanel, {
 

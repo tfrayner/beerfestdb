@@ -110,8 +110,7 @@ Ext.onReady(function(){
               displayField:   'description',
               lazyRender:     true,
               xtype:          'mycombo',
-              noSelection:    emptySelect,
-              allowBlank:     true, },
+              allowBlank:     false, },
 
             { name:           'last_name',
               fieldLabel:     'Last Name',

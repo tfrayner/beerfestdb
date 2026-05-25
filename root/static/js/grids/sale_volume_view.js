@@ -65,7 +65,7 @@ Ext.onReady(function(){
               valueField:     'container_measure_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'sale_volume_id',

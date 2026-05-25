@@ -61,7 +61,7 @@ Ext.onReady(function(){
         },
     });
 
-    var contact_type_combo = new MyGridComboBox({
+    var contact_type_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -153,7 +153,7 @@ Ext.onReady(function(){
         },
     });
 
-    var category_combo = new MyGridComboBox({
+    var category_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',

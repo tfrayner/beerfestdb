@@ -78,7 +78,7 @@ Ext.onReady(function(){
               valueField:     'container_measure_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'dispense_method_id',
@@ -89,7 +89,7 @@ Ext.onReady(function(){
               valueField:     'dispense_method_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'container_size_id',

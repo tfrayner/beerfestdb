@@ -73,7 +73,7 @@ Ext.onReady(function(){
     });
 
     /* Cask size drop-down */
-    var casksize_combo = new MyGridComboBox({
+    var casksize_combo = new MyComboBox({
         store:          casksize_store,
         valueField:     'container_size_id',
         displayField:   'description',

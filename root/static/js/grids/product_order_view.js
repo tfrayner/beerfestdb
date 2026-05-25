@@ -38,7 +38,7 @@ Ext.onReady(function(){
         },
     });
 
-    var distributor_combo = new MyGridComboBox({
+    var distributor_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -64,7 +64,7 @@ Ext.onReady(function(){
         },
     });
 
-    var currency_combo = new MyGridComboBox({
+    var currency_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -90,7 +90,7 @@ Ext.onReady(function(){
         },
     });
 
-    var casksize_combo = new MyGridComboBox({
+    var casksize_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -131,7 +131,7 @@ Ext.onReady(function(){
               valueField:     'company_id',
               displayField:   'name',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
 
             { name:           'cask_count',
@@ -149,7 +149,7 @@ Ext.onReady(function(){
               valueField:     'container_size_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'is_sale_or_return',
@@ -173,7 +173,7 @@ Ext.onReady(function(){
               valueField:     'currency_id',
               displayField:   'currency_code',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
 
             { name:           'is_received',

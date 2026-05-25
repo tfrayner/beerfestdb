@@ -52,7 +52,7 @@ Ext.onReady(function(){
     });
     
     /* Container measure drop-down */
-    var measure_combo = new MyGridComboBox({
+    var measure_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',

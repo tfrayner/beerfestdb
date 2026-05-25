@@ -117,7 +117,7 @@ Ext.onReady(function(){
         },
     });
 
-    var product_characteristic_type_combo = new MyGridComboBox({
+    var product_characteristic_type_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',
@@ -125,7 +125,7 @@ Ext.onReady(function(){
         valueField:     'product_characteristic_type_id',
         displayField:   'description',
         lazyRender:     true,
-        noSelection:    emptySelect,
+        allowBlank:     false,
         forceSelection: true,
         xtype:          'mycombo',
     });
@@ -364,7 +364,7 @@ Ext.onReady(function(){
                   dataIndex:  'value',
                   width:      150,
                   editor:     new Ext.form.TextField({
-                      allowBlank:     true,
+                      allowBlank:     false,
                   })},
             ],
             // Dead link - we have a no target view for product characteristics, and the link is not worth the effort of creating one.
