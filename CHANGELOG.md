@@ -15,7 +15,10 @@ This file documents the revision history for BeerFestDB and associated tools.
   - Add CSRF and current\_festival features supporting the mobile app integration
   - **Confine update/delete/insert operations via webUI/API to the current festival**
   - Updated JS validation of email addresses
-  - **Fixed Grid navigation using tab key**
+  - **Grid navigation and performance improvements**
+    - Fixed grid navigation using tab key
+    - Highlight empty required fields
+    - Improved performance of cascading combobox fields (company->product)
   - Reinstated allergen "Does Not Contain" listing
   - Re-styled main landing page and improved layout
   - Add configurable link to external AWRS website
@@ -32,6 +35,7 @@ This file documents the revision history for BeerFestDB and associated tools.
   - **CSRF protection** across the application
   - Improved HTTP security headers including Content Security Policy
   - Requiring HTTPS in production; additional security headers
+  - Role-based restriction on data upload to external public website
 - Testing improvements:
   - **Test suite for controller submit/delete actions**
   - Tests that all scripts (`*.pl`) compile without error
