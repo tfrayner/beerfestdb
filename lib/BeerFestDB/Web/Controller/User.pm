@@ -326,7 +326,7 @@ sub request_password_reset : Local {
     my $smtp_port = $email_cfg->{ smtp_port }    || 25;
     my $smtp_user = $email_cfg->{ smtp_user };
     my $smtp_pass = $email_cfg->{ smtp_pass };
-    my $smtp_ssl  = $email_cfg->{ smtp_ssl } ? 1 : 0;
+    my $smtp_ssl  = $email_cfg->{ smtp_ssl }     // 0; # 0, 1 or 'starttls'
 
     eval {
         my $tt_vars = {
