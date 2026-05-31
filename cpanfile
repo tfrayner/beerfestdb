@@ -16,6 +16,7 @@ requires 'Digest::SHA',                                    '6.04';
 requires 'Crypt::SaltedHash',                              '0.09';
 requires 'Bytes::Random::Secure';
 requires 'MIME::Lite::TT::HTML';
+requires 'Net::SMTP';
 requires 'Config::YAML';
 requires 'JSON::MaybeXS';
 requires 'Cpanel::JSON::XS';
@@ -41,3 +42,5 @@ requires 'OpenOffice::OODoc';
 requires 'Exception::Class';
 requires 'Try::Tiny::ByClass';
 requires 'parent';
+
+recommends 'IO::Socket::SSL'; # Required for secure SMTP connections, but not strictly necessary if using an unencrypted connection to localhost.
