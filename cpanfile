@@ -8,7 +8,7 @@ requires 'Catalyst::Plugin::Session::Store::FastMmap';
 requires 'Catalyst::Plugin::Authentication',               '0.10023';
 requires 'Catalyst::Plugin::Authorization::ACL',           '0.16';
 requires 'Catalyst::Plugin::Authorization::Roles',         '0.09';
-recommends 'Catalyst::Plugin::OpenIDConnect',              '0.13';
+recommends 'Catalyst::Plugin::OpenIDConnect',              '0.14';
 requires 'Catalyst::Plugin::CSRFToken';
 requires 'Catalyst::Authentication::Store::DBIx::Class',   '0.1506';
 requires 'Catalyst::Action::RenderView';
