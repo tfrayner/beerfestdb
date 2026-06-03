@@ -41,33 +41,47 @@ Installation (using Docker)
 ---------------------------
 
 The simplest method to get BeerFestDB up and running is to use the
-provided Docker container with docker-compose. There are just three
+provided Docker container with docker-compose. There are just four
 steps to get started, the first two of which can be skipped for an ultra-quick startup:
 
-1. (OPTIONAL) Copy the template `beerfestdb_web_site.yml` to `beerfestdb_web.yml`.
-Edit `beerfestdb_web.yml` and `db/create_dbuser_account.sql` to change
-the default database connection password. This step is optional, but
-__*highly recommended*__.
+1. (OPTIONAL) Edit `docker-compose/beerfestdb_web_docker.yml` and
+`db/create_dbuser_account.sql` files to change the default database 
+connection password. This step is optional, but __*highly recommended*__.
 
 2. (OPTIONAL) Run these commands to rebuild the Docker image:
 
         docker build -t tfrayner/catalyst-base:1.1 -f Dockerfile-catalyst .
-        docker build -t tfrayner/beerfestdb:1.1 .
+        docker build -t tfrayner/beerfestdb-base:1.2 -f Dockerfile-base .
+        docker build -t tfrayner/beerfestdb:1.2 .
 
-Alternatively, for a quick start you can simply use the official images
-from Docker Hub by skipping directly to the next step.
+Alternatively, for a quick start we recommend that you simply use the official images
+from Docker Hub, skipping directly to the next step.
 
-3. Run this command to initialise the database and start the application:
+3. Configure the host settings in the following files. You will need to replace the `titus.local` string with the host address of your local deployment (`your-host` in the examples below):
 
-        docker-compose up
+   - docker-compose/docker-compose.yml
+   - docker-compose/beerfestdb_web_docker.yml
+   - docker-compose/dashboard-config/secrets.toml
 
-You should now be able to navigate to http://localhost:8080/ in your
-web browser and log in (see below for default account details).
+You will also need to generate a self-signed SSL certificate:
+
+        cd docker-compose
+        sh docker-compose-ssl-certs-setup.sh
+
+4. Run this command in the docker-compose directory to initialise the database and start the application:
+
+        docker compose up
+
+You should now be able to navigate to https://your-host:8443/ in your
+web browser and log in (see below for default account details). You will 
+need to accept the self-signed SSL certificate in your browser. Also 
+check out the [tool dashboard module](tool_dashboard/README.md), which 
+will be available at https://your-host:8444/
 
 The default docker-compose deployment sets some environmental
 variables (principally in the `.app_env` file) which are useful for development
 but which should probably be deactivated in production. To change the
-configuration in development, edit the `beerfestdb_web.yml` file. For
+configuration in development, edit the `beerfestdb_web_docker.yml` file. For
 production, this file can either be baked into the Docker container or
 included on a mounted volume. Within the docker container, the 
 `$BEERFESTDB_WEB_CONFIG` environmental variable can be used to point 
@@ -130,6 +144,16 @@ webserver with FastCGI (via the `beerfestdb_web_fastcgi.pl`
 script). Please consult the Apache documentation for help with this
 configuration.
 
+To set up the additional tools dashboard, please see the 
+[dashboard README file](tool_dashboard/README.md) for instructions.
+
+Mobile App
+----------
+
+The [BeerFestMobile](https://github.com/tfrayner/beerfest-mobile) app
+will allow a cellar team to edit cask data (dips, vented/tapped/ready,
+notes etc.) directly in the database as they work on their stillages.
+This can save significant admin time between sessions.
 
 Credits
 -------

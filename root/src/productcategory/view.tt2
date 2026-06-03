@@ -1,0 +1,15 @@
+[% META title = 'Product Category Details' %]
+
+<script type="text/javascript">
+   var url_product_category_load_form = '[% c.uri_for( "/productcategory/load_form" ) %]';
+   var url_product_category_grid = '[% c.uri_for( "/productcategory/grid" ) %]';
+   
+   var url_product_style_list = '[% c.uri_for( "/productstyle/list_by_category", object.id ) %]';
+   var url_product_characteristic_type_list = '[% c.uri_for( "/productcharacteristictype/list_by_category", object.id ) %]';
+   
+   var product_category_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/product_category_view.js' ) %]
+
+<div id="datagrid"></div>

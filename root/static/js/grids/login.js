@@ -29,11 +29,15 @@ Ext.onReady(function(){
         items: [
             { name:       'username',
               fieldLabel: 'Username',
-              allowBlank: false, },
+              allowBlank: false,
+              autoCreate: { tag: 'input', type: 'text', autocomplete: 'username' },
+            },
             { name:       'password',
               fieldLabel: 'Password',
               inputType:  'password',
-              allowBlank: false, },
+              allowBlank: false,
+              autoCreate: { tag: 'input', type: 'password', autocomplete: 'current-password' }
+            },
         ],
     });
 

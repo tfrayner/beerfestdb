@@ -76,6 +76,32 @@ sub load_form : Local {
     $self->form_json_and_detach( $c, $rs, 'festival_id' );
 }
 
+=head2 current_festival
+
+Returns the contents of load_form for the current festival. Usable by external 
+clients to retrieve the current festival details without needing to know the festival_id.
+
+=cut
+
+sub current_festival : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $festival_name = $c->config->{'current_festival'}
+        or die("No current festival name set in config.");
+
+    my $obj = $c->model('DB::Festival')->find({ name => $festival_name })
+        or die("Unable to find current festival with name '$festival_name'; check config settings.");
+    
+    $c->stash->{ 'data' } = $self->generate_object_viewhash( $obj, $c );
+    $c->stash->{ 'success' } = JSON->true();
+
+    $c->forward( 'View::JSON' );
+
+    return;
+    
+}
+
 =head2 list
 
 =cut

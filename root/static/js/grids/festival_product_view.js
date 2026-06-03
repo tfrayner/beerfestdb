@@ -38,7 +38,7 @@ Ext.onReady(function(){
         },
     });
 
-    var company_combo = new Ext.form.ComboBox({
+    var company_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -57,7 +57,7 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'sale_volume_id', type: 'int' },
                      { name: 'description',    type: 'string'}],
-	idProperty: 'sale_volume_id',
+        idProperty: 'sale_volume_id',
         sortInfo:   {
             field:     'description',
             direction: 'ASC',
@@ -70,14 +70,14 @@ Ext.onReady(function(){
         root:       'objects',
         fields:     [{ name: 'currency_id',   type: 'int'    },
                      { name: 'currency_code', type: 'string' }],
-	idProperty: 'currency_id',
+        idProperty: 'currency_id',
         sortInfo:   {
             field:     'currency_code',
             direction: 'ASC',
         },
     });
 
-    var currency_combo = new Ext.form.ComboBox({
+    var currency_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -103,7 +103,7 @@ Ext.onReady(function(){
         },
     });
 
-    var casksize_combo = new Ext.form.ComboBox({
+    var casksize_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -134,7 +134,7 @@ Ext.onReady(function(){
         },
     });
 
-    var gyle_combo = new Ext.form.ComboBox({
+    var gyle_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -206,7 +206,7 @@ Ext.onReady(function(){
               valueField:     'currency_id',
               displayField:   'currency_code',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'sale_volume_id',
@@ -219,7 +219,7 @@ Ext.onReady(function(){
               valueField:     'sale_volume_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'comment',

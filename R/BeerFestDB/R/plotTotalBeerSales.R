@@ -1,7 +1,7 @@
 ##
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
-## 
+##
 ## Copyright (C) 2011 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -19,13 +19,29 @@
 ##
 ## $Id$
 
-plotTotalBeerSales <- function( pd, ... ) {
-    d <- apply(pd, 2, sum)
-    
-    plot(d, ylim=c(0, max(d) ),
-         lwd=2, type='l', ylab='Gallons sold', xlab='Day',
-         axes=FALSE, cex.lab=1.5, ...)
-    axis(2, cex.axis=1.5)
-    axis(1, cex.axis=1.5, labels=colnames(pd), at=1:ncol(pd))
-}
+###############################################################################
+#' Plot overall beer sales over time
+#' @description Sums per-session sales across all products and draws a line
+#'   chart of total gallons sold per session.
+#' @param pd A data frame or matrix of per-session sales volumes (gallons),
+#'   with one row per cask and one column per session.  Typically computed as
+#'   consecutive differences of the dip columns returned by
+#'   \code{\link{getFestivalData}}.
+#' @param ... Additional arguments passed to \code{\link[graphics]{plot}}.
+#' @return Invisibly returns \code{NULL} (called for its side effect of
+#'   producing a plot).
+#' @seealso \code{\link{analyseData}}
+#' @importFrom graphics plot axis
+#' @export
+###############################################################################
+plotTotalBeerSales <- function(pd, ...) {
+  d <- apply(pd, 2, sum)
 
+  plot(d,
+    ylim = c(0, max(d)),
+    lwd = 2, type = "l", ylab = "Gallons sold", xlab = "Day",
+    axes = FALSE, cex.lab = 1.5, ...
+  )
+  axis(2, cex.axis = 1.5)
+  axis(1, cex.axis = 1.5, labels = colnames(pd), at = 1:ncol(pd))
+}

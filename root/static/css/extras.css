@@ -24,3 +24,24 @@
     padding: 5px;
     text-align: center;
 }
+
+.x-form-awrs-trigger {
+    background-image: url(../images/silk/icons/world_link.png) !important;
+    background-position: center center !important;
+    background-repeat: no-repeat;
+}
+
+/* ── Required field highlighting ───────────────────────────────────────────
+   Fields and grid cells with allowBlank: false are highlighted in pale yellow
+   when empty.  JS in classes.js adds/removes these classes dynamically. */
+
+/* Form fields and active grid cell editors (editing state) */
+input.bfd-required,
+textarea.bfd-required {
+    background-color: #ffeef2 !important;
+}
+
+/* Grid cells in display (non-editing) state */
+td.bfd-required-cell .x-grid3-cell-inner {
+    background-color: #ffeef2;
+}

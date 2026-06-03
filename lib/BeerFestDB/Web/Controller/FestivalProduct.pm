@@ -403,6 +403,15 @@ sub _derive_status_report : Private {
 
     my ( $self, $c, $festival_id, $category_id ) = @_;
 
+    # Confirm the current user is authorised for this product category.
+    my $category = $c->model('DB::ProductCategory')->find($category_id);
+    $self->_check_category_membership( $c, $category ) or do {
+        $c->stash->{success} = JSON->false();
+        $c->stash->{error}   = qq{You are not authorised to view the status of products in category "$category_id".};
+        $c->response->status(403);
+        $c->forward("View::JSON"); # as for list_status, the main consumer of this method.
+    };
+
     my ( $festival, $cond, $attr ) = $self->_retrieve_festival_plus_cond_attr(
         $c, $festival_id, $category_id );
 

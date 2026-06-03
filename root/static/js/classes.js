@@ -198,6 +198,9 @@ RemoveButton = Ext.extend(Ext.Button, {
             {
                 handler:        function() {
                     this.grid.stopEditing();
+                    // Capture selections NOW, before the modal dialog causes
+                    // the grid to lose focus and deselect rows (ExtJS 3 bug).
+                    var dirty = this.sm.getSelections();
                     Ext.Msg.show({
                         title:    'Delete',
                         msg:      'Really delete the selected rows?',
@@ -206,9 +209,16 @@ RemoveButton = Ext.extend(Ext.Button, {
                         fn:       function(btn, text){
                             if (btn == 'yes'){
                                 var changes = new Array();
-                                var dirty   = this.sm.getSelections();
                                 for ( var i = 0 ; i < dirty.length ; i++ ) {
-                                    var id = dirty[i].get( this.idField );
+                                    var id;
+                                    if ( Ext.isArray(this.idField) ) {
+                                        id = {};
+                                        for ( var j = 0 ; j < this.idField.length ; j++ ) {
+                                            id[ this.idField[j] ] = dirty[i].get( this.idField[j] );
+                                        }
+                                    } else {
+                                        id = dirty[i].get( this.idField );
+                                    }
                                     changes.push( id );
                                 }
                                 deleteProducts( changes,
@@ -239,6 +249,7 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     stripeRows:         true,
     trackMouseOver:     true,
     loadMask:           true, // seems not to work in extjs 3.4
+    clicksToEdit:       1,    // single click activates cell editors (enables smooth tab navigation)
     comboStores:        [],
     viewConfig: new Ext.grid.GridView({
         autoFill: true,
@@ -284,8 +295,25 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                 sortable: true
             },
             columns: [].concat(sm, action, this.contentCols),
-        }); 
-        
+        });
+
+        // Wrap renderers for required columns: dynamically add bfd-required-cell
+        // to the <td> CSS class when the cell value is empty, so that unfilled
+        // required cells are highlighted even in the non-editing display state.
+        Ext.each(col_model.config, function(col) {
+            if (!col.editor || col.editor.allowBlank !== false) { return; }
+            var origRenderer = col.renderer;
+            col.renderer = function(value, meta, record, rowIndex, colIndex, store) {
+                var html = origRenderer
+                    ? origRenderer.apply(this, arguments)
+                    : (value !== null && value !== undefined ? String(value) : '');
+                if (value === null || value === undefined || String(value) === '') {
+                    meta.css = (meta.css ? meta.css + ' ' : '') + 'bfd-required-cell';
+                }
+                return html;
+            };
+        });
+
         Ext.apply(this, {
             cm:                 col_model,
             sm:                 sm,
@@ -348,6 +376,26 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
         });
 
         MyEditorGrid.superclass.initComponent.apply(this, arguments);
+    },
+
+    // Intercept Tab at document capture phase so Firefox cannot move browser
+    // focus away, then delegate to the selection model's onEditorKey — exactly
+    // mirroring what the editor's 'specialkey' listener does internally.
+    afterRender: function() {
+        MyEditorGrid.superclass.afterRender.apply(this, arguments);
+        var grid = this;
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Tab' && e.keyCode !== 9) { return; }
+            if (!grid.activeEditor) { return; }
+            // Prevent Firefox from moving browser focus away from the editor.
+            e.preventDefault();
+            // Stop propagation so the Tab keydown does not also reach the
+            // editor field's own 'specialkey' listener, which would fire
+            // onEditorKey a second time on the newly opened editor.
+            e.stopPropagation();
+            var extEvt = Ext.EventObject.setEvent(e);
+            grid.getSelectionModel().onEditorKey(grid.activeEditor.field, extEvt);
+        }, true /* useCapture */);
     },
 
     onRender: function() {
@@ -555,24 +603,70 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
 
 emptySelect = '-- Select --';
 
+/* A note on Combo box classes: ExtJS's ComboBox is really designed for remote-mode, 
+ * where the store is expected to contain only the one record matching the current value.
+ * In local-mode, it is really designed for use as a free-form typeahead field, where
+ * the user types in a value and the store filters down to matching records. In practice 
+ * this can yield rendering errors in grids after save+reload, because the store's 
+ * lastQuery is still set to the old value, so the store.data contains only the one record
+ * matching that value, and the combo's default findRecord method only looks in store.data,
+ * not store.snapshot (the full unfiltered dataset). MyComboBox addresses this limitation.
+ * 
+ * The MyComboBox subclass also adds an optional blank selection at
+ * the top of the list, for use in form fields where a selected value is optional.
+ * 
+ * Some combo boxes are managing many-to-many relationships; for these we use the LovCombo class.
+ * 
+ * We currently try to avoid standard Ext.form.ComboBox, but it could be used if
+ * allowBlank=false and typeAhead=false and there are no other special requirements.
+ */
+
 MyComboBox = Ext.extend(Ext.form.ComboBox, {
     noSelection:null,
 	
     initComponent : function(){
 		
-	if(this.noSelection && this.store){
-	    var data = {};
-	    data[this.valueField] = null; 
-	    data[this.displayField] = this.noSelection;
+        /* ComboBox override which adds an optional blank selection at the top of the 
+         * list. To be used for form fields where a selected value is optional (i.e.
+         * nullable in database). Not triggered if noSelection is null.
+         */
+        if(this.noSelection && this.store){
+            var data = {};
+            data[this.valueField] = null; 
+            data[this.displayField] = this.noSelection;
 	    
-	    this.store.on('load',function(){
-		if(!this.getById(0)){
-		    this.addSorted(new Ext.data.Record(data,0));
-		}
-	    });																		 
-	    this.store.sort(this.displayField,'asc');
-	}
-    }
+            this.store.on('load',function(){
+                if(!this.getById(0)){
+                    this.addSorted(new Ext.data.Record(data,0));
+                }
+            });
+            this.store.sort(this.displayField,'asc');
+	    }
+        MyComboBox.superclass.initComponent.apply(this, arguments);
+    },
+
+    /* ExtJS's local-mode doQuery calls store.filter(displayField, query) whenever
+     * the user types into a combo (typeAhead).  That filter is never automatically
+     * cleared when the combo closes, so store.data ends up containing only the one
+     * record the user last typed/selected.  The default findRecord only searches
+     * store.data; it therefore misses every other value, causing MyComboRenderer
+     * to return '' for all unchanged rows after a save+reload.
+     *
+     * This overrides findRecord to fall back to store.snapshot (the full
+     * unfiltered dataset) when the value is not found in the filtered store.data.
+     */
+    findRecord: function(prop, value) {
+        var record;
+        this.store.data.each(function(r) {
+            if (r.data[prop] == value) { record = r; return false; }
+        });
+        if (!record && this.store.snapshot) {
+            this.store.snapshot.each(function(r) {
+                if (r.data[prop] == value) { record = r; return false; }
+            });
+        }
+        return record || false;
+    },
 });
 
 Ext.reg('mycombo', MyComboBox);
@@ -670,6 +764,51 @@ MyMainPanel = Ext.extend(Ext.Panel, {
         MyMainPanel.superclass.onRender.apply(this, arguments);
     }
 });
+
+// Attach the CSRF token to every Ext.Ajax request automatically.
+// csrf_token is rendered into the page by the site/html template.
+Ext.onReady(function() {
+    Ext.Ajax.extraParams = { csrf_token: csrf_token };
+});
+
+// Required-field highlighting.
+// Fields with allowBlank: false show a pale yellow background when empty and
+// revert to the normal background once a value has been entered.  Covers both
+// MyFormPanel form fields and MyEditorGrid cell editors (editing state).
+// The non-editing display state is handled by the renderer wrapper in
+// MyEditorGrid.initComponent above.
+(function() {
+    function updateRequired(field) {
+        if (!field.el) { return; }
+        var v = field.getValue();
+        var isEmpty = (v === null || v === undefined || String(v) === '');
+        field.el[isEmpty ? 'addClass' : 'removeClass']('bfd-required');
+    }
+
+    /* Override Ext.form.Field.prototype.afterRender once, here, to stamp
+     * a CSS class on any field with allowBlank === false. This covers every form
+     * field and grid cell editor in one place.
+     */
+    var origAfterRender = Ext.form.Field.prototype.afterRender;
+    Ext.form.Field.prototype.afterRender = function() {
+        origAfterRender.apply(this, arguments);
+        if (this.allowBlank !== false) { return; }
+        var field = this;
+        updateRequired(field);
+        // Update on user-driven change (blur for text fields, select for combos).
+        field.on('change', function() { updateRequired(field); });
+        // Patch setValue on this instance so that programmatic loads
+        // (e.g. form.load()) also trigger a re-check.  Deferred 10 ms to allow
+        // ComboBox to finish updating its internal this.value before getValue()
+        // is called.
+        var origSetValue = field.setValue;
+        field.setValue = function(v) {
+            origSetValue.apply(this, arguments);
+            Ext.defer(function() { updateRequired(field); }, 10);
+            return this;
+        };
+    };
+}());
 
 window.onbeforeunload = function() {
     var dirty = false;

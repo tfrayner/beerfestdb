@@ -1,34 +1,10 @@
-
-# Main database configuration.
-Model::DB:
-  connect_info:
-    - 'DBI:MariaDB:database=beerfestdb;host=mysql;port=3306'
-    - 'beerfestdb'
-    - 'vent&T4p'
-    - RaiseError: 1
-      AutoCommit: 1
-      limit_dialect: 'LimitXY' # until MariaDB is fully supported by DBIC, see https://github.com/Perl5/DBIx-Class/pull/151
-
+# We operate a single festival at a time, so the current festival is set here.
+# This is used for the public site and for some internal queries. It must be
+# set to a valid festival name from the database.
 current_festival:   'TestFestival'
 
-# Default currency and sale volume measures. These values must also be
-# entered into the currency.currency_code and
-# sale_volume.sale_volume_description database columns.
-#default_currency:    GBP
-#default_sale_volume: pint
-
-# Configuration options specific to generation of a OpenOffice beer listing.
-OODoc:
-
-  # The named styles below must be defined in the ODT template document used.
-  styles:
-    bar_name:         'Bar Name'
-    beer_name:        'Beer'
-    beer_notes:       'Tasting Notes'
-    brewery_name:     'Brewery'
-    brewery_location: 'Brewery Location'
-
-  dump_tasting_notes: 1
+# IMPORTANT: Set testing to 1 to disable HTTPS requirement for testing. Set it to 0 in production.
+testing:            1
 
 # A list of classes which will not auto-create upon database
 # loading. Good for maintaining some control over typos.
@@ -56,6 +32,12 @@ protected_classes: []
 #  - OrderBatch
 #  - ProductOrder
 
+# This section controls which departments are uploaded to the CBF public
+# festival site, and how the upload is performed. The beerfestdb_uri should
+# point to the internal URI of the beerfestdb web application, and the
+# public_site_upload_uri should be set to the URI where the public festival
+# site can receive uploads. The public_festival_tag identifies the festival
+# for the public site.
 status_query:
   departments:
     - beer
@@ -69,6 +51,43 @@ status_query:
   public_site_upload_uri:  'file://localhost/www/data/push'
   public_festival_tag:      test
 
+# Default currency and sale volume measures. These values must also be
+# entered into the currency.currency_code and
+# sale_volume.sale_volume_description database columns.
+#default_currency:    GBP
+#default_sale_volume: pint
+
+# Configuration options specific to generation of a OpenOffice beer listing.
+OODoc:
+
+  # The named styles below must be defined in the ODT template document used.
+  styles:
+    bar_name:         'Bar Name'
+    beer_name:        'Beer'
+    beer_notes:       'Tasting Notes'
+    brewery_name:     'Brewery'
+    brewery_location: 'Brewery Location'
+
+  dump_tasting_notes: 1
+
+###############################################################################
+# The following configs should not be changed unless you know what you're doing:
+
+# Main database configuration.
+Model::DB:
+  connect_info:
+    - 'DBI:MariaDB:database=beerfestdb;host=mysql;port=3306'
+    - 'beerfestdb'
+    - 'vent&T4p'
+    - RaiseError: 1
+      AutoCommit: 1
+      limit_dialect: 'LimitXY' # until MariaDB is fully supported by DBIC, see https://github.com/Perl5/DBIx-Class/pull/151
+
+# OIDC provider configuration for authentication. This is required if you want 
+# to use the OpenID Connect plugin for authentication in the web application. 
+# Adjust the issuer URL, client configuration, and Redis store settings as
+# needed for your environment. The tools dashboard client configuration is 
+# included as an example and should be updated with appropriate values for your deployment.
 Plugin::OpenIDConnect:
   issuer:
     url: 'https://localhost:3000'
@@ -88,3 +107,18 @@ Plugin::OpenIDConnect:
     server: 'redis:6379'
     prefix: 'oidc:beerfestdb:'
     code_ttl: 600
+
+Plugin::CSRFToken:
+  max_age: 3600, # Token lifespan in seconds
+  auto_check: 1,
+  default_secret: 'a very long and secret string that should be overridden in production',
+
+# Email configuration for password reset messages.
+email:
+  # Default settings will attempt to use local SMTP server without authentication.
+  from_address: 'beerfestdb@example.com'
+  smtp_host:    'localhost'
+  smtp_port:    25 # Default to standard SMTP port. Set to e.g. 465 for SMTP with SSL/TLS
+#  smtp_ssl:     0  # Set to 1 to use SSL/TLS for SMTP connection, 0 for unencrypted.
+#  smtp_user:    'smtp_account_username'
+#  smtp_pass:    'XXXXX'

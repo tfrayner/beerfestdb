@@ -28,7 +28,7 @@ Ext.onReady(function(){
     /* Brewer lookups */
     var brewer_store = new Ext.data.JsonStore({
         url:        url_company_list,
-        myLoadParams: { brewer_order_batch_id: order_batch_id },
+        myLoadParams: { brewer_order_batch_id: null },
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int' },
                      { name: 'name',       type: 'string'}],
@@ -37,7 +37,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
         idProperty: 'company_id',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
 
     /* Product lookups */
@@ -57,7 +56,7 @@ Ext.onReady(function(){
     /* Distributor lookups */
     var distributor_store = new Ext.data.JsonStore({
         url:        url_company_list,
-        myLoadParams: { supplier_order_batch_id: order_batch_id },
+        myLoadParams: { supplier_order_batch_id: null },
         root:       'objects',
         fields:     [{ name: 'company_id', type: 'int'    },
                      { name: 'name',       type: 'string' }],
@@ -66,7 +65,6 @@ Ext.onReady(function(){
             direction: 'ASC',
         },
         idProperty: 'company_id',
-        isPartial:  1, // slightly lame flag to indicate whether we've loaded the full listing yet.
     });
 
     /* Currency lookups */
@@ -120,7 +118,7 @@ Ext.onReady(function(){
     });
 
     /* Brewer drop-down */
-    var brewer_combo = new Ext.form.ComboBox({
+    var brewer_combo = new MyComboBox({
         triggerAction:  'all',
         mode:           'local',
         forceSelection: true,
@@ -131,28 +129,12 @@ Ext.onReady(function(){
         displayField:   'name',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
-        listeners: {
-            change: function(evt, t, o) {
-                /* t is the reference to the brewer_combo.
-                   We have evt.record available only because we copied it in
-                   the beforeEdit event from myGrid */
-                evt.record.set('product_id', null);
-                evt.render();
-            },
-            beforeQuery: function() { 
-                if ( this.store.isPartial ) {
-                    this.store.reload({ params: { brewer_order_batch_id: null }});
-                    this.store.sort();
-                }
-                this.store.isPartial = 0;
-            },
-        },
     });
 
     /* Product drop-down */
     /* We need this to reload upon brewer reselection.
        See http://stackoverflow.com/questions/3980796/cascading-comboboxes-in-extjs-editorgridpanel */
-    var product_combo = new Ext.form.ComboBox({
+    var product_combo = new MyComboBox({
         triggerAction:  'all',
         mode:           'local',
         lastQuery:      '',  /* to make sure the filter in the store
@@ -176,9 +158,9 @@ Ext.onReady(function(){
             }
         }, 
     });
-    
+
     /* Distributor drop-down */
-    var distributor_combo = new Ext.form.ComboBox({
+    var distributor_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -189,19 +171,10 @@ Ext.onReady(function(){
         displayField:   'name',
         lazyRender:     true,
         listClass:      'x-combo-list-small',
-        listeners: {
-            beforeQuery: function() {
-                if ( this.store.isPartial ) {
-                    this.store.reload( { params: { supplier_order_batch_id: null } } );
-                    this.store.sort();
-                }
-                this.store.isPartial = 0;
-            },
-        },
     });
-    
+
     /* Currency drop-down */
-    var currency_combo = new Ext.form.ComboBox({
+    var currency_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -215,7 +188,7 @@ Ext.onReady(function(){
     });
     
     /* Cask size drop-down */
-    var cask_size_combo = new Ext.form.ComboBox({
+    var cask_size_combo = new MyComboBox({
         forceSelection: true,
         allowBlank:     false,
         typeAhead:      true,
@@ -261,7 +234,7 @@ Ext.onReady(function(){
               allowBlank:     true,
           })},
         { id:         'price',
-          header:     'Price',
+          header:     'Total Price',
           dataIndex:  'price',
           width:      50,
           editor:     new Ext.form.TextField({
@@ -316,9 +289,6 @@ Ext.onReady(function(){
         return(fields);
     }
 
-    var reloadStores = new Array();
-    reloadStores.push( product_store );
-
     var myGrid = new MyEditorGrid(
         {
             objLabel:           'Product Order',
@@ -357,8 +327,16 @@ Ext.onReady(function(){
                         return false;
                     }
                 },
+                afteredit: function(e) {
+                    /* When the brewer changes, clear the product so the user
+                       must pick one that belongs to the new brewer. */
+                    if (e.field === 'company_id' && e.value !== e.originalValue) {
+                        e.record.set('product_id', null);
+                        product_combo.clearValue();
+                    }
+                },
             },
-            reloadableStores: reloadStores,
+            reloadableStores: [],
         }
     );
 
@@ -376,7 +354,12 @@ Ext.onReady(function(){
                 icon:     Ext.MessageBox.QUESTION,
                 fn:       function(btn, text){
                     if (btn == 'yes'){
+                        /* Clear any typeahead filters left on the combo stores
+                           so they render correctly after the grid reloads. */
+                        brewer_store.clearFilter();
+                        distributor_store.clearFilter();
                         saveGridRecords(sb);
+                        product_store.load();
                     };
                 },
             });

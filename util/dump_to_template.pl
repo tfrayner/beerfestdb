@@ -54,7 +54,7 @@ sub parse_idstr {
 sub parse_args {
 
     my ( $templatefile, $logofile, $objectlevel, $split, $outdir, $force,
-         $filterstr, $idstr, $idfile, $skip_unpriced, $want_help );
+         $filterstr, $includestr, $idstr, $idfile, $skip_unpriced, $want_help );
 
     GetOptions(
         "t|template=s"      => \$templatefile,
@@ -65,6 +65,7 @@ sub parse_args {
         "d|output-dir=s"    => \$outdir,
         "f|force-overwrite" => \$force,
         "filters=s"         => \$filterstr,
+        "include=s"         => \$includestr,
         "cask-ids=s"        => \$idstr,
         "cask-ids-from=s"   => \$idfile,
         "skip-unpriced"     => \$skip_unpriced,
@@ -97,6 +98,11 @@ sub parse_args {
         $filters = [ map { [ split /=/, $_ ] } split /,/, $filterstr ];
     }
 
+    my $include_filters = [];
+    if ( $includestr ) {
+        $include_filters = [ map { [ split /=/, $_ ] } split /,/, $includestr ];
+    }
+
     my $cask_ids = [];
     if ( $idfile ) {
         open( my $idfh, '<', $idfile ) or die("Unable to open ID file: $!\n");
@@ -110,7 +116,7 @@ sub parse_args {
     }
 
     return( $templatefile, $logofile, $config, $objectlevel, $outdir,
-            $split, $force, $filters, $cask_ids, $skip_unpriced );
+            $split, $force, $filters, $include_filters, $cask_ids, $skip_unpriced );
 }
 
 ########
@@ -118,7 +124,7 @@ sub parse_args {
 ########
 
 my ( $templatefile, $logofile, $config, $objectlevel,
-     $outdir, $split, $force, $filters, $cask_ids, $skip_unpriced ) = parse_args();
+     $outdir, $split, $force, $filters, $include_filters, $cask_ids, $skip_unpriced ) = parse_args();
 
 my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'} } );
 
@@ -131,6 +137,7 @@ my $dumper = BeerFestDB::Dumper::Template->new(
     output_dir    => $outdir,
     overwrite     => $force,
     filters       => $filters,
+    include_filters => $include_filters,
     cask_ids      => $cask_ids,
     skip_unpriced => $skip_unpriced,
 );
@@ -200,6 +207,18 @@ Beware of spaces in the filter string; all spaces are interpreted
 literally and will not be stripped from the applied filters. The
 filter names are defined by the code in BeerFestDB::Dumper::Template;
 please see that module's documentation for details.
+
+=item --include
+
+An optional set of filters defining objects to be included in the
+dumped data, using the same key=value syntax as C<--filters>:
+
+ --include 'category=ale,category=cider'
+
+When C<--include> is specified, only items matching at least one
+include filter are output.  If an item matches both an include filter
+and an exclude filter (C<--filters>), the include filter takes
+priority and the item is kept.
 
 =item --cask-ids
 

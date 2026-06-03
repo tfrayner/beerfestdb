@@ -78,7 +78,7 @@ Ext.onReady(function(){
               valueField:     'container_measure_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'dispense_method_id',
@@ -89,7 +89,7 @@ Ext.onReady(function(){
               valueField:     'dispense_method_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'container_size_id',
@@ -120,6 +120,7 @@ Ext.onReady(function(){
         tbar:
         [
             { text: 'Home', handler: function() { window.location = url_base; } },
+            { text: 'Container Sizes', handler: function() { window.location = url_container_size_grid; } },
         ],
     });
     

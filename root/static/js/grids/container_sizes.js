@@ -66,7 +66,7 @@ Ext.onReady(function(){
     });
 
     /* Dispense method drop-down */
-    var dispense_combo = new Ext.form.ComboBox({
+    var dispense_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',
@@ -79,7 +79,7 @@ Ext.onReady(function(){
     });
 
     /* Container measure drop-down */
-    var measure_combo = new Ext.form.ComboBox({
+    var measure_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',

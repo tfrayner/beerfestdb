@@ -2,7 +2,9 @@ name: Docker Image Test Build
 
 on:
   pull_request:
-    branches: [ "cbf-production" ]
+    branches: 
+      - "cbf-production"
+      - "*-feature-branch"
 
 jobs:
 

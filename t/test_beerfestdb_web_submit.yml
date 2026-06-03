@@ -1,0 +1,76 @@
+# Config for submit/delete controller tests — uses a separate empty database.
+Model::DB:
+  connect_info:
+    - DBI:SQLite:dbname=t/testing_submit.db
+    -
+    -
+    - RaiseError: 1
+      AutoCommit: 1
+
+current_festival:   'TestFestival'
+
+testing:            1
+
+# Disable CSRF token checking so that mechanize POST tests work without
+# needing to embed a CSRF token in every form submission.
+'Plugin::CSRFToken':
+  auto_check: 0
+
+# Configuration options specific to generation of a OpenOffice beer listing.
+OODoc:
+
+  # The named styles below must be defined in the ODT template document used.
+  styles:
+    bar_name:         'Bar Name'
+    beer_name:        'Beer'
+    beer_notes:       'Tasting Notes'
+    brewery_name:     'Brewery'
+    brewery_location: 'Brewery Location'
+
+  dump_tasting_notes: 1
+
+# A list of classes which will not auto-create upon database
+# loading. Good for maintaining some control over typos.
+protected_classes:
+  - Company
+  - Product
+  - ProductStyle
+  - ProductCategory
+  - Currency
+  - CompanyRegion
+  - ContactType
+  - ContainerMeasure
+  - ContainerSize
+  - Country
+  - ProductCharacteristicType
+  - SaleVolume
+  - TelephoneType
+  - Festival
+  - FestivalProduct
+  - Cask
+  - CaskManagement
+  - Gyle
+  - StillageLocation
+  - BayPosition
+  - OrderBatch
+  - ProductOrder
+
+status_query:
+  departments:
+    - beer
+  beerfestdb_uri:          'http://localhost:3000'
+  public_site_upload_uri:  'file://localhost/www/data/push'
+  public_festival_tag:      test
+
+# The following is just a dummy config; key files etc. do not exist.
+Plugin::OpenIDConnect:
+  issuer:
+    url: 'http://localhost:3000'
+    # Paths relative to top-level directory in which tests are invoked.
+    private_key_file: './t/keys/private.pem'
+    public_key_file: './t/keys/public.pem'
+    key_id: 'my-key-1'
+  clients:
+    'dashboard':
+       client_secret: 'my-secret'
+       redirect_uris: 'http://localhost:8501/oauth2callback'

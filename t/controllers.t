@@ -50,6 +50,7 @@ use_ok $_ for qw(
     BeerFestDB::Web::Controller::Product
     BeerFestDB::Web::Controller::ProductAllergenType
     BeerFestDB::Web::Controller::ProductCategory
+    BeerFestDB::Web::Controller::ProductCharacteristicType
     BeerFestDB::Web::Controller::ProductOrder
     BeerFestDB::Web::Controller::ProductStyle
     BeerFestDB::Web::Controller::Role
@@ -266,6 +267,17 @@ subtest 'ProductAllergenType' => sub {
 # ---------------------------------------------------------------------------
 subtest 'ProductCategory' => sub {
     generic_grid_tests("productcategory", "ProductCategory", $admin);
+};
+
+# ---------------------------------------------------------------------------
+subtest 'ProductCharacteristicType' => sub {
+    generic_grid_tests("productcharacteristictype", "ProductCharacteristicType", $admin);
+    $admin->get_ok('/productcharacteristictype/view/1',              'view should succeed');
+    $admin->get_ok('/productcharacteristictype/load_form',           'load_form should succeed');
+    $admin->get_ok('/productcharacteristictype/list_by_category/2',  'list_by_category should succeed');
+    # Needs JSON payload / confirmation:
+    #$admin->get_ok('/productcharacteristictype/submit',             'submit should succeed');
+    #$admin->get_ok('/productcharacteristictype/delete',             'delete should succeed');
 };
 
 # ---------------------------------------------------------------------------

@@ -44,7 +44,7 @@ __PACKAGE__->table("user");
 =head2 email
 
   data_type: 'varchar'
-  is_nullable: 1
+  is_nullable: 0
   size: 255
 
 =head2 password
@@ -53,6 +53,28 @@ __PACKAGE__->table("user");
   default_value: '*'
   is_nullable: 0
   size: 40
+
+=head2 date_created
+
+  data_type: 'datetime'
+  is_nullable: 0
+  default_value: CURRENT_TIMESTAMP
+
+=head2 date_modified
+
+  data_type: 'datetime'
+  is_nullable: 0
+  default_value: CURRENT_TIMESTAMP
+
+=head2 date_accessed
+
+  data_type: 'datetime'
+  is_nullable: 1
+
+=head2 date_password_changed
+
+  data_type: 'datetime'
+  is_nullable: 1
 
 =cut
 
@@ -64,9 +86,17 @@ __PACKAGE__->add_columns(
   "name",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "email",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "varchar", is_nullable => 0, size => 255 },
   "password",
   { data_type => "varchar", default_value => "*", is_nullable => 0, size => 40 },
+  "date_created",
+  { data_type => "datetime", is_nullable => 0, default_value => \"CURRENT_TIMESTAMP" },
+  "date_modified",
+  { data_type => "datetime", is_nullable => 0, default_value => \"CURRENT_TIMESTAMP" },
+  "date_accessed",
+  { data_type => "datetime", is_nullable => 1 },
+  "date_password_changed",
+  { data_type => "datetime", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -120,6 +150,12 @@ __PACKAGE__->has_many(
 # DBIx::Class::Schema::Loader. We add them here:
 __PACKAGE__->many_to_many(
     "roles" => "user_roles", "role_id"
+);
+
+__PACKAGE__->has_many(
+  "password_reset_tokens",
+  "BeerFestDB::ORM::PasswordResetToken",
+  { "foreign.user_id" => "self.user_id" },
 );
 
 sub repr {

@@ -121,7 +121,7 @@ Ext.onReady(function(){
         },
     });
 
-    var dipbatch_combo = new Ext.form.ComboBox({
+    var dipbatch_combo = new MyComboBox({
         typeAhead:      true,
         triggerAction:  'all',
         mode:           'local',
@@ -168,7 +168,7 @@ Ext.onReady(function(){
               valueField:     'container_size_id',
               displayField:   'description',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'distributor_id',
@@ -198,7 +198,7 @@ Ext.onReady(function(){
               valueField:     'currency_id',
               displayField:   'currency_code',
               lazyRender:     true,
-              xtype:          'combo',
+              xtype:          'mycombo',
               allowBlank:     false, },
             
             { name:           'festival_name',

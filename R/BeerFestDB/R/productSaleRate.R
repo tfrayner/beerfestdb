@@ -1,7 +1,7 @@
 ##
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
-## 
+##
 ## Copyright (C) 2011 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -19,24 +19,39 @@
 ##
 ## $Id$
 
+###############################################################################
+#' Calculate the sale rate for a single cask using a linear model
+#' @description Estimates the sale rate (gallons per session) for a single
+#'   cask by fitting a linear model to its trimmed, normalised dip readings.
+#'   Leading and trailing non-sale plateaux are removed before fitting.
+#'   Used internally by \code{\link{rankProducts}}.
+#' @param y A numeric vector of dip readings (volume remaining in gallons)
+#'   for a single cask, ordered by measurement session.
+#' @return A named numeric vector with two elements:
+#'   \describe{
+#'     \item{Estimate}{Estimated gallons sold per session (positive).}
+#'     \item{Std. Error}{Standard error of the estimate from \code{\link[stats]{lm}}.}
+#'   }
+#' @seealso \code{\link{rankProducts}}
+#' @importFrom stats lm
+#' @export
+###############################################################################
 productSaleRate <- function(y) {
+  ## Trim off initial non-sale period.
+  y <- c(y[1], y[y != y[1]])
 
-    ## Trim off initial non-sale period.
-    y <- c(y[1], y[ y!=y[1] ])
+  ## Trim off trailing non-sale period.
+  n <- length(y)
+  y <- c(y[y != y[n]], y[n])
 
-    ## Trim off trailing non-sale period.
-    n <- length(y)
-    y <- c(y[ y!=y[n] ], y[n])
+  ## Normalise to zero at end of sale period.
+  y <- y - y[length(y)]
 
-    ## Normalise to zero at end of sale period.
-    y <- y - y[length(y)]
+  m <- 1:length(y) - 1
 
-    m <- 1:length(y) - 1
+  l <- lm(y ~ m)
 
-    l <- lm( y ~ m )
-
-    ## FIXME we could also return the std. error here.
-    suppressWarnings(r <- summary(l)$coefficients[-1, c(1,2)])
-    return( c(-r[1], r[2] ) )
+  ## FIXME we could also return the std. error here.
+  suppressWarnings(r <- summary(l)$coefficients[-1, c(1, 2)])
+  return(c(-r[1], r[2]))
 }
-

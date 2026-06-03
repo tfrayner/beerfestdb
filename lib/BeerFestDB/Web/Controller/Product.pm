@@ -312,6 +312,16 @@ sub build_database_object : Private {
     my $allergens_present = delete $rec->{'allergens_present'} || '';
     my $allergens_absent  = delete $rec->{'allergens_absent'} || '';
 
+    # Detect a category change before the update is applied.
+    my $old_category_id;
+    if ( defined $rec->{product_id} ) {
+        my $existing = $c->model('DB::Product')->find({ product_id => $rec->{product_id} });
+        if ( $existing && defined $rec->{product_category_id}
+                       && $existing->product_category_id != $rec->{product_category_id} ) {
+            $old_category_id = $existing->product_category_id;
+        }
+    }
+
     my $obj = $self->next::method( $rec, $c, @other );
 
     # Check that all the wanted allergens are set appropriately.
@@ -341,9 +351,76 @@ sub build_database_object : Private {
                 $existing->delete;
             }
         }
+
+        # If the product category changed, reconcile any ProductCharacteristics
+        # whose type no longer belongs to the new category.
+        if ( defined $old_category_id ) {
+            $self->_reconcile_characteristics_after_category_change(
+                $c, $obj, $rec->{product_category_id} );
+        }
     }
 
     return $obj;
+}
+
+=head2 _reconcile_characteristics_after_category_change
+
+Called when a Product's product_category_id is changed. Iterates over
+all attached ProductCharacteristic rows; for each one whose
+ProductCharacteristicType belongs to the old category:
+
+=over 4
+
+=item * If a ProductCharacteristicType with the same description exists in
+the new category, updates the characteristic to use that type.
+
+=item * Otherwise, deletes the characteristic.
+
+=back
+
+=cut
+
+sub _reconcile_characteristics_after_category_change : Private {
+
+    my ( $self, $c, $obj, $new_category_id ) = @_;
+
+    my $pct_rs = $c->model('DB::ProductCharacteristicType');
+
+    foreach my $char ( $obj->product_characteristics ) {
+        my $type = $char->product_characteristic_type_id;
+        next if $type->get_column('product_category_id') == $new_category_id;
+
+        # Type belongs to the old category. Try to find a replacement
+        # in the new category with the same description.
+        my $replacement = $pct_rs->find({
+            product_category_id => $new_category_id,
+            description         => $type->description,
+        });
+
+        if ( $replacement ) {
+            # Check whether a characteristic for this product with the
+            # replacement type already exists (avoid PK collision).
+            my $existing = $c->model('DB::ProductCharacteristic')->find({
+                product_id                    => $obj->product_id,
+                product_characteristic_type_id => $replacement->product_characteristic_type_id,
+            });
+            if ( $existing ) {
+                # Replacement already exists; just remove the mismatched one.
+                $char->delete;
+            }
+            else {
+                $char->update({
+                    product_characteristic_type_id =>
+                        $replacement->product_characteristic_type_id,
+                });
+            }
+        }
+        else {
+            $char->delete;
+        }
+    }
+
+    return;
 }
 
 =head2 viewhash_from_model

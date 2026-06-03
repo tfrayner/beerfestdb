@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::BayPosition;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::Controller'; }
+BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
@@ -45,19 +45,42 @@ sub BUILD {
         bay_position_id  => 'bay_position_id',
         description      => 'description',
     });
+
+    $self->model_name('DB::BayPosition');
 }
 
-=head2 list
+=head2 load_form
 
 =cut
 
-sub list : Local {
+sub load_form : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( 'DB::BayPosition' );
+    my $rs = $c->model( $self->model_name() );
 
-    $self->generate_json_and_detach( $c, $rs );
+    $self->form_json_and_detach( $c, $rs, 'bay_position_id' );
+}
+
+=head2 view
+
+=cut
+
+sub view : Local {
+
+    my ( $self, $c, $id ) = @_;
+
+    my $object = $c->model( $self->model_name() )->find($id);
+
+    unless ( $object ) {
+        $c->flash->{error} = "Error: BayPosition not found.";
+        $c->res->redirect( $c->uri_for('/default') );
+        $c->detach();        
+    }
+
+    $c->stash->{object} = $object;
+
+    return;
 }
 
 =head1 COPYRIGHT AND LICENSE

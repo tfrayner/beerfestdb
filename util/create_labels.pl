@@ -280,8 +280,10 @@ Set individual label borders.  Override C<--label-border>.
 
 =head2 -t, --template I<file>
 
-Path to an alternate Template Toolkit template file.  The same
-variables are available as in the built-in template (see C<__DATA__>).
+(Advanced usage) Path to an alternate Template Toolkit template file.  These 
+templates are not the same as used for e.g. dump_to_template.pl; they are 
+intended to be used with the C<LabelMaker> class and must use the same variable names.
+The same variables are available as in the built-in template (see the C<__DATA__> section of this script).
 
 =head2 -h, --help
 

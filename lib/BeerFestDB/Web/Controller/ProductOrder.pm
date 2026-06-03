@@ -139,15 +139,17 @@ sub submit : Local {
 
     my $data = $self->decode_json_changes($c);
 
+    my @ids;
     eval {
         $rs->result_source()->schema()->txn_do(
-            sub { $self->_save_records( $c, $rs, $data ); }
+            sub { @ids = $self->_save_records( $c, $rs, $data ); }
         );
     };
     if ( $@ ) {
         $self->detach_with_txn_failure( $c, $@ );
     }
 
+    $c->stash->{ 'ids' }     = \@ids;
     $c->stash->{ 'success' } = JSON()->true();
     $c->forward( 'View::JSON' );
 }
@@ -161,7 +163,8 @@ sub _save_records : Private {
     my @received;
     foreach my $rec ( @{ $data } ) {
         if ( exists $rec->{ 'is_received' } && $rec->{ 'is_received' } ) {
-            if ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) {
+            if ( defined $rec->{ 'product_order_id' }
+                    && ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) ) {
                 if ( $po->is_received() ) {
                     die("Product Order set as is_received"
                             . " was already is_received in database.");
@@ -173,15 +176,23 @@ sub _save_records : Private {
     }
 
     # Create the core ProductOrder records in the database.
+    my @ids;
     foreach my $rec ( @{ $data } ) {
         # No changes allowed to records already marked as is_received.
-        # FIXME perhaps allow comment changes, but for now this is simpler and
+        # TODO perhaps allow comment changes, but for now this is simpler and
         # safer. Even price changes would need to be propagated to CaskManagement.
-        if ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) {
+        if ( defined $rec->{ 'product_order_id' }
+                && ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) ) {
             $po->is_received() and
                 die("Product Order with id $rec->{product_order_id} is already is_received in database.");
         }
-        $self->build_database_object( $rec, $c, $rs );
+        my $dbobj = $self->build_database_object( $rec, $c, $rs );
+        
+        # Handle cases where the record is new and thus doesn't have an
+        # id yet. This is important if we need to follow on with preload_product_order, below.
+        $rec->{ 'product_order_id' } //= $dbobj->id;
+        
+        push @ids, $dbobj->id;
     }
 
     # Copy any arrived products into FestivalProduct et al.
@@ -194,7 +205,7 @@ sub _save_records : Private {
         $self->preload_product_order($po);
     }
 
-    return;
+    return @ids;
 }
 
 =head2 delete

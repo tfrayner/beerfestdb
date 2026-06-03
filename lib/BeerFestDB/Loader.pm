@@ -142,6 +142,8 @@ Readonly my $DISTRIBUTOR_AWRS_URN      => 58;
 Readonly my $CASK_GRAVEYARD_LOCATION   => 59;
 Readonly my $PRODUCT_IS_VEGAN          => 60;
 Readonly my $ORDER_PRICE               => 61;
+Readonly my $PRODUCT_CHARACTERISTIC_TYPE    => 62;
+Readonly my $PRODUCT_CHARACTERISTIC_VALUE   => 63;
 
 ########
 # SUBS #
@@ -375,6 +377,32 @@ sub _load_data {
             },
             'Product')
         : undef;
+
+    my $pchar_type = $self->value_is_acceptable( $datahash->{$PRODUCT_CHARACTERISTIC_TYPE} )
+        ? $self->_load_column_value(
+            {
+                product_category_id => $category,
+                description         => $datahash->{$PRODUCT_CHARACTERISTIC_TYPE},
+            },
+            'ProductCharacteristicType')
+        : undef;
+
+    # ProductCharacteristic has a composite PK of (product_id,
+    # product_characteristic_type_id), so we cannot use _load_column_value
+    # (which skips PK columns when building the find_or_create search hash).
+    # Instead we use find_or_create directly with an explicit key hint.
+    my $pchar;
+    if ( $product && $pchar_type
+            && $self->value_is_acceptable( $datahash->{$PRODUCT_CHARACTERISTIC_VALUE} ) ) {
+        $pchar = $self->database->resultset('ProductCharacteristic')->find_or_create(
+            {
+                product_id                     => $product->product_id,
+                product_characteristic_type_id => $pchar_type->product_characteristic_type_id,
+                value                          => $datahash->{$PRODUCT_CHARACTERISTIC_VALUE},
+            },
+            { key => 'primary' },
+        );
+    }
 
     my $distributor
         = $self->value_is_acceptable( $datahash->{$DISTRIBUTOR_NAME} )
@@ -826,6 +854,8 @@ sub _coerce_headings {
         qr/product [_ -]* long [_ -]* description/ixms => $PRODUCT_LONG_DESCRIPTION,
         qr/product [_ -]* comment/ixms                 => $PRODUCT_COMMENT,
         qr/product [_ -]* abv/ixms                     => $PRODUCT_ABV,
+        qr/(?:product)? [_ -]* characteristic [_ -]* type/ixms  => $PRODUCT_CHARACTERISTIC_TYPE,
+        qr/(?:product)? [_ -]* characteristic [_ -]* value/ixms => $PRODUCT_CHARACTERISTIC_VALUE,
         qr/gyle [_ -]* brewery? [_ -]* number/ixms     => $GYLE_BREWERY_NUMBER,
         qr/gyle [_ -]* abv/ixms                        => $GYLE_ABV,
         qr/product [_ -]* sale [_ -]* price/ixms       => $GYLE_PINT_PRICE,

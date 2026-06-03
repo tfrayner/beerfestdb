@@ -99,6 +99,50 @@ Ext.onReady(function(){
         },
     });
 
+    /* Product Characteristic drop-down */
+    var ProductCharacteristicType = Ext.data.Record.create([
+        { name: 'product_characteristic_type_id', type: 'int' },
+        { name: 'product_category_id',            type: 'int' },
+        { name: 'description',                    type: 'string' },
+    ]);
+
+    var product_characteristic_type_store = new Ext.data.JsonStore({
+        url:        url_product_characteristic_type_list,
+        root:       'objects',
+        fields:     ProductCharacteristicType,
+        idProperty: 'product_characteristic_type_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+
+    var product_characteristic_type_combo = new MyComboBox({
+        typeAhead:      true,
+        triggerAction:  'all',
+        mode:           'local',
+        store:          product_characteristic_type_store,
+        valueField:     'product_characteristic_type_id',
+        displayField:   'description',
+        lazyRender:     true,
+        allowBlank:     false,
+        forceSelection: true,
+        xtype:          'mycombo',
+    });
+
+    var product_characteristic_store = new Ext.data.JsonStore({
+        url:        url_product_characteristic_list,
+        root:       'objects',
+        fields:     [{ name: 'product_id',                type: 'int' },
+                     { name: 'product_characteristic_type_id', type: 'int' },
+                     { name: 'value',                     type: 'string' }],
+        idProperty: 'product_characteristic_type_id',
+        sortInfo:   {
+            field:     'product_characteristic_type_id',
+            direction: 'ASC',
+        },
+    });
+
     function updateStyleList(query) { // Listener function to update style dropdown.
         var currentRowId = prodForm.getForm().findField('product_category_id').getValue();
         this.store.reload( { params: { product_category_id: currentRowId }, add: true } );
@@ -230,7 +274,103 @@ Ext.onReady(function(){
         loadUrl:     url_product_load_form,
         idParams:    { product_id: product_id },
         waitMsg:     'Loading Product details...',
+
+        // Tracks the new category ID when the user changes category, so afterSave
+        // can reload the characteristic type store with the correct URL.
+        _pendingCategoryId: null,
+
+        // Warn the user if they are changing the product category, since this
+        // may cause product characteristics to be deleted or remapped.
+        beforeSave: function(doSave) {
+            var panel = this;
+            var catField = panel.getForm().findField('product_category_id');
+            if (catField && catField.isDirty()) {
+                // Capture the new category ID now, before the form reloads.
+                panel._pendingCategoryId = catField.getValue();
+                var oldRec = category_store.getById(catField.originalValue);
+                var newRec = category_store.getById(panel._pendingCategoryId);
+                var oldName = oldRec ? oldRec.get('description') : catField.originalValue;
+                var newName = newRec ? newRec.get('description') : panel._pendingCategoryId;
+                Ext.Msg.show({
+                    title:   'Changing Product Category',
+                    msg:     'You are changing the category from <b>' + oldName + '</b> to <b>' + newName + '</b>.<br><br>'
+                           + 'Any product characteristics whose type does not exist in the new category '
+                           + 'will be <b>deleted or remapped</b>. Continue?',
+                    buttons: Ext.Msg.YESNO,
+                    icon:    Ext.MessageBox.WARNING,
+                    fn:      function(btn) {
+                        if (btn === 'yes') { doSave(); }
+                        else { panel._pendingCategoryId = null; }
+                    },
+                });
+            } else {
+                panel._pendingCategoryId = null;
+                doSave();
+            }
+        },
+
+        // After saving, reload the form (clears dirty state) and, if the
+        // category changed, update the characteristic type store URL and
+        // reload both it and the characteristic data store.
+        afterSave: function() {
+            var panel = prodForm;
+            var newCatId = panel._pendingCategoryId;
+            panel._pendingCategoryId = null;
+
+            if (newCatId) {
+                var newUrl = url_product_characteristic_type_list_base + '/' + newCatId;
+                product_characteristic_type_store.proxy.conn.url = newUrl;
+                product_characteristic_type_store.reload({
+                    callback: function() {
+                        product_characteristic_store.reload();
+                    }
+                });
+            }
+
+            panel.getForm().load({
+                url:     panel.loadUrl,
+                params:  panel.idParams,
+                waitMsg: panel.waitMsg,
+            });
+        },
     });
+
+    /* Product Characteristic grid */
+    var charGrid = new MyEditorGrid(
+        {
+            objLabel:           'Product Characteristic',
+            idField:            ['product_id', 'product_characteristic_type_id'],
+            autoExpandColumn:   'value',
+            deleteUrl:          url_product_characteristic_delete,
+            submitUrl:          url_product_characteristic_submit,
+            recordChanges:      function (record) {
+                var fields = record.getChanges();
+                fields.product_id = product_id;
+                return(fields);
+            },
+            store:              product_characteristic_store,
+            comboStores:         [ product_characteristic_type_store ],
+            reloadableStores:    [ product_characteristic_type_store ], // fixes refresh view bug after save
+            contentCols: [
+                { id:         'product_characteristic_type_id',
+                  header:     'Characteristic Type',
+                  dataIndex:  'product_characteristic_type_id',
+                  width:      130,
+                  renderer:   MyComboRenderer(product_characteristic_type_combo),
+                  editor:     product_characteristic_type_combo,
+                  },
+                { id:         'value',
+                  header:     'Value',
+                  dataIndex:  'value',
+                  width:      150,
+                  editor:     new Ext.form.TextField({
+                      allowBlank:     false,
+                  })},
+            ],
+            // Dead link - we have a no target view for product characteristics, and the link is not worth the effort of creating one.
+            viewLink: function (grid, record, action, row, col) {},
+        }
+    );
 
     /* Festival Product grid */
     var fpGrid = new MyEditorGrid(
@@ -277,12 +417,12 @@ Ext.onReady(function(){
             { title: 'Product Information',
               layout: 'anchor',
               items:  prodForm, },
+            { title: 'Characteristics',
+              layout: 'fit',
+              items:  charGrid, },
             { title: 'Festivals',
               layout: 'fit',
               items:  fpGrid, },
-//            { title: 'Characteristics',
-//              layout: 'fit',
-//              items:  charGrid, },
         ],
     });
 
