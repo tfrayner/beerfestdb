@@ -2,6 +2,9 @@
 import mysql.connector
 import streamlit as st
 import pandas as pd
+from CBF_logger import make_logger
+
+logger = make_logger(__file__)
 
 #%%
 conn = st.connection('cbf', type='sql')
@@ -23,6 +26,7 @@ and p.product_style_id = ps.product_style_id
 and p.is_vegan = '1';'''
 
 #%%
+logger.debug("Executing SQL query to fetch vegan beers")
 vdf = conn.query(vsql, params={"festivalname": festivalname})
 
 #%%
@@ -40,6 +44,7 @@ and p.product_style_id = ps.product_style_id
 and a.present = '0';'''
 
 #%%
+logger.debug("Executing SQL query to fetch gluten-free beers")
 gfdf = conn.query(gsql, params={"festivalname": festivalname})
 
 #%%
@@ -59,13 +64,16 @@ and p.is_vegan = '1';'''
 
 
 #%%
+logger.debug("Executing SQL query to fetch beers that are both vegan and gluten-free")
 vgfdf = conn.query(vgsql, params={"festivalname": festivalname})
 
 @st.cache_data
 def csv_for_download(df):
+    logger.debug("Converting DataFrame to CSV for download")
     return df.to_csv().encode("utf-8")
 
 def tsv_for_download(df):
+    logger.debug("Converting DataFrame to TSV for download")
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
 
@@ -146,7 +154,7 @@ with col1:
         key="vgfcsv",
         label="Download CSV",
         data=vgfcsv,
-        file_name="_beer_list.csv",
+        file_name="vegan-GF_beer_list.csv",
         mime="text/csv",
         icon=":material/download:",
     )

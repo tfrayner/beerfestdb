@@ -6,6 +6,12 @@ import yaml
 from pathlib import Path
 from bfdb_yaml import current_festival
 from datetime import datetime, timedelta
+from CBF_logger import make_logger
+
+logger = make_logger(__file__)
+
+logger.debug("Starting CBF Tool Dashboard")
+logger.debug(f"Current festival from YAML config: {current_festival}")
 
 # Begin login and inactivity management ------------------------------------------------------
 # Configurable inactivity timeout (in minutes); set via .streamlit/secrets.toml [app] section.
@@ -46,6 +52,7 @@ if 'festival' not in st.session_state:
     st.session_state.festival = f'{current_festival}'
 
 fsql = '''select name from festival where year > 2023;'''
+logger.debug("Executing SQL query to fetch festival names")
 fdf = conn.query(fsql)
 festlist = fdf['name'].to_list()
 
