@@ -1,7 +1,7 @@
 ##
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
-## 
+##
 ## Copyright (C) 2011 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -19,9 +19,22 @@
 ##
 ## $Id$
 
-plotToFile <- function( file, fn, ... ) {
-    pdf( file=file )
-    fn( ... )
-    dev.off()
+###############################################################################
+#' Write a plot to a PDF file
+#' @description A minimal wrapper that opens a PDF graphics device, calls a
+#'   plotting function with any supplied arguments, then closes the device.
+#' @param file Path to the output PDF file.
+#' @param fn A function that produces a plot when called with the remaining
+#'   arguments (e.g., \code{\link{plotTotalBeerSales}},
+#'   \code{\link{plotSalesRate}}).
+#' @param ... Additional arguments forwarded to \code{fn}.
+#' @return The (invisible) return value of \code{\link[grDevices]{dev.off}}.
+#' @seealso \code{\link{analyseData}}
+#' @importFrom grDevices dev.off pdf
+#' @export
+###############################################################################
+plotToFile <- function(file, fn, ...) {
+  pdf(file = file)
+  fn(...)
+  dev.off()
 }
-

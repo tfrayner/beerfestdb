@@ -19,19 +19,53 @@
 ##
 ## $Id$
 
-################################################################################
-## Method used to extract data from the JSON API and organise it into
-## a data frame, regularised by the passed column names if available.
-getBFData <- function(dbclass, action, params = c(), columns = NULL, auth, .opts = list(), ...) {
+###############################################################################
+#' Query the BeerFestDB JSON API and return a normalised data frame
+#' @description Calls \code{\link{queryBFDB}} with the supplied object class
+#'   and action, then converts the resulting list of records into a regular
+#'   character data frame.  Any column whose name ends in \code{_id} is
+#'   coerced to integer.  Fields absent from some records are padded with
+#'   \code{NA}.
+#' @param dbclass Character string naming the BeerFestDB object class to
+#'   query (e.g., \code{"Cask"}, \code{"Festival"}, \code{"Company"}).
+#' @param action Character string naming the API action
+#'   (e.g., \code{"list"}, \code{"list_by_festival"}).
+#' @param params Optional numeric or character vector of path parameters
+#'   appended to the request URI (e.g., a festival ID).
+#' @param columns Optional character vector of column names to retain.  An
+#'   error is raised if any requested column is absent from the API response.
+#' @param auth Authentication object: a \code{CURLHandle} with a live
+#'   session, a list with elements \code{username} and \code{password}, or
+#'   \code{NULL} to prompt interactively.  When \code{auth} is not a
+#'   \code{CURLHandle} the \code{baseuri} argument must also be supplied.
+#' @param .opts Named list of additional options forwarded to
+#'   \code{\link[RCurl]{curlPerform}}.
+#' @param ... Additional arguments passed to \code{\link{queryBFDB}}.
+#' @return A data frame with one row per API record.  All columns are
+#'   character except those whose names end in \code{_id}, which are integer.
+#' @seealso \code{\link{queryBFDB}}, \code{\link{getFestivalData}}
+#' @export
+###############################################################################
+getBFData <- function(dbclass, action, params = c(), columns = NULL,
+                      auth, .opts = list(), ...) {
   objects <- queryBFDB(dbclass, action, params, auth, .opts, ...)
 
   terms <- sort(Reduce(union, sapply(objects, names)))
   cleaned <- lapply(objects, function(x) {
     w <- terms[!terms %in% names(x)]
-    v <- rep(NA, length(w))
+    v <- rep(NA_character_, length(w))
     names(v) <- w
     x <- c(x, v)
-    return(x[terms])
+    x <- x[terms]
+    ## Convert each element to a character scalar so that do.call(rbind, ...)
+    ## produces a character matrix rather than a list-matrix, preserving NAs.
+    vapply(x, function(el) {
+      if (is.null(el) || (length(el) == 1L && is.na(el))) {
+        NA_character_
+      } else {
+        as.character(el)[[1L]]
+      }
+    }, character(1L))
   })
 
   res <- as.data.frame(do.call("rbind", cleaned), stringsAsFactors = FALSE)
@@ -50,7 +84,8 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL, auth, .opts
       if (!all(columns %in% colnames(res))) {
         stop(sprintf(
           "Unexpected BFDB query result from class %s, action %s; missing columns: %s",
-          dbclass, action, paste(setdiff(columns, colnames(res)), collapse = ", ")
+          dbclass, action,
+          paste(setdiff(columns, colnames(res)), collapse = ", ")
         ))
       }
       res <- res[, columns]
@@ -66,16 +101,52 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL, auth, .opts
   return(res)
 }
 
-################################################################################
-## Core method to interact with the BeerFestDB web site via its JSON
-## API. See below for specific method signatures.
+###############################################################################
+#' Query the BeerFestDB database via JSON API
+#' @description S4 generic that issues an HTTP request to the BeerFestDB JSON
+#'   API and returns the \code{objects} list from the response.  Dispatch is
+#'   on the class of \code{auth}: supply a \code{CURLHandle} for an existing
+#'   authenticated session, or a list / \code{NULL} / missing \code{auth}
+#'   together with a \code{baseuri} character string to authenticate
+#'   automatically.
+#' @param dbclass Character string naming the BeerFestDB object class
+#'   (e.g., \code{"Cask"}).
+#' @param action Character string naming the API action
+#'   (e.g., \code{"list"}).
+#' @param params Optional numeric or character vector of additional path
+#'   parameters.
+#' @param auth Authentication object; see Description for dispatch details.
+#' @param .opts Named list of options forwarded to
+#'   \code{\link[RCurl]{curlPerform}}.
+#' @param baseuri Base URI of the BeerFestDB web application.  Required
+#'   unless \code{auth} is a \code{CURLHandle}.
+#' @param ... Additional arguments (reserved for future use).
+#' @return A list of named lists, one element per API record.
+#' @seealso \code{\link{getBFData}}, \code{\link{getFestivalData}}
+#' @import methods
+#' @export
+###############################################################################
 setGeneric("queryBFDB", def = function(dbclass, action, params = c(),
                                        auth, .opts = list(), baseuri, ...) {
   standardGeneric("queryBFDB")
 })
 
 ################################################################################
-## queryBFDB method where auth=CURLHandle
+#' queryBFDB method where auth=CURLHandle
+#' @importFrom rjson fromJSON toJSON
+#' @importFrom RCurl curlPerform getCurlHandle curlSetOpt
+#'  basicTextGatherer curlEscape
+#' @param dbclass Character string naming the BeerFestDB object class to
+#'  query (e.g., \code{"Cask"}, \code{"Festival"}, \code{"Company"}).
+#' @param action Character string naming the API action (e.g., \code{"list"},
+#' \code{"list_by_festival"}).
+#' @param params Optional numeric or character vector of path parameter
+#'  s appended to the request URI (e.g., a festival ID).
+#' @param auth A \code{CURLHandle} object representing an authenticated session.
+#' @param .opts Named list of additional options forwarded to
+#'  \code{\link[RCurl]{curlPerform}}.
+#' @param ... Additional arguments (reserved for future use).
+#' @return A list of named lists, one element per API record.
 .queryBFDBCurl <- function(dbclass, action, params = c(),
                            auth, .opts = list(), ...) {
   # Assumes that all JSON query actions in the web server behave
@@ -163,8 +234,16 @@ setMethod("queryBFDB", signature(auth = "NULL", baseuri = "missing"), .queryBFDB
 setMethod("queryBFDB", signature(auth = "list", baseuri = "missing"), .queryBFDBError)
 
 ################################################################################
-## Returns a CURLHandle object which contains details for a logged-in
-## BFDB session.
+#' Return a CURLHandle object which contains details for a logged-in BFDB session.
+#' @importFrom rjson fromJSON toJSON
+#' @importFrom RCurl curlPerform getCurlHandle curlSetOpt
+#'  basicTextGatherer curlEscape
+#' @param baseuri Base URI of the BeerFestDB web application.  Required.
+#' @param auth Authentication object: a list with elements \code{username} and
+#'   \code{password}, or \code{NULL} to prompt interactively.
+#' @param .opts Named list of additional options forwarded to
+#'   \code{\link[RCurl]{curlPerform}}.
+#' @return A \code{CURLHandle} object representing an authenticated session.
 .getBFDBHandle <- function(baseuri = NULL, auth, .opts = list()) {
   if (is.null(baseuri)) {
     stop("Error: baseuri argument must be provided.")
@@ -215,9 +294,18 @@ setMethod("queryBFDB", signature(auth = "list", baseuri = "missing"), .queryBFDB
 }
 
 ################################################################################
-## Log out a given CURLHandle session from the web site authentication system.
+#' Log out a given CURLHandle session from the web site authentication system.
+#' @importFrom rjson fromJSON toJSON
+#' @importFrom RCurl curlPerform basicTextGatherer
+#' @param auth A \code{CURLHandle} object representing an authenticated session.
+#' @param .opts Named list of additional options forwarded to
+#'   \code{\link[RCurl]{curlPerform}}.
+#' @param ... Additional arguments (reserved for future use).
+#' @return Invisibly returns \code{NULL}.  Raises a warning if the logout
+#'   request fails, and an error if the server returns a failure status.
 .logoutBFDBHandle <- function(auth, .opts = list(), ...) {
-  ## N.B. ... argument included to allow generous use of ... in upstream functions.
+  ## N.B. ... argument included to allow generous use of ... in upstream
+  ## functions.
 
   if (!inherits(auth, "CURLHandle")) {
     stop("Must pass in a CURLHandle object.")
@@ -256,8 +344,9 @@ setMethod("queryBFDB", signature(auth = "list", baseuri = "missing"), .queryBFDB
 }
 
 ################################################################################
-## Simple user query for login credentials. Replaces old tcl/tk version.
-##
+#' Simple user query for login credentials. Replaces old tcl/tk version.
+#' @importFrom getPass getPass
+#' @return A list with elements \code{username} and \code{password}.
 .getCredentials <- function() {
   username <- readline(prompt = "Username: ")
   password <- getPass(msg = "Password: ", noblank = TRUE)

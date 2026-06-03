@@ -2,7 +2,48 @@
 
 This file documents the revision history for BeerFestDB and associated tools.
 
-## [1.1rc] -  Unreleased
+## [1.2rc] - Unreleased
+- Data model improvements:
+  - Added support for **ProductCharacteristic** (e.g. colour, clarity) with full
+      CRUD UI, loader support, and cask-end template integration
+  - **Password reset system** with email-based workflow
+  - Basic user account date tracking (created/accessed/modified/password changed)
+  - User email now `NOT NULL`
+- Web interface improvements:
+  - Added **Country, Currency, ContainerMeasure, BayPosition** admin controlled vocabulary pages
+  - Added **CategoryAuth** admin views for role-based access control
+  - Add CSRF and current\_festival features supporting the mobile app integration
+  - **Confine update/delete/insert operations via webUI/API to the current festival**
+  - Updated JS validation of email addresses
+  - **Grid navigation and performance improvements**
+    - Fixed grid navigation using tab key
+    - Highlight empty required fields
+    - Improved performance of cascading combobox fields (company->product)
+  - Reinstated allergen "Does Not Contain" listing
+  - Re-styled main landing page and improved layout
+  - Add configurable link to external AWRS website
+  - **Full JSON API documentation**
+- Reporting / tool dashboard improvements:
+  - Advanced dump-to-template **include filters** with test coverage (#31)
+  - Added **brewery- and beer-finding page** to the tool dashboard
+  - Improved landing page layout; modularised festival selection (#104)
+  - Streamlit script wrapped with restart-on-healthcheck-fail
+- Deployment improvements:
+  - Reorganised Docker Compose example with dashboard included
+  - Docker tests now run for PRs to feature branches
+- Security improvements:
+  - **CSRF protection** across the application
+  - Improved HTTP security headers including Content Security Policy
+  - Requiring HTTPS in production; additional security headers
+  - Role-based restriction on data upload to external public website
+- Testing improvements:
+  - **Test suite for controller submit/delete actions**
+  - Tests that all scripts (`*.pl`) compile without error
+  - Tests for `ProductCharacteristicType` controller
+  - Improved R package test coverage and doc coverage using roxygen2
+  - Tests for comment/missing-data skipping in CsvParser
+
+## [1.1] - 2026-05-25
 - Data model improvements:
   - Added support for **cask graveyard information**
   - Added support for **product is_vegan flag**
@@ -17,6 +58,8 @@ This file documents the revision history for BeerFestDB and associated tools.
   - Tool dashboard: fetch programme notes view, stock management tools
   - Docker image for the tool dashboard with startup script, favicon, and
       support for changing the listening port
+  - Draft example **long bar menu template** added
+  - **Arbitrary small label printer** script
   - New Quarto report code and supporting R functions
   - Dump cask and sale price info in getFestivalData R function
 - Deployment improvements:
@@ -34,12 +77,17 @@ This file documents the revision history for BeerFestDB and associated tools.
   - Bug fix for user/role UI support
   - Alter cask_price load to disambiguate order_price handling
   - Add low-no alcohol category to cask end template
-  - Critical security bugfixes (April 2026)
+  - **Critical security bugfixes (April 2026) (LLM-driven security audit)**
+  - Migrate fully away from JSON::DWIW to JSON::MaybeXS
+  - Fix for #146: save cask details in absence of dip data
+  - Skip fields with NA, NULL and similar missing-data strings (#101)
+  - Fix dump where gyle has no casks
+  - Fix UTF-8 encoding for `upload_beerlist.pl`
 - Other:
   - New Mermaid-format entity-relationship diagram replacing old version
   - Refactored CSV file value parsing into a common Role mixin
 
-## [1.0] -  2020-05-25
+## [1.0] - 2020-05-25
 - Deployment improvements:
   - **First working Dockerised deployment**
   - Docker Compose configuration for containerised operation

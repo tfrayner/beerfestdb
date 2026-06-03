@@ -9,4 +9,3 @@
 [% js_link( src = '/static/js/grids/role_view.js' ) %]
 
 <div id="datagrid"></div>
-
