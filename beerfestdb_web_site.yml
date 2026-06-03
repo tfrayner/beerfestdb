@@ -51,6 +51,12 @@ status_query:
   public_site_upload_uri:  'file://localhost/www/data/push'
   public_festival_tag:      test
 
+# Indicate which departments are using the database to manage stock control
+# measurements (i.e., dip values). This is used to determine which products
+# should have stock control measurements uploaded to the public festival site
+stock_control_departments:
+  - beer
+
 # Default currency and sale volume measures. These values must also be
 # entered into the currency.currency_code and
 # sale_volume.sale_volume_description database columns.

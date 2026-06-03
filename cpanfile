@@ -1,5 +1,5 @@
 configure_requires 'ExtUtils::MakeMaker',                  '6.52';
-configure_requires 'Module::CPAN',                         '1.1';
+configure_requires 'Module::CPANfile',                     '1.1';
 
 requires 'Catalyst::Runtime',                              '5.90130';
 requires 'Catalyst::Plugin::ConfigLoader';
