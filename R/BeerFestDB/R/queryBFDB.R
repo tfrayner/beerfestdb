@@ -286,7 +286,9 @@ setMethod(
   ## so that Catalyst::Plugin::CSRFToken can find it in body_parameters (the
   ## X-CSRF-Token request-header route proved unreliable with RCurl).
   post_body <- paste("data", query, sep = "=")
-  if (!is.null(csrf_token)) {
+  if (is.null(csrf_token)) {
+    warning("Unable to obtain CSRF token; login may fail.")
+  } else {
     post_body <- paste(post_body,
                        paste("csrf_token",
                              RCurl::curlEscape(csrf_token),
