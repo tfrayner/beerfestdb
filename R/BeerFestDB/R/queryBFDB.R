@@ -118,8 +118,6 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL,
 #' @param auth Authentication object; see Description for dispatch details.
 #' @param .opts Named list of options forwarded to
 #'   \code{\link[RCurl]{curlPerform}}.
-#' @param baseuri Base URI of the BeerFestDB web application.  Required
-#'   unless \code{auth} is a \code{CURLHandle}.
 #' @param ... Additional arguments (reserved for future use).
 #' @return A list of named lists, one element per API record.
 #' @seealso \code{\link{getBFData}}, \code{\link{getFestivalData}}
@@ -127,111 +125,99 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL,
 #' @export
 ###############################################################################
 setGeneric("queryBFDB", def = function(dbclass, action, params = c(),
-                                       auth, .opts = list(), baseuri, ...) {
+                                       auth, .opts = list(), ...)
   standardGeneric("queryBFDB")
-})
+)
 
 ################################################################################
 #' queryBFDB method where auth=CURLHandle
 #' @importFrom rjson fromJSON toJSON
 #' @importFrom RCurl curlPerform getCurlHandle curlSetOpt
 #'  basicTextGatherer curlEscape
-#' @param dbclass Character string naming the BeerFestDB object class to
-#'  query (e.g., \code{"Cask"}, \code{"Festival"}, \code{"Company"}).
-#' @param action Character string naming the API action (e.g., \code{"list"},
-#' \code{"list_by_festival"}).
-#' @param params Optional numeric or character vector of path parameter
-#'  s appended to the request URI (e.g., a festival ID).
+#' @inherit queryBFDB
 #' @param auth A \code{CURLHandle} object representing an authenticated session.
-#' @param .opts Named list of additional options forwarded to
-#'  \code{\link[RCurl]{curlPerform}}.
-#' @param ... Additional arguments (reserved for future use).
-#' @return A list of named lists, one element per API record.
-.queryBFDBCurl <- function(dbclass, action, params = c(),
-                           auth, .opts = list(), ...) {
-  # Assumes that all JSON query actions in the web server behave
-  # roughly the same; i.e. they act on a set of (usually only one or
-  # two) numeric parameters which will be encoded in the query URI,
-  # and return JSON with a 'success' flag attribute, an 'message'
-  # attribute where necessary, and the actual returned data in an
-  # 'objects' attribute. Returns just the objects list.
+setMethod(
+  "queryBFDB", signature(auth = "CURLHandle"),
+  function(dbclass, action, params = c(),
+           auth, .opts = list(), ...) {
+    # Assumes that all JSON query actions in the web server behave
+    # roughly the same; i.e. they act on a set of (usually only one or
+    # two) numeric parameters which will be encoded in the query URI,
+    # and return JSON with a 'success' flag attribute, an 'message'
+    # attribute where necessary, and the actual returned data in an
+    # 'objects' attribute. Returns just the objects list.
 
-  if (!is.list(.opts)) {
-    stop("Error: .opts must be a list object")
+    if (!is.list(.opts)) {
+      stop("Error: .opts must be a list object")
+    }
+
+    ## Workaround for a known SSL session reuse bug
+    ## ("SSL3_GET_RECORD:bad decompression"). Presumably this would
+    ## also be fixable on the server, but it doesn't hurt to have a
+    ## fix here as well.
+    if (is.null(.opts$ssl.sessionid.cache)) {
+      .opts$ssl.sessionid.cache <- FALSE
+    }
+
+    baseuri <- attr(auth, "baseuri")
+    if (is.null(baseuri)) {
+      stop("CURLHandle object must have an additional baseuri attribute set.")
+    }
+
+    uri <- paste(baseuri, tolower(dbclass), action, sep = "/")
+    if (!missing(params)) {
+      uri <- paste(c(uri, params), collapse = "/")
+    }
+
+    ## Run the query.
+    status <- RCurl::basicTextGatherer()
+    res <- RCurl::curlPerform(
+      url = uri,
+      .opts = .opts,
+      curl = auth,
+      writefunction = status$update
+    )
+
+    ## Check the response for errors.
+    rc <- try(status <- rjson::fromJSON(status$value()))
+
+    if (inherits(rc, "try-error")) {
+      stop(sprintf("Error encountered: %s", rc))
+    }
+
+    if (!isTRUE(status$success)) {
+      stop(status$message)
+    }
+
+    return(status$objects)
   }
-
-  ## Workaround for a known SSL session reuse bug
-  ## ("SSL3_GET_RECORD:bad decompression"). Presumably this would
-  ## also be fixable on the server, but it doesn't hurt to have a
-  ## fix here as well.
-  if (is.null(.opts$ssl.sessionid.cache)) {
-    .opts$ssl.sessionid.cache <- FALSE
-  }
-
-  baseuri <- attr(auth, "baseuri")
-  if (is.null(baseuri)) {
-    stop("CURLHandle object must have an additional baseuri attribute set.")
-  }
-
-  uri <- paste(baseuri, tolower(dbclass), action, sep = "/")
-  if (!missing(params)) {
-    uri <- paste(c(uri, params), collapse = "/")
-  }
-
-  ## Run the query.
-  status <- RCurl::basicTextGatherer()
-  res <- RCurl::curlPerform(
-    url = uri,
-    .opts = .opts,
-    curl = auth,
-    writefunction = status$update
-  )
-
-  ## Check the response for errors.
-  rc <- try(status <- rjson::fromJSON(status$value()))
-
-  if (inherits(rc, "try-error")) {
-    stop(sprintf("Error encountered: %s", rc))
-  }
-
-  if (!isTRUE(status$success)) {
-    stop(status$message)
-  }
-
-  return(status$objects)
-}
-
-setMethod("queryBFDB", signature(auth = "CURLHandle"), .queryBFDBCurl)
+)
 
 ################################################################################
-## queryBFDB method where auth==list(username, password) or auth==NULL;
-## uri is required in either case.
-.queryBFDBCred <- function(dbclass, action, params = c(),
-                           auth = NULL, .opts = list(), baseuri, ...) {
-  curl <- .getBFDBHandle(baseuri = baseuri, auth = auth, .opts = .opts)
+#' queryBFDB method where auth is a list of credentials, missing or NULL; baseuri 
+#'   is required in any of these cases.
+#' @inherit queryBFDB
+#' @param baseuri Base URI of the BeerFestDB web application.  Required
+#'   unless \code{auth} is a \code{CURLHandle}.
+setMethod(
+  "queryBFDB", signature(auth = "ANY"),
+  function(dbclass, action, params = c(),
+           auth = NULL, .opts = list(), baseuri = NULL, ...) {
 
-  response <- queryBFDB(dbclass, action, params, auth = curl, .opts = .opts, ...)
+    if (is.null(baseuri)) {
+      stop("Error: baseuri argument is required unless using CURLHandle-based authentication.")
+    }
 
-  ## Log out for the sake of completeness (check for failure and warn).
-  .logoutBFDBHandle(curl, .opts)
+    curl <- .getBFDBHandle(baseuri = baseuri, auth = auth, .opts = .opts)
 
-  return(response)
-}
+    response <- queryBFDB(dbclass, action, params, auth = curl, .opts = .opts, ...)
 
-setMethod("queryBFDB", signature(auth = "list", baseuri = "character"), .queryBFDBCred)
-setMethod("queryBFDB", signature(auth = "NULL", baseuri = "character"), .queryBFDBCred)
-setMethod("queryBFDB", signature(auth = "missing", baseuri = "character"), .queryBFDBCred)
+    ## Log out for the sake of completeness (check for failure and warn).
+    .logoutBFDBHandle(curl, .opts)
 
-################################################################################
-## Catch-all method to yield a more user-friendly error message.
-.queryBFDBError <- function(dbclass, action, params,
-                            auth, .opts, baseuri, ...) {
-  stop("Error: baseuri argument is required unless using CURLHandle-based authentication.")
-}
-
-setMethod("queryBFDB", signature(auth = "missing", baseuri = "missing"), .queryBFDBError)
-setMethod("queryBFDB", signature(auth = "NULL", baseuri = "missing"), .queryBFDBError)
-setMethod("queryBFDB", signature(auth = "list", baseuri = "missing"), .queryBFDBError)
+    return(response)
+  }
+)
 
 ################################################################################
 #' Return a CURLHandle object which contains details for a logged-in BFDB session.
@@ -269,16 +255,53 @@ setMethod("queryBFDB", signature(auth = "list", baseuri = "missing"), .queryBFDB
   cookies <- file.path(Sys.getenv("HOME"), ".cookies.txt")
   RCurl::curlSetOpt(cookiefile = cookies, curl = curl)
 
+  ## Fetch the login page to obtain a session cookie and CSRF token.
+  header_buf <- RCurl::basicTextGatherer()
+  body_sink   <- RCurl::basicTextGatherer()
+  RCurl::curlPerform(
+    url            = paste(baseuri, "login", sep = "/"),
+    .opts          = .opts,
+    curl           = curl,
+    writefunction  = body_sink$update,
+    headerfunction = header_buf$update
+  )
+  raw_headers <- header_buf$value()
+  m <- regmatches(
+    raw_headers,
+    regexpr("X-CSRF-Token:\\s*(\\S+)", raw_headers,
+            perl = TRUE, ignore.case = TRUE)
+  )
+  csrf_token <- if (length(m) > 0L) {
+    sub("(?i)X-CSRF-Token:\\s*", "", m[[1L]], perl = TRUE)
+  } else {
+    NULL
+  }
+
   ## We need to detect login failures here.
   query <- list(username = auth$username, password = auth$password)
   query <- rjson::toJSON(query)
   query <- RCurl::curlEscape(query)
+
+  ## Build the POST body. Append the CSRF token as an ordinary form parameter
+  ## so that Catalyst::Plugin::CSRFToken can find it in body_parameters (the
+  ## X-CSRF-Token request-header route proved unreliable with RCurl).
+  post_body <- paste("data", query, sep = "=")
+  if (is.null(csrf_token)) {
+    warning("Unable to obtain CSRF token; login may fail.")
+  } else {
+    post_body <- paste(post_body,
+                       paste("csrf_token",
+                             RCurl::curlEscape(csrf_token),
+                             sep = "="),
+                       sep = "&")
+  }
+
   status <- RCurl::basicTextGatherer()
   res <- RCurl::curlPerform(
-    url = paste(baseuri, "login", sep = "/"),
-    postfields = paste("data", query, sep = "="),
-    .opts = .opts,
-    curl = curl,
+    url           = paste(baseuri, "login", sep = "/"),
+    postfields    = post_body,
+    .opts         = .opts,
+    curl          = curl,
     writefunction = status$update
   )
 
