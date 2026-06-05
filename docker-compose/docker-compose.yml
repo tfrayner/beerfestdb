@@ -4,11 +4,12 @@ services:
     volumes: 
       - 'beerfestdb_mysql:/var/lib/mysql'
       - '../db:/docker-entrypoint-initdb.d'
-    env_file: 
-      - '../.mysql_env'
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
     expose:
       - 3306
     healthcheck:
+      # Change the password here, in the beerfestdb_web_docker.yml file, and in the database initialization SQL script db/create_dbuser_account.sql
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u beerfestdb --password='vent&T4p' --silent"]
       interval: 10s
       timeout: 5s
@@ -28,11 +29,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    env_file:
-      - '../.app_env'
+# Uncomment the following lines to use environment variables from a .app_env file for local development.
+#    env_file:
+#      - '../.app_env'
     volumes:
-      - '../:/usr/src/BeerFestDB'
-      - './beerfestdb_web_docker.yml:/usr/src/BeerFestDB/beerfestdb_web.yml:ro'
+# Uncomment the following line to use a bind mount of the source code for local development. Make sure
+# to set the BEERFESTDB_ROOT_PATH environment variable in the container. See .app_env for an example.
+#      - '../:/usr/src/BeerFestDB'
+      - './beerfestdb_web_docker.yml:/etc/beerfestdb/beerfestdb_web.yml:ro'
     command: >
             beerfestdb_web_fastcgi.pl -l :3000 -n 5 -e
     expose: 

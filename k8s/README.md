@@ -16,8 +16,10 @@ want to change the file paths mounted into the images:
 - `/home/tfrayner/src/beerfestdb/db` - the location of the `db` directory in a local copy of this git repo.
 
 IMPORTANT: the deployment of the app depends on a ConfigMap containing the environmental
-variables. Set this up by running this command in this directory, once you have loaded
-the above YAML files:
+variables. By default this is set up as an empty mapping. To point to a mounted project
+directory (e.g. during development), uncomment the relevant sections of the webapp manifest YAML,
+and recreate a populated ConfigMap by running this command in this directory once you have 
+loaded the above YAML files:
 
 ``` bash
 kubectl -n beerfestdb create configmap beerfestdb-app-config --from-env-file=../.app_env

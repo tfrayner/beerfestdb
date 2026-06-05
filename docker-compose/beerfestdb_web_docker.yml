@@ -1,3 +1,6 @@
+# For production docker-compose deployments, make sure to change the database
+# password here, in the docker-compose.yml file, and in the database initialization
+# SQL script db/create_dbuser_account.sql
 
 # Main database configuration.
 Model::DB:

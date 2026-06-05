@@ -1,3 +1,6 @@
-# The following two lines should be removed for production deployments:
+# The following lines support a development deployment mounting the
+# project directory at /usr/src/BeerFestDB. They should be removed for
+# production docker deployments:
 PERL5LIB=/usr/src/BeerFestDB/lib
 BEERFESTDB_WEB_CONFIG=/usr/src/BeerFestDB/beerfestdb_web.yml
+BEERFESTDB_ROOT_PATH=/usr/src/BeerFestDB/root

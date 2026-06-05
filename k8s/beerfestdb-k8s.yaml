@@ -67,14 +67,26 @@ spec:
         envFrom:
         - configMapRef:
             name: beerfestdb-app-config
-        volumeMounts:
-        - mountPath: /usr/src/BeerFestDB
-          name: beerfestdb-codevol
-        workingDir: /usr/src/BeerFestDB
-      volumes:
-      - name: beerfestdb-codevol
-        persistentVolumeClaim:
-          claimName: beerfestdb-code-pv-claim
+# Uncomment this for local development with a bind mount of the source code. Make 
+# sure to set the BEERFESTDB_ROOT_PATH environment variable in the container. See .app_env for an example.
+#        volumeMounts:
+#        - mountPath: /usr/src/BeerFestDB
+#          name: beerfestdb-codevol
+#        workingDir: /usr/src/BeerFestDB
+#      volumes:
+#      - name: beerfestdb-codevol
+#        persistentVolumeClaim:
+#          claimName: beerfestdb-code-pv-claim
+---
+# For production we use an empty ConfigMap as a placeholder for configuration data. 
+# Replace this with a ConfigMap built using e.g. the .app_env file contents for 
+# local development, or switch to using a Secret if you want to store sensitive
+# data like database credentials.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-app-config
 ---
 apiVersion: v1
 kind: Service
@@ -184,6 +196,7 @@ metadata:
   namespace: beerfestdb
   name: beerfestdb-ingress
 spec:
+# This entryPoint needs to be set up in your Traefik configuration to listen on the desired port (e.g. 8443 for HTTPS).
   entryPoints:
     - bfdbsecure
   routes:

@@ -80,6 +80,8 @@ OODoc:
 # The following configs should not be changed unless you know what you're doing:
 
 # Main database configuration.
+# For production deployments, make sure to change the database password here,
+# and in the database initialization SQL script db/create_dbuser_account.sql
 Model::DB:
   connect_info:
     - 'DBI:MariaDB:database=beerfestdb;host=mysql;port=3306'
