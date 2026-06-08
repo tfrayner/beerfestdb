@@ -79,6 +79,12 @@ OODoc:
 ###############################################################################
 # The following configs should not be changed unless you know what you're doing:
 
+# Support the reverse proxy setup used by kubernetes and docker-compose deployments,
+# by prepending a base path to all generated URLs. This should match the base path
+# used in the reverse proxy configuration (e.g. in the nginx config for the
+# beerfestdb-nginx-service in the k8s deployment).
+base_path:          '/app'
+
 # Main database configuration.
 # For production deployments, make sure to change the database password here,
 # and in the database initialization SQL script db/create_dbuser_account.sql

@@ -238,16 +238,8 @@ metadata:
 data:
   default.conf: |
     server {
-        listen 80;
+        listen 443 ssl;
         server_name _;
-
-        location / {
-            return 301 https://$host:443$request_uri;
-        }
-    }
-    server {
-        listen 443 ssl http2;
-        server_name _0;
 
         # SSL certificate configuration - see beerfestdb-tls-secret for volume mount
         ssl_certificate /etc/ssl/custom/tls.crt;
@@ -259,6 +251,12 @@ data:
         ssl_prefer_server_ciphers on;
 
         location / {
+            return 301 https://$http_host/app$request_uri;
+        }
+        
+
+        location /app {
+            rewrite ^/app(/.*) $1 break;
             fastcgi_pass beerfestdb-app-service:3000;
             include fastcgi_params;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -270,7 +268,7 @@ data:
 
             fastcgi_param SCRIPT_NAME  '';
             fastcgi_param PATH_INFO $fastcgi_script_name;
-            fastcgi_param REQUEST_URI $request_uri;
+            fastcgi_param REQUEST_URI $uri$is_args$args;
             fastcgi_param DOCUMENT_URI $document_uri;
             fastcgi_param DOCUMENT_ROOT $document_root;
             fastcgi_param SERVER_PROTOCOL $server_protocol;
