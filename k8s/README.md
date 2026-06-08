@@ -25,6 +25,14 @@ loaded the above YAML files:
 kubectl -n beerfestdb create configmap beerfestdb-app-config --from-env-file=../.app_env
 ```
 
+You will also need to set up SSL certificates in a Kubernetes Secret. The simplest way to 
+do this is to run the `docker-compose-ssl-certs-setup.sh` script in the `docker-compose` 
+directory, and then run this command:
+
+``` bash
+kubectl -n beerfestdb create secret tls beerfestdb-tls-secret --cert=docker-compose/ssl/cert.pem --key=docker-compose/ssl/key.pem
+```
+
 In addition to these YAML files, if you are running on a cluster using
 traefik to manage ingresses, you will need to expose the webapp port
 somehow. For traefik installed via Helm this can be a simple as adding
@@ -44,6 +52,12 @@ spec:
         expose:
           default: true
         exposedPort: 3001
+      bfdbtoolsecure:
+        port: 3002
+        expose:
+          default: true
+        exposedPort: 3002
         tls:
           enabled: true
 ```
+

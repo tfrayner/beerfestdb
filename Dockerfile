@@ -12,7 +12,7 @@ RUN   cpanm . \
    && mkdir -p /var/lib/BeerFestDB/ \
    && mv root /var/lib/BeerFestDB/root \
    && cd /usr && rm -rf /usr/src
-WORKDIR /var/tmp
+WORKDIR /tmp
 
 ENV BEERFESTDB_WEB_CONFIG=/etc/beerfestdb/beerfestdb_web.yml
 ENV BEERFESTDB_ROOT_PATH=/var/lib/BeerFestDB/root

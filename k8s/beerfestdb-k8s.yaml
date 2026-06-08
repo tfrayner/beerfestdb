@@ -1,36 +1,37 @@
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: beerfestdb-code-pv-volume
-  labels:
-    type: local
-    name: beerfestdb-codevol
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadOnlyMany
-  hostPath:
-    path: "/home/tfrayner/src/beerfestdb"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: beerfestdb-code-pv-claim
-  namespace: beerfestdb
-spec:
-  selector:
-    matchLabels:
-      name: beerfestdb-codevol
-  storageClassName: manual
-  accessModes:
-    - ReadOnlyMany
-  resources:
-    requests:
-      storage: 1Gi
----
+## The following PV+PVC only needed for local development with a bind mount of the source code. 
+## If omitted, the app will run with the default code baked into the image.
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: beerfestdb-code-pv-volume
+#   labels:
+#     type: local
+#     name: beerfestdb-codevol
+# spec:
+#   storageClassName: manual
+#   capacity:
+#     storage: 1Gi
+#   accessModes:
+#     - ReadOnlyMany
+#   hostPath:
+#     path: "/home/tfrayner/src/beerfestdb"
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: beerfestdb-code-pv-claim
+#   namespace: beerfestdb
+# spec:
+#   selector:
+#     matchLabels:
+#       name: beerfestdb-codevol
+#   storageClassName: manual
+#   accessModes:
+#     - ReadOnlyMany
+#   resources:
+#     requests:
+#       storage: 1Gi
+# ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -67,21 +68,30 @@ spec:
         envFrom:
         - configMapRef:
             name: beerfestdb-app-config
-# Uncomment this for local development with a bind mount of the source code. Make 
-# sure to set the BEERFESTDB_ROOT_PATH environment variable in the container. See .app_env for an example.
-#        volumeMounts:
+        ## SSL certificates not really needed in the app container since nginx is handling TLS termination, 
+        ## but if you want to use them for any reason (e.g. for outgoing HTTPS requests with client certs),
+        ## you can mount them here as well.
+        volumeMounts:
+        - mountPath: /etc/ssl/custom
+          name: beerfestdb-ssl-keyvol
+          readOnly: true
+## Uncomment this for local development with a bind mount of the source code. Make 
+## sure to set the BEERFESTDB_ROOT_PATH environment variable in the container. See .app_env for an example.
 #        - mountPath: /usr/src/BeerFestDB
 #          name: beerfestdb-codevol
 #        workingDir: /usr/src/BeerFestDB
-#      volumes:
+      volumes:
+      - name: beerfestdb-ssl-keyvol
+        secret:
+          secretName: beerfestdb-tls-secret
 #      - name: beerfestdb-codevol
 #        persistentVolumeClaim:
 #          claimName: beerfestdb-code-pv-claim
 ---
-# For production we use an empty ConfigMap as a placeholder for configuration data. 
-# Replace this with a ConfigMap built using e.g. the .app_env file contents for 
-# local development, or switch to using a Secret if you want to store sensitive
-# data like database credentials.
+## For production we use an empty ConfigMap as a placeholder for configuration data. 
+## Replace this with a ConfigMap built using e.g. the .app_env file contents for 
+## local development, or switch to using a Secret if you want to store sensitive
+## data like database credentials.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -123,7 +133,7 @@ spec:
         image: nginx:1.15.7-perl
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 80
+        - containerPort: 443
         resources:
           limits:
             cpu: '1'
@@ -134,10 +144,16 @@ spec:
         volumeMounts:
         - name: nginx-config
           mountPath: /etc/nginx/conf.d
+        - name: beerfestdb-ssl-keyvol
+          mountPath: /etc/ssl/custom
+          readOnly: true
       volumes:
       - name: nginx-config
         configMap:
           name: beerfestdb-nginx-config
+      - name: beerfestdb-ssl-keyvol
+        secret:
+          secretName: beerfestdb-tls-secret
 ---
 apiVersion: v1
 kind: Service
@@ -149,15 +165,15 @@ spec:
     app: beerfestdb-nginx
   ports:
   - protocol: TCP
-    port: 80
-    targetPort: 80
+    port: 443
+    targetPort: 443
 ---
-# # If you want to use cert-manager to get TLS certs from Let's Encrypt, you can
-# # apply the following resources. You will need to replace the email address and
-# # domain name with your own. Please note that this will only work on a publicly 
-# # accessible cluster with a valid domain name pointing to it. If you are running
-# # this on a local cluster or without a valid domain, you will need to use
-# # self-signed certificates or another method for TLS.
+## If you want to use cert-manager to get TLS certs from Let's Encrypt, you can
+## apply the following resources. You will need to replace the email address and
+## domain name with your own. Please note that this will only work on a publicly 
+## accessible cluster with a valid domain name pointing to it. If you are running
+## this on a local cluster or without a valid domain, you will need to use
+## self-signed certificates or another method for TLS.
 # apiVersion: cert-manager.io/v1
 # kind: Issuer
 # metadata:
@@ -189,26 +205,30 @@ spec:
 #   issuerRef:
 #     kind: Issuer
 #     name: letsencrypt-prod
-# ---
 apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+kind: IngressRouteTCP
 metadata:
   namespace: beerfestdb
   name: beerfestdb-ingress
 spec:
-# This entryPoint needs to be set up in your Traefik configuration to listen on the desired port (e.g. 8443 for HTTPS).
+  ## This entryPoint needs to be set up in your Traefik configuration without TLS being enabled there.
   entryPoints:
     - bfdbsecure
+  ## Using HostSNI(`*`) will match all TLS traffic on the specified entryPoint and pass it through to
+  ## the nginx service, which will handle SSL termination and routing to the app. This allows us to use
+  ## a single Traefik entryPoint for both the web dashboard and the main app, and route based on SNI or path in nginx.
+  ## The downside is that Traefik won't be able to do any TLS routing decisions based on SNI, so all 
+  ## traffic on this entryPoint will go to nginx. If you want to route based on SNI in Traefik instead, 
+  ## you can set up separate entryPoints for the dashboard and main app, and use HostSNI rules to route
+  ## to the appropriate service. In that case, you would also need to set up TLS termination in Traefik
+  ## and pass the appropriate certificates there.
   routes:
-  - match: PathPrefix(`/`)
-    kind: Rule
+  - match: HostSNI(`*`)
     services:
     - name: beerfestdb-nginx-service
-      port: 80
-# # If you have TLS set up, uncomment the following lines to enable TLS for the
-# # ingress (see above for cert-manager resources)
-#  tls:
-#    secretName: beerfestdb-nginx-cert
+      port: 443
+  tls:
+    passthrough: true
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -219,7 +239,24 @@ data:
   default.conf: |
     server {
         listen 80;
-        server_name localhost;
+        server_name _;
+
+        location / {
+            return 301 https://$host:443$request_uri;
+        }
+    }
+    server {
+        listen 443 ssl http2;
+        server_name _0;
+
+        # SSL certificate configuration - see beerfestdb-tls-secret for volume mount
+        ssl_certificate /etc/ssl/custom/tls.crt;
+        ssl_certificate_key /etc/ssl/custom/tls.key;
+
+        # SSL security settings
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
 
         location / {
             fastcgi_pass beerfestdb-app-service:3000;
@@ -231,20 +268,25 @@ data:
             fastcgi_param CONTENT_TYPE $content_type;
             fastcgi_param CONTENT_LENGTH $content_length;
 
-            fastcgi_param SCRIPT_NAME  '';  
-            fastcgi_param PATH_INFO $fastcgi_script_name; 
+            fastcgi_param SCRIPT_NAME  '';
+            fastcgi_param PATH_INFO $fastcgi_script_name;
             fastcgi_param REQUEST_URI $request_uri;
             fastcgi_param DOCUMENT_URI $document_uri;
             fastcgi_param DOCUMENT_ROOT $document_root;
             fastcgi_param SERVER_PROTOCOL $server_protocol;
-  
+
             fastcgi_param GATEWAY_INTERFACE  CGI/1.1;
             fastcgi_param SERVER_SOFTWARE  nginx/$nginx_version;
-  
+
             fastcgi_param REMOTE_ADDR $remote_addr;
             fastcgi_param REMOTE_PORT $remote_port;
             fastcgi_param SERVER_ADDR $server_addr;
             fastcgi_param SERVER_PORT $server_port;
             fastcgi_param SERVER_NAME $server_name;
+
+            # Tell Catalyst the original request was HTTPS (required for using_frontend_proxy).
+            fastcgi_param HTTPS                     on;
+            fastcgi_param HTTP_X_FORWARDED_PROTO    https;
         }
     }
+---
