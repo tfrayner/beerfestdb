@@ -47,7 +47,8 @@ status_query:
     - perry
     - wine
     - mead
-  beerfestdb_uri:          'http://localhost:3000'
+  # This was set for internal use within the cluster, which is from where the relevant scripts will run.
+  beerfestdb_uri:          'https://beerfestdb-nginx-service:443/app'
   public_site_upload_uri:  'file://localhost/www/data/push'
   public_festival_tag:      test
 
@@ -104,30 +105,42 @@ Model::DB:
 # included as an example and should be updated with appropriate values for your deployment.
 Plugin::OpenIDConnect:
   issuer:
-    url: 'https://localhost:3000'
+
+    # If running under K8s or docker-compose, this server address must be accessible from within the cluster. 
+    # For this reason you may find you need to use the raw IP address. If using HTTPS, bear in mind that
+    # the SSL certificates must be generated with the server DNS and/or IP address attached.
+    url: 'https://10.0.1.205:3001/app'
+
+    # OIDC keys configuration. For production deployments, make sure to generate your own
+    # keys and set the paths here.
     private_key_file: '/path/to/beerfestdb/keys/private.pem'
     public_key_file: '/path/to/beerfestdb/keys/public.pem'
     key_id: 'my-key-1'
+
   clients:
+    # Tools dashboard client configuration.
     'dashboard':
        client_secret: 'my-secret'
-       redirect_uris: 'http://localhost:8501/oauth2callback'
-       post_logout_redirect_uris: 'http://localhost:8501/oauth2callback'
+       redirect_uris: 'https://titus.local:3001/dashboard/oauth2callback'
+       post_logout_redirect_uris: 'https://titus.local:3001/dashboard/oauth2callback'
+
   # Optional Redis store configuration for OpenID Connect session management. Likely
   # Redis store for OpenID Connect session management - required for multi-worker
   # FastCGI deployments so auth codes are shared across all worker processes.
   store_class: 'Catalyst::Plugin::OpenIDConnect::Utils::Store::Redis'
   store_args:
-    server: 'redis:6379'
+    server: 'beerfestdb-redis-service:6379'
     prefix: 'oidc:beerfestdb:'
     code_ttl: 600
 
+# CSRF token configuration for the web application. Adjust the max_age and default_secret
+# as needed for your deployment. The default_secret should be overridden with a long, random string in production.
 Plugin::CSRFToken:
   max_age: 3600  # Token lifespan in seconds
   auto_check: 1
   default_secret: 'a very long and secret string that should be overridden in production'
 
-# Email configuration for password reset messages.
+# Email configuration allowing the server to email password reset messages to users upon request.
 email:
   # Default settings will attempt to use local SMTP server without authentication.
   from_address: 'beerfestdb@example.com'

@@ -25,13 +25,26 @@ loaded the above YAML files:
 kubectl -n beerfestdb create configmap beerfestdb-app-config --from-env-file=../.app_env
 ```
 
-You will also need to set up SSL certificates in a Kubernetes Secret. The simplest way to 
+The main beerfestdb config file needs to be made available to the deployment as a Kubernetes 
+Secret. For deployments we use the example YAML file which has already been set up with the 
+appropriate configs. The tools dashboard app also needs a second Secret holding the database
+credentials:
+
+``` bash
+kubectl -n beerfestdb create secret generic beerfestdb-web-yml --from-file beerfestdb_web.yml=beerfestdb_web_site.yml
+# FIXME need to edit this post reorg:
+kubectl -n beerfestdb create secret generic beerfestdb-dashboard-secret --from-file docker-compose/dashoard-config/secrets.toml
+```
+
+You will also need to set up SSL certificates in a second Kubernetes Secret. The simplest way to 
 do this is to run the `docker-compose-ssl-certs-setup.sh` script in the `docker-compose` 
 directory, and then run this command:
 
 ``` bash
 kubectl -n beerfestdb create secret tls beerfestdb-tls-secret --cert=docker-compose/ssl/cert.pem --key=docker-compose/ssl/key.pem
 ```
+
+FIXME also include OIDC key generation and secret
 
 In addition to these YAML files, if you are running on a cluster using
 traefik to manage ingresses, you will need to expose the webapp port
