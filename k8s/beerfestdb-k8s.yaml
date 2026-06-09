@@ -369,8 +369,8 @@ spec:
           requests:
             cpu: 10m
             memory: 200Mi
-#        securityContext:
-#          runAsUser: 65534  # nobody user (FIXME will only work if image has /app dir writeable by nobody, otherwise need to set up appropriate user in the Dockerfile and use that here)
+        securityContext:
+          runAsUser: 65534  # nobody user
         envFrom:
         - configMapRef:
             name: beerfestdb-app-config
