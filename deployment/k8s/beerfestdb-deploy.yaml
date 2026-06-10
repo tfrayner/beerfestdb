@@ -1,37 +1,75 @@
-## The following PV+PVC only needed for local development with a bind mount of the source code. 
-## If omitted, the app will run with the default code baked into the image.
-# apiVersion: v1
-# kind: PersistentVolume
-# metadata:
-#   name: beerfestdb-code-pv-volume
-#   labels:
-#     type: local
-#     name: beerfestdb-codevol
-# spec:
-#   storageClassName: manual
-#   capacity:
-#     storage: 1Gi
-#   accessModes:
-#     - ReadOnlyMany
-#   hostPath:
-#     path: "/home/tfrayner/src/beerfestdb"
-# ---
-# apiVersion: v1
-# kind: PersistentVolumeClaim
-# metadata:
-#   name: beerfestdb-code-pv-claim
-#   namespace: beerfestdb
-# spec:
-#   selector:
-#     matchLabels:
-#       name: beerfestdb-codevol
-#   storageClassName: manual
-#   accessModes:
-#     - ReadOnlyMany
-#   resources:
-#     requests:
-#       storage: 1Gi
-# ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: beerfestdb
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+  type: ClusterIP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-mysql-ingress
+spec:
+  entryPoints:
+    - bfdbmysql
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: mysql
+      port: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: beerfestdb
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      # Consider mysql:9 here FIXME
+      - image: mysql:5.7
+        name: mysql
+        env:
+        - name: MYSQL_RANDOM_ROOT_PASSWORD
+          value: '1'
+        resources:
+          limits:
+            cpu: '2'
+            memory: 8G
+          requests:
+            cpu: 10m
+            memory: 200Mi
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
+      - name: mysql-initdb
+        persistentVolumeClaim:
+          claimName: mysqlinit-pv-claim
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
