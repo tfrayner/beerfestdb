@@ -93,7 +93,7 @@ Model::DB:
   connect_info:
     - 'DBI:MariaDB:database=beerfestdb;host=mysql;port=3306'
     - 'beerfestdb'
-    - 'vent&T4p'
+    - 'vent&T4p'  # Change this password!
     - RaiseError: 1
       AutoCommit: 1
       limit_dialect: 'LimitXY' # until MariaDB is fully supported by DBIC, see https://github.com/Perl5/DBIx-Class/pull/151

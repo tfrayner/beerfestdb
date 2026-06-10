@@ -31,6 +31,8 @@ spec:
     storage: 2Gi
   accessModes:
     - ReadWriteOnce
+  ## Change this path to point to the location where you want MySQL to store its data on the
+  ## host machine.
   hostPath:
     path: "/srv/beerfestdb/mysql"
 ---
@@ -63,6 +65,8 @@ spec:
     storage: 100Mi
   accessModes:
     - ReadOnlyMany
+  ## Change this path to point to the location of the BeerFestDB SQL init
+  ## scripts (the `db` directory, or a directory containing a mysql dump from a previous backup).
   hostPath:
     path: "/home/tfrayner/src/beerfestdb/db"
 ---

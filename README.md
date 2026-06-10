@@ -40,11 +40,11 @@ features as they grow larger.
 Features
 --------
 
-- Highly configurable, product-agnostic stock control website with database backend
+- Highly configurable, product-agnostic stock control website with relational database backend
 - Comprehensive process documentation tested across multiple live festivals
 - Tools dashboard writen using `streamlit` for rapid development of new data visualisations
 - JSON-based API allowing programmatic access
-- R package allowing data access via API
+- R package facilitating festival data download via API
 - [Mobile app](https://github.com/tfrayner/beerfestdb-mobile) for live recording of common cellaring tasks
 - Support for deployment via containerisation
 

@@ -1,55 +1,55 @@
 Deployment
 ==========
 
-Installation (Docker Compose)
------------------------------
+Configuration
+-------------
 
-The simplest method to get BeerFestDB up and running is to use the
-provided Docker container with docker-compose. There are just four
-steps to get started, the first two of which can be skipped for an ultra-quick startup:
+Whether you are deploying using docker-compose or Kubernetes, you will need to edit 
+some common configuration files first:
 
-1. (OPTIONAL) Edit `docker-compose/beerfestdb_web_docker.yml` and
+1. Edit the `../beerfestdb_web_site.yml` and
 `../db/create_dbuser_account.sql` files to change the default database 
 connection password. This step is optional, but __*highly recommended*__.
 
-2. (OPTIONAL) Run these commands to rebuild the Docker image:
+2. If you plan to use the tools dashboard, you will need to edit the Plugin::OpenIDConnect 
+config, changing the URLs so that the dashboard and main app can communicate within the 
+cluster. The URLs to change are `titus.local:3001` and `10.0.1.205:3001` which are the 
+host, port and IP address of an example development server. Note that the IP address is 
+used for the `url` setting in case your Kubernetes cluster or docker-compose setup is 
+unable to resolve the server host name.
 
-        docker build -t tfrayner/catalyst-base:1.1 -f Dockerfile-catalyst .
-        docker build -t tfrayner/beerfestdb-base:1.2 -f Dockerfile-base .
-        docker build -t tfrayner/beerfestdb:1.2 .
+3. Also needed only for the tools dashboard, edit the config/dashboard-secrets.toml file 
+(database password, URLs, and also make sure both the secret strings have been changed 
+to something unique). The `client_secret` string must match the one in `beerfestdb_web_site.yaml`.
 
-Alternatively, for a quick start we recommend that you simply use the official images
-from Docker Hub, skipping directly to the next step.
+4. Edit the `environment.sh` file to allow settings to be injected into the deployment 
+appropriately. See the notes in that file for more information.
 
-3. Configure the host settings in the following files. You will need to replace the `titus.local` string with the host address of your local deployment (`your-host` in the examples below):
+Docker Compose
+--------------
+
+The simplest method to get BeerFestDB up and running is to use the
+provided Docker container with docker-compose. For a quick start we 
+recommend that you simply use the official images from Docker Hub:
+
+-# FIXME try and remove this step if we can
+1. Configure the settings in the following file. You will need to change the database password, and replace the `titus.local` string with the host address of your local deployment (`your-host` in the examples below):
 
    - docker-compose/docker-compose.yml
-   - docker-compose/beerfestdb_web_docker.yml
-   - docker-compose/dashboard-config/secrets.toml
 
-You will also need to generate a self-signed SSL certificate:
+2. Generate a self-signed SSL certificate:
 
-        cd docker-compose
-        sh docker-compose-ssl-certs-setup.sh
+        sh ssl-certs-setup.sh
 
-4. Run this command in the docker-compose directory to initialise the database and start the application:
+3. Run this command in the docker-compose directory to initialise the database and start the application:
 
         docker compose up
 
-You should now be able to navigate to https://your-host:8443/ in your
+You should now be able to navigate to https://your-host:3001/app in your
 web browser and log in (see below for default account details). You will 
 need to accept the self-signed SSL certificate in your browser. Also 
 check out the [tool dashboard module](tool_dashboard/README.md), which 
-will be available at https://your-host:8444/
-
-The default docker-compose deployment sets some environmental
-variables (principally in the `../.app_env` file) which are useful for development
-but which should probably be deactivated in production. To change the
-configuration in development, edit the `docker-compose/beerfestdb_web_docker.yml` file. For
-production, this file can either be baked into the Docker container or
-included on a mounted volume. Within the docker container, the 
-`$BEERFESTDB_WEB_CONFIG` environmental variable can be used to point 
-to the desired config file.
+will be available at https://your-host:3001/dashboard
 
 To run command-line scripts in the development environment, you can
 use commands such as this (perhaps as part of an alias) to read and
@@ -60,11 +60,89 @@ write files within the project directory:
 Files will be created as owned by the 'nobody' user; if desired, this can
 be changed in the `docker-compose.yml` file.
 
-Installation (Kubernetes)
--------------------------
+If at any time you need to rebuild the app docker image, you can run something like 
+these commands (changing the image tags as needed):
 
-The `k8s` subdirectory contains manifest YAML files which have been 
-successfully used to deploy `beerfestdb` + `nginx` + `mysql` on a 
-`k3s+traefik` cluster. They are provided as an example of what is possible, 
-but will likely require tailoring to your specific cluster environment.
+docker build -t tfrayner/catalyst-base:1.1 -f Dockerfile-catalyst .
+docker build -t tfrayner/beerfestdb-base:1.2 -f Dockerfile-base .
+docker build -t tfrayner/beerfestdb:1.2 .
+
+Kubernetes
+----------
+
+The YAML files in the k8s directory provide the following:
+
+1. `beerfestdb-volumes.yaml`: The manifest to create the namespace and volume mappings 
+used for the database. Optional volume mappings for mounting the development codebase 
+within your deployment are included as comments here. At a minimum you will need to edit
+the database paths in this file:
+
+- `/srv/beerfestdb/mysql` - the location of the actual mysql database directory to be created.
+- `/home/tfrayner/src/beerfestdb/db` - the location of the `db` directory in a local copy of this git repo.
+
+2. `beerfestdb-k8s.yaml`: The main deployment manifest. This includes the MySQL deployment,
+the BeerFestDB webapp and nginx reverse proxy, the tool dashboard streamlit app, and the 
+redis OpenID token store. If you want to mount a local copy of the codebase into the deployment 
+for development purposes, you will need to uncomment the relevant sections in this file 
+(and the corresponding sections in the `beerfestdb-volumes.yaml` file.). This is not necessary 
+for production deployments.
+
+3. The deployment of the app depends on a ConfigMap containing the environmental
+variables. By default this is set up as an empty mapping. To point to a mounted project
+directory (e.g. during development), uncomment the relevant sections of the webapp manifest YAML,
+and recreate a populated ConfigMap by running this command in this directory once you have 
+loaded the above YAML files:
+
+``` bash
+kubectl -n beerfestdb create secret generic beerfestdb-environment-secret --from-env-file=environment.sh
+```
+
+The main beerfestdb config file needs to be made available to the deployment as a Kubernetes 
+Secret. For deployments we use the example YAML file which has already been set up with the 
+appropriate configs. The tools dashboard app also needs a second Secret holding the database
+credentials:
+
+``` bash
+kubectl -n beerfestdb create secret generic beerfestdb-web-yml --from-file beerfestdb_web.yml=beerfestdb_web_site.yml
+# FIXME need to edit this post reorg:
+kubectl -n beerfestdb create secret generic beerfestdb-dashboard-secret --from-file docker-compose/dashoard-config/secrets.toml
+```
+
+You will also need to set up SSL certificates in a second Kubernetes Secret. The simplest way to 
+do this is to run the `docker-compose-ssl-certs-setup.sh` script in the `docker-compose` 
+directory, and then run this command:
+
+``` bash
+kubectl -n beerfestdb create secret tls beerfestdb-tls-secret --cert=docker-compose/ssl/cert.pem --key=docker-compose/ssl/key.pem
+```
+
+FIXME also include OIDC key generation and secret
+
+In addition to these YAML files, if you are running on a cluster using
+traefik to manage ingresses, you will need to expose the webapp port
+somehow. For traefik installed via Helm this can be a simple as adding
+this HelmChartConfig object:
+
+``` yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      bfdbsecure:
+        port: 3001
+        expose:
+          default: true
+        exposedPort: 3001
+      bfdbtoolsecure:
+        port: 3002
+        expose:
+          default: true
+        exposedPort: 3002
+        tls:
+          enabled: true
+```
 

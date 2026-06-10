@@ -104,8 +104,8 @@ spec:
         securityContext:
           runAsUser: 65534  # nobody user
         envFrom:
-        - configMapRef:
-            name: beerfestdb-app-config
+        - secretRef:
+            name: beerfestdb-environment-secret
         ## SSL certificates not really needed in the app container since nginx is handling TLS termination, 
         ## but if you want to use them for any reason (e.g. for outgoing HTTPS requests with client certs),
         ## you can mount them here as well.
@@ -118,7 +118,7 @@ spec:
           subPath: beerfestdb_web.yml
           readOnly: true
 ## Uncomment this for local development with a bind mount of the source code. Make 
-## sure to set the BEERFESTDB_ROOT_PATH environment variable in the container. See .app_env for an example.
+## sure to set the BEERFESTDB_ROOT_PATH environment variable in the container. See environment.sh for an example.
 #        - mountPath: /usr/src/BeerFestDB
 #          name: beerfestdb-codevol
 #        workingDir: /usr/src/BeerFestDB
@@ -129,19 +129,10 @@ spec:
       - name: beerfestdb-web-yml
         secret:
           secretName: beerfestdb-web-yml
+## Uncomment this also for local development with a bind mount of the source code.
 #      - name: beerfestdb-codevol
 #        persistentVolumeClaim:
 #          claimName: beerfestdb-code-pv-claim
----
-## For production we use an empty ConfigMap as a placeholder for configuration data. 
-## Replace this with a ConfigMap built using e.g. the .app_env file contents for 
-## local development, or switch to using a Secret if you want to store sensitive
-## data like database credentials.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  namespace: beerfestdb
-  name: beerfestdb-app-config
 ---
 apiVersion: v1
 kind: Service
@@ -385,19 +376,16 @@ spec:
       - name: beerfestdb
         image: tfrayner/beerfestdb-dashboard:latest
         imagePullPolicy: IfNotPresent
-        # Command is baked into the image. Override here if you want to change it.
+        # The streamlit run command is baked into the image. Override here if you want to change it.
         env:
           # Allow Streamlit to verify SSL certificates using the custom CA certificate
           - name: SSL_CERT_FILE
             value: /etc/ssl/custom/tls.crt
-          # Tell Streamlit the external address so OIDC static asset URLs are correct.
-          # Without these, Streamlit defaults to 'localhost' in generated URLs.
-          - name: STREAMLIT_BROWSER_SERVER_ADDRESS
-            value: titus.local
-          - name: STREAMLIT_BROWSER_SERVER_PORT
-            value: "3001" # Defined by Traefik entryPoint
           - name: STREAMLIT_SERVER_BASE_URL_PATH
             value: "/dashboard"
+        envFrom:
+        - secretRef:
+            name: beerfestdb-environment-secret
         ports:
         - containerPort: 8501
         resources:
@@ -409,9 +397,6 @@ spec:
             memory: 200Mi
         securityContext:
           runAsUser: 65534  # nobody user
-        envFrom:
-        - configMapRef:
-            name: beerfestdb-app-config
         volumeMounts:
         - name: beerfestdb-ssl-keyvol
           mountPath: /etc/ssl/custom
