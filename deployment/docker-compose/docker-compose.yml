@@ -38,6 +38,8 @@ services:
 # to set the BEERFESTDB_ROOT_PATH environment variable in the container. See .app_env for an example.
 #      - '../../:/usr/src/BeerFestDB'
       - '../../beerfestdb_web_site.yml:/etc/beerfestdb/beerfestdb_web.yml:ro'
+      - '../ssl/cert.pem:/etc/ssl/custom/cert.pem:ro'
+      - '../../keys:/path/to/beerfestdb/keys:ro'
     command: >
             beerfestdb_web_fastcgi.pl -l :3000 -n 5 -e
     expose: 

@@ -183,6 +183,9 @@ spec:
         - name: beerfestdb-ssl-keyvol
           mountPath: /etc/ssl/custom
           readOnly: true
+        - name: beerfestdb-oidc-keyvol
+          mountPath: /path/to/beerfestdb/keys
+          readOnly: true
       volumes:
       - name: nginx-config
         configMap:
@@ -190,6 +193,9 @@ spec:
       - name: beerfestdb-ssl-keyvol
         secret:
           secretName: beerfestdb-tls-secret
+      - name: beerfestdb-oidc-keyvol
+        secret:
+          secretName: beerfestdb-oidc-secret
 ---
 apiVersion: v1
 kind: Service
