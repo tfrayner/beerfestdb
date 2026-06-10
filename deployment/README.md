@@ -109,7 +109,7 @@ Deploy these changes to your cluster:
 kubectl apply -f beerfestdb-volumes.yaml
 ```
 
-2. Additional configuration: the deployment of the app depends on a set of k8s Secrets
+2. Additional configuration: the deployment of the app depends on a set of Kubernetes Secrets
 containing environmental variables, config files and SSL certificates:
 
 ``` bash
@@ -119,7 +119,7 @@ kubectl -n beerfestdb create secret generic beerfestdb-environment-secret\
 
 The main beerfestdb config file needs to be made available to the deployment as a Kubernetes 
 Secret. For deployments we use the example YAML file which has already been set up with the 
-appropriate configs. The tools dashboard app also needs a second Secret holding the database
+appropriate settings. The tools dashboard app also needs a second Secret holding the database
 credentials:
 
 ``` bash
@@ -129,9 +129,7 @@ kubectl -n beerfestdb create secret generic beerfestdb-dashboard-secret \
             --from-file config/dashboard-secrets.toml
 ```
 
-You will also need to set up SSL certificates in a second Kubernetes Secret. The simplest way to 
-do this is to run the `docker-compose-ssl-certs-setup.sh` script in the `docker-compose` 
-directory, and then run this command:
+You will also need to set up the SSL certificates generated earlier in a second Kubernetes Secret:
 
 ``` bash
 kubectl -n beerfestdb create secret tls beerfestdb-tls-secret \
@@ -139,7 +137,7 @@ kubectl -n beerfestdb create secret tls beerfestdb-tls-secret \
            --key=docker-compose/ssl/key.pem
 ```
 
-For tools dashboard use, we need to add an additional set of keys:
+For tools dashboard use, we need to add an additional set of keys for OpenID Connect:
 
 ``` bash
 kubectl -n beerfestdb create secret generic beerfestdb-oidc-secret \
