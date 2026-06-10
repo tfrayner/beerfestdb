@@ -12,7 +12,13 @@ some common configuration files and generate some SSL certificates:
 
 1. Edit the `../beerfestdb_web_site.yml` and `../db/create_dbuser_account.sql`
 files to change the default database connection password. This step is 
-optional, but __*highly recommended*__.
+optional, but __*highly recommended*__. Note that there are currently four separate 
+locations in which the password should be set:
+
+- `../beerfestdb_web_site.yml`
+- `../db/create_dbuser_account.sql`
+- `./docker-compose/docker-compose.yml`
+- `./config/dashboard-secrets.toml`
 
 2. If you plan to use the tools dashboard, you will need to edit the Plugin::OpenIDConnect 
 config, changing the URLs so that the dashboard and main app can communicate within the 
@@ -25,7 +31,7 @@ unable to resolve the server host name.
 (database password, URLs, and also make sure both the secret strings have been changed 
 to something unique). The `client_secret` string must match the one in `beerfestdb_web_site.yaml`.
 
-4. Edit the `environment.sh` file to allow settings to be injected into the deployment 
+4. Edit the `config/environment.sh` file to allow settings to be injected into the deployment 
 appropriately. See the notes in that file for more information.
 
 5. Generate a self-signed SSL certificate. You should edit the `ssl-certs-setup.sh` script
@@ -114,7 +120,7 @@ containing environmental variables, config files and SSL certificates:
 
 ``` bash
 kubectl -n beerfestdb create secret generic beerfestdb-environment-secret\
-            --from-env-file=environment.sh
+            --from-env-file=config/environment.sh
 ```
 
 The main beerfestdb config file needs to be made available to the deployment as a Kubernetes 

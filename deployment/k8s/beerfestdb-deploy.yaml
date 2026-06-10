@@ -118,7 +118,8 @@ spec:
           subPath: beerfestdb_web.yml
           readOnly: true
 ## Uncomment this for local development with a bind mount of the source code. Make 
-## sure to set the BEERFESTDB_ROOT_PATH environment variable in the container. See environment.sh for an example.
+## sure to set the BEERFESTDB_ROOT_PATH environment variable in the container. See
+## ../config/environment.sh for an example.
 #        - mountPath: /usr/src/BeerFestDB
 #          name: beerfestdb-codevol
 #        workingDir: /usr/src/BeerFestDB

@@ -2,7 +2,7 @@ services:
   mysql:
     image: 'mysql:5.7'
     env_file:
-      - '../environment.sh'
+      - '../config/environment.sh'
     volumes: 
       - 'beerfestdb_mysql:/var/lib/mysql'
       - '../../db:/docker-entrypoint-initdb.d'
@@ -32,7 +32,7 @@ services:
       beerfestdb-redis-service:
         condition: service_started
     env_file:
-      - '../environment.sh'
+      - '../config/environment.sh'
     volumes:
 # Uncomment the following line to use a bind mount of the source code for local development. Make sure
 # to set the BEERFESTDB_ROOT_PATH environment variable in the container. See .app_env for an example.
@@ -55,10 +55,9 @@ services:
     environment:
       # Allow Streamlit to verify SSL certificates using the custom CA certificate
       - SSL_CERT_FILE=/etc/ssl/custom/cert.pem
-      # Tell Streamlit the external address so OIDC static asset URLs are correct.
-      # Without these, Streamlit defaults to 'localhost' in generated URLs.
-      - STREAMLIT_BROWSER_SERVER_ADDRESS=titus.local # FIXME config?
-      - STREAMLIT_BROWSER_SERVER_PORT=3001
+      - STREAMLIT_SERVER_BASE_URL_PATH=/dashboard
+    env_file:
+      - '../config/environment.sh'
     volumes:
       - '../../beerfestdb_web_site.yml:/beerfestdb_web.yml:ro'
       - '../ssl/cert.pem:/etc/ssl/custom/cert.pem:ro'
