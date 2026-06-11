@@ -33,7 +33,7 @@ services:
       - '../config/environment.sh'
     volumes:
 # Uncomment the following line to use a bind mount of the source code for local development. Make sure
-# to set the BEERFESTDB_ROOT_PATH environment variable in the container. See .app_env for an example.
+# to set the BEERFESTDB_ROOT_PATH environment variable in the container. See ../config/environment.sh for an example.
 #      - '../../:/usr/src/BeerFestDB'
       - '../../beerfestdb_web_site.yml:/etc/beerfestdb/beerfestdb_web.yml:ro'
       - '../ssl/cert.pem:/etc/ssl/custom/cert.pem:ro'
