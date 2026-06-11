@@ -67,7 +67,12 @@ services:
       - 'beerfestdb-app-service'
       - 'beerfestdb-dash-service'
     ports:
-      - '3001:3001'
+      ## Change these ports as needed for your deployment. The first number is the port on 
+      ## the host machine, and the second number is the port in the container. The container
+      ## ports should match the ports listened to by nginx in the beerfestdb.conf file. The
+      ## host ports should be accessible from outside the container, and may need to be 
+      ## adjusted based on your deployment environment and any port conflicts.
+      - '3001:443'
     volumes:
       - './nginx/beerfestdb.conf:/etc/nginx/conf.d/default.conf'
       - '../ssl:/etc/nginx/ssl:ro'

@@ -65,7 +65,14 @@ deployment (`your-host` in the examples below):
 
    - docker-compose/docker-compose.yml
 
-2. Run this command in the `docker-compose/` directory to initialise the database and start the application:
+2. Ensure that the OIDC keys are securely readable within the docker deployment:
+
+``` bash
+# Change ownership to the `nobody` user, UID=65534
+sudo chown 65534 ../../keys/*.pem
+```
+
+3. Run this command in the `docker-compose/` directory to initialise the database and start the application:
 
 ``` bash
 docker compose up
