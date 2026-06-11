@@ -29,7 +29,7 @@ Summer Festival
                       -l images/cake.png -o distributor > some_order.tex
 	also note: if you don't know what to put for -o option, run script without it and it'll prompt you
 	-s option splits into multiple .tex files based on -o option setting; use instead of '> filename.tex' (e.g. '-o distributor -s' yields one .tex per supplier)
-   7a. If an order needs a continuation sheet, use the 2015 Boggart order as an example.
+   8a. If an order needs a continuation sheet, use the 2015 Boggart order as an example.
  
 Info gathering spreadsheet --> load_data input
 1. File -> Download as

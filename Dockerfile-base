@@ -3,10 +3,7 @@ FROM tfrayner/catalyst-base:1.1
 # Install BeerFestDB dependencies.
 WORKDIR /usr/src
 COPY . .
-RUN   cpanm TODDR/Crypt-OpenSSL-RSA-0.35.tar.gz \
-   && cpanm ExtUtils::MakeMaker::CPANfile \
-   && git clone https://github.com/tfrayner/catalyst-plugin-openidconnect.git \
-   && cd catalyst-plugin-openidconnect && cpanm . && cd .. \
-   && cpanm --installdeps . \
+RUN   cpanm --installdeps --with-recommends . \
    && rm -rf ~/.cpanm \
    && cd /usr && rm -rf /usr/src
+WORKDIR /tmp

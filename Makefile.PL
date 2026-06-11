@@ -33,7 +33,7 @@ WriteMakefile(
     VERSION_FROM       => 'lib/BeerFestDB/Web.pm',
     ABSTRACT_FROM      => 'lib/BeerFestDB/Web.pm',
     EXE_FILES          => [ glob('script/*.pl'), glob('util/*.pl') ],
-    PREREQ_PM          => $prereqs->merged_requirements(['runtime'], ['requires'])->as_string_hash,
+    PREREQ_PM          => $prereqs->merged_requirements(['runtime'], ['requires', 'recommends'])->as_string_hash,
     CONFIGURE_REQUIRES => $prereqs->merged_requirements(['configure'], ['requires'])->as_string_hash,
     BUILD_REQUIRES     => $prereqs->merged_requirements(['test', 'build'], ['requires'])->as_string_hash,
     LICENSE            => 'gpl_3',

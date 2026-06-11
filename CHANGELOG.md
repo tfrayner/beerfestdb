@@ -29,7 +29,8 @@ This file documents the revision history for BeerFestDB and associated tools.
   - Improved landing page layout; modularised festival selection (#104)
   - Streamlit script wrapped with restart-on-healthcheck-fail
 - Deployment improvements:
-  - Reorganised Docker Compose example with dashboard included
+  - Added Kubernetes deployment instructions
+  - Extended Docker Compose example with dashboard included
   - Docker tests now run for PRs to feature branches
 - Security improvements:
   - **CSRF protection** across the application
