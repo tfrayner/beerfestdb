@@ -16,7 +16,7 @@ optional, but __*highly recommended*__. Note that there are currently four separ
 locations in which the password should be set:
 
 - `../beerfestdb_web_site.yml`
-- `../db/create_dbuser_account.sql`
+- `../db/create_dbuser_account.sql`  # in two places
 - `./docker-compose/docker-compose.yml`
 - `./config/dashboard-secrets.toml`
 
@@ -53,18 +53,19 @@ sh ../generate_oidc_keys.sh
 Docker Compose
 --------------
 
+Please complete the **Configuration** section before the following steps.
+
 The simplest method to get BeerFestDB up and running is to use the
 provided Docker container with docker-compose. For a quick start we 
 recommend that you simply use the official images from Docker Hub:
 
--# FIXME try and remove this step if we can
 1. Configure the settings in the following file. You will need to change the database 
 password, and replace the `titus.local` string with the host address of your local 
 deployment (`your-host` in the examples below):
 
    - docker-compose/docker-compose.yml
 
-2. Run this command in the docker-compose directory to initialise the database and start the application:
+2. Run this command in the `docker-compose/` directory to initialise the database and start the application:
 
 ``` bash
 docker compose up
@@ -76,7 +77,7 @@ need to accept the self-signed SSL certificate in your browser. Also
 check out the [tool dashboard module](tool_dashboard/README.md), which 
 will be available at https://your-host:3001/dashboard
 
-To run command-line scripts in the development environment, you can
+To run command-line scripts in a mounted **development** environment, you can
 use commands such as this (perhaps as part of an alias) to read and
 write files within the project directory:
 
@@ -87,19 +88,11 @@ docker-compose run -w /usr/src/BeerFestDB --rm app load_data.pl -i example_data/
 Files will be created as owned by the 'nobody' user; if desired, this can
 be changed in the `docker-compose.yml` file.
 
-If at any time you need to rebuild the app docker image, you can run something like 
-these commands (changing the image tags as needed):
-
-``` bash
-docker build -t tfrayner/catalyst-base:1.1 -f Dockerfile-catalyst .
-docker build -t tfrayner/beerfestdb-base:1.2 -f Dockerfile-base .
-docker build -t tfrayner/beerfestdb:1.2 .
-```
-
 Kubernetes
 ----------
 
-The YAML files in the k8s directory provide the following:
+Please complete the **Configuration** section before the following steps. Run the following
+steps in the `deployment` directory:
 
 1. `beerfestdb-volumes.yaml`: The manifest to create the namespace and volume mappings 
 used for the database. Optional volume mappings for mounting the development codebase 
@@ -107,12 +100,18 @@ within your deployment are included as comments here. At a minimum you will need
 the database paths in this file:
 
 - `/srv/beerfestdb/mysql` - the location of the actual mysql database directory to be created.
-- `/home/tfrayner/src/beerfestdb/db` - the location of the `db` directory in a local copy of this git repo.
+- `/home/tfrayner/src/beerfestdb/db` - the location of the `db/` directory in a local copy of this git repo.
 
 Deploy these changes to your cluster:
 
 ``` bash
-kubectl apply -f beerfestdb-volumes.yaml
+kubectl apply -f k8s/beerfestdb-volumes.yaml
+```
+
+It is wise to quickly check that the volumes have been correctly set up at this point. The following command should show two `beerfestdb-*` volumes with STATUS=Bound:
+
+``` bash
+kubectl get pv
 ```
 
 2. Additional configuration: the deployment of the app depends on a set of Kubernetes Secrets
@@ -130,17 +129,16 @@ credentials:
 
 ``` bash
 kubectl -n beerfestdb create secret generic beerfestdb-web-yml \
-            --from-file beerfestdb_web.yml=beerfestdb_web_site.yml
+            --from-file beerfestdb_web.yml=../beerfestdb_web_site.yml
 kubectl -n beerfestdb create secret generic beerfestdb-dashboard-secret \
-            --from-file config/dashboard-secrets.toml
+            --from-file secrets.toml=config/dashboard-secrets.toml
 ```
 
 You will also need to set up the SSL certificates generated earlier in a second Kubernetes Secret:
 
 ``` bash
 kubectl -n beerfestdb create secret tls beerfestdb-tls-secret \
-           --cert=docker-compose/ssl/cert.pem \
-           --key=docker-compose/ssl/key.pem
+           --cert=ssl/cert.pem --key=ssl/key.pem
 ```
 
 For tools dashboard use, we need to add an additional set of keys for OpenID Connect:
@@ -161,7 +159,7 @@ for production deployments.
 Deploy the application to your cluster:
 
 ``` bash
-kubectl apply -f beerfestdb-deploy.yaml
+kubectl apply -f k8s/beerfestdb-deploy.yaml
 ```
 
 4. In addition to these YAML files, you will need to set up an ingress of some kind so that you 
@@ -185,3 +183,16 @@ spec:
 ```
 
 Note that this entry point should not be TLS-enabled, since TLS is instead handled by the nginx deployment.
+
+Building Docker Images
+----------------------
+
+If at any time you need to rebuild the app docker image, you can run something like 
+these commands (changing the image tags as needed):
+
+``` bash
+docker build -t tfrayner/catalyst-base:1.1 -f Dockerfile-catalyst .
+docker build -t tfrayner/beerfestdb-base:1.2 -f Dockerfile-base .
+docker build -t tfrayner/beerfestdb:1.2 .
+```
+

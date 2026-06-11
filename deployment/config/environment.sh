@@ -15,4 +15,9 @@ MYSQL_RANDOM_ROOT_PASSWORD=1
 # Tell Streamlit the external address so OIDC static asset URLs are correct.
 # Without these, Streamlit defaults to 'localhost' in generated URLs.
 STREAMLIT_BROWSER_SERVER_ADDRESS=titus.local
-STREAMLIT_BROWSER_SERVER_PORT=3001 # Defined by Traefik entryPoint
+
+# This port will have been defined by the ingress entrypoint (e.g. in Traefik)
+STREAMLIT_BROWSER_SERVER_PORT=3001
+
+## Do not change this
+MYSQL_DATABASE=beerfestdb

@@ -41,12 +41,11 @@ spec:
         app: mysql
     spec:
       containers:
-      # Consider mysql:9 here FIXME
-      - image: mysql:5.7
+      - image: mysql:9.7
         name: mysql
-        env:
-        - name: MYSQL_RANDOM_ROOT_PASSWORD
-          value: '1'
+        envFrom:
+        - secretRef:
+            name: beerfestdb-environment-secret
         resources:
           limits:
             cpu: '2'
