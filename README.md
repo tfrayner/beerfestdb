@@ -45,7 +45,7 @@ Features
 - Tools dashboard writen using `streamlit` for rapid development of new data visualisations
 - JSON-based API allowing programmatic access
 - R package facilitating festival data download via API
-- [Mobile app](https://github.com/tfrayner/beerfestdb-mobile) for live recording of common cellaring tasks
+- [Mobile app](https://github.com/tfrayner/beerfest-mobile) for live recording of common cellaring tasks
 - Support for deployment via containerisation
 
 Deployment using Docker Images
