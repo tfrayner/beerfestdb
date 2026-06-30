@@ -6,6 +6,9 @@ on:
       - "cbf-production"
       - "*-feature-branch"
 
+permissions:
+  contents: read
+
 jobs:
 
   build:
