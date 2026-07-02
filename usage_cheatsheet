@@ -154,8 +154,7 @@ When beer comes
 	NOTE: new casks added at this point should NOT have an order batch assigned
 	if there are fewer casks than expected, mark all as "arrived", then go to Products Received to delete one (or more, as needed)
   Prices go in Products Received tab, sale price column
-	in web interface, enter prices in pence
-	BUT load_data.pl takes pounds
+	Both the web interface and load_data.pl take prices in pounds
   
 For dip sheets:
   Manually enter "Measurement batches" -- otherwise no dip data slots print out!
@@ -392,22 +391,7 @@ This doesn't filter by product category, but for casks it doesn't need to - only
 
 Appendix 9 - Online tool dashboard introduced 2026
 
-To run the tools dashboard locally:
-
-- Check out beerfestdb from github
-	make sure .gitignore includes the '.streamlit' line
-
-- Set up python virtual environment as directed
-- Install required modules via pip install
-- It will also need underlying modules
-	e.g. a Linux setup will need python.[version]-venv, mariadb-client, libmariadb-dev
-
-When setup is complete:
-- Log in to pin via the 'sock' command (this does the required port forwarding)Q
-	% ssh -L 3307:/run/mysqld/mysqld.sock pin.cambridge-camra.org.uk
-
-- While logged in to pin, run the streamlit script (on a local command line):
-% streamlit run CBF_tool_page.py
+Navigate to https://beerfestdbtools.cambridgebeerfestival.uk/. Log in using your BeerFestDB user account.
 
 Tips on using the Sale Price Generator:
 - Timing: Recommend using it after preload_festival_casks.pl has been run
@@ -423,3 +407,14 @@ Tips on using the Sale Price Generator:
 Also remember that the database doesn't really support same product, different dispense (e.g. beer in cask & keg) at same festival. (The schema dates back to before that was a thing; only International had any keg back then.) We have always kludged by manually editing one of the cask end signs in the .tex file after running dump_to_template.pl!
 
 
+
+_Developer notes:_ 
+  The simplest way to use the dashboard is to use the production version described above. If you plan 
+  to run the dashboard locally on your own computer (e.g. when testing new features), follow these steps: 
+  - Set up your virtual environment and install dependencies as described in tool_dashboard/README.md
+  - Create a secrets.toml file as described (leave mysql host and port unchanged)
+  - Log in to pin, forwarding its mysqld socket to port 3306 on your computer:
+	  % ssh -L 3306:/run/mysqld/mysqld.sock pin.cambridge-camra.org.uk
+  - Run the streamlit app:
+    % streamlit run CBF_tool_page.py
+  - Aim your browser at http://127.0.0.1:8051/ to access the dashboard
