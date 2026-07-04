@@ -43,6 +43,8 @@ requires 'YAML::XS';
 requires 'OpenOffice::OODoc';
 requires 'Exception::Class';
 requires 'Try::Tiny::ByClass';
+requires 'XML::Entities';
+requires 'LaTeX::Encode';
 requires 'parent';
 
 recommends 'IO::Socket::SSL'; # Required for secure SMTP connections, but not strictly necessary if using an unencrypted connection to localhost.
