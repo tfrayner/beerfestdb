@@ -179,6 +179,7 @@ my @filter_to_latex_tests = (
             [ 'ì', '{\`i}', 'filter_to_latex: ì (grave i) is converted' ],
             [ 'ò', '{\`o}', 'filter_to_latex: ò (grave o) is converted' ],
             [ 'ù', '{\`u}', 'filter_to_latex: ù (grave u) is converted' ],
+            [ 'à à', '{\`a} {\`a}', 'filter_to_latex: à (grave a) is converted (multiple)' ],
         ],
     },
     {
