@@ -5,6 +5,9 @@ import streamlit as st
 import yaml
 from pathlib import Path
 from bfdb_yaml import current_festival
+from CBF_logger import make_logger
+
+logger = make_logger(__file__)
 
 #%%
 conn = st.connection('cbf', type='sql')
@@ -16,6 +19,7 @@ if 'festival' not in st.session_state:
 
 #%%
 fsql = '''select name from festival where year > 2023;'''
+logger.debug("Executing SQL query to fetch festival names")
 fdf = conn.query(fsql)
 festlist = fdf['name'].to_list()
 

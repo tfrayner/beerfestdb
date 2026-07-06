@@ -1,5 +1,5 @@
 configure_requires 'ExtUtils::MakeMaker',                  '6.52';
-configure_requires 'Module::CPAN',                         '1.1';
+configure_requires 'Module::CPANfile',                     '1.1';
 
 requires 'Catalyst::Runtime',                              '5.90130';
 requires 'Catalyst::Plugin::ConfigLoader';
@@ -8,7 +8,7 @@ requires 'Catalyst::Plugin::Session::Store::FastMmap';
 requires 'Catalyst::Plugin::Authentication',               '0.10023';
 requires 'Catalyst::Plugin::Authorization::ACL',           '0.16';
 requires 'Catalyst::Plugin::Authorization::Roles',         '0.09';
-recommends 'Catalyst::Plugin::OpenIDConnect',              '0.13';
+recommends 'Catalyst::Plugin::OpenIDConnect',              '0.14';
 requires 'Catalyst::Plugin::CSRFToken';
 requires 'Catalyst::Authentication::Store::DBIx::Class',   '0.1506';
 requires 'Catalyst::Action::RenderView';
@@ -43,6 +43,8 @@ requires 'YAML::XS';
 requires 'OpenOffice::OODoc';
 requires 'Exception::Class';
 requires 'Try::Tiny::ByClass';
+requires 'XML::Entities';
+requires 'LaTeX::Encode';
 requires 'parent';
 
 recommends 'IO::Socket::SSL'; # Required for secure SMTP connections, but not strictly necessary if using an unencrypted connection to localhost.

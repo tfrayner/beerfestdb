@@ -6,6 +6,9 @@ import yaml
 from pathlib import Path
 from bfdb_yaml import current_festival
 from datetime import datetime
+from CBF_logger import make_logger
+
+logger = make_logger(__file__)
 
 #%%
 conn = st.connection('cbf', type='sql')
@@ -24,6 +27,7 @@ where f.festival_id=cm.festival_id
 and f.name = :festivalname;'''
 
 #%%
+logger.debug("Executing SQL query to fetch max cask ID")
 df = conn.query(sql, params={"festivalname": festivalname})
 
 

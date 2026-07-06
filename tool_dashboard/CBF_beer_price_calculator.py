@@ -3,6 +3,9 @@ import mysql.connector
 import streamlit as st
 import pandas as pd
 import math
+from CBF_logger import make_logger
+
+logger = make_logger(__file__)
 
 #%%
 conn = st.connection('cbf', type='sql')
@@ -26,6 +29,7 @@ where ob.festival_id = f.festival_id
 and f.name = :festivalname
 '''
 
+logger.debug("Executing SQL query to fetch order batches")
 obdf = conn.query(obsql, params={"festivalname": festivalname})
 order_batch_list = obdf['batch'].to_list()
 
@@ -79,6 +83,7 @@ and po.product_id = p.product_id;
 '''
 
 #%%
+logger.debug("Executing SQL query to fetch order batch details")
 dfo = conn.query(osql, params={"festivalname": festivalname, "orderbatch": orderbatch})
 
 #%%
@@ -103,9 +108,11 @@ dfload = dfo[['festival_name', 'brewery_name', 'product_name', 'cask_size', 'pro
 
 @st.cache_data
 def csv_for_download(df):
+    logger.debug("Converting DataFrame to CSV for download")
     return df.to_csv().encode("utf-8")
 
 def tsv_for_download(df):
+    logger.debug("Converting DataFrame to TSV for download")
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
 #%%

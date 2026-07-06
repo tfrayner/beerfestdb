@@ -34,3 +34,6 @@ inc
 META.yml
 
 R/BeerFestDB/man/*.Rd
+R/BeerFestDB/*.Rproj
+.Rproj.user
+

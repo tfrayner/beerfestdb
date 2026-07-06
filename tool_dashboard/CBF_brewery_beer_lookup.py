@@ -2,6 +2,9 @@
 import mysql.connector
 import streamlit as st
 import pandas as pd
+from CBF_logger import make_logger
+
+logger = make_logger(__file__)
 
 #%%
 conn = st.connection('cbf', type='sql')
@@ -28,13 +31,16 @@ breweryname = st.text_input("Search for a brewery", key="brewery")
 
 beername = st.text_input("Search for a beer", value= "%", key="beer")
 
+logger.debug(f"Executing SQL query with brewery='{breweryname}' and beer='{beername}'")
 df = conn.query(sql, params={"brewery": breweryname, "beer": beername})
 
 @st.cache_data
 def csv_for_download(df):
+    logger.debug("Converting DataFrame to CSV for download")
     return df.to_csv(index=False).encode("utf-8")
 
 def tsv_for_download(df):
+    logger.debug("Converting DataFrame to TSV for download")
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
 
