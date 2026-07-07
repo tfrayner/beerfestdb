@@ -148,10 +148,11 @@ When beer comes
 	can edit size of existing casks
 	to add cask, need existing gyle for the beer
 	  to add a gyle, type "auto-generated" as its ID, and select the brewery from the pulldown in the "actual brewer" column
-	manually assign cask ID, preferably next available in sequence
-	  use this query:  select max(cm.cellar_reference) from cask_management cm, festival f where f.festival_id=cm.festival_id and f.name='41st Cambridge Beer Festival';
-	  for "new cask", mandatory columns are Festival cask ID, Cask size, Gyle, and Distributor
-	NOTE: new casks added at this point should NOT have an order batch assigned
+  leave the cask ID blank to auto-assign the next available ID in sequence
+    alternatively, manually assign cask ID;
+  	  use this query:  select max(cm.cellar_reference) from cask_management cm, festival f where f.festival_id=cm.festival_id and f.name='41st Cambridge Beer Festival';
+	    for "new cask", mandatory columns are Cask size, Gyle, and Distributor
+	NOTE: new casks added at this point should NOT have an order batch assigned (the web page will not let you)
 	if there are fewer casks than expected, mark all as "arrived", then go to Products Received to delete one (or more, as needed)
   Prices go in Products Received tab, sale price column
 	in web interface, enter prices in pence
