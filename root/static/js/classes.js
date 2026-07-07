@@ -245,6 +245,7 @@ RemoveButton = Ext.extend(Ext.Button, {
 
 MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
 
+    changesOnly:        false,
     columnLines:        true,
     stripeRows:         true,
     trackMouseOver:     true,
@@ -267,6 +268,7 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                 // On selection change, set enabled state of the removeButton
                 // which was placed into the GridPanel using the ref config
                 selectionchange: function(sm) {
+                    if (this.changesOnly) { return; }
                     if (sm.getCount()) {
                         this.removeButton.enable();
                     } else {
@@ -320,19 +322,28 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
             plugins:            action,
             tbar:
             [
-                new NewButton({text:   'New ' + this.objLabel,
-                               grid:   this}),
+                // Some grids don't support addition/deletion of rows, so we don't always
+                // activate those buttons in the toolbar.
+                new NewButton({text:     'New ' + this.objLabel,
+                               grid:    this,
+                               disabled: !!this.changesOnly,
+                }),
                 new SaveButton({
                     grid:          this,
                     recordChanges: this.recordChanges,
+//                    disabled:      !!this.changesOnly,
                 }),
-                new DiscardButton({grid:this}),
+                new DiscardButton({grid:     this,
+//                                   disabled: !!this.changesOnly,
+                }),
                 new RemoveButton({text:         'Remove ' + this.objLabel + 's',
                                   grid:         this,
                                   sm:           sm,
                                   ref:          '../removeButton',
                                   idField:      this.idField,
-                                  deleteUrl:    this.deleteUrl}),
+                                  deleteUrl:    this.deleteUrl,
+                                  disabled:     true,
+                }),
             ],
             listeners: {
                 beforerender: function(myGrid) {
