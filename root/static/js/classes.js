@@ -497,6 +497,7 @@ MyNumberRenderer = function() {
 
 MyFormPanel = Ext.extend(Ext.form.FormPanel, {
 
+    readOnly:    false,
     labelAlign:  'right',
     labelWidth:  150,
     frame:       true,
@@ -517,6 +518,7 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
                 text:    'Save Changes',
                 tooltip: 'Write changes to the database',
                 iconCls: 'icon-save-table',
+                disabled: !!this.readOnly,
                 handler: function(b, e) {
                     var panel = this;
                     var doSave = function() {
@@ -557,6 +559,7 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
                 handler: function(b, e) {
                     this.getForm().reset();
                 },
+                disabled: !!this.readOnly,
                 scope: this,
             }],
             initialConfig: {
