@@ -1,0 +1,293 @@
+---
+title: "Cambridge Beer Festival Cellar Report"
+author: "Tim Rayner"
+format:
+  html:
+    fig-width: 10
+    fig-height: 8
+    embed-resources: true
+    anchor-sections: true
+    code-fold: true
+    code-overflow: scroll
+    toc: true
+    toc-location: left
+    toc-depth: 6
+    toc-expand: true
+    highlight-style: arrow
+    theme: simplex
+    execute:
+      warning: false
+      cache: false
+date: '2025-10-08'
+---
+
+# Preamble
+
+```{r setup, include=FALSE}
+# Edit these:
+baseuri  <- 'https://beerfestdb.cambridgebeerfestival.uk/'
+festname <- 'Cambridge Beer Festival 2026' # FIXME retrieve from database
+prodcat  <- 'beer'
+# End of editable section.
+
+# Load libraries
+library(RCurl)
+library(rjson)
+library(RColorBrewer)
+library(gplots)
+library(tidyverse)
+library(DT)
+
+library(BeerFestDB)
+```
+
+```{r credentials, echo=FALSE}
+# To render this document using quarto, you will need to include your login details below (read-only account is fine).
+# ALWAYS keep the echo=FALSE tag above, to avoid including account details in the output report.
+creds <- list(username = "REDACTED", password = "REDACTED")
+```
+
+```{r taglist_hack, include=FALSE}
+# This is part of a hack to enable datatable in quarto tabsets; see https://stackoverflow.com/a/74708020
+htmltools::tagList(DT::datatable(mtcars))
+```
+
+
+# Data Retrieval
+
+```{r data_retrieval, include=FALSE}
+cp <- getFestivalData(baseuri, festname, prodcat, auth = creds) %>%
+  mutate(
+    cask_price = as.numeric(cask_price) / 100,
+    sale_price = as.numeric(sale_price) / 100
+  )
+
+# Set NA stillage to 'Unassigned'
+cp$stillage[is.na(cp$stillage)] <- "Unassigned"
+
+# Limit stillage string lenghth to 15
+w <- nchar(cp$stillage) > 15
+cp[w, "stillage"] <- paste(substr(cp[w, "stillage"], 0, 12), "...", sep = "")
+
+# This assumes the dip columns are returned in order, so the rightmost column is the final dip:
+w <- colnames(cp) == "cask_volume" | grepl("^dip\\.", colnames(cp))
+cp$volume_lost <- cp[, w][, sum(w)]
+cp$volume_lost[cp$is_condemned == 1] <- cp$cask_volume # Assume entire cask lost when condemned
+cp$volume_sold <- cp$cask_volume - cp$volume_lost
+write.csv(cp, "full_dip_dump.csv", row.names = FALSE)
+
+# FIXME derive these below using dplyr summarise() calls, rather than using the base R aggregate() function.
+vol.total  <- sum(cp$cask_volume)
+vol.condd  <- sum(cp[ cp$is_condemned == 1, w][ , sum(w) ])
+vol.unsold <- sum(cp[ cp$is_condemned == 0, w][ , sum(w) ])
+vol.sold   <- vol.total - (vol.condd + vol.unsold)
+sor.total  <- sum(cp[ cp$is_sale_or_return == 1, 'cask_volume' ])
+sor.unsold <- sum(cp[ cp$is_sale_or_return == 1 & cp$is_condemned == 0, w][ , sum(w) ])
+sor.condd  <- sum(cp[ cp$is_sale_or_return == 1 & cp$is_condemned == 1, w][ , sum(w) ])
+sor.sold   <- sor.total - (sor.condd + sor.unsold)
+```
+
+# Overall Sales Data
+
+```{r overall_sales_data}
+ob <- aggregate(cp[,'cask_volume'], list(cp$order_batch), sum)
+pct_format <- function(x) { paste0(round(x / vol.total * 100, 1), '%') }
+if ( nrow(ob) > 1 ) {  ## Don't bother enumerating order batches if there was only one.
+  
+    ## Rearrange so the largest order is first. Reorders will often
+    ## be named in appropriate order so we don't munge the data any further.
+    obm <- which.max(ob[,2])
+    ob  <- rbind( ob[obm,], ob[-obm,] )
+
+    # FIXME these rows could probably all be generated via a dplyr summarise() call.
+    ob <- rbind(ob, c('Total', vol.total, vol.total / 18, "100.0%"))
+    ob <- rbind(ob, c('Sale or Return', sor.total, sor.total / 18,
+                      pct_format(sor.total)))
+
+    ob <- rbind(ob, c('Amount sold', vol.sold, vol.sold / 18,
+                      pct_format(vol.sold)))
+    ob <- rbind(ob, c('Amount unsold', vol.unsold, vol.unsold / 18,
+                      pct_format(vol.unsold)))
+    ob <- rbind(ob, c('Amount condemned', vol.condd, vol.condd / 18,
+                      pct_format(vol.condd)))
+
+    ob <- rbind(ob, c('SOR sold', sor.sold, sor.sold / 18,
+                      pct_format(sor.sold)))
+    ob <- rbind(ob, c('SOR unsold', sor.unsold, sor.unsold / 18,
+                      pct_format(sor.unsold)))
+    ob <- rbind(ob, c('SOR condemned', sor.condd, sor.condd / 18,
+                      pct_format(sor.condd)))
+
+    show(htmltools::tagList(
+        DT::datatable(ob, rownames=FALSE, options=list(pageLength=10))
+    ))
+}
+```
+
+```{r overall_sales_calculation, include=FALSE}
+cp <- cp[ cp$is_condemned == 0, ]
+
+if ( ! 'abv' %in% colnames(cp) )
+    cp$abv <- with(cp, ifelse(is.na(gyle_abv), nominal_abv, gyle_abv))
+
+cp$abv_class <- cut(cp$abv, breaks=c(2,3.5,4,4.5,5,7,12))
+levels(cp$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cp$abv_class)))
+    
+colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])
+
+stopifnot( colnames(cp)[w][1] == 'cask_volume' )
+
+## The rounding here is to try and address floating point errors upstream. Not Ideal (FIXME).
+pd <- round(cp[,w][,-sum(w)] - cp[,w][,-1], 6)
+colnames(pd) <- colnames(cp)[w][-1]
+if ( ! all(pd >= 0) ) {
+    bad <- apply(pd, 1, function(x) any(x < 0))
+    badstr <- paste(apply(cp[bad, c('company_name', 'product_name', 'festival_ref')], 1,
+                          function(x) do.call('sprintf', as.list(c("%s %s (cask %s)", x)))), collapse=', ')
+    stop(sprintf("Negative per diem dips found: probable dip data error in the database for the following: %s", badstr))
+}
+
+cols <- brewer.pal(9, 'Set1')
+
+dp <- aggData( cp, 'style', w )
+## Drop the last part of the festival (1/4 rounded up) since it'll
+## usually be non-linear by then.
+dn <- ceiling((ncol(dp)-1)/4) - 1
+drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
+```
+
+```{r overall_sales_plot}
+plotTotalBeerSales(pd)
+```
+
+# Order Distributions
+
+```{r order_regional_distributions}
+byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
+drawPie( byprod, 'region', cols=cols, cex=1.25 )
+```
+
+```{r order_style_distributions}
+drawPie( byprod, 'style', cols=cols, cex=1.25 )
+```
+
+# Sales by Category
+
+## By ABV
+```{r sales_by_abv}
+plotSalesRate( cp, 'abv_class', w=w )
+plotModelCoeffs( cp, 'abv_class', drop=drop, w=w)
+```
+
+## By Region
+```{r sales_by_region}
+plotSalesRate( cp, 'region', w=w )
+plotModelCoeffs( cp, 'region', drop=drop, w=w)
+```
+
+## By Stillage Location
+```{r sales_by_stillage}
+plotSalesRate( cp, 'stillage', w=w )
+plotModelCoeffs( cp, 'stillage', drop=drop, w=w)
+```
+
+## By Style
+```{r sales_by_style}
+heatmap.2(as.matrix(dp/dp[,1]),
+          dendrogram='row', key=FALSE, margins=c(5,12), trace='none',
+          Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
+plotModelCoeffs( cp, 'style', drop=drop, w=w)
+```
+
+# Sales and Costs Analysis
+ 
+This report provides a brief summary of British beer sales and costs for the Cambridge Beer Festival.
+
+## Sales Figures
+
+Here we run the calculation of mean sales volumes and costs across container types and ABV ranges:
+
+```{r calculation}
+# Function to fess up to all-NA values but to optionally gloss over partial-NA values (unreceived invoices)
+mysum <- function(x, ...) {
+  if (all(is.na(x))) {
+    return(NA)
+  } else {
+    return(sum(x, ...))
+  }
+}
+agg <- cp %>%
+  group_by(
+    company_name, product_name, cask_volume, size_name,
+    is_sale_or_return, abv, cask_price, sale_price
+  ) %>%
+  summarise(
+    pints_sold = sum(volume_sold) * 8, # Assumes volumes in gallons
+    pints_lost = sum(volume_lost) * 8,
+    pints_total = sum(cask_volume) * 8,
+    cost_total = mysum(cask_price, na.rm = TRUE), # na.rm=TRUE would ideally not be needed here (invoice issue)
+    .groups = "drop"
+  ) %>%
+  mutate(
+    abv_class = cut(abv, c(0, 0.5, 3, 4, 5, 6, 7.5, Inf), right = FALSE),
+    sales_total = sale_price * pints_sold,
+    sales_lost = sale_price * pints_lost
+  ) %>%
+  group_by(abv_class, is_sale_or_return, size_name) %>%
+  summarise(
+    pints_sold = round(sum(pints_sold), 2),
+    pints_unsold = round(sum(pints_lost), 2),
+    pints_total = round(sum(pints_total), 2),
+    sales_total = round(sum(sales_total), 2),
+    cost_total = round(mysum(cost_total, na.rm = TRUE), 2)
+  ) %>%
+  mutate(
+    average_sale_price = ifelse(pints_sold > 0, round(sales_total / pints_sold, 2), NA),
+    cost_per_pint = ifelse(pints_total > 0, round(cost_total / pints_total, 2), NA)
+  ) %>%
+  arrange(size_name, is_sale_or_return, abv_class) %>%
+  select(-any_of(c("sales_total", "cost_total"))) %>%
+  mutate(across(c(average_sale_price, cost_per_pint), function(x) sprintf("%.2f", x))) %>%
+  ungroup()
+
+levels(agg$abv_class) <- sub(",", " - ", sub("\\[", "", sub("\\)", "%", levels(agg$abv_class))))
+```
+
+Listing the results for paid casks, split by container size:
+
+```{r paid_cask_results}
+#| results: asis
+x <- subset(agg, is_sale_or_return == 0) %>%
+  select(-all_of(c("is_sale_or_return")))
+x <- split.data.frame(x, list(x$size_name))
+knitr_tabset(x, function(i) {
+  show(htmltools::tagList(DT::datatable(i,
+    autoHideNavigation = TRUE, rownames = FALSE,
+    options = list(pageLength = 20)
+  )))
+})
+```
+
+And the results for sale-or-return casks:
+
+```{r sor_cask_results}
+#| results: asis
+x <- subset(agg, is_sale_or_return == 1) %>%
+  select(-all_of(c("is_sale_or_return")))
+x <- split.data.frame(x, list(x$size_name))
+knitr_tabset(x, function(i) {
+  show(htmltools::tagList(DT::datatable(i,
+    autoHideNavigation = TRUE, rownames = FALSE,
+    options = list(pageLength = 20)
+  )))
+})
+```
+
+# Technical Information
+
+The version number of R and packages loaded for generating this
+report were as follows:
+
+```{r sessioninfo}
+sessionInfo()
+```
