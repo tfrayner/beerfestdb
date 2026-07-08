@@ -1,6 +1,5 @@
 ---
 title: "Cambridge Beer Festival Cellar Report"
-author: "Tim Rayner"
 format:
   html:
     fig-width: 10
@@ -18,18 +17,17 @@ format:
     execute:
       warning: false
       cache: false
-date: '2025-10-08'
+date: last-modified
+params:
+  baseuri: 'https://beerfestdb.cambridgebeerfestival.uk/'
+  prodcat: 'beer'
+  username: ''
+  password: ''
 ---
 
 # Preamble
 
 ```{r setup, include=FALSE}
-# Edit these:
-baseuri  <- 'https://beerfestdb.cambridgebeerfestival.uk/'
-festname <- 'Cambridge Beer Festival 2026' # FIXME retrieve from database
-prodcat  <- 'beer'
-# End of editable section.
-
 # Load libraries
 library(RCurl)
 library(rjson)
@@ -42,9 +40,14 @@ library(BeerFestDB)
 ```
 
 ```{r credentials, echo=FALSE}
-# To render this document using quarto, you will need to include your login details below (read-only account is fine).
-# ALWAYS keep the echo=FALSE tag above, to avoid including account details in the output report.
-creds <- list(username = "REDACTED", password = "REDACTED")
+# To render this document using quarto, you will need to include your
+# login details as part of the command line. It is recommended to pass
+# the parameters as environmental variables. For example: 
+#    quarto render dip_figure_analysis.qmd -P username:$BFDB_USERNAME -P password:$BFDB_PASSWORD
+
+creds <- list(username = params$username, password = params$password)
+
+festival <- currentFestival(baseuri = params$baseuri, auth = creds)
 ```
 
 ```{r taglist_hack, include=FALSE}
@@ -56,7 +59,7 @@ htmltools::tagList(DT::datatable(mtcars))
 # Data Retrieval
 
 ```{r data_retrieval, include=FALSE}
-cp <- getFestivalData(baseuri, festname, prodcat, auth = creds) %>%
+cp <- getFestivalData(params$baseuri, params$festname, params$prodcat, auth = creds) %>%
   mutate(
     cask_price = as.numeric(cask_price) / 100,
     sale_price = as.numeric(sale_price) / 100

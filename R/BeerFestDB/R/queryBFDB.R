@@ -40,6 +40,7 @@
 #'   \code{CURLHandle} the \code{baseuri} argument must also be supplied.
 #' @param .opts Named list of additional options forwarded to
 #'   \code{\link[RCurl]{curlPerform}}.
+#' @param field Character string naming the field in the JSON response to return.
 #' @param ... Additional arguments passed to \code{\link{queryBFDB}}.
 #' @return A data frame with one row per API record.  All columns are
 #'   character except those whose names end in \code{_id}, which are integer.
@@ -47,8 +48,8 @@
 #' @export
 ###############################################################################
 getBFData <- function(dbclass, action, params = c(), columns = NULL,
-                      auth, .opts = list(), ...) {
-  objects <- queryBFDB(dbclass, action, params, auth, .opts, ...)
+                      auth, .opts = list(), field = "objects", ...) {
+  objects <- queryBFDB(dbclass, action, params, auth, .opts, field = field, ...)
 
   terms <- sort(Reduce(union, sapply(objects, names)))
   cleaned <- lapply(objects, function(x) {
@@ -118,6 +119,7 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL,
 #' @param auth Authentication object; see Description for dispatch details.
 #' @param .opts Named list of options forwarded to
 #'   \code{\link[RCurl]{curlPerform}}.
+#' @param field Character string naming the field in the JSON response to return.
 #' @param ... Additional arguments (reserved for future use).
 #' @return A list of named lists, one element per API record.
 #' @seealso \code{\link{getBFData}}, \code{\link{getFestivalData}}
@@ -125,7 +127,7 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL,
 #' @export
 ###############################################################################
 setGeneric("queryBFDB", def = function(dbclass, action, params = c(),
-                                       auth, .opts = list(), ...)
+                                       auth, .opts = list(), field = "objects", ...)
   standardGeneric("queryBFDB")
 )
 
@@ -139,7 +141,7 @@ setGeneric("queryBFDB", def = function(dbclass, action, params = c(),
 setMethod(
   "queryBFDB", signature(auth = "CURLHandle"),
   function(dbclass, action, params = c(),
-           auth, .opts = list(), ...) {
+           auth, .opts = list(), field = "objects", ...) {
     # Assumes that all JSON query actions in the web server behave
     # roughly the same; i.e. they act on a set of (usually only one or
     # two) numeric parameters which will be encoded in the query URI,
@@ -189,7 +191,7 @@ setMethod(
       stop(status$message)
     }
 
-    return(status$objects)
+    return(status[[field]])
   }
 )
 
@@ -202,7 +204,7 @@ setMethod(
 setMethod(
   "queryBFDB", signature(auth = "ANY"),
   function(dbclass, action, params = c(),
-           auth = NULL, .opts = list(), baseuri = NULL, ...) {
+           auth = NULL, .opts = list(), field = "objects", baseuri = NULL, ...) {
 
     if (is.null(baseuri)) {
       stop("Error: baseuri argument is required unless using CURLHandle-based authentication.")
@@ -210,7 +212,7 @@ setMethod(
 
     curl <- .getBFDBHandle(baseuri = baseuri, auth = auth, .opts = .opts)
 
-    response <- queryBFDB(dbclass, action, params, auth = curl, .opts = .opts, ...)
+    response <- queryBFDB(dbclass, action, params, auth = curl, .opts = .opts, field = field, ...)
 
     ## Log out for the sake of completeness (check for failure and warn).
     .logoutBFDBHandle(curl, .opts)

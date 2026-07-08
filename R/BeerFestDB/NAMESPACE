@@ -2,6 +2,7 @@
 
 export(aggData)
 export(analyseData)
+export(currentFestival)
 export(drawPie)
 export(getBFData)
 export(getFestivalData)

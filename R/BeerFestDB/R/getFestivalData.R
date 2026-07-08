@@ -249,3 +249,24 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
 
   return(cp)
 }
+
+################################################################################
+#' Retrieve the current festival data from the BeerFestDB database
+#' @description Downloads and returns the current festival data from the
+#'   BeerFestDB JSON API.  This is a convenience function that wraps
+#'   \code{\link{queryBFDB}} with the appropriate parameters for the
+#'   \code{current_festival} action.
+#' @details Requires an authenticated connection to a running BeerFestDB
+#'   instance.  If \code{auth} is \code{NULL} or not a \code{CURLHandle}, the user is prompted for credentials.
+#' @param auth Authentication object: a \code{CURLHandle} with a live session, a list with elements \code{username} and \code{password}, or \code{NULL} to prompt interactively.
+#' @param .opts Named list of additional options forwarded to
+#'   \code{\link[RCurl]{curlPerform}}.
+#' @param ... Additional arguments (reserved for future use).
+#' @return A named list containing the current festival data.
+#' @seealso \code{\link{getBFData}}, \code{\link{queryBFDB}}, \code{\link{getFestivalData}}
+#' @export
+currentFestival <- function(auth, .opts = list(), ...) {
+  festdata <- queryBFDB(dbclass="Festival", action="current_festival", auth=auth,
+                        .opts=.opts, field="data", ...)
+  return(festdata)
+}
