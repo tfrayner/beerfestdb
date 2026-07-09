@@ -25,7 +25,9 @@ params:
   password: ''
 ---
 
-# Preamble
+# Introduction
+
+This report provides a summary of the sales and costs of beers at the Cambridge Beer Festival, based on the data in the BeerFestDB database. It includes overall sales data, order distributions, and sales by category (ABV, region, stillage location, and style).
 
 ```{r setup, include=FALSE}
 # Load libraries
@@ -46,7 +48,7 @@ library(BeerFestDB)
 htmltools::tagList(DT::datatable(mtcars))
 ```
 
-```{r credentials, echo=FALSE}
+```{r credentials, include=FALSE}
 # To render this document using quarto, you will need to include your
 # login details as part of the command line. It is recommended to pass
 # the parameters as environmental variables. For example: 
@@ -55,17 +57,10 @@ htmltools::tagList(DT::datatable(mtcars))
 creds <- with(params, list(username = username, password = password))
 ```
 
-
-# Data Retrieval
-
 ```{r data_retrieval, include=FALSE}
 festival <- currentFestival(baseuri = params$baseuri, auth = creds)
 
 cp <- with(params, getFestivalData(baseuri, festival$name, prodcat, auth = creds)) %>%
-  mutate(
-    cask_price = as.numeric(cask_price) / 100,
-    sale_price = as.numeric(sale_price) / 100
-  ) %>%
   replace_na(list(stillage = "Unassigned")) %>%
   mutate(
     stillage = ifelse(nchar(stillage) > 15, paste0(substr(stillage, 1, 12), "..."), stillage)
@@ -136,7 +131,7 @@ d <- ob %>% group_by(value) %>%
 
 d <- d %>% mutate(across(where(is.double), \(x) round(x, 2)))
 
-show(htmltools::tagList(
+#show(htmltools::tagList(
     DT::datatable(d, rownames=FALSE, options=list(pageLength=nrow(d)), height=500,
                   filter = "none", selection = "none", autoHideNavigation=TRUE,
                   colnames=c('', 'Volume (gallons)', 'Volume (kils)', 'Percent Total'),
@@ -145,8 +140,8 @@ show(htmltools::tagList(
                       'Overall Sales Data'
                       )
                   )
-    )
-)
+#    )
+#)
 ```
 
 Here we calculate the per diem sales levels for each cask, and aggregate those figures by beer style.
@@ -296,6 +291,7 @@ Listing the results for paid casks, split by container size:
 
 ```{r paid_cask_results}
 #| results: asis
+#| column: page
 x <- subset(agg, is_sale_or_return == 0) %>%
   select(-all_of(c("is_sale_or_return")))
 x <- split.data.frame(x, list(x$size_name))
@@ -311,6 +307,7 @@ And the results for sale-or-return casks:
 
 ```{r sor_cask_results}
 #| results: asis
+#| column: page
 x <- subset(agg, is_sale_or_return == 1) %>%
   select(-all_of(c("is_sale_or_return")))
 x <- split.data.frame(x, list(x$size_name))
