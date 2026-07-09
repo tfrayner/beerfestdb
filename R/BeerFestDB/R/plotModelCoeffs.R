@@ -27,7 +27,7 @@
 #'   its starting volume.
 #' @param cp A data frame of cask/dip data, typically from
 #'   \code{\link{getFestivalData}}.
-#' @param colname A character string naming the column in \code{cp} to use
+#' @param group A character string naming the column in \code{cp} to use
 #'   as the grouping category (e.g., \code{"style"}, \code{"region"}).
 #' @param drop A character vector of dip-time column names to exclude from
 #'   the model (typically the final sessions where sales become non-linear).
@@ -41,11 +41,11 @@
 #' @importFrom stats aggregate lm
 #' @export
 ###############################################################################
-plotModelCoeffs <- function(cp, colname, drop, w = TRUE, ...) {
-  pred <- aggregate(cp$cask_volume, list(cp[, colname]), sum)[, 2]
+plotModelCoeffs <- function(cp, group, drop, w = TRUE, ...) {
+  pred <- aggregate(cp$cask_volume, cp[, group], sum)[, 2]
   pred <- (pred / sum(pred)) * 100
 
-  dp <- aggData(cp, colname, w)
+  dp <- aggData(cp, group, w)
   dp <- dp[, !colnames(dp) %in% drop]
   dp <- dp$Start - dp
 

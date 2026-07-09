@@ -35,8 +35,15 @@ library(RColorBrewer)
 library(gplots)
 library(tidyverse)
 library(DT)
+library(htmltools)
+library(ggplot2)
+library(reshape2)
+library(tibble)
 
 library(BeerFestDB)
+
+# This is part of a hack to enable datatable in quarto tabsets; see https://stackoverflow.com/a/74708020
+htmltools::tagList(DT::datatable(mtcars))
 ```
 
 ```{r credentials, echo=FALSE}
@@ -45,161 +52,190 @@ library(BeerFestDB)
 # the parameters as environmental variables. For example: 
 #    quarto render dip_figure_analysis.qmd -P username:$BFDB_USERNAME -P password:$BFDB_PASSWORD
 
-creds <- list(username = params$username, password = params$password)
-
-festival <- currentFestival(baseuri = params$baseuri, auth = creds)
-```
-
-```{r taglist_hack, include=FALSE}
-# This is part of a hack to enable datatable in quarto tabsets; see https://stackoverflow.com/a/74708020
-htmltools::tagList(DT::datatable(mtcars))
+creds <- with(params, list(username = username, password = password))
 ```
 
 
 # Data Retrieval
 
 ```{r data_retrieval, include=FALSE}
-cp <- getFestivalData(params$baseuri, params$festname, params$prodcat, auth = creds) %>%
+festival <- currentFestival(baseuri = params$baseuri, auth = creds)
+
+cp <- with(params, getFestivalData(baseuri, festival$name, prodcat, auth = creds)) %>%
   mutate(
     cask_price = as.numeric(cask_price) / 100,
     sale_price = as.numeric(sale_price) / 100
+  ) %>%
+  replace_na(list(stillage = "Unassigned")) %>%
+  mutate(
+    stillage = ifelse(nchar(stillage) > 15, paste0(substr(stillage, 1, 12), "..."), stillage)
   )
 
-# Set NA stillage to 'Unassigned'
-cp$stillage[is.na(cp$stillage)] <- "Unassigned"
-
-# Limit stillage string lenghth to 15
-w <- nchar(cp$stillage) > 15
-cp[w, "stillage"] <- paste(substr(cp[w, "stillage"], 0, 12), "...", sep = "")
-
 # This assumes the dip columns are returned in order, so the rightmost column is the final dip:
-w <- colnames(cp) == "cask_volume" | grepl("^dip\\.", colnames(cp))
-cp$volume_lost <- cp[, w][, sum(w)]
-cp$volume_lost[cp$is_condemned == 1] <- cp$cask_volume # Assume entire cask lost when condemned
-cp$volume_sold <- cp$cask_volume - cp$volume_lost
+dip_cols <- select(cp, starts_with("dip.")) %>% colnames() %>% append("cask_volume", after = 0)
+cp <- cp %>%
+  rowwise() %>%
+  mutate(volume_lost = c_across(starts_with("dip.")) %>% tail(1)) %>%
+  ungroup() %>%
+  mutate(volume_lost = ifelse(is_condemned == 1, cask_volume, volume_lost)) %>%
+  mutate(volume_sold = cask_volume - volume_lost)
 write.csv(cp, "full_dip_dump.csv", row.names = FALSE)
-
-# FIXME derive these below using dplyr summarise() calls, rather than using the base R aggregate() function.
-vol.total  <- sum(cp$cask_volume)
-vol.condd  <- sum(cp[ cp$is_condemned == 1, w][ , sum(w) ])
-vol.unsold <- sum(cp[ cp$is_condemned == 0, w][ , sum(w) ])
-vol.sold   <- vol.total - (vol.condd + vol.unsold)
-sor.total  <- sum(cp[ cp$is_sale_or_return == 1, 'cask_volume' ])
-sor.unsold <- sum(cp[ cp$is_sale_or_return == 1 & cp$is_condemned == 0, w][ , sum(w) ])
-sor.condd  <- sum(cp[ cp$is_sale_or_return == 1 & cp$is_condemned == 1, w][ , sum(w) ])
-sor.sold   <- sor.total - (sor.condd + sor.unsold)
 ```
 
 # Overall Sales Data
 
+The following table summarises the volumes sold, unsold and condemned, further broken down by whether the cask was sold on a sale-or-return basis or not.
+
 ```{r overall_sales_data}
-ob <- aggregate(cp[,'cask_volume'], list(cp$order_batch), sum)
+vol.total <- sum(cp$cask_volume)
 pct_format <- function(x) { paste0(round(x / vol.total * 100, 1), '%') }
-if ( nrow(ob) > 1 ) {  ## Don't bother enumerating order batches if there was only one.
-  
-    ## Rearrange so the largest order is first. Reorders will often
-    ## be named in appropriate order so we don't munge the data any further.
-    obm <- which.max(ob[,2])
-    ob  <- rbind( ob[obm,], ob[-obm,] )
 
-    # FIXME these rows could probably all be generated via a dplyr summarise() call.
-    ob <- rbind(ob, c('Total', vol.total, vol.total / 18, "100.0%"))
-    ob <- rbind(ob, c('Sale or Return', sor.total, sor.total / 18,
-                      pct_format(sor.total)))
+ob <- with(cp, aggregate(data.frame(cask_volume, volume_sold, volume_lost),
+                         list(order_batch, is_condemned, is_sale_or_return), sum)) %>% 
+  rename(value = 'Group.1', is_condemned = 'Group.2', is_sor = 'Group.3') %>%
+  mutate(value = paste('Order:', value),
+         is_condemned = factor(is_condemned, levels=c(0,1)),
+         is_sor = factor(is_sor, levels=c(0,1)))
 
-    ob <- rbind(ob, c('Amount sold', vol.sold, vol.sold / 18,
-                      pct_format(vol.sold)))
-    ob <- rbind(ob, c('Amount unsold', vol.unsold, vol.unsold / 18,
-                      pct_format(vol.unsold)))
-    ob <- rbind(ob, c('Amount condemned', vol.condd, vol.condd / 18,
-                      pct_format(vol.condd)))
+d.total <- ob %>%
+  summarise(value = 'Total Ordered',
+            cask_volume = sum(cask_volume))
 
-    ob <- rbind(ob, c('SOR sold', sor.sold, sor.sold / 18,
-                      pct_format(sor.sold)))
-    ob <- rbind(ob, c('SOR unsold', sor.unsold, sor.unsold / 18,
-                      pct_format(sor.unsold)))
-    ob <- rbind(ob, c('SOR condemned', sor.condd, sor.condd / 18,
-                      pct_format(sor.condd)))
+d.sor <- ob %>% filter(is_sor == 1) %>%
+  summarise(value = 'Sale or Return Ordered',
+            cask_volume = sum(cask_volume))
 
-    show(htmltools::tagList(
-        DT::datatable(ob, rownames=FALSE, options=list(pageLength=10))
-    ))
+calcSales <- function(ob, tag='Total') {
+  d.sales <- ob %>% 
+    group_by(is_condemned, .drop = FALSE) %>%
+    summarise(value = 'dummy',
+              cask_volume = sum(volume_lost), ) %>%
+    mutate(value = ifelse(is_condemned == 1,
+                          paste0(tag, ' Condemned'),
+                          paste0(tag, ' Unsold'))) %>%
+    select(-any_of(c('is_condemned')))
+
+  d.sales <- ob %>%
+    filter(is_condemned == 0) %>%
+    summarise(value = paste0(tag, ' Sold'),
+             cask_volume = sum(volume_sold)) %>%
+    rbind(d.sales)
+  return(d.sales)
 }
+
+d.sales <- calcSales(ob) %>% rbind(calcSales(ob %>% filter(is_sor == 1), tag='Sale or Return'))
+
+d <- ob %>% group_by(value) %>%
+  summarise(cask_volume = sum(cask_volume)) %>%
+  arrange(desc(which.max(cask_volume) == seq_len(n()))) %>%
+  rbind(d.total) %>%
+  rbind(d.sor) %>%
+  rbind(d.sales) %>%
+  mutate(kils = cask_volume / 18,
+         pct_total = pct_format(cask_volume))
+
+d <- d %>% mutate(across(where(is.double), \(x) round(x, 2)))
+
+show(htmltools::tagList(
+    DT::datatable(d, rownames=FALSE, options=list(pageLength=nrow(d)), height=500,
+                  filter = "none", selection = "none", autoHideNavigation=TRUE,
+                  colnames=c('', 'Volume (gallons)', 'Volume (kils)', 'Percent Total'),
+                  caption = htmltools::tags$caption(
+                      style = 'caption-side: bottom; text-align: center; font-size: 90%;',
+                      'Overall Sales Data'
+                      )
+                  )
+    )
+)
 ```
 
+Here we calculate the per diem sales levels for each cask, and aggregate those figures by beer style.
+
 ```{r overall_sales_calculation, include=FALSE}
-cp <- cp[ cp$is_condemned == 0, ]
+cps <- subset(cp, is_condemned == 0) %>%
+  mutate(abv_class = cut(abv, breaks=c(2,3.5,4,4.5,5,7,12)))
 
-if ( ! 'abv' %in% colnames(cp) )
-    cp$abv <- with(cp, ifelse(is.na(gyle_abv), nominal_abv, gyle_abv))
+levels(cps$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cps$abv_class)))
 
-cp$abv_class <- cut(cp$abv, breaks=c(2,3.5,4,4.5,5,7,12))
-levels(cp$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cp$abv_class)))
-    
-colnames(cp)[w][-1] <- gsub('^dip\\.', '', colnames(cp)[w][-1])
+colnames(cps)[dip_cols] <- sub('^dip\\.', '', dip_cols)
 
-stopifnot( colnames(cp)[w][1] == 'cask_volume' )
-
-## The rounding here is to try and address floating point errors upstream. Not Ideal (FIXME).
-pd <- round(cp[,w][,-sum(w)] - cp[,w][,-1], 6)
-colnames(pd) <- colnames(cp)[w][-1]
+## Calculate the per diem dips and check for negative values (which would indicate a data error)
+pd <- round(cps[,dip_cols][,-length(dip_cols)] - cps[,dip_cols][,-1], 6)
+colnames(pd) <- dip_cols[-1]
 if ( ! all(pd >= 0) ) {
     bad <- apply(pd, 1, function(x) any(x < 0))
-    badstr <- paste(apply(cp[bad, c('company_name', 'product_name', 'festival_ref')], 1,
+    badstr <- paste(apply(cps[bad, c('company_name', 'product_name', 'festival_ref')], 1,
                           function(x) do.call('sprintf', as.list(c("%s %s (cask %s)", x)))), collapse=', ')
     stop(sprintf("Negative per diem dips found: probable dip data error in the database for the following: %s", badstr))
 }
 
-cols <- brewer.pal(9, 'Set1')
+dp <- pd %>% mutate(style = cps$style) %>% group_by(style) %>%
+  summarise(across(all_of(dip_cols[-1]), \(x) sum(x, na.rm=TRUE))) %>%
+  ungroup() %>%
+  as.data.frame()
 
-dp <- aggData( cp, 'style', w )
 ## Drop the last part of the festival (1/4 rounded up) since it'll
 ## usually be non-linear by then.
 dn <- ceiling((ncol(dp)-1)/4) - 1
 drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
 ```
 
+This bar chart shows the amount of beer sold per day, broken down by style. The colours for each style are consistent with the other plots in this report.
+
 ```{r overall_sales_plot}
-plotTotalBeerSales(pd)
+d <- reshape2::melt(dp)
+d$style <- factor(d$style)
+cols <- colorRampPalette(brewer.pal(9, 'Set1'))(nlevels(d$style))
+levels(d$variable) <- seq_along(levels(d$variable)) - 1
+ggplot(d, aes(x=variable, y=value, fill=style)) +
+  geom_col() +
+  scale_fill_manual(values=cols) +
+  labs(x='Festival Day', y='Volume Sold (gallons)', color='Style') +
+  theme_minimal() +
+  theme(legend.position='right', legend.title=element_text(size=12), legend.text=element_text(size=10))
 ```
 
 # Order Distributions
 
+Here we simply show the proportion of beers ordered by geographic region and style, to give an idea of the diversity of beers ordered for the festival. FIXME perhaps don't use pie charts here?
+
 ```{r order_regional_distributions}
 byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
-drawPie( byprod, 'region', cols=cols, cex=1.25 )
-```
-
-```{r order_style_distributions}
+drawPie( byprod, 'region', cols=cols, cex=1.25 ) # FIXME different colour scheme
 drawPie( byprod, 'style', cols=cols, cex=1.25 )
 ```
 
 # Sales by Category
 
+FIXME in the following, I think we need to replace the predicted/observed bars in the plots with a simple ration of the two, with some notes indicating that this should be as close to 1 as possible.
+
 ## By ABV
+
 ```{r sales_by_abv}
-plotSalesRate( cp, 'abv_class', w=w )
-plotModelCoeffs( cp, 'abv_class', drop=drop, w=w)
+plotSalesRate( cps, 'abv_class', w=dip_cols )
+plotModelCoeffs( cps, 'abv_class', drop=drop, w=dip_cols)
 ```
 
 ## By Region
 ```{r sales_by_region}
-plotSalesRate( cp, 'region', w=w )
-plotModelCoeffs( cp, 'region', drop=drop, w=w)
+plotSalesRate( cp, 'region', w=dip_cols )
+plotModelCoeffs( cp, 'region', drop=drop, w=dip_cols)
 ```
 
 ## By Stillage Location
 ```{r sales_by_stillage}
-plotSalesRate( cp, 'stillage', w=w )
-plotModelCoeffs( cp, 'stillage', drop=drop, w=w)
+plotSalesRate( cp, 'stillage', w=dip_cols )
+plotModelCoeffs( cp, 'stillage', drop=drop, w=dip_cols)
 ```
 
 ## By Style
 ```{r sales_by_style}
-heatmap.2(as.matrix(dp/dp[,1]),
-          dendrogram='row', key=FALSE, margins=c(5,12), trace='none',
+d <- dp %>% column_to_rownames('style')
+  
+heatmap.2(as.matrix(d),
+          dendrogram='none', key=FALSE, margins=c(5,12), trace='none',
           Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
-plotModelCoeffs( cp, 'style', drop=drop, w=w)
+plotModelCoeffs( cp, 'style', drop=drop, w=dip_cols)
 ```
 
 # Sales and Costs Analysis

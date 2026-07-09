@@ -28,10 +28,11 @@
 #'   \code{"Start"}.
 #' @param cp A data frame of cask/dip data, typically from
 #'   \code{\link{getFestivalData}}.
-#' @param colname A character vector of one or more column names in \code{cp}
+#' @param group A character vector of one or more column names in \code{cp}
 #'   to use as grouping variables.
-#' @param w A logical vector of the same length as \code{ncol(cp)} selecting
-#'   the columns to aggregate.  Defaults to \code{TRUE} (all columns).
+#' @param w A vector selecting the columns to aggregate. May be a logical
+#'  vector of the same length as \code{ncol(cp)}, or a character vector of
+#'  column names in \code{cp}.  Defaults to \code{TRUE} (all columns).
 #' @return A data frame with one row per unique group.  Row names are the
 #'   pasted group-key values (separated by \code{":"}), grouping columns are
 #'   absent, and the first column is named \code{"Start"}.
@@ -40,14 +41,12 @@
 #' @importFrom stats aggregate
 #' @export
 ###############################################################################
-aggData <- function(cp, colname, w = TRUE) {
-  dp <- aggregate(cp[, w], lapply(colname, function(x) {
-    cp[, x]
-  }), sum)
+aggData <- function(cp, group, w = TRUE) {
+  dp <- aggregate(cp[, w], cp[, group], sum)
 
-  rownames(dp) <- apply(dp[, c(1:length(colname)), drop = FALSE], 1,
+  rownames(dp) <- apply(dp[, c(1:length(group)), drop = FALSE], 1,
                         paste, collapse = ":")
-  dp <- dp[, -c(1:length(colname)), drop = FALSE]
+  dp <- dp[, -c(1:length(group)), drop = FALSE]
   colnames(dp)[1] <- "Start"
 
   return(dp)
