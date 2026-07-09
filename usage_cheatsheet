@@ -280,6 +280,7 @@ column headings for files to load (using load_data.pl):
         order_received
         order_comment
         order_sor	order_sale_or_return also works
+        order_price  for _total_ order price, i.e. cask_price x cask_count
         contact_type
         contact_first_name
         contact_last_name
