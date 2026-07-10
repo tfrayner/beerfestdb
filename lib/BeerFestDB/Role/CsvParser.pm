@@ -98,7 +98,7 @@ sub getline {
     confess "CSV parser not initialized" unless $csv_parser;
     confess "Filehandle not initialized" unless $self->filehandle;
 
-    print "Reading line from CSV file...\n";
+    print ".";  # progress indicator
 
     my $fields;
     GETLINE:
@@ -144,6 +144,8 @@ sub confirm_eof {
                 $mess,
                 $self->csv_parser()->error_input()));
     }
+
+    print "\nEnd of file reached successfully.\n";
 
     return (1);
 }
