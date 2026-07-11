@@ -103,10 +103,13 @@ sub list : Local {
     # action in Product, it can in principle support a listing of all
     # orders ever.
 
-    my ( $cond, $attrs );
+    my $cond;
+    my $attrs = { prefetch => [ 'product_id',
+                                { product_id => 'company_id' },
+                                'order_batch_id' ] };
     if ( defined $category_id ) {
         $cond  = { 'product_id.product_category_id' => $category_id };
-        $attrs = { join => { product_id => 'product_category_id' } };
+        $attrs->{join} = { product_id => 'product_category_id' };
     }
 
     my ( $rs, $order_batch );
