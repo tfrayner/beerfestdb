@@ -98,8 +98,6 @@ sub getline {
     confess "CSV parser not initialized" unless $csv_parser;
     confess "Filehandle not initialized" unless $self->filehandle;
 
-    print STDERR ".";  # progress indicator
-
     my $fields;
     GETLINE:
     while (1) {
