@@ -259,10 +259,11 @@ Ext.onReady(function(){
         waitMsg:     'Loading Festival details...',
     });
 
-    var festivalStatus = new MyFormPanel({ // FIXME not entirely appropriate for readOnly.
+    var festivalStatus = new MyFormPanel({
 
         title:       'Festival status',
-            
+        readOnly:    true,
+
         items: [
             { name:       'kils_ordered',
               fieldLabel: 'Total kils of beer ordered',

@@ -328,7 +328,7 @@ Ext.onReady(function(){
                   dataIndex: 'festival_ref',
                   width:      50,
                   editor:     new Ext.form.TextField({
-                      allowBlank: false,
+                      allowBlank: true,
                   })},
                 { id:        'int_reference',
                   header:    'Cellar Cask ID',

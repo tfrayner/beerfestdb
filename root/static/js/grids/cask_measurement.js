@@ -155,6 +155,7 @@ Ext.onReady(function(){
 
     var myGrid = new MyEditorGrid(
         {
+            changesOnly:        true,
             objLabel:           'Dip',
             idField:            'cask_measurement_id',
             autoExpandColumn:   'volume',

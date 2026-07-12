@@ -45,3 +45,10 @@ textarea.bfd-required {
 td.bfd-required-cell .x-grid3-cell-inner {
     background-color: #ffeef2;
 }
+
+/* ── Read-only grid toolbar buttons ────────────────────────────────────────
+   When a MyEditorGrid is created with readOnly: true its toolbar buttons are
+   disabled.  Reduce the icon opacity so they look visually greyed-out. */
+.x-toolbar .x-item-disabled button {
+    opacity: 0.8;
+}
