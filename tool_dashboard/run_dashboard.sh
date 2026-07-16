@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# run_with_healthcheck.sh
+# run_dashboard.sh
 #
 # Starts CBF_tool_page.py via streamlit and restarts it if the
 # Streamlit healthcheck endpoint stops responding.
 #
 # Usage:
-#   ./run_with_healthcheck.sh [--port PORT] [--interval SECS] [--max-restarts N] [--streamlit-path /path/to/streamlit]
+#   ./run_dashboard.sh [--port PORT] [--interval SECS] [--max-restarts N] [--streamlit-path /path/to/streamlit]
 #
 # Defaults:
 #   PORT            8501
@@ -18,8 +18,9 @@ set -euo pipefail
 # ---------- defaults ----------------------------------------------------------
 PORT=8501
 INTERVAL=30
-MAX_RESTARTS=0
-HEALTH_URL="http://localhost:${PORT}/_stcore/health"
+MAX_RESTARTS=10
+HOSTNAME=localhost
+HEALTH_URL="http://${HOSTNAME}:${PORT}/_stcore/health"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STREAMLIT_SCRIPT="${SCRIPT_DIR}/CBF_tool_page.py"
 STREAMLIT_PATH="streamlit"
@@ -29,7 +30,7 @@ BACKOFF_MAX=300     # cap on backoff delay
 # ---------- argument parsing --------------------------------------------------
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --port)        PORT="$2";         HEALTH_URL="http://localhost:${PORT}/_stcore/health"; shift 2 ;;
+        --port)        PORT="$2";         HEALTH_URL="http://${HOSTNAME}:${PORT}/_stcore/health"; shift 2 ;;
         --interval)    INTERVAL="$2";     shift 2 ;;
         --max-restarts) MAX_RESTARTS="$2"; shift 2 ;;
 	    --streamlit-path) STREAMLIT_PATH="$2"; shift 2;;

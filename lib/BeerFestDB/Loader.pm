@@ -452,9 +452,6 @@ sub _load_data {
             'ContainerSize')
         : undef;
 
-    # Assumes default currency
-    my $order_price = $self->parse_price( $datahash->{$ORDER_PRICE} );
-
     my $count = $datahash->{$CASK_COUNT};
     unless ( defined $count && $count ne q{} ) {
         $count = 0;
@@ -473,6 +470,18 @@ sub _load_data {
     my $contact;
 
     if ( my $batchname = $datahash->{$ORDER_BATCH_NAME} ) { # ProductOrder
+        
+        # Assumes default currency
+        my $order_price;
+        if ( $self->value_is_acceptable( $datahash->{$ORDER_PRICE} ) ) {
+            if ( $self->value_is_acceptable( $datahash->{$CASK_PRICE} ) ) {
+                die("Simultaneous use of order_price and cask_price is not supported.");
+            }
+            $order_price = $self->parse_price( $datahash->{$ORDER_PRICE} );
+        } elsif ( $self->value_is_acceptable( $datahash->{$CASK_PRICE} ) ) {
+            $order_price = $self->parse_price( $datahash->{$CASK_PRICE} ) * $count;
+        }
+
         my $order_batch = $self->_load_column_value(
             {
                 festival_id            => $festival,
@@ -869,8 +878,8 @@ sub _coerce_headings {
         qr/cask [_ -]* cellar [_ -]* id/ixms           => $CASK_CELLAR_ID,
         qr/cask [_ -]* festival [_ -]* id/ixms         => $CASK_FESTIVAL_ID,
         qr/cask [_ -]* count/ixms                      => $CASK_COUNT,
-        qr/cask [_ -]* size/ixms                       => $CASK_SIZE,
-        qr/cask [_ -]* unit/ixms                       => $CASK_UNIT,
+        qr/cask [_ -]* size/ixms                       => $CASK_SIZE,   # Specifically for container_size.description, _not_ volume.
+#        qr/cask [_ -]* unit/ixms                       => $CASK_UNIT,  # TODO could be reinstated but only if cask_volume and dispense_method are also available. Use web UI otherwise.
         qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
         qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,
         qr/cask [_ -]* graveyard (?:[_ -]* location)?/ixms  => $CASK_GRAVEYARD_LOCATION,

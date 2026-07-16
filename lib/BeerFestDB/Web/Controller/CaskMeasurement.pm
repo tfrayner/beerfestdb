@@ -102,7 +102,7 @@ sub list : Local {
     my ( $self, $c, $batch_id, $stillage_id ) = @_;
 
     # This listing actually revolves around casks rather than
-    # cask_measurements. Perhaps it's in the wrong controller? FIXME?
+    # cask_measurements.
     unless ( defined $stillage_id && defined $batch_id ) {
         die("Error: stillage_location_id or measurement_batch_id not defined.");
     }
@@ -114,7 +114,19 @@ sub list : Local {
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();
     }
-    my $rs = $stillage->search_related('cask_managements')->search_related('casks');
+    my $rs = $stillage->search_related('cask_managements')
+                      ->search_related('casks', undef,
+                      {
+                          prefetch => [
+                              'cask_management_id',
+                              { gyle_id => [
+                                  { festival_product_id => 'product_id' },
+                                  'company_id',
+                                ]
+                              },
+                              'cask_measurements',
+                          ],
+                      });
 
     my $batch = $c->model( 'DB::MeasurementBatch' )
                   ->find({measurement_batch_id => $batch_id});
@@ -200,7 +212,7 @@ sub list_by_cask : Local {
         $rs = $c->model( 'DB::CaskMeasurement' )->search_rs( { cask_id => $cask_id } );
     }
     else {
-        $rs = $c->model( 'DB::CaskMeasurement' );  # FIXME is this actually needed?
+        die("Error: cask_id not defined.");
     }
 
     $self->generate_json_and_detach( $c, $rs );

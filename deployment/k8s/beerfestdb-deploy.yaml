@@ -1,0 +1,485 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: beerfestdb
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+  type: ClusterIP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-mysql-ingress
+spec:
+  entryPoints:
+    - bfdbmysql
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: mysql
+      port: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: beerfestdb
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: mysql:9.7
+        name: mysql
+        envFrom:
+        - secretRef:
+            name: beerfestdb-environment-secret
+        resources:
+          limits:
+            cpu: '2'
+            memory: 8G
+          requests:
+            cpu: 10m
+            memory: 200Mi
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
+      - name: mysql-initdb
+        persistentVolumeClaim:
+          claimName: mysqlinit-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-app
+  labels:
+    app: beerfestdb-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beerfestdb-app
+  template:
+    metadata:
+      labels:
+        app: beerfestdb-app
+    spec:
+      containers:
+      - name: beerfestdb
+        image: tfrayner/beerfestdb:latest
+        imagePullPolicy: IfNotPresent
+        command: ["beerfestdb_web_fastcgi.pl", "-l", ":3000", "-n", "1"]
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            cpu: '1'
+            memory: 4G
+          requests:
+            cpu: 10m
+            memory: 200Mi
+        securityContext:
+          runAsUser: 65534  # nobody user
+        envFrom:
+        - secretRef:
+            name: beerfestdb-environment-secret
+        ## SSL certificates not really needed in the app container since nginx is handling TLS termination, 
+        ## but if you want to use them for any reason (e.g. for outgoing HTTPS requests with client certs),
+        ## you can mount them here as well.
+        volumeMounts:
+        - mountPath: /etc/ssl/custom
+          name: beerfestdb-ssl-keyvol
+          readOnly: true
+        - name: beerfestdb-web-yml
+          mountPath: /etc/beerfestdb/beerfestdb_web.yml
+          subPath: beerfestdb_web.yml
+          readOnly: true
+## Uncomment this for local development with a bind mount of the source code. Make 
+## sure to set the BEERFESTDB_ROOT_PATH environment variable in the container. See
+## ../config/environment.sh for an example.
+#        - mountPath: /usr/src/BeerFestDB
+#          name: beerfestdb-codevol
+#        workingDir: /usr/src/BeerFestDB
+      volumes:
+      - name: beerfestdb-ssl-keyvol
+        secret:
+          secretName: beerfestdb-tls-secret
+      - name: beerfestdb-web-yml
+        secret:
+          secretName: beerfestdb-web-yml
+## Uncomment this also for local development with a bind mount of the source code.
+#      - name: beerfestdb-codevol
+#        persistentVolumeClaim:
+#          claimName: beerfestdb-code-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-app-service
+spec:
+  selector:
+    app: beerfestdb-app
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-nginx
+  labels:
+    app: beerfestdb-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beerfestdb-nginx
+  template:
+    metadata:
+      labels:
+        app: beerfestdb-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.15.7-perl
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 443
+        resources:
+          limits:
+            cpu: '1'
+            memory: 4G
+          requests:
+            cpu: 10m
+            memory: 200Mi
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        - name: beerfestdb-ssl-keyvol
+          mountPath: /etc/ssl/custom
+          readOnly: true
+        - name: beerfestdb-oidc-keyvol
+          mountPath: /path/to/beerfestdb/keys
+          readOnly: true
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: beerfestdb-nginx-config
+      - name: beerfestdb-ssl-keyvol
+        secret:
+          secretName: beerfestdb-tls-secret
+      - name: beerfestdb-oidc-keyvol
+        secret:
+          secretName: beerfestdb-oidc-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-nginx-service
+spec:
+  selector:
+    app: beerfestdb-nginx
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: 443
+---
+## If you want to use cert-manager to get TLS certs from Let's Encrypt, you can
+## apply the following resources. You will need to replace the email address and
+## domain name with your own. Please note that this will only work on a publicly 
+## accessible cluster with a valid domain name pointing to it. If you are running
+## this on a local cluster or without a valid domain, you will need to use
+## self-signed certificates or another method for TLS.
+# apiVersion: cert-manager.io/v1
+# kind: Issuer
+# metadata:
+#   namespace: beerfestdb
+#   name: letsencrypt-prod
+# spec:
+#   acme:
+#     email: user@example.org
+#     server: https://acme-v02.api.letsencrypt.org/directory
+#     privateKeySecretRef:
+#       name: letsencrypt-prod-issuer-account-key
+#     solvers:
+#       - http01:
+#           ingress:
+#             serviceType: ClusterIP
+#             ingressClassName: traefik
+# ---
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   namespace: beerfestdb
+#   name: beerfestdb-nginx-cert
+# spec:
+#   commonName: mybeerfestdb.example.net
+#   secretName: beerfestdb-nginx-cert
+#   dnsNames:
+#     # Replace with your domain here
+#     - mybeerfestdb.example.net
+#   issuerRef:
+#     kind: Issuer
+#     name: letsencrypt-prod
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-ingress
+spec:
+  ## This entryPoint needs to be set up in your Traefik configuration without TLS being enabled there.
+  entryPoints:
+    - bfdbsecure
+  ## Using HostSNI(`*`) will match all TLS traffic on the specified entryPoint and pass it through to
+  ## the nginx service, which will handle SSL termination and routing to the app. This allows us to use
+  ## a single Traefik entryPoint for both the web dashboard and the main app, and route based on SNI or path in nginx.
+  ## The downside is that Traefik won't be able to do any TLS routing decisions based on SNI, so all 
+  ## traffic on this entryPoint will go to nginx. If you want to route based on SNI in Traefik instead, 
+  ## you can set up separate entryPoints for the dashboard and main app, and use HostSNI rules to route
+  ## to the appropriate service. In that case, you would also need to set up TLS termination in Traefik
+  ## and pass the appropriate certificates there.
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: beerfestdb-nginx-service
+      port: 443
+  tls:
+    passthrough: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-nginx-config
+data:
+  default.conf: |
+    # Map to handle WebSocket Connection header correctly
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name _;
+
+        # SSL certificate configuration - see beerfestdb-tls-secret for volume mount
+        ssl_certificate /etc/ssl/custom/tls.crt;
+        ssl_certificate_key /etc/ssl/custom/tls.key;
+
+        # SSL security settings
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+
+        location / {
+            return 301 https://$http_host/app$request_uri;
+        }
+        
+        location /app {
+            rewrite ^/app(/.*) $1 break;
+            fastcgi_pass beerfestdb-app-service:3000;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+            fastcgi_param QUERY_STRING $query_string;
+            fastcgi_param REQUEST_METHOD $request_method;
+            fastcgi_param CONTENT_TYPE $content_type;
+            fastcgi_param CONTENT_LENGTH $content_length;
+
+            fastcgi_param SCRIPT_NAME  '';
+            fastcgi_param PATH_INFO $fastcgi_script_name;
+            fastcgi_param REQUEST_URI $uri$is_args$args;
+            fastcgi_param DOCUMENT_URI $document_uri;
+            fastcgi_param DOCUMENT_ROOT $document_root;
+            fastcgi_param SERVER_PROTOCOL $server_protocol;
+
+            fastcgi_param GATEWAY_INTERFACE  CGI/1.1;
+            fastcgi_param SERVER_SOFTWARE  nginx/$nginx_version;
+
+            fastcgi_param REMOTE_ADDR $remote_addr;
+            fastcgi_param REMOTE_PORT $remote_port;
+            fastcgi_param SERVER_ADDR $server_addr;
+            fastcgi_param SERVER_PORT $server_port;
+            fastcgi_param SERVER_NAME $server_name;
+
+            # Tell Catalyst the original request was HTTPS (required for using_frontend_proxy).
+            fastcgi_param HTTPS                     on;
+            fastcgi_param HTTP_X_FORWARDED_PROTO    https;
+        }
+
+        location /dashboard {
+            proxy_pass http://beerfestdb-dash-service:8501;
+            proxy_http_version 1.1;
+
+            # Headers
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Port $server_port;
+
+            # WebSocket upgrade support (required for /_stcore/stream)
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+
+            # Timeouts - WebSocket connections must stay open
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 3600s;
+            proxy_read_timeout 3600s;
+
+            # Disable buffering for real-time streaming
+            proxy_buffering off;
+            proxy_request_buffering off;
+        }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-dash
+  labels:
+    app: beerfestdb-dash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beerfestdb-dash
+  template:
+    metadata:
+      labels:
+        app: beerfestdb-dash
+    spec:
+      containers:
+      - name: beerfestdb
+        image: tfrayner/beerfestdb-dashboard:latest
+        imagePullPolicy: IfNotPresent
+        # The streamlit run command is baked into the image. Override here if you want to change it.
+        env:
+          # Allow Streamlit to verify SSL certificates using the custom CA certificate
+          - name: SSL_CERT_FILE
+            value: /etc/ssl/custom/tls.crt
+          - name: STREAMLIT_SERVER_BASE_URL_PATH
+            value: "/dashboard"
+        envFrom:
+        - secretRef:
+            name: beerfestdb-environment-secret
+        ports:
+        - containerPort: 8501
+        resources:
+          limits:
+            cpu: '1'
+            memory: 4G
+          requests:
+            cpu: 10m
+            memory: 200Mi
+        securityContext:
+          runAsUser: 65534  # nobody user
+        volumeMounts:
+        - name: beerfestdb-ssl-keyvol
+          mountPath: /etc/ssl/custom
+          readOnly: true
+        - name: beerfestdb-web-yml
+          mountPath: /beerfestdb_web.yml
+          subPath: beerfestdb_web.yml
+          readOnly: true
+        - name: beerfestdb-dashboard-secret
+          mountPath: /app/.streamlit/secrets.toml
+          subPath: secrets.toml
+          readOnly: true
+      volumes:
+      - name: beerfestdb-ssl-keyvol
+        secret:
+          secretName: beerfestdb-tls-secret
+      - name: beerfestdb-web-yml
+        secret:
+          secretName: beerfestdb-web-yml
+      - name: beerfestdb-dashboard-secret
+        secret:
+          secretName: beerfestdb-dashboard-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-dash-service
+spec:
+  selector:
+    app: beerfestdb-dash
+  ports:
+  - protocol: TCP
+    port: 8501
+    targetPort: 8501
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-redis
+  labels:
+    app: beerfestdb-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beerfestdb-redis
+  template:
+    metadata:
+      labels:
+        app: beerfestdb-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+        resources:
+          limits:
+            cpu: '1'
+            memory: 512Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: beerfestdb
+  name: beerfestdb-redis-service
+spec:
+  selector:
+    app: beerfestdb-redis
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+---

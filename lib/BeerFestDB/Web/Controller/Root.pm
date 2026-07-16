@@ -232,10 +232,10 @@ sub auto : Private {
     # Prepend all uri_for paths so that this works under a reverse proxy.
     my $base = $c->config->{ 'base_path' };
     if ( defined $base ) {
-	my $uri = $c->req->base;
-	$uri->path($base);
-	$c->req->base($uri);
-	$c->stash->{'base_path'} = $base;
+        my $uri = $c->req->base;
+        $uri->path($base);
+        $c->req->base($uri);
+        $c->stash->{'base_path'} = $base;
     }
 
     # Return true to continue processing.

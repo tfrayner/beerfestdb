@@ -4,6 +4,9 @@ beerfestdb_web.yml
 
 # Other random temp files
 *~
+*-bak
+*.bak
+tmp.*
 t/testing.db
 t/pristine_testing.db
 t/testing_submit.db
@@ -35,5 +38,6 @@ META.yml
 
 R/BeerFestDB/man/*.Rd
 R/BeerFestDB/*.Rproj
+R/BeerFestDB*.tar.gz
 .Rproj.user
 

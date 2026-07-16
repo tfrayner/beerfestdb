@@ -125,7 +125,10 @@ sub list : Local {
             { 'product_id.product_category_id' => $category_id },
             {
                 join     => { product_id => 'product_category_id' },
-                prefetch => { product_id => 'product_category_id' },
+                prefetch => [
+                    { product_id => [ 'company_id' ] },
+                    'festival_id',
+                ],
             });
     }
     else {
@@ -144,7 +147,10 @@ sub list_by_product : Local {
 
     my $rs;
     if ( defined $product_id ) {
-        $rs = $c->model( 'DB::FestivalProduct' )->search_rs( { product_id => $product_id } );
+        $rs = $c->model( 'DB::FestivalProduct' )->search_rs(
+            { product_id => $product_id },
+            { prefetch => [ 'festival_id' ] },
+        );
     }
     else {
         $c->stash->{error} = qq{Product ID not supplied.};
@@ -167,7 +173,10 @@ sub list_by_company : Local {
     if ( defined $company_id ) {
         $rs = $c->model( 'DB::FestivalProduct' )
             ->search_rs( { 'product_id.company_id' => $company_id },
-                         { join => 'product_id' } );
+                         {
+                            join => 'product_id',
+                            prefetch => [ 'festival_id' ],
+                         } );
     }
     else {
         $c->stash->{error} = qq{Company ID not supplied.};
@@ -435,14 +444,11 @@ sub _derive_status_report : Private {
                 'product_orders',
                 { %$cond, is_final => 1 },
                 { join => $attr->{join},
-		  # Prefetch should only pull out *required*
-		  # relationships. Optional relationships behave
-		  # unexpectedly.
                   prefetch => {
-		      %{ $attr->{join} },
-		      container_size_id => 'dispense_method_id',
-		      product_id        => 'company_id',
-		  },
+                      %{ $attr->{join} },
+                      container_size_id => 'dispense_method_id',
+                      product_id        => 'company_id',
+                  },
               },
             );
 
@@ -485,9 +491,6 @@ sub _derive_status_report_by_dispense_method : Private {
                         casks => {
                             cask_management_id => {
                                 container_size_id => 'dispense_method_id' }}}};
-    # Prefetch should only pull out *required*
-    # relationships. Optional relationships behave
-    # unexpectedly.
     my $prefetch = { %{ $attr->{join} },
                         gyles => {
                             casks => {
@@ -496,7 +499,7 @@ sub _derive_status_report_by_dispense_method : Private {
                         },
                         product_id => [
                             'company_id',
-    			    'product_category_id',
+                            'product_category_id',
                         ]};
     my $condition = { %$cond, 'container_size_id.dispense_method_id' => $dispense->id };
 
