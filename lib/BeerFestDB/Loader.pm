@@ -878,8 +878,8 @@ sub _coerce_headings {
         qr/cask [_ -]* cellar [_ -]* id/ixms           => $CASK_CELLAR_ID,
         qr/cask [_ -]* festival [_ -]* id/ixms         => $CASK_FESTIVAL_ID,
         qr/cask [_ -]* count/ixms                      => $CASK_COUNT,
-        qr/cask [_ -]* size/ixms                       => $CASK_SIZE,
-        qr/cask [_ -]* unit/ixms                       => $CASK_UNIT,
+        qr/cask [_ -]* size/ixms                       => $CASK_SIZE,   # Specifically for container_size.description, _not_ volume.
+#        qr/cask [_ -]* unit/ixms                       => $CASK_UNIT,  # TODO could be reinstated but only if cask_volume and dispense_method are also available. Use web UI otherwise.
         qr/cask [_ -]* price/ixms                      => $CASK_PRICE,
         qr/cask [_ -]* comment/ixms                    => $CASK_COMMENT,
         qr/cask [_ -]* graveyard (?:[_ -]* location)?/ixms  => $CASK_GRAVEYARD_LOCATION,
