@@ -2,7 +2,7 @@
 
 This file documents the revision history for BeerFestDB and associated tools.
 
-## [1.2rc] - Unreleased
+## [1.2rc] - 2026-07-16
 - Data model improvements:
   - Added support for **ProductCharacteristic** (e.g. colour, clarity) with full
       CRUD UI, loader support, and cask-end template integration
