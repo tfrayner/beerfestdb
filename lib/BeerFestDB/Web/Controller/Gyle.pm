@@ -49,14 +49,14 @@ sub BUILD {
         comment           => 'comment',
         ext_reference     => 'external_reference',
         int_reference     => 'internal_reference',
-       festival_name     => {
-           festival_product_id => {
-               festival_id => 'name',
-           },
-       },
-       company_name      => {
-           company_id => 'name',
-       },
+        festival_name     => {
+            festival_product_id => {
+                festival_id => 'name',
+            },
+        },
+        company_name      => {
+            company_id => 'name',
+        },
     });
 }
 
@@ -78,7 +78,12 @@ sub list_by_festival_product : Local {
 
     my ( $self, $c, $id ) = @_;
 
-    my $rs = $c->model( 'DB::Gyle' )->search({ festival_product_id => $id });
+    my $rs = $c->model( 'DB::Gyle' )->search(
+        { festival_product_id => $id },
+        {
+            prefetch => [ 'company_id' ],
+        },
+    );
 
     $self->generate_json_and_detach( $c, $rs );
 }
@@ -93,7 +98,10 @@ sub list_by_festival : Local {
 
     my $rs = $c->model( 'DB::Gyle' )->search(
         { 'festival_product_id.festival_id' => $id },
-        { join => 'festival_product_id' },
+        {
+            join => 'festival_product_id',
+            prefetch => [ 'company_id', { festival_product_id => 'festival_id' } ],
+        },
     );
 
     $self->generate_json_and_detach( $c, $rs );
