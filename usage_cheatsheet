@@ -2,6 +2,15 @@ Various notes that have proven handy for actually using BeerfestDB for the Cambr
 
 Author: Midori Harris, Head Cellar Manager
 
+Platform and resources
+
+The festival cellar maintains two websites that are used to manage our festival-wide process:
+
+- https://beerfestdb.cambridgebeerfestival.uk/ - the main stock control database.
+- https://beerfestdbtools.cambridgebeerfestival.uk/ - a dashboard-like interface providing useful functions which we'll describe below.
+
+In addition, there are many scripts which need to be run on our 'pin' server which we'll also describe.
+
 General data entry
 
 To get special characters in, go to http://unicode-table.com/, find
@@ -43,7 +52,7 @@ Info gathering spreadsheet --> load_data input
 	d. Delete extra column(s) from ALL rows
 6. Correct columns headers as needed (see list below)
 7. Add remaining required columns: festival name & year, product category, order batch, is-final ('1' for yes). Example header row:
-    brewery_name	product_name	product_abv	product_style	cask_size	cask_count	order_sor	distributor_name	order_batch	product_category	festival_name	festival_year	order_finalized
+    brewery_name	product_name	product_abv	product_style	cask_size	cask_count	cask_price	order_sor	distributor_name	order_batch	product_category	festival_name	festival_year	order_finalized
     	a. For cask_size, use one of the text descriptions from the database (see list below). Watch for typos, especially if a load fails. (New 2017-04; previously used number of gallons)
 	b. Need order_finalized to tick the 'ordered' boxes ... and make orders actually get spawned! product_category and festival_year are less critical; although the category is useful, the load won't actually fail without it. (Based on experience in 2019.)
 8. Feed to load_data.pl with default beerfestdb_web.yml (i.e. default protected categories including company, product)
@@ -62,33 +71,48 @@ To get the current list of container size descriptions from beerfestdb, use quer
 +----------------------+
 | description          |
 +----------------------+
+| pin                  |
+| firkin               |
 | 10 gallon            |
-| 10L polypin          |
 | 11 gallon            |
-| 12 x 750 mL case     |
-| 20L keg              |
-| 20L KeyKeg           |
-| 20L polypin          |
+| kilderkin            |
 | 22 gallon            |
+| barrel               |
+| hogshead             |
+| 6 gallon KeyKeg/cask |
+| 10 L KeyKeg          |
+| 20 L KeyKeg          |
+| 30 L KeyKeg          |
+| 4.37gal cider tub    |
+| 5 gallon             |
+| 20 L bag-in-box      |
 | 25 cL bottle         |
-| 30L keg              |
-| 30L KeyKeg           |
 | 33 cL bottle         |
 | 35.5 cl bottle       |
 | 37.5 cL bottle       |
-| 4.37gal cider tub    |
-| 5 gallon             |
+| 44 cL bottle         |
+| 47.3 cL bottle       |
 | 50 cL bottle         |
-| 50L keg              |
-| 6 gallon KeyKeg/cask |
-| 6 x 750 mL case      |
 | 70 cL bottle         |
 | 75 cL bottle         |
-| barrel               |
-| firkin               |
-| kilderkin            |
-| pin                  |
+| 6 x 750 mL case      |
+| 12 x 750 mL case     |
+| 5 L polypin          |
+| 10 L polypin         |
+| 20 L polypin         |
+| 25 L polypin         |
+| 10 L keg             |
+| 12 L keg             |
+| 20 L keg             |
+| 30 L keg             |
+| 50 L keg             |
+| 33 cL can            |
+| 37.5 cL can          |
+| 44 cL can            |
+| 50 cL can            |
 +----------------------+
+
+If needed, new container sizes can be created by an admin-level user in the web interface.
 
 To load mead or wine data using load_data.pl
   punt and
@@ -97,17 +121,13 @@ To load mead or wine data using load_data.pl
   OR really punt and just
     a. load up everything as though there's just one of each product/size combo
     b. Optional (and only worth doing if db used for stock control): update quantities in web interface upon arrival, or later (if later, add new lines in web interface or use load_data.pl -- if scripted, don't forget to subtract 1 from each qty)
-  (tried this:
-    one. include a cask_unit column, set to 'litre'
-    two. put number of L in cask_size column; hope no floating point problems bite us
-   but got cranky error messages, e.g. "DBIx::Class::ResultSet::find_or_create(): DBI Exception: DBD::mysql::st execute failed: Incorrect decimal value: '50 cL bottle' for column 'container_volume' at row 1 [for Statement "INSERT INTO container_size ( container_measure_id, container_volume) VALUES ( ?, ? )" with ParamValues: 0='2', 1='50 cL bottle'] at /home/tfrayner/beerfestdb/lib/BeerFestDB/Loader.pm line 661")
 
 Cider, perry, apple juice
   - Ciderdom may or may not provide container sizes and quantities. If they don't, there are two options:
         a. include order_batch column, and dummy values for cask_size and cask_quantity (e.g. size 5 gallon, qty 1); OR
         b. omit order_batch, cask_size and cask_quantity, and unprotect FestivalProduct in beerfestdb.yml
   - Handle cider & perry ABVs at gyle level (and load correspondingly, and annoyingly, late in proceedings)
-        use load-data.pl once to get companies and product names in and connected to the festival, then prepare a second file for gyle ABVs.
+        use load_data.pl once to get companies and product names in and connected to the festival, then prepare a second file for gyle ABVs.
         - for the first round, include these columns: brewery_name, product_name, product_style, cask_size, cask_count, distributor_name, order_sor, order_batch, product_category, festival_name, festival_year, order_finalized (it shouldn't require product_abv, but if it does, include a blank column)
         - in the second round, include: gyle_ABV, brewery_name, product_name, product_category, product_sale_price, festival_name, festival_year
 
@@ -118,14 +138,7 @@ Foreign beer
 
 To get new info to replace old (e.g. improved tasting notes), use load_data.pl overwrite mode (-o option).
 
-To spawn summer fest programme beer list fodder:
-  1. go into mysql command line (% mysql -p beerfestdb)
-  2. the query is
-	select * from programme_notes_view where festival='[name of festival of interest]'
-	e.g. select * from programme_notes_view where festival='41st Cambridge Beer festival' 
-  3. invoke from unix comand line to funnel output to a file
-	echo 'select * from programme_notes_view where festival="[name of festival of interest]"' | mysql -p beerfestdb > [output_file.txt]
-	e.g. % echo 'select * from programme_notes_view where festival="41st Cambridge Beer Festival"' | mysql -p beerfestdb > cbf41_beerlist.txt
+To spawn summer fest programme beer list fodder, log in to the dashboard web interface and select 'Programme Beer List' from the sidebar menu. From there you can download the list in CSV or TSV format. If for any reason the dashboard isn't working, see appendix 10 for how to generate the list directly from the database.
 
 For cask lists (delivery & stillage plan checklists; cask labels)
   1. Run preload_festival_casks.pl to bring cask entries into existence
@@ -133,7 +146,6 @@ For cask lists (delivery & stillage plan checklists; cask labels)
   2. Use dump_to_template.pl with options:
      a. delivery checklist: -t templates/delivery_checklist.tt2 -o distributor
         optional: manually edit .tex to split by day (because of course not quite everything arrives on the specified Wednesday)
-
      b. cask list for stillage plan: dump_to_template.pl -t ~tfrayner/beerfestdb/util/templates/stillage_planning.tt2 -o cask_management --filters "cask_size_name=30L KeyKeg,cask_size_name=20L KeyKeg,brewery=Adnams,brewery=Grain,brewery=Bexar County,brewery=Three Blind Mice,brewery=Woodforde's" > filtered_cask_list.tex
 	- the above assumes a separate KeyKeg bar
 	- include a brewery=[name] key/value pair for each brewery bar (example is from CBF44 in 2017)
@@ -157,14 +169,14 @@ When beer comes
 	Both the web interface and load_data.pl take prices in pounds
   
 For dip sheets:
-  Manually enter "Measurement batches" -- otherwise no dip data slots print out!
+  Manually enter "Measurement batches" -- otherwise no dip data slots print out! For best results, include short day-of-week as the measurement batch description (e.g. Mo, Tu, We, Th, Fr, Sa).
   Assign each cask to a bar
         interface: All casks received - Stillage column
 	OR
 	use update_cask_details.pl -a -i $file (cask ID & location ID in $file)
 	  headers cask_festival_id, stillage_location (use name for stillage location, e.g. DMZ)
 	  need the -a flag to get it to "move a cask", i.e. change its location assignment, even from nothing to something
-	  handy way to get cask IDs: take relevant columns from index card data see below)
+	  (handy way to get cask IDs: take relevant columns from index card data see below)
 
 For cask end signs, can have festival logo in upper right corner (use
 the -l [logo] option) or leave the space for something else, such as a
@@ -204,7 +216,7 @@ Report Graphs
     % SWEAVE_STYLEPATH_DEFAULT=TRUE R CMD Sweave dip_figure_analysis.Rnw
   Generates output file dip_figure_analysis.tex and a bunch of .pdf files (for the figures) if all has gone well
   If it spits out an error message about "negative per diem dips found", it means there's a case where a cask magically has more beer at a later dip than it did at an earlier dip. Correct the dip data rather than the laws of physics.
-   easiest way is to regenerate the dip sheets (see above) and eyeball them
+   easiest way is to regenerate the dip sheets (see above) and eyeball them - the error message should list the cask IDs affected
    copy dip_figure_analysis.Rnw into local directory in one's ~ if necessary for write-access reasons
 
 October & Winter festivals
@@ -267,8 +279,7 @@ column headings for files to load (using load_data.pl):
         cask_festival_id
         cask_count
         cask_size
-        cask_unit
-        cask_price
+        cask_price  for price per cask; see also order_price below
         cask_comment
         cask_measurement_date
         cask_measurement_volume
@@ -280,7 +291,7 @@ column headings for files to load (using load_data.pl):
         order_received
         order_comment
         order_sor	order_sale_or_return also works
-        order_price  for _total_ order price, i.e. cask_price x cask_count
+        order_price  for total order price, i.e. cask_price x cask_count
         contact_type
         contact_first_name
         contact_last_name
@@ -407,8 +418,6 @@ Tips on using the Sale Price Generator:
 
 Also remember that the database doesn't really support same product, different dispense (e.g. beer in cask & keg) at same festival. (The schema dates back to before that was a thing; only International had any keg back then.) We have always kludged by manually editing one of the cask end signs in the .tex file after running dump_to_template.pl!
 
-
-
 _Developer notes:_ 
   The simplest way to use the dashboard is to use the production version described above. If you plan 
   to run the dashboard locally on your own computer (e.g. when testing new features), follow these steps: 
@@ -419,3 +428,17 @@ _Developer notes:_
   - Run the streamlit app:
     % streamlit run CBF_tool_page.py
   - Aim your browser at http://127.0.0.1:8051/ to access the dashboard
+
+
+
+Appendix 10 - Generate Festival Programme Beer List file
+
+If the dashboard isn't working:
+
+  1. go into mysql command line (% mysql -p beerfestdb)
+  2. the query is
+	select * from programme_notes_view where festival='[name of festival of interest]'
+	e.g. select * from programme_notes_view where festival='41st Cambridge Beer festival' 
+  3. invoke from unix comand line to funnel output to a file
+	echo 'select * from programme_notes_view where festival="[name of festival of interest]"' | mysql -p beerfestdb > [output_file.txt]
+	e.g. % echo 'select * from programme_notes_view where festival="41st Cambridge Beer Festival"' | mysql -p beerfestdb > cbf41_beerlist.txt
