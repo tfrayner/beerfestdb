@@ -37,72 +37,24 @@ We've retained support for all these ways of using the database, so that smaller
 festivals can start at a simpler level and then choose to use advanced
 features as they grow larger.
 
-Installation (using Docker)
----------------------------
+Features
+--------
 
-The simplest method to get BeerFestDB up and running is to use the
-provided Docker container with docker-compose. There are just four
-steps to get started, the first two of which can be skipped for an ultra-quick startup:
+- Highly configurable, product-agnostic stock control website with relational database backend
+- Comprehensive process documentation tested across multiple live festivals
+- Tools dashboard writen using `streamlit` for rapid development of new data visualisations
+- JSON-based API allowing programmatic access
+- R package facilitating festival data download via API
+- [Mobile app](https://github.com/tfrayner/beerfest-mobile) for live recording of common cellaring tasks
+- Support for deployment via containerisation
 
-1. (OPTIONAL) Edit `docker-compose/beerfestdb_web_docker.yml` and
-`db/create_dbuser_account.sql` files to change the default database 
-connection password. This step is optional, but __*highly recommended*__.
+Deployment using Docker Images
+------------------------------
 
-2. (OPTIONAL) Run these commands to rebuild the Docker image:
-
-        docker build -t tfrayner/catalyst-base:1.1 -f Dockerfile-catalyst .
-        docker build -t tfrayner/beerfestdb-base:1.2 -f Dockerfile-base .
-        docker build -t tfrayner/beerfestdb:1.2 .
-
-Alternatively, for a quick start we recommend that you simply use the official images
-from Docker Hub, skipping directly to the next step.
-
-3. Configure the host settings in the following files. You will need to replace the `titus.local` string with the host address of your local deployment (`your-host` in the examples below):
-
-   - docker-compose/docker-compose.yml
-   - docker-compose/beerfestdb_web_docker.yml
-   - docker-compose/dashboard-config/secrets.toml
-
-You will also need to generate a self-signed SSL certificate:
-
-        cd docker-compose
-        sh docker-compose-ssl-certs-setup.sh
-
-4. Run this command in the docker-compose directory to initialise the database and start the application:
-
-        docker compose up
-
-You should now be able to navigate to https://your-host:8443/ in your
-web browser and log in (see below for default account details). You will 
-need to accept the self-signed SSL certificate in your browser. Also 
-check out the [tool dashboard module](tool_dashboard/README.md), which 
-will be available at https://your-host:8444/
-
-The default docker-compose deployment sets some environmental
-variables (principally in the `.app_env` file) which are useful for development
-but which should probably be deactivated in production. To change the
-configuration in development, edit the `beerfestdb_web_docker.yml` file. For
-production, this file can either be baked into the Docker container or
-included on a mounted volume. Within the docker container, the 
-`$BEERFESTDB_WEB_CONFIG` environmental variable can be used to point 
-to the desired config file.
-
-To run command-line scripts in the development environment, you can
-use commands such as this (perhaps as part of an alias) to read and
-write files within the project directory:
-
-        docker-compose run -w /usr/src/BeerFestDB --rm app load_data.pl -i example_data/producers.csv
-
-Files will be created as owned by the 'nobody' user; if desired, this can
-be changed in the `docker-compose.yml` file.
-
-Installation (Kubernetes)
--------------------------
-
-The `k8s` subdirectory contains manifest YAML files which have been 
-successfully used to deploy `beerfestdb` + `nginx` + `mysql` on a 
-`k3s+traefik` cluster. They are provided as an example of what is possible, 
-but will likely require tailoring to your specific cluster environment.
+This is the simplest way to get the system up and running. See the
+[deployment README](deployment/README.md) for details on how to run 
+BeerFestDB from a set of docker images using either Docker Compose or
+Kubernetes.
 
 Installation (without Docker/K8S)
 ---------------------------------
@@ -170,3 +122,4 @@ theme:
 
 Finally, a sincere thank you to Roger Stark, who helped design the
 original BeerFestDB database schema many years ago.
+

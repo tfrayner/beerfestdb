@@ -138,7 +138,10 @@ sub list : Local {
     # split this method, e.g. building on the FestivalProduct class instead.
 
     my ( $rs, $festival );
-    my $cond = defined $category_id ? { product_category_id => $category_id } : {};
+    my $cond = defined $category_id ? { product_category_id => $category_id }
+                                    : {};
+    my $prefetch = defined $category_id ? [ 'company_id' ]
+                                        : [ 'company_id', 'product_category_id' ];
     if ( defined $festival_id ) {
         $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
         unless ( $festival ) {
@@ -147,10 +150,10 @@ sub list : Local {
             $c->detach();
         }
         $rs = $festival->search_related('festival_products')
-                       ->search_related('product_id', $cond);
+                       ->search_related('product_id', $cond, { prefetch => $prefetch });
     }
     else {
-        $rs = $c->model( 'DB::Product' )->search_rs($cond);
+        $rs = $c->model( 'DB::Product' )->search_rs($cond, { prefetch => $prefetch });
     }
     
     $self->generate_json_and_detach( $c, $rs );
@@ -173,9 +176,10 @@ sub list_by_company : Local {
     if ( defined $company_id ) {
         my %query = ( company_id => $company_id );
         if ( defined $category_id ) {
-            $query{ product_category_id } = $category_id;
+            $query{ 'me.product_category_id' } = $category_id;
         }
-        $rs = $c->model( 'DB::Product' )->search_rs( \%query );
+        $rs = $c->model( 'DB::Product' )->search_rs( \%query,
+            { prefetch => [ 'product_category_id' ] });
     }
     else {
         $c->stash->{error} = 'Company ID not provided.';
@@ -198,9 +202,13 @@ sub list_by_festival : Local {
     if ( defined $festival_id ) {
         my %query = ( 'festival_products.festival_id' => $festival_id );
         if ( defined $category_id ) {
-            $query{ product_category_id } = $category_id;
+            $query{ 'me.product_category_id' } = $category_id;
         }
-        $rs = $c->model( 'DB::Product' )->search_rs( \%query, { join => 'festival_products' } );
+        $rs = $c->model( 'DB::Product' )->search_rs( \%query,
+            {
+                join => 'festival_products',
+                prefetch => [ 'company_id', 'product_category_id' ],
+            } );
     }
     else {
         $c->stash->{error} = 'Festival ID not provided.';
@@ -236,7 +244,13 @@ sub list_by_order_batch : Local {
         $rs = $batch->search_related('product_orders')
                     ->search_related('product_id',
                                      defined $category_id
-                                         ? { product_category_id => $category_id } : {});
+                                         ? { product_category_id => $category_id } : {},
+                                     {
+                                        prefetch => defined $category_id
+                                            ? [ 'company_id' ]
+                                            : [ 'company_id', 'product_category_id' ],
+                                     }
+    );
     }
     else {
         $c->stash->{error} = 'OrderBatch ID not provided.';

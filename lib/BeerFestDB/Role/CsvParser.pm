@@ -98,8 +98,6 @@ sub getline {
     confess "CSV parser not initialized" unless $csv_parser;
     confess "Filehandle not initialized" unless $self->filehandle;
 
-    print "Reading line from CSV file...\n";
-
     my $fields;
     GETLINE:
     while (1) {
@@ -145,6 +143,8 @@ sub confirm_eof {
                 $self->csv_parser()->error_input()));
     }
 
+    warn("\nEnd of file reached successfully.\n");
+
     return (1);
 }
 
@@ -164,9 +164,7 @@ sub get_headers {
     my @header;
     HEADER:
     while ( scalar @header == 0 ) {
-        print "Reading header line...$self\n";
         my $line = $self->getline(1);
-        print "Read header line...\n";
         last HEADER unless defined $line;
         my $lstr = join('', @$line);
         next HEADER if $lstr =~ /^\s*#/;  # skip comments (N.B. redundant with getline, but added for extra safety)

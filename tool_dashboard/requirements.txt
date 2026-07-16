@@ -1,5 +1,5 @@
 pandas
-streamlit[auth]
+streamlit[auth]==1.58.0  # Known-good version, pinned to avoid any issues with unreviewed versions.
 mysql-connector-python
 SQLAlchemy
 mysqlclient
