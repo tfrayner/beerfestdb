@@ -25,6 +25,7 @@ params:
   password: ''
 ---
 
+
 # Introduction
 
 This report provides a summary of the sales and costs of beers at the Cambridge Beer Festival, based on the data in the BeerFestDB database. It includes overall sales data, order distributions, and sales by category (ABV, region, stillage location, and style).
@@ -77,7 +78,8 @@ cp <- cp %>%
 write.csv(cp, "full_dip_dump.csv", row.names = FALSE)
 ```
 
-# Overall Sales Data
+
+# Overall Sales Figures
 
 The following table summarises the volumes sold, unsold and condemned, further broken down by whether the cask was sold on a sale-or-return basis or not.
 
@@ -190,52 +192,10 @@ ggplot(d, aes(x=variable, y=value, fill=style)) +
   theme(legend.position='right', legend.title=element_text(size=12), legend.text=element_text(size=10))
 ```
 
-# Order Distributions
 
-Here we simply show the proportion of beers ordered by geographic region and style, to give an idea of the diversity of beers ordered for the festival. FIXME perhaps don't use pie charts here?
-
-```{r order_regional_distributions}
-byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
-drawPie( byprod, 'region', cols=cols, cex=1.25 ) # FIXME different colour scheme
-drawPie( byprod, 'style', cols=cols, cex=1.25 )
-```
-
-# Sales by Category
-
-FIXME in the following, I think we need to replace the predicted/observed bars in the plots with a simple ration of the two, with some notes indicating that this should be as close to 1 as possible.
-
-## By ABV
-
-```{r sales_by_abv}
-plotSalesRate( cps, 'abv_class', w=dip_cols )
-plotModelCoeffs( cps, 'abv_class', drop=drop, w=dip_cols)
-```
-
-## By Region
-```{r sales_by_region}
-plotSalesRate( cp, 'region', w=dip_cols )
-plotModelCoeffs( cp, 'region', drop=drop, w=dip_cols)
-```
-
-## By Stillage Location
-```{r sales_by_stillage}
-plotSalesRate( cp, 'stillage', w=dip_cols )
-plotModelCoeffs( cp, 'stillage', drop=drop, w=dip_cols)
-```
-
-## By Style
-```{r sales_by_style}
-d <- dp %>% column_to_rownames('style')
-  
-heatmap.2(as.matrix(d),
-          dendrogram='none', key=FALSE, margins=c(5,12), trace='none',
-          Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
-plotModelCoeffs( cp, 'style', drop=drop, w=dip_cols)
-```
-
-# Sales and Costs Analysis
+# Budget Analysis
  
-This report provides a brief summary of British beer sales and costs for the Cambridge Beer Festival.
+This report provides a comparison of British beer sales with costs for the Cambridge Beer Festival.
 
 ## Sales Figures
 
@@ -318,6 +278,52 @@ knitr_tabset(x, function(i) {
   )))
 })
 ```
+
+
+# Sales rates over time
+
+FIXME in the following, I think we need to replace the predicted/observed bars in the plots with a simple ratio of the two, with some notes indicating that this should be as close to 1 as possible.
+
+## By ABV
+
+```{r sales_by_abv}
+plotSalesRate( cps, 'abv_class', w=dip_cols )
+plotModelCoeffs( cps, 'abv_class', drop=drop, w=dip_cols)
+```
+
+## By Region
+```{r sales_by_region}
+plotSalesRate( cp, 'region', w=dip_cols )
+plotModelCoeffs( cp, 'region', drop=drop, w=dip_cols)
+```
+
+## By Stillage Location
+```{r sales_by_stillage}
+plotSalesRate( cp, 'stillage', w=dip_cols )
+plotModelCoeffs( cp, 'stillage', drop=drop, w=dip_cols)
+```
+
+## By Style
+```{r sales_by_style}
+d <- dp %>% column_to_rownames('style')
+  
+heatmap.2(as.matrix(d),
+          dendrogram='none', key=FALSE, margins=c(5,12), trace='none',
+          Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
+plotModelCoeffs( cp, 'style', drop=drop, w=dip_cols)
+```
+
+
+# Summary of ordered beer proportions
+
+Here we simply show the proportion of beers ordered by geographic region and style, to give an idea of the diversity of beers ordered for the festival. FIXME perhaps don't use pie charts here?
+
+```{r order_regional_distributions}
+byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
+drawPie( byprod, 'region', cols=cols, cex=1.25 ) # FIXME different colour scheme
+drawPie( byprod, 'style', cols=cols, cex=1.25 )
+```
+
 
 # Technical Information
 
