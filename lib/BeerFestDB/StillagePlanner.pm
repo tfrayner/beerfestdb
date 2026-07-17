@@ -113,6 +113,10 @@ must be on the same stillage.
 receive an importance-weighted penalty (first cask worst, last cask
 least), with a much lower penalty for sale-or-return casks.
 
+=item * B<Pull-through placement> - casks from the same product should
+be assigned within a given stillage level (e.g. Top or Bottom) so that
+they can be aligned front-to-back for pull-through dispensing.
+
 =back
 
 =head1 ATTRIBUTES
@@ -650,6 +654,7 @@ sub _score_assignment {
     my $w_prox   = $config->weight( 'proximity',            5 );
     my $w_deck   = $config->weight( 'deck',                20 );
     my $w_stillage = $config->weight( 'stillage',         1000 );
+    my $w_pullthru = $config->weight( 'pull_through',       15 );
     my $sor_mult = $config->weight( 'sor_deck_multiplier', 0.1 );
 
     my $score = 0;
@@ -689,7 +694,7 @@ sub _score_assignment {
     for my $ci ( 0 .. $#$casks ) {
         my $gi = $assign->[$ci];
         next if $gi == DECK_IDX;
-        my $stillage_loc = $groups->[$gi]->stillage_location;
+        my $stillage_loc = $groups->[$gi]->stillage_location->description;
         $stillages{ $casks->[$ci]->product_group_id }{$stillage_loc} = 1;
     }
     for my $prod_id ( keys %stillages ) {
@@ -705,6 +710,49 @@ sub _score_assignment {
         my $penalty    = $importance * $w_deck;
         $penalty *= $sor_mult if $e->is_sale_or_return;
         $score += $penalty;
+    }
+
+    # ── 5. Pull-through placement ─────────────────────────────────────────
+    # We assume the first word of the bay position description relates to the
+    # stillage level, e.g. "Top" or "Bottom". We penalise bays where there is
+    # beer assignment mismatch within the levels (e.g. Top Front and Top Rear),
+    # to encourage assignments where beers are stillaged one in front of
+    # another for pull-through.
+    my %pullthroughs;
+    for my $ci ( 0 .. $#$casks ) {
+        my $gi = $assign->[$ci];
+        next if $gi == DECK_IDX;
+        my $bay_id = $groups->[$gi]->bay_id;
+        my ($level, $depth) = ( $groups->[$gi]->bay_position->description =~ /^(\S+)\s+(\.+)/ );
+        $pullthroughs{ $bay_id }{ $level }{ $depth }{ $casks->[$ci]->product_group_id }++;
+    }
+    while (my ($bay_id, $bayhash) = each %pullthroughs ) {
+        while (my ($level, $lvlhash) = each %$bayhash ) {
+            # Each depth now represented by a hash of product_group_id => count. We want to
+            # check that all depths have the same product_group_id => count mapping, i.e.
+            # the same beers are assigned at each depth (pull-through alignment).
+            my @depth_hashes = values %$lvlhash;
+            if ( @depth_hashes > 1 ) {
+                my $ref      = $depth_hashes[0];
+                my @ref_keys = sort keys %$ref;
+                my $all_same = 1;
+                for my $h ( @depth_hashes[ 1 .. $#depth_hashes ] ) {
+                    my @h_keys = sort keys %$h;
+                    if ( "@ref_keys" ne "@h_keys" ) {
+                        $all_same = 0;
+                        last;
+                    }
+                    for my $k ( @ref_keys ) {
+                        if ( $ref->{$k} != $h->{$k} ) {
+                            $all_same = 0;
+                            last;
+                        }
+                    }
+                    last unless $all_same;
+                }
+                $score += $w_pullthru unless $all_same;
+            }
+        }
     }
 
     return $score;
@@ -763,6 +811,14 @@ Each deck cask receives
 C<(cask_count + 1 - cask_number) x weight x (SOR_multiplier if SOR)>
 as a penalty.  The first cask of a beer is penalised most; the last
 least.  Sale-or-return casks receive a much smaller penalty.
+
+=item B<Pull-through placement> (default weight 15)
+
+For each bay, the casks are grouped by stillage level (e.g. Top or 
+Bottom).  Within each level, the casks are grouped by depth (e.g.
+Front or Rear).  If the product assignments differ between depths,
+a penalty of C<weight> is added.  This encourages casks of the same
+beer to be aligned front-to-back for pull-through dispensing.
 
 =back
 

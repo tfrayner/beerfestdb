@@ -166,6 +166,7 @@ subtest 'Config loads YAML correctly' => sub {
     is( $cfg->weight('proximity', 5),            5,   'prox weight 5' );
     is( $cfg->weight('stillage', 1000),       1000,   'stillage weight 1000' );
     is( $cfg->weight('deck', 20),               20,   'deck weight 20' );
+    is( $cfg->weight('pull_through', 15),       15,   'pull_through weight 15' );
     is( $cfg->weight('sor_deck_multiplier', 0.1), 0.1,'SOR multiplier 0.1' );
 
     # product_categories is set in the test YAML

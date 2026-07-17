@@ -169,7 +169,7 @@ sub id {
 =head2 bay_id
 
 Returns a string identifying just the stillage + bay, used for
-proximity scoring: C<"$stillage_location_id:$bay_number">.
+proximity and pull-through scoring: C<"$stillage_location_id:$bay_number">.
 
 =cut
 

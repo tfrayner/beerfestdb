@@ -100,7 +100,9 @@ L<BeerFestDB::StillagePlanner>).
     alphabetical:        10
     proximity:            5
     deck:                20
+    pull_through:        15
     sor_deck_multiplier: 0.1
+    stillage:           1000
 
 =head1 ATTRIBUTES
 
