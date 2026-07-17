@@ -106,6 +106,9 @@ name order when reading across all slot groups in sequence.
 =item * B<Beer proximity> - casks from the same product should be in
 the same bay.
 
+=item * B<Beer on same stillage> - casks from the same product really
+must be on the same stillage.
+
 =item * B<Deck placement> - casks that cannot fit on the stillage
 receive an importance-weighted penalty (first cask worst, last cask
 least), with a much lower penalty for sale-or-return casks.
@@ -646,6 +649,7 @@ sub _score_assignment {
     my $w_alpha  = $config->weight( 'alphabetical',        10 );
     my $w_prox   = $config->weight( 'proximity',            5 );
     my $w_deck   = $config->weight( 'deck',                20 );
+    my $w_stillage = $config->weight( 'stillage',         1000 );
     my $sor_mult = $config->weight( 'sor_deck_multiplier', 0.1 );
 
     my $score = 0;
@@ -677,7 +681,23 @@ sub _score_assignment {
         $score += ( $n - 1 ) * $w_prox if $n > 1;
     }
 
-    # ── 3. Deck placement ─────────────────────────────────────────────────
+    # ── 3. Beer on same stillage ───────────────────────────────────────────
+    # Penalty per extra distinct stillage pair a beer occupies. This is a much
+    # higher penalty than the proximity penalty, to encourage beers to be on the
+    # same stillage if possible.
+    my %stillages;
+    for my $ci ( 0 .. $#$casks ) {
+        my $gi = $assign->[$ci];
+        next if $gi == DECK_IDX;
+        my $stillage_loc = $groups->[$gi]->stillage_location;
+        $stillages{ $casks->[$ci]->product_group_id }{$stillage_loc} = 1;
+    }
+    for my $prod_id ( keys %stillages ) {
+        my $n = scalar keys %{ $stillages{$prod_id} };
+        $score += ( $n - 1 ) * $w_stillage if $n > 1;
+    }
+
+    # ── 4. Deck placement ─────────────────────────────────────────────────
     for my $ci ( 0 .. $#$casks ) {
         next if $assign->[$ci] != DECK_IDX;
         my $e          = $casks->[$ci];
@@ -729,6 +749,13 @@ sequence that is out of alphabetical order adds one weight unit.
 For each beer with multiple on-stillage casks, the penalty is
 C<(number of distinct (stillage, bay) pairs - 1) x weight>.  This
 encourages all casks of the same beer to land in the same bay.
+
+=item B<Beer on same stillage> (default weight 1000)
+
+For each beer with multiple on-stillage casks, the penalty is
+C<(number of distinct stillages - 1) x weight>.  This encourages all
+casks of the same beer to land on the same stillage (and therefore be
+managed by the same cellar team).
 
 =item B<Deck placement> (default weight 20; SOR multiplier 0.1)
 
