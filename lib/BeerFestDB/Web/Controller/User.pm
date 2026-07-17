@@ -324,6 +324,9 @@ sub request_password_reset : Local {
     my $from      = $email_cfg->{ from_address } || 'beerfestdb@localhost';
     my $smtp_host = $email_cfg->{ smtp_host }    || 'localhost';
     my $smtp_port = $email_cfg->{ smtp_port }    || 25;
+    my $smtp_user = $email_cfg->{ smtp_user };
+    my $smtp_pass = $email_cfg->{ smtp_pass };
+    my $smtp_ssl  = $email_cfg->{ smtp_ssl }     // 0; # 0, 1 or 'starttls'
 
     eval {
         my $tt_vars = {
@@ -342,7 +345,10 @@ sub request_password_reset : Local {
             TmplOptions => { INCLUDE_PATH => $c->path_to('root', 'src') },
             TmplParams  => $tt_vars,
         );
-        $msg->send( 'smtp', $smtp_host, Port => $smtp_port );
+        my @smtp_opts = ( Port => $smtp_port, SSL => $smtp_ssl );
+        push @smtp_opts, AuthUser => $smtp_user if defined $smtp_user;
+        push @smtp_opts, AuthPass => $smtp_pass if defined $smtp_pass;
+        $msg->send( 'smtp', $smtp_host, @smtp_opts );
     };
     if ( $@ ) {
         $c->log->error( "Failed to send password reset email: $@" );

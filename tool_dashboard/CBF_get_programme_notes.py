@@ -2,6 +2,9 @@
 import mysql.connector
 import pandas as pd
 import streamlit as st
+from CBF_logger import make_logger
+
+logger = make_logger(__file__)
 
 #%%
 conn = st.connection('cbf', type='sql')
@@ -21,14 +24,17 @@ sql = '''select * from programme_notes_view
 where festival = :festivalname;'''
 
 #%%
+logger.debug("Executing SQL query to fetch programme notes")
 df = conn.query(sql, params={"festivalname": festivalname})
 #%%
 
 @st.cache_data
 def csv_for_download(df):
+    logger.debug("Converting DataFrame to CSV for download")
     return df.to_csv().encode("utf-8")
 
 def tsv_for_download(df):
+    logger.debug("Converting DataFrame to TSV for download")
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
 

@@ -9,3 +9,4 @@
 
 [% js_link( src = '/static/js/grids/user_view.js' ) %]
 
+<div id="datagrid"></div>

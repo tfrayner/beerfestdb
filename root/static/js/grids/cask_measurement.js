@@ -87,7 +87,7 @@ Ext.onReady(function(){
           editor:     new Ext.form.Checkbox({
           })},
         { id:         'internal_reference',
-          header:     'Cellar No.',
+          header:     'Cellaring Order',
           dataIndex:  'internal_reference',
           width:      50,
           editor:     new Ext.form.NumberField({
@@ -95,7 +95,7 @@ Ext.onReady(function(){
               readOnly: true,
           })},
         { id:         'cellar_reference',
-          header:     'Festival ID',
+          header:     'Cask ID',
           dataIndex:  'cellar_reference',
           width:      50,
           editor:     new Ext.form.NumberField({

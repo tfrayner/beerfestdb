@@ -24,10 +24,12 @@ package BeerFestDB::Web::View::HTML;
 use strict;
 use base 'Catalyst::View::TT';
 
+my $root_path = $ENV{BEERFESTDB_ROOT_PATH} || BeerFestDB::Web->path_to( 'root' );
+
 __PACKAGE__->config({
     INCLUDE_PATH => [
-        BeerFestDB::Web->path_to( 'root', 'src' ),
-        BeerFestDB::Web->path_to( 'root', 'lib' )
+        "$root_path/src",
+        "$root_path/lib",
     ],
     PRE_PROCESS  => 'config/main',
     WRAPPER      => 'site/wrapper',

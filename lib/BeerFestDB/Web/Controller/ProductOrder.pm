@@ -22,7 +22,7 @@
 package BeerFestDB::Web::Controller::ProductOrder;
 use Moose;
 use namespace::autoclean;
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON);
 
 BEGIN {extends 'BeerFestDB::Web::PriceController'};
 
@@ -103,10 +103,13 @@ sub list : Local {
     # action in Product, it can in principle support a listing of all
     # orders ever.
 
-    my ( $cond, $attrs );
+    my $cond;
+    my $attrs = { prefetch => [ 'product_id',
+                                { product_id => 'company_id' },
+                                'order_batch_id' ] };
     if ( defined $category_id ) {
         $cond  = { 'product_id.product_category_id' => $category_id };
-        $attrs = { join => { product_id => 'product_category_id' } };
+        $attrs->{join} = { product_id => 'product_category_id' };
     }
 
     my ( $rs, $order_batch );
@@ -149,8 +152,8 @@ sub submit : Local {
         $self->detach_with_txn_failure( $c, $@ );
     }
 
-    $c->stash->{ 'success' } = JSON->true();
     $c->stash->{ 'ids' }     = \@ids;
+    $c->stash->{ 'success' } = JSON()->true();
     $c->forward( 'View::JSON' );
 }
 
@@ -179,7 +182,7 @@ sub _save_records : Private {
     my @ids;
     foreach my $rec ( @{ $data } ) {
         # No changes allowed to records already marked as is_received.
-        # FIXME perhaps allow comment changes, but for now this is simpler and
+        # TODO perhaps allow comment changes, but for now this is simpler and
         # safer. Even price changes would need to be propagated to CaskManagement.
         if ( defined $rec->{ 'product_order_id' }
                 && ( my $po = $rs->find( $rec->{ 'product_order_id' } ) ) ) {
@@ -187,6 +190,11 @@ sub _save_records : Private {
                 die("Product Order with id $rec->{product_order_id} is already is_received in database.");
         }
         my $dbobj = $self->build_database_object( $rec, $c, $rs );
+        
+        # Handle cases where the record is new and thus doesn't have an
+        # id yet. This is important if we need to follow on with preload_product_order, below.
+        $rec->{ 'product_order_id' } //= $dbobj->id;
+        
         push @ids, $dbobj->id;
     }
 

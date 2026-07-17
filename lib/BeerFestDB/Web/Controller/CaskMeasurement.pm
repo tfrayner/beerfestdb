@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::CaskMeasurement;
 use Moose;
 use namespace::autoclean;
 
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON is_bool);
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -102,7 +102,7 @@ sub list : Local {
     my ( $self, $c, $batch_id, $stillage_id ) = @_;
 
     # This listing actually revolves around casks rather than
-    # cask_measurements. Perhaps it's in the wrong controller? FIXME?
+    # cask_measurements.
     unless ( defined $stillage_id && defined $batch_id ) {
         die("Error: stillage_location_id or measurement_batch_id not defined.");
     }
@@ -114,7 +114,19 @@ sub list : Local {
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();
     }
-    my $rs = $stillage->search_related('cask_managements')->search_related('casks');
+    my $rs = $stillage->search_related('cask_managements')
+                      ->search_related('casks', undef,
+                      {
+                          prefetch => [
+                              'cask_management_id',
+                              { gyle_id => [
+                                  { festival_product_id => 'product_id' },
+                                  'company_id',
+                                ]
+                              },
+                              'cask_measurements',
+                          ],
+                      });
 
     my $batch = $c->model( 'DB::MeasurementBatch' )
                   ->find({measurement_batch_id => $batch_id});
@@ -182,7 +194,7 @@ sub list : Local {
         push @casks, \%cask_info;
     }
 
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
     $c->stash->{ 'objects' } = \@casks;
     $c->forward( 'View::JSON' );
 }
@@ -200,7 +212,7 @@ sub list_by_cask : Local {
         $rs = $c->model( 'DB::CaskMeasurement' )->search_rs( { cask_id => $cask_id } );
     }
     else {
-        $rs = $c->model( 'DB::CaskMeasurement' );  # FIXME is this actually needed?
+        die("Error: cask_id not defined.");
     }
 
     $self->generate_json_and_detach( $c, $rs );
@@ -232,7 +244,7 @@ sub submit : Local {
         $self->detach_with_txn_failure( $c, $@ );
     }
     
-    $c->stash->{success} = JSON->true();
+    $c->stash->{success} = JSON()->true();
 
     $c->forward( 'View::JSON' );
 }
@@ -249,39 +261,46 @@ sub _save_records : Private {
         }
 
         # Cask-level editing at the point of dip entry for convenience.
-        foreach my $field ( qw(cask_comment) ) {
+        foreach my $field ( qw(cask_comment internal_reference cellar_reference) ) {
 
             my ( $cfield ) = ( $field =~ m/\A cask_(.*)/xms );
 
             # Empty string is allowed.
-            $cask->set_column($cfield, delete $rec->{$field}) if defined $rec->{$field};
+            if ( defined $rec->{$field} ) {
+                $c->log->debug("Setting $cfield to '$rec->{$field}' for cask_id=$rec->{cask_id}");
+                $cask->set_column($cfield, delete $rec->{$field});
+            }
         }
         foreach my $field ( qw(is_vented is_tapped is_ready is_condemned) ) {
 
-            # No empty strings allowed for tinyints.
-            $cask->set_column($field, delete $rec->{$field})
-                if ( defined $rec->{$field} && $rec->{$field} ne q{} );
+            # Boolean fields need confirming as defined and not q{} since the UI may pass in false values.
+            if ( defined $rec->{$field} && is_bool($rec->{$field}) ) {
+                $c->log->debug("Setting $field to '$rec->{$field}' for cask_id=$rec->{cask_id}");
+                $cask->set_column($field, delete $rec->{$field});
+            }
         }
         $cask->update();
 
         # We are assuming all measurement units are the same as the
         # cask size unit (i.e. gallons, for the most part).
 
-	# Allow the UI to pass in an empty string to indicate we
-	# should delete the pre-existing dip.
-	if ( defined ( $rec->{volume} ) && $rec->{volume} eq q{} ) {
-	    my %attr  = map { $_ => $rec->{$_} } qw( cask_id measurement_batch_id );
-	    if ( my $dbobj = $rs->find(\%attr) ) {
-		$dbobj->delete();
-	    }
-	}
-	else {
-	    $rec->{container_measure_id}
-	        = $cask->cask_management_id()
+	    # Allow the UI to pass in an empty string to indicate we
+	    # should delete the pre-existing dip.
+	    if ( defined ( $rec->{volume} ) && $rec->{volume} eq q{} ) {
+            $c->log->debug("Deleting cask measurement for cask_id=$rec->{cask_id}, batch_id=$rec->{measurement_batch_id}");
+	        my %attr  = map { $_ => $rec->{$_} } qw( cask_id measurement_batch_id );
+	        if ( my $dbobj = $rs->find(\%attr) ) {
+		        $dbobj->delete();
+	        }
+    	}
+	    elsif ( defined $rec->{volume} || defined $rec->{comment} ) {
+            $c->log->debug("Saving cask measurement for cask_id=$rec->{cask_id}, batch_id=$rec->{measurement_batch_id}");
+	        $rec->{container_measure_id}
+	            = $cask->cask_management_id()
                        ->container_size_id()
-		       ->get_column('container_measure_id');
-	    $self->build_database_object( $rec, $c, $rs );
-	}
+		               ->get_column('container_measure_id');
+	        $self->build_database_object( $rec, $c, $rs );
+	    }
     }
 
     return;

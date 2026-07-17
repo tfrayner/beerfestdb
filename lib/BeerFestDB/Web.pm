@@ -58,6 +58,7 @@ our $VERSION = '1.2';
 # details given here can function as a default configuration,
 # with a external configuration file acting as an override for
 # local deployment.
+my $root_path = $ENV{BEERFESTDB_ROOT_PATH} || __PACKAGE__->path_to( 'root' );
 
 __PACKAGE__->config(
     name         => 'BeerFestDB::Web',
@@ -65,6 +66,7 @@ __PACKAGE__->config(
     encoding     => 'UTF-8',
     session => { flash_to_stash => 1,
                  expires        => 3600, },
+    'Plugin::Static::Simple' => { include_path => [ "$root_path" ] },
     'Plugin::Session' => {
         storage => "/tmp/beerfestdb-$>/web/session_data",
         unlink_on_exit => 1,
@@ -144,7 +146,7 @@ foreach my $path ( qw(bar caskmeasurement cask company
 }
 
 # Controlled vocabs only editable by admin (but which must be listable by all users).
-foreach my $path ( qw(productstyle) ) {
+foreach my $path ( qw(productstyle productcharacteristictype) ) {
     __PACKAGE__->allow_access_if( "/$path/list_by_category", [ qw( user ) ] );
 }
 foreach my $path ( qw(bayposition companyregion contacttype containermeasure

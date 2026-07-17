@@ -3,3 +3,8 @@
 .venv_dashboard
 .vscode
 .streamlit
+Dockerfile
+run_docker_image.sh
+__pycache__
+*~
+.dockerignore

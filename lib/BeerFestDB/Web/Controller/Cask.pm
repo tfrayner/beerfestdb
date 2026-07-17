@@ -23,7 +23,7 @@ package BeerFestDB::Web::Controller::Cask;
 use Moose;
 use namespace::autoclean;
 
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON);
 use Data::Dumper;
 
 BEGIN {extends 'BeerFestDB::Web::PriceController'; }
@@ -203,6 +203,13 @@ sub list : Local {
                        ->search_related('casks',
                                         { 'product_id.product_category_id' => $category_id },
                                         {
+                                            prefetch => [
+                                                'cask_management_id',
+                                                { gyle_id => [
+                                                    { festival_product_id => 'product_id' },
+                                                    'company_id',
+                                                ] },
+                                            ],
                                             join     => {
                                                 gyle_id => {
                                                     festival_product_id => {
@@ -253,7 +260,17 @@ sub list_by_stillage : Local {
 
     my $rs = $c->model( 'DB::Cask' )
         ->search({ 'cask_management_id.stillage_location_id' => $id },
-                 { join => 'cask_management_id' });
+                 {
+                    prefetch => [
+                        'cask_management_id',
+                        { gyle_id => [
+                            { festival_product_id => 'product_id' },
+                              'company_id',
+                          ]
+                        },
+                    ],
+                    join => 'cask_management_id',
+                 });
 
     $self->generate_json_and_detach( $c, $rs );
 }
@@ -273,8 +290,17 @@ sub list_by_festival_product : Local {
                ->search({
                    'cask_management_id.festival_id' => $fp->get_column('festival_id'),
                    'gyle_id.festival_product_id' => $fp->get_column('festival_product_id'),
-               }, { join => [ { gyle_id => 'festival_product_id' },
-                              { cask_management_id => 'festival_id' } ] });
+                }, {
+                prefetch => [
+                    'cask_management_id',
+                    { gyle_id => [
+                        { festival_product_id => 'product_id' },
+                        'company_id',
+                        ] },
+                ],
+                join => [ { gyle_id => 'festival_product_id' },
+                          { cask_management_id => 'festival_id' } ]
+                });
 
     $self->generate_json_and_detach( $c, $rs );
 }
@@ -304,7 +330,7 @@ sub list_dips : Local {
     }
 
     $c->stash->{ 'objects' } = $dips;
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
 
     $c->forward( 'View::JSON' );
 }

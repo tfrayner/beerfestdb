@@ -295,8 +295,25 @@ MyEditorGrid = Ext.extend(Ext.grid.EditorGridPanel, {
                 sortable: true
             },
             columns: [].concat(sm, action, this.contentCols),
-        }); 
-        
+        });
+
+        // Wrap renderers for required columns: dynamically add bfd-required-cell
+        // to the <td> CSS class when the cell value is empty, so that unfilled
+        // required cells are highlighted even in the non-editing display state.
+        Ext.each(col_model.config, function(col) {
+            if (!col.editor || col.editor.allowBlank !== false) { return; }
+            var origRenderer = col.renderer;
+            col.renderer = function(value, meta, record, rowIndex, colIndex, store) {
+                var html = origRenderer
+                    ? origRenderer.apply(this, arguments)
+                    : (value !== null && value !== undefined ? String(value) : '');
+                if (value === null || value === undefined || String(value) === '') {
+                    meta.css = (meta.css ? meta.css + ' ' : '') + 'bfd-required-cell';
+                }
+                return html;
+            };
+        });
+
         Ext.apply(this, {
             cm:                 col_model,
             sm:                 sm,
@@ -586,24 +603,70 @@ MyFormPanel = Ext.extend(Ext.form.FormPanel, {
 
 emptySelect = '-- Select --';
 
+/* A note on Combo box classes: ExtJS's ComboBox is really designed for remote-mode, 
+ * where the store is expected to contain only the one record matching the current value.
+ * In local-mode, it is really designed for use as a free-form typeahead field, where
+ * the user types in a value and the store filters down to matching records. In practice 
+ * this can yield rendering errors in grids after save+reload, because the store's 
+ * lastQuery is still set to the old value, so the store.data contains only the one record
+ * matching that value, and the combo's default findRecord method only looks in store.data,
+ * not store.snapshot (the full unfiltered dataset). MyComboBox addresses this limitation.
+ * 
+ * The MyComboBox subclass also adds an optional blank selection at
+ * the top of the list, for use in form fields where a selected value is optional.
+ * 
+ * Some combo boxes are managing many-to-many relationships; for these we use the LovCombo class.
+ * 
+ * We currently try to avoid standard Ext.form.ComboBox, but it could be used if
+ * allowBlank=false and typeAhead=false and there are no other special requirements.
+ */
+
 MyComboBox = Ext.extend(Ext.form.ComboBox, {
     noSelection:null,
 	
     initComponent : function(){
 		
-	if(this.noSelection && this.store){
-	    var data = {};
-	    data[this.valueField] = null; 
-	    data[this.displayField] = this.noSelection;
+        /* ComboBox override which adds an optional blank selection at the top of the 
+         * list. To be used for form fields where a selected value is optional (i.e.
+         * nullable in database). Not triggered if noSelection is null.
+         */
+        if(this.noSelection && this.store){
+            var data = {};
+            data[this.valueField] = null; 
+            data[this.displayField] = this.noSelection;
 	    
-	    this.store.on('load',function(){
-		if(!this.getById(0)){
-		    this.addSorted(new Ext.data.Record(data,0));
-		}
-	    });																		 
-	    this.store.sort(this.displayField,'asc');
-	}
-    }
+            this.store.on('load',function(){
+                if(!this.getById(0)){
+                    this.addSorted(new Ext.data.Record(data,0));
+                }
+            });
+            this.store.sort(this.displayField,'asc');
+	    }
+        MyComboBox.superclass.initComponent.apply(this, arguments);
+    },
+
+    /* ExtJS's local-mode doQuery calls store.filter(displayField, query) whenever
+     * the user types into a combo (typeAhead).  That filter is never automatically
+     * cleared when the combo closes, so store.data ends up containing only the one
+     * record the user last typed/selected.  The default findRecord only searches
+     * store.data; it therefore misses every other value, causing MyComboRenderer
+     * to return '' for all unchanged rows after a save+reload.
+     *
+     * This overrides findRecord to fall back to store.snapshot (the full
+     * unfiltered dataset) when the value is not found in the filtered store.data.
+     */
+    findRecord: function(prop, value) {
+        var record;
+        this.store.data.each(function(r) {
+            if (r.data[prop] == value) { record = r; return false; }
+        });
+        if (!record && this.store.snapshot) {
+            this.store.snapshot.each(function(r) {
+                if (r.data[prop] == value) { record = r; return false; }
+            });
+        }
+        return record || false;
+    },
 });
 
 Ext.reg('mycombo', MyComboBox);
@@ -707,6 +770,45 @@ MyMainPanel = Ext.extend(Ext.Panel, {
 Ext.onReady(function() {
     Ext.Ajax.extraParams = { csrf_token: csrf_token };
 });
+
+// Required-field highlighting.
+// Fields with allowBlank: false show a pale yellow background when empty and
+// revert to the normal background once a value has been entered.  Covers both
+// MyFormPanel form fields and MyEditorGrid cell editors (editing state).
+// The non-editing display state is handled by the renderer wrapper in
+// MyEditorGrid.initComponent above.
+(function() {
+    function updateRequired(field) {
+        if (!field.el) { return; }
+        var v = field.getValue();
+        var isEmpty = (v === null || v === undefined || String(v) === '');
+        field.el[isEmpty ? 'addClass' : 'removeClass']('bfd-required');
+    }
+
+    /* Override Ext.form.Field.prototype.afterRender once, here, to stamp
+     * a CSS class on any field with allowBlank === false. This covers every form
+     * field and grid cell editor in one place.
+     */
+    var origAfterRender = Ext.form.Field.prototype.afterRender;
+    Ext.form.Field.prototype.afterRender = function() {
+        origAfterRender.apply(this, arguments);
+        if (this.allowBlank !== false) { return; }
+        var field = this;
+        updateRequired(field);
+        // Update on user-driven change (blur for text fields, select for combos).
+        field.on('change', function() { updateRequired(field); });
+        // Patch setValue on this instance so that programmatic loads
+        // (e.g. form.load()) also trigger a re-check.  Deferred 10 ms to allow
+        // ComboBox to finish updating its internal this.value before getValue()
+        // is called.
+        var origSetValue = field.setValue;
+        field.setValue = function(v) {
+            origSetValue.apply(this, arguments);
+            Ext.defer(function() { updateRequired(field); }, 10);
+            return this;
+        };
+    };
+}());
 
 window.onbeforeunload = function() {
     var dirty = false;

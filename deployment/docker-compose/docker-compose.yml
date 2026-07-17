@@ -1,0 +1,81 @@
+services:
+  mysql:
+    image: 'mysql:9.7'
+    env_file:
+      - '../config/environment.sh'
+    volumes: 
+      - 'beerfestdb_mysql:/var/lib/mysql'
+      - '../../db:/docker-entrypoint-initdb.d'
+    expose:
+      - 3306
+    healthcheck:
+      # Change the password here, in the beerfestdb_web_docker.yml file, and in the database initialization SQL script db/create_dbuser_account.sql
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u beerfestdb --password='vent&T4p' --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  beerfestdb-redis-service:
+    image: 'redis:latest'
+    expose:
+      - 6379
+
+  beerfestdb-app-service:
+    image: 'tfrayner/beerfestdb:latest'
+    user: nobody
+    depends_on:
+      mysql:
+        condition: service_healthy
+      beerfestdb-redis-service:
+        condition: service_started
+    env_file:
+      - '../config/environment.sh'
+    volumes:
+# Uncomment the following line to use a bind mount of the source code for local development. Make sure
+# to set the BEERFESTDB_ROOT_PATH environment variable in the container. See ../config/environment.sh for an example.
+#      - '../../:/usr/src/BeerFestDB'
+      - '../../beerfestdb_web_site.yml:/etc/beerfestdb/beerfestdb_web.yml:ro'
+      - '../ssl/cert.pem:/etc/ssl/custom/cert.pem:ro'
+      - '../../keys:/path/to/beerfestdb/keys:ro'
+    command: >
+            beerfestdb_web_fastcgi.pl -l :3000 -n 5 -e
+    expose: 
+      - 3000
+
+  beerfestdb-dash-service:
+    image: 'tfrayner/beerfestdb-dashboard:latest'
+    build:
+      context: '../../tool_dashboard'
+      dockerfile: 'Dockerfile'
+    expose:
+      - 8501
+    environment:
+      # Allow Streamlit to verify SSL certificates using the custom CA certificate
+      - SSL_CERT_FILE=/etc/ssl/custom/cert.pem
+      - STREAMLIT_SERVER_BASE_URL_PATH=/dashboard
+    env_file:
+      - '../config/environment.sh'
+    volumes:
+      - '../../beerfestdb_web_site.yml:/beerfestdb_web.yml:ro'
+      - '../ssl/cert.pem:/etc/ssl/custom/cert.pem:ro'
+      - '../config/dashboard-secrets.toml:/app/.streamlit/secrets.toml:ro'
+
+  beerfestdb-nginx-service:
+    image: 'nginx:1.15.7-perl'
+    depends_on: 
+      - 'beerfestdb-app-service'
+      - 'beerfestdb-dash-service'
+    ports:
+      ## Change these ports as needed for your deployment. The first number is the port on 
+      ## the host machine, and the second number is the port in the container. The container
+      ## ports should match the ports listened to by nginx in the beerfestdb.conf file. The
+      ## host ports should be accessible from outside the container, and may need to be 
+      ## adjusted based on your deployment environment and any port conflicts.
+      - '3001:443'
+    volumes:
+      - './nginx/beerfestdb.conf:/etc/nginx/conf.d/default.conf'
+      - '../ssl:/etc/nginx/ssl:ro'
+
+volumes:
+  'beerfestdb_mysql': {}

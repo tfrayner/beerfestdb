@@ -10,7 +10,12 @@ Also create a /path/to/.streamlit/ directory. This will hold the secrets.toml fi
 
 ## Setup
 
-Create and activate a python virtual environment. Run the following to install dependencies:
+Install system package prerequisites. For example, on a Debian Linux box, you will need the following packages:
+- python.\[version\]-venv
+- mariadb-client
+- libmariadb-dev
+
+Check out BeerFestDB from Github. Run the following in the tool_dashboard directory. This will create and activate a python virtual environment, and install dependencies:
 
 ``` bash
 python -m venv .venv

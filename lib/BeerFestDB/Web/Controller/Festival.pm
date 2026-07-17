@@ -22,7 +22,7 @@
 package BeerFestDB::Web::Controller::Festival;
 use Moose;
 use namespace::autoclean;
-use JSON::MaybeXS;
+use JSON::MaybeXS qw(JSON);
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -182,7 +182,7 @@ sub status : Local {
 
     unless ( $festival ) {
         $c->stash->{ 'error' }   = "Error: Festival not found.";
-        $c->stash->{ 'success' } = JSON->false();
+        $c->stash->{ 'success' } = JSON()->false();
         $c->forward( 'View::JSON' );
     }
 
@@ -197,13 +197,13 @@ sub status : Local {
     my $beercat = $c->model('DB::ProductCategory')->find({ description => 'beer' });
     unless ( $beercat ) {
         $c->stash->{ 'error' }   = "Error: beer ProductCategory not found.";
-        $c->stash->{ 'success' } = JSON->false();
+        $c->stash->{ 'success' } = JSON()->false();
         $c->forward( 'View::JSON' );
     }
     my $kilsize = $c->model('DB::ContainerSize')->find({ description => 'kilderkin' });
     unless ( $kilsize ) {
         $c->stash->{ 'error' }    = "Error: kilderkin ContainerSize not found.";
-        $c->stash->{ 'success' }  = JSON->false();
+        $c->stash->{ 'success' }  = JSON()->false();
         $c->forward( 'View::JSON' );
     }
 
@@ -315,7 +315,7 @@ sub status : Local {
     );
 
     $c->stash->{ 'data' }    = \%obj_hash;
-    $c->stash->{ 'success' } = JSON->true();
+    $c->stash->{ 'success' } = JSON()->true();
 
     $c->forward( 'View::JSON' );
 }

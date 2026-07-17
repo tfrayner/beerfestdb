@@ -1,15 +1,24 @@
 Package: BeerFestDB
 Type: Package
-Title: Utility functions used to query and analyse dip data from the BeerFestDB database
-Version: 0.1
-Date: 2011-06-18
-Author: Tim F. Rayner
-Maintainer: Tim F. Rayner <tfrayner@gmail.com>
-Description: This is a package used to help manage the development of code used in generating sales reports and other analyses of the data stored in a BeerFestDB instance.
+Title: API client and analysis functions querying sales data from a 'BeerFestDB' installation
+Version: 1.1
+Date: 2026-06-03
+Authors@R:
+    person(given = "Tim", family = "Rayner", 
+           role = c("aut", "cre"), 
+           email = "tim.rayner@herdedcats.org")
+Description: The BeerFestDB project provides an open-source database for managing beer festival
+    sales data. This package retrieves data stored in such a 'BeerFestDB' database and provides 
+    methods to analyse them.
+URL: https://github.com/tfrayner/beerfestdb
+BugReports: https://github.com/tfrayner/beerfestdb/issues
 License: GPL (>= 3)
 LazyLoad: yes
+Encoding: UTF-8
 Depends: 
-  R (>= 2.10.0),
+  R (>= 2.10.0)
+Imports:
+  methods,
   rjson,
   RCurl,
   RColorBrewer,
@@ -18,3 +27,7 @@ Depends:
   dplyr,
   tidyr,
   purrr
+Suggests:
+  testthat (>= 3.0.0)
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
