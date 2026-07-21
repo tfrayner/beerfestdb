@@ -45,6 +45,10 @@ library(tibble)
 
 library(BeerFestDB)
 
+# If dip batch names are not already set in the database, we assume the festival
+# starts on the first of these days, and that dips are daily:
+days <- c("Mon", "Tues", "Weds", "Thurs", "Fri", "Sat", "Sun")
+
 # This is part of a hack to enable datatable in quarto tabsets; see https://stackoverflow.com/a/74708020
 htmltools::tagList(DT::datatable(mtcars))
 ```
@@ -75,6 +79,17 @@ cp <- cp %>%
   ungroup() %>%
   mutate(volume_lost = ifelse(is_condemned == 1, cask_volume, volume_lost)) %>%
   mutate(volume_sold = cask_volume - volume_lost)
+
+if (dip_cols[2] == "dip.NA") {
+  j <- dip_cols[-1]
+  names(j) <- days[seq_along(j)]
+} else {
+  j <- dip_cols[-1]
+  names(j) <- sub("^dip\\.", "", j)
+}
+cp <- cp %>% rename(j)
+dip_cols <- c("cask_volume", names(j))
+
 write.csv(cp, "full_dip_dump.csv", row.names = FALSE)
 ```
 
@@ -154,8 +169,6 @@ cps <- subset(cp, is_condemned == 0) %>%
 
 levels(cps$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cps$abv_class)))
 
-colnames(cps)[dip_cols] <- sub('^dip\\.', '', dip_cols)
-
 ## Calculate the per diem dips and check for negative values (which would indicate a data error)
 pd <- round(cps[,dip_cols][,-length(dip_cols)] - cps[,dip_cols][,-1], 6)
 colnames(pd) <- dip_cols[-1]
@@ -183,7 +196,6 @@ This bar chart shows the amount of beer sold per day, broken down by style. The 
 d <- reshape2::melt(dp)
 d$style <- factor(d$style)
 cols <- colorRampPalette(brewer.pal(9, 'Set1'))(nlevels(d$style))
-levels(d$variable) <- seq_along(levels(d$variable)) - 1
 ggplot(d, aes(x=variable, y=value, fill=style)) +
   geom_col() +
   scale_fill_manual(values=cols) +
@@ -288,29 +300,36 @@ FIXME in the following, I think we need to replace the predicted/observed bars i
 
 ```{r sales_by_abv}
 plotSalesRate( cps, 'abv_class', w=dip_cols )
-plotModelCoeffs( cps, 'abv_class', drop=drop, w=dip_cols)
+plotModelRatio(cps, 'abv_class', drop=drop, w=dip_cols)
 ```
 
 ## By Region
 ```{r sales_by_region}
 plotSalesRate( cp, 'region', w=dip_cols )
-plotModelCoeffs( cp, 'region', drop=drop, w=dip_cols)
+plotModelRatio( cp, 'region', drop=drop, w=dip_cols)
 ```
 
 ## By Stillage Location
 ```{r sales_by_stillage}
 plotSalesRate( cp, 'stillage', w=dip_cols )
-plotModelCoeffs( cp, 'stillage', drop=drop, w=dip_cols)
+plotModelRatio( cp, 'stillage', drop=drop, w=dip_cols)
 ```
 
 ## By Style
+
+The heatmap below shows the days on which each style sold best, with the colours indicating the relative sales rate for that style on that day. The bar chart below shows the ratio of predicted to observed sales for each style, with a value of 1 indicating that the beer order is predicting the sales accurately.
+
 ```{r sales_by_style}
+
+plotSalesRate( cp, 'style', w=dip_cols )
+
 d <- dp %>% column_to_rownames('style')
   
-heatmap.2(as.matrix(d),
+heatmap.2(as.matrix(t(scale(t(d)))),
           dendrogram='none', key=FALSE, margins=c(5,12), trace='none',
           Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
-plotModelCoeffs( cp, 'style', drop=drop, w=dip_cols)
+
+plotModelRatio( cp, 'style', drop=drop, w=dip_cols)
 ```
 
 
