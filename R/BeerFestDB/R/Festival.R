@@ -177,7 +177,8 @@ Festival <- R6::R6Class(
     #' @return A data frame with one row per product and one column per dip measurement
     #'   batch.  Each value is the sum of that batch's dip volumes across all casks for
     #'   the product, ignoring `NA` values.  Names are c("product_name", "company_name")
-    #'   followed by the dip column names.
+    #'   followed by the dip column names.  This is a special case of `$grouped_dips()` 
+    #'   where the grouping columns are the product name and company name.
     product_dips = function() {
       w <- c("product_name", "company_name")
       missing <- setdiff(w, names(private$.data))
@@ -188,6 +189,24 @@ Festival <- R6::R6Class(
         group_by(company_name, product_name) %>%
         summarise(across(all_of(self$dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
         select(all_of(c(w, self$dip_cols)))
+      return(private$remap_dip_names(rows))
+    },
+
+    #' @description Retrieve column-summed dip volumes for all casks, grouped by one
+    #'   or more metadata columns.
+    #' @param group_cols Character vector of metadata column names to group by.
+    #' @return A data frame with one row per group and one column per dip measurement
+    #'   batch.  Each value is the sum of that batch's dip volumes across all
+    #'   casks in the group, ignoring `NA` values.  Names are the grouping metadata 
+    #'   columns followed by the dip column names.
+    grouped_dips = function(group_cols) {
+      if (!all(group_cols %in% self$meta_cols)) {
+        stop("All `group_cols` must be metadata columns.")
+      }
+      rows <- private$.data %>%
+        group_by(across(all_of(group_cols))) %>%
+        summarise(across(all_of(self$dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
+        select(all_of(c(group_cols, self$dip_cols)))
       return(private$remap_dip_names(rows))
     },
 
