@@ -125,21 +125,40 @@ Festival <- R6::R6Class(
       private$.data <- data
     },
 
-    #' @description Subset casks by one or more metadata attributes.
+    #' @description Subset casks by a logical mask, named metadata attributes, or both.
     #'
-    #'   Each named argument is matched against the corresponding column in
-    #'   `$data`.  A row is retained when its value for **every** supplied
-    #'   argument is contained in the argument's value vector (i.e., multiple
-    #'   values are treated as an OR within a column, and columns are combined
-    #'   with AND).  Dip column names are not valid filter keys.
+    #'   If `.mask` is supplied it must be a logical vector of length
+    #'   `nrow(self$data)`.  Any additional named arguments are matched against
+    #'   the corresponding columns in `$data`: a row is retained when its value
+    #'   for **every** supplied argument is contained in the argument's value
+    #'   vector (i.e., multiple values are treated as OR within a column, and
+    #'   columns are ANDed together).  The mask and named filters are ANDed
+    #'   together.  Dip column names are not valid filter keys.
     #'
+    #' @param .mask Optional logical vector of length `nrow(self$data)`.  Rows
+    #'   corresponding to `TRUE` are retained.
     #' @param ... Named arguments whose names are non-dip column names and
     #'   whose values are the allowed value(s) for that column.
     #' @return A new `Festival` object containing only the matching rows.
-    subset = function(...) {
+    subset = function(.mask = NULL, ...) {
       args <- list(...)
+
+      # Validate and apply the logical mask if supplied.
+      if (!is.null(.mask)) {
+        if (!is.logical(.mask)) {
+          stop("`.mask` must be a logical vector.")
+        }
+        if (length(.mask) != nrow(private$.data)) {
+          stop("`.mask` must have the same length as the number of rows in the data (",
+               nrow(private$.data), ").")
+        }
+        keep <- .mask & !is.na(.mask)
+      } else {
+        keep <- rep(TRUE, nrow(private$.data))
+      }
+
       if (length(args) == 0) {
-        return(Festival$new(private$.data, 
+        return(Festival$new(private$.data[keep, , drop = FALSE],
                             dipnames = names(private$dip_idx),
                             abv_breaks = private$abv_breaks))
       }
@@ -153,7 +172,6 @@ Festival <- R6::R6Class(
       if (length(unknown) > 0) {
         stop("Unknown column(s): ", paste(unknown, collapse = ", "))
       }
-      keep <- rep(TRUE, nrow(private$.data))
       for (col in names(args)) {
         keep <- keep & (private$.data[[col]] %in% args[[col]])
       }

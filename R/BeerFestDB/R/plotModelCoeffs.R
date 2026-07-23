@@ -2,7 +2,7 @@
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
 ##
-## Copyright (C) 2011 Tim F. Rayner
+## Copyright (C) 2011-2026 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -23,25 +23,23 @@
 #' Fit a linear model to grouped dip values over time
 #' @description Fits a linear model of cumulative sales as a function of dip
 #'   time and category and returns the resulting model.
-#' @param cp A data frame of cask/dip data, typically from
+#' @param festival A Festival object containing cask/dip data, typically from the `data` slot of a Festival object returned by
 #'   \code{\link{getFestivalData}}.
-#' @param group A character string naming the column in \code{cp} to use
+#' @param group A character string naming the column in \code{festival$data} to use
 #'   as the grouping category (e.g., \code{"style"}, \code{"region"}).
 #' @param drop A character vector of dip-time column names to exclude from
 #'   the model (typically the final sessions where sales become non-linear).
-#' @param w A logical vector selecting the volume and dip columns of
-#'   \code{cp}.
 #' @param ... Additional arguments (currently unused).
 #' @return lm model with time*category coefficients.
 #' @importFrom stats lm
 #' @importFrom tibble rownames_to_column
 #' @importFrom reshape2 melt
-fitModelCoeffs <- function(cp, group, drop, w = TRUE, ...) {
+fitModelCoeffs <- function(festival, group, drop, ...) {
   
-  cp[[group]] <- factor(cp[[group]])
-
   # Sum the remaining dip volumes by group for each dip time
-  dp <- aggData(cp, group, w)
+  dp <- festival$grouped_dips(group)
+
+  dp[[group]] <- factor(dp[[group]])
 
   # Drop the columns as specified. These will typically be trailing dips late in
   # the festival which are expected to be non-linear.
@@ -49,16 +47,19 @@ fitModelCoeffs <- function(cp, group, drop, w = TRUE, ...) {
   
   # Convert to cumulative sales by subtracting the remaining volume from the
   # starting volume
-  dp <- dp$Start - dp
+  start <- festival$data %>%
+    group_by(get(group)) %>%
+    summarise(start = sum(cask_volume, na.rm = TRUE)) %>%
+    column_to_rownames('get(group)')
+  dp[,-1] <- start[dp[[1]],] - dp[,-1]
 
   fm <- dp %>%
-    rownames_to_column(var = group) %>%
     reshape2::melt(id.vars = group, variable.name = "time", value.name = "dip")
   
   levels(fm$time) <- 1:nlevels(fm$time)
   fm$time <- as.numeric(fm$time) - 1
   colnames(fm)[1] <- 'category'
-  fm$category <- factor(fm$category, levels=levels(cp[[group]]))
+  fm$category <- factor(fm$category, levels=levels(dp[[group]]))
 
   ## We're looking for the time:category interaction term
   ## here.
@@ -72,7 +73,7 @@ fitModelCoeffs <- function(cp, group, drop, w = TRUE, ...) {
 #' @description Summarizes the output of \code{fitModelCoeffs} into a data frame
 #'   suitable for plotting.
 #' @param l The linear model returned by \code{fitModelCoeffs}.
-#' @param cp A data frame of cask/dip data, typically from
+#' @param cp A data frame of cask/dip data, typically from the `data` slot of a \code{Festival} object returned by
 #'   \code{\link{getFestivalData}}.
 #' @param group A character string naming the column in \code{cp} to use
 #'   as the grouping category (e.g., \code{"style"}, \code{"region"}).
@@ -113,14 +114,12 @@ summarizeModel <- function(l, cp, group) {
 #'   time and category, then draws a horizontal grouped bar chart comparing
 #'   each category's observed sale-rate share with the share predicted from
 #'   its starting volume.
-#' @param cp A data frame of cask/dip data, typically from
+#' @param festival A Festival object containing cask/dip data, typically from
 #'   \code{\link{getFestivalData}}.
-#' @param group A character string naming the column in \code{cp} to use
+#' @param group A character string naming the column in \code{festival$data} to use
 #'   as the grouping category (e.g., \code{"style"}, \code{"region"}).
 #' @param drop A character vector of dip-time column names to exclude from
 #'   the model (typically the final sessions where sales become non-linear).
-#' @param w A logical vector selecting the volume and dip columns of
-#'   \code{cp}.
 #' @param ... Additional arguments (currently unused).
 #' @return Invisibly returns \code{NULL} (called for its side effect of
 #'   producing a plot).
@@ -129,13 +128,17 @@ summarizeModel <- function(l, cp, group) {
 #' @importFrom reshape2 melt
 #' @export
 ###############################################################################
-plotModelCoeffs <- function(cp, group, drop, w = TRUE, ...) {
-  
-  cp[[group]] <- factor(cp[[group]])
+plotModelCoeffs <- function(festival, group, drop, ...) {
 
-  l <- fitModelCoeffs(cp, group, drop, w, ...)
+  festival <- with(festival$data, festival$subset(!is.na(get(group))))
 
-  x <- summarizeModel(l, cp, group)
+  data <- festival$data
+
+  data[[group]] <- factor(data[[group]])
+
+  l <- fitModelCoeffs(data, group, drop, ...)
+
+  x <- summarizeModel(l, data, group)
 
   x %>% reshape2::melt() %>%
   ggplot(aes(x = category, y = value, fill = variable)) +
@@ -154,14 +157,12 @@ plotModelCoeffs <- function(cp, group, drop, w = TRUE, ...) {
 #'   its starting volume. In principle one can take these ratios as a recommendation of
 #'   how to modify future orders (i.e. multiply previous order by the ratio to get a
 #'   closer match to sales).
-#' @param cp A data frame of cask/dip data, typically from
+#' @param festival A Festival object containing cask/dip data, typically from
 #'   \code{\link{getFestivalData}}.
-#' @param group A character string naming the column in \code{cp} to use
+#' @param group A character string naming the column in \code{festival$data} to use
 #'   as the grouping category (e.g., \code{"style"}, \code{"region"}).
 #' @param drop A character vector of dip-time column names to exclude from
 #'   the model (typically the final sessions where sales become non-linear).
-#' @param w A logical vector selecting the volume and dip columns of
-#'   \code{cp}.
 #' @param ... Additional arguments (currently unused).
 #' @return Invisibly returns \code{NULL} (called for its side effect of
 #'   producing a plot).
@@ -170,13 +171,17 @@ plotModelCoeffs <- function(cp, group, drop, w = TRUE, ...) {
 #' @importFrom reshape2 melt
 #' @export
 ###############################################################################
-plotModelRatio <- function(cp, group, drop, w = TRUE, ...) {
-  
-  cp[[group]] <- factor(cp[[group]])
+plotModelRatio <- function(festival, group, drop, ...) {
 
-  l <- fitModelCoeffs(cp, group, drop, w, ...)
+  festival <- with(festival$data, festival$subset(!is.na(get(group))))
 
-  x <- summarizeModel(l, cp, group) %>%
+  data <- festival$data
+
+  l <- fitModelCoeffs(festival, group, drop, ...)
+
+  data[[group]] <- factor(data[[group]])
+
+  x <- summarizeModel(l, data, group) %>%
     mutate(ratio = rate / pred)
 
   x %>%

@@ -66,9 +66,7 @@ creds <- with(params, list(username = username, password = password))
 ```{r data_retrieval, include=FALSE}
 festival <- currentFestival(baseuri = params$baseuri, auth = creds)
 
-cp <- with(params, getFestivalData(baseuri, festival$name, prodcat, auth = creds))
-
-festdata <- Festival$new(cp, dipnames = days)
+festdata <- with(params, getFestivalData(baseuri, festival$name, prodcat, auth = creds, dipnames = days))
 
 # This assumes the dip columns are returned in order, so the rightmost column is the final dip:
 dip_cols <- c("cask_volume", days)
@@ -274,20 +272,20 @@ FIXME in the following, I think we need to replace the predicted/observed bars i
 ## By ABV
 
 ```{r sales_by_abv}
-plotSalesRate( cps$data, 'abv_class', w=days )
-plotModelRatio( cps$data, 'abv_class', drop=drop, w=days )
+plotSalesRate( cps, 'abv_class' )
+plotModelRatio( cps, 'abv_class', drop=drop )
 ```
 
 ## By Region
 ```{r sales_by_region}
-plotSalesRate( cps$data, 'region', w=days )
-plotModelRatio( cps$data, 'region', drop=drop, w=days )
+plotSalesRate( cps, 'region' )
+plotModelRatio( cps, 'region', drop=drop )
 ```
 
 ## By Stillage Location
 ```{r sales_by_stillage}
-plotSalesRate( cps$data, 'stillage', w=days )
-plotModelRatio( cps$data, 'stillage', drop=drop, w=days )
+plotSalesRate( cps, 'stillage' )
+plotModelRatio( cps, 'stillage', drop=drop )
 ```
 
 ## By Style
@@ -296,21 +294,21 @@ The heatmap below shows the days on which each style sold best, with the colours
 
 ```{r sales_by_style}
 
-plotSalesRate( cps$data, 'style', w=days )
+plotSalesRate( cps, 'style' )
 
-d <- dp %>% column_to_rownames('style')
-  
+d <- cps$grouped_per_diem_sales('style') %>% column_to_rownames('style')
+
 heatmap.2(as.matrix(t(scale(t(d)))),
           dendrogram='none', key=FALSE, margins=c(5,12), trace='none',
           Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
 
-plotModelRatio( cps$data, 'style', drop=drop, w=days )
+plotModelRatio( cps, 'style', drop=drop )
 ```
 
 
 # Summary of ordered beer proportions
 
-Here we simply show the proportion of beers ordered by geographic region and style, to give an idea of the diversity of beers ordered for the festival. FIXME perhaps don't use pie charts here?
+Here we simply show the proportion of beers ordered by geographic region and style, to give an idea of the diversity of beers ordered for the festival. FIXME perhaps don't use pie charts here? Also - why not illustrate what we ordered vs. what we sold, or vs. sales rate proportion? Why not all three? And don't scale the stacked barcharts so we get to see how much more we could have sold?
 
 ```{r order_regional_distributions}
 byprod <- with(festdata$data, aggregate(data.frame(region, style), list(company_name, product_name), unique))
