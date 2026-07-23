@@ -19,6 +19,7 @@ Depends:
   R (>= 2.10.0)
 Imports:
   methods,
+  R6,
   rjson,
   RCurl,
   RColorBrewer,

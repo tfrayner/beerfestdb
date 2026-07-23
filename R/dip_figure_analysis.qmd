@@ -300,19 +300,19 @@ FIXME in the following, I think we need to replace the predicted/observed bars i
 
 ```{r sales_by_abv}
 plotSalesRate( cps, 'abv_class', w=dip_cols )
-plotModelRatio(cps, 'abv_class', drop=drop, w=dip_cols)
+plotModelRatio( cps, 'abv_class', drop=drop, w=dip_cols )
 ```
 
 ## By Region
 ```{r sales_by_region}
-plotSalesRate( cp, 'region', w=dip_cols )
-plotModelRatio( cp, 'region', drop=drop, w=dip_cols)
+plotSalesRate( cps, 'region', w=dip_cols )
+plotModelRatio( cps, 'region', drop=drop, w=dip_cols )
 ```
 
 ## By Stillage Location
 ```{r sales_by_stillage}
-plotSalesRate( cp, 'stillage', w=dip_cols )
-plotModelRatio( cp, 'stillage', drop=drop, w=dip_cols)
+plotSalesRate( cps, 'stillage', w=dip_cols )
+plotModelRatio( cps, 'stillage', drop=drop, w=dip_cols )
 ```
 
 ## By Style
@@ -321,7 +321,7 @@ The heatmap below shows the days on which each style sold best, with the colours
 
 ```{r sales_by_style}
 
-plotSalesRate( cp, 'style', w=dip_cols )
+plotSalesRate( cps, 'style', w=dip_cols )
 
 d <- dp %>% column_to_rownames('style')
   
@@ -329,7 +329,7 @@ heatmap.2(as.matrix(t(scale(t(d)))),
           dendrogram='none', key=FALSE, margins=c(5,12), trace='none',
           Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
 
-plotModelRatio( cp, 'style', drop=drop, w=dip_cols)
+plotModelRatio( cps, 'style', drop=drop, w=dip_cols )
 ```
 
 
