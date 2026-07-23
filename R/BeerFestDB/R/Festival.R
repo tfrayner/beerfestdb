@@ -121,7 +121,7 @@ Festival <- R6::R6Class(
       # Clean up the abv_class factor levels to remove parentheses and replace commas with " - "
       levels(data$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(data$abv_class)))
 
-      private$data <- data
+      private$.data <- data
     },
 
     #' @description Subset casks by one or more metadata attributes.
@@ -138,25 +138,25 @@ Festival <- R6::R6Class(
     subset = function(...) {
       args <- list(...)
       if (length(args) == 0) {
-        return(Festival$new(private$data, 
+        return(Festival$new(private$.data, 
                             dipnames = names(private$dip_idx),
                             abv_breaks = private$abv_breaks))
       }
-      dip_names <- grep("^dip\\.", names(private$data), value = TRUE)
+      dip_names <- grep("^dip\\.", names(private$.data), value = TRUE)
       bad <- intersect(names(args), dip_names)
       if (length(bad) > 0) {
         stop("Cannot subset by dip column(s): ", paste(bad, collapse = ", "),
              ". Use `$cask_dips()` or `$product_dips()` for dip access.")
       }
-      unknown <- setdiff(names(args), names(private$data))
+      unknown <- setdiff(names(args), names(private$.data))
       if (length(unknown) > 0) {
         stop("Unknown column(s): ", paste(unknown, collapse = ", "))
       }
-      keep <- rep(TRUE, nrow(private$data))
+      keep <- rep(TRUE, nrow(private$.data))
       for (col in names(args)) {
-        keep <- keep & (private$data[[col]] %in% args[[col]])
+        keep <- keep & (private$.data[[col]] %in% args[[col]])
       }
-      Festival$new(private$data[keep, , drop = FALSE],
+      Festival$new(private$.data[keep, , drop = FALSE],
                    dipnames = names(private$dip_idx),
                    abv_breaks = private$abv_breaks)
     },
@@ -167,7 +167,7 @@ Festival <- R6::R6Class(
     #'   the dip column names.
     cask_dips = function() {
       w <- c("festival_ref", "product_name", "company_name")
-      rows <- private$data[, c(w, self$dip_cols), drop = FALSE] %>%
+      rows <- private$.data[, c(w, self$dip_cols), drop = FALSE] %>%
         select(all_of(c(w, self$dip_cols)))
       return(private$remap_dip_names(rows))
     },
@@ -180,11 +180,11 @@ Festival <- R6::R6Class(
     #'   followed by the dip column names.
     product_dips = function() {
       w <- c("product_name", "company_name")
-      missing <- setdiff(w, names(private$data))
+      missing <- setdiff(w, names(private$.data))
       if (length(missing) > 0) {
         stop("`data` is missing required column(s): ", paste(missing, collapse = ", "))
       }
-      rows <- private$data %>%
+      rows <- private$.data %>%
         group_by(company_name, product_name) %>%
         summarise(across(all_of(self$dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
         select(all_of(c(w, self$dip_cols)))
@@ -199,7 +199,7 @@ Festival <- R6::R6Class(
     #' @param remap_names Logical; if `TRUE` (default), remap the dip column names 
     #'   to their display names (i.e., remove the `"dip."` prefix).
     per_diem_sales = function(remap_names = TRUE) {
-      rows <- private$data
+      rows <- private$.data
       dip_cols <- c("cask_volume", self$dip_cols)
       pd <- round(rows[,dip_cols][,-length(dip_cols)] - rows[,dip_cols][,-1], 6) %>%
         if (remap_names) private$remap_dip_names() else .
@@ -236,7 +236,7 @@ Festival <- R6::R6Class(
     #'   names are remapped to their display names (i.e., the `"dip."` prefix is removed).
     #' @param file The path to the output CSV file.
     write_csv = function(file) {
-      rows <- private$data %>%
+      rows <- private$.data %>%
         select(all_of(c(self$meta_cols, self$dip_cols))) %>%
         private$remap_dip_names()
       write.csv(rows, file = file, row.names = FALSE)
@@ -245,25 +245,32 @@ Festival <- R6::R6Class(
 
   active = list(
 
+    #' @field data The complete data frame as returned by [getFestivalData()],
+    #'   containing both metadata and `dip.*` columns.  The dip column names are
+    #'   remapped to their display names (i.e., the `"dip."` prefix is removed).
+    data = function() {
+      return(private$.data %>% private$remap_dip_names())
+    },
+
     #' @field dip_cols Character vector of dip column names (all columns whose
     #'   names start with `"dip."`).
     dip_cols = function() {
-      return(names(private$data)[private$dip_idx])
+      return(names(private$.data)[private$dip_idx])
     },
 
     #' @field  stillages Character vector of unique stillage identifiers in the dataset.  
     stillages = function() {
-      if (!"stillage" %in% names(private$data)) {
+      if (!"stillage" %in% names(private$.data)) {
         stop("`data` does not contain a `stillage` column.")
       }
-      return(unique(private$data$stillage))
+      return(unique(private$.data$stillage))
     }
   ),
 
   private = list(
-    # @field data The complete data frame as returned by [getFestivalData()],
+    # @field _data The complete data frame as returned by [getFestivalData()],
     #   containing both metadata and `dip.*` columns.
-    data = NULL,
+    .data = NULL,
 
     # @field dip_idx Integer vector of column indices for all dip columns. Names are the
     #   dip column names with the `"dip."` prefix removed.
@@ -283,7 +290,7 @@ Festival <- R6::R6Class(
       if (!is.data.frame(df)) {
         stop("`df` must be a data frame.")
       }
-      mapping <- setNames(names(private$dip_idx), names(private$data)[private$dip_idx])
+      mapping <- setNames(names(private$dip_idx), names(private$.data)[private$dip_idx])
       return(df %>% rename_with(~ mapping[.x], all_of(names(mapping))))
     }
   )
