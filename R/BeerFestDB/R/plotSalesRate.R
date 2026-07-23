@@ -2,7 +2,7 @@
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
 ##
-## Copyright (C) 2011 Tim F. Rayner
+## Copyright (C) 2011-2026 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -24,12 +24,10 @@
 #' @description Aggregates cask volume data by \code{colname}, normalises
 #'   each group to its starting volume, and calls \code{\link{plotFractions}}
 #'   to display the fraction-remaining profile over time for each group.
-#' @param cp A data frame of cask/dip data, typically from
+#' @param festival A data frame of cask/dip data, typically from the `data` slot of a Festival object returned by
 #'   \code{\link{getFestivalData}}.
-#' @param colname A character string naming the column in \code{cp} to use
+#' @param colname A character string naming the column in \code{festival$data} to use
 #'   as the grouping variable (e.g., \code{"region"}, \code{"style"}).
-#' @param w A logical vector selecting the volume and dip columns of
-#'   \code{cp}.
 #' @param ... Additional arguments passed to \code{\link{plotFractions}}.
 #' @return Invisibly returns \code{NULL} (called for its side effect of
 #'   producing a plot).
@@ -38,8 +36,19 @@
 #' @importFrom RColorBrewer brewer.pal
 #' @export
 ###############################################################################
-plotSalesRate <- function(cp, colname, w = TRUE, ...) {
-  dp <- aggData(cp, colname, w)
+plotSalesRate <- function(festival, colname, ...) {
+
+  festival <- with(festival$data, festival$subset(!is.na(get(colname))))
+
+  dp <- festival$grouped_per_diem_sales(colname) %>% 
+    column_to_rownames(colname)
+
+  start <- festival$data %>%
+    group_by(get(colname)) %>%
+    summarise(start = sum(cask_volume, na.rm = TRUE)) %>%
+    column_to_rownames('get(colname)')
+
   cols <- brewer.pal(9, "Set1")
-  plotFractions(dp / dp[, 1], cols = cols, ...)
+
+  plotFractions(dp / start[rownames(dp), "start"], cols = cols, ylim = c(0, NA), ylab = "Fraction Sold", ...)
 }
