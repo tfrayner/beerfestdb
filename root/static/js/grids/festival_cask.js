@@ -1,208 +1,67 @@
-/*
- * This file is part of BeerFestDB, a beer festival product management
- * system.
- * 
- * Copyright (C) 2010 Tim F. Rayner
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
- */
+// festival_cask.js — Festival casks editor grid (cask placement)
+document.addEventListener('DOMContentLoaded', function () {
+    var casksizeOptions  = [];
+    var stillageOptions  = [];
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    /* Cask size lookups */
-    var casksize_store = new Ext.data.JsonStore({
-        url:        url_cask_size_list,
-        root:       'objects',
-        fields:     [{ name: 'container_size_id', type: 'int' },
-                     { name: 'description',    type: 'string'}],
-        idProperty: 'container_size_id',
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
+    createEditorGrid({
+        container:   document.getElementById('datagrid'),
+        loadUrl:     url_object_list,
+        submitUrl:   url_cask_submit,
+        deleteUrl:   url_cask_delete,
+        idField:     'cask_id',
+        objLabel:    'Cask',
+        viewLinkUrl: function (row) {
+            return url_base + 'cask/view/' + row.cask_id;
         },
-    });
-
-    /* Stillage lookups */
-    var stillage_store = new Ext.data.JsonStore({
-        url:        url_stillage_list,
-        root:       'objects',
-        fields:     [{ name: 'stillage_location_id', type: 'int' },
-                     { name: 'description',          type: 'string'}],
-        idProperty: 'stillage_location_id',
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
+        recordChanges: function (row, changes) {
+            changes.cask_id            = row.cask_id;
+            changes.cask_management_id = row.cask_management_id;
+            changes.gyle_id            = row.gyle_id;
+            return changes;
         },
-    });
-
-    var Cask = Ext.data.Record.create([
-        { name: 'cask_id',              type: 'int' },
-        { name: 'cask_management_id',   type: 'int' },
-        { name: 'product_name',         type: 'string' },
-        { name: 'company_name',         type: 'string' },
-        { name: 'stillage_location_id', type: 'int', sortType: myMakeSortTypeFun(stillage_store, 'description') },
-        { name: 'int_reference',        type: 'string' },
-        { name: 'festival_ref',         type: 'int' },
-        { name: 'container_size_id',    type: 'int', sortType: myMakeSortTypeFun(casksize_store, 'description') },
-        { name: 'bar_id',               type: 'int' },
-        { name: 'gyle_id',              type: 'int' },
-        { name: 'stillage_bay',         type: 'int' },
-        { name: 'comment',              type: 'string' },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_object_list,
-        root:       'objects',
-        fields:     Cask
-    });
-
-    /* Cask size drop-down */
-    var casksize_combo = new MyComboBox({
-        store:          casksize_store,
-        valueField:     'container_size_id',
-        displayField:   'description',
-        lazyRender:     true,
-        triggerAction:  'all',
-        mode:           'local',
-        forceSelection: true,
-        allowBlank:     false,
-        typeAhead:      true,
-    });
-
-    /* Stillage drop-down */
-    var stillage_combo = new MyComboBox({
-        store:          stillage_store,
-        valueField:     'stillage_location_id',
-        displayField:   'description',
-        lazyRender:     true,
-        triggerAction:  'all',
-        mode:           'local',
-        forceSelection: true,
-        allowBlank:     true,
-        noSelection:    emptySelect,
-        typeAhead:      true,
-    });
-
-    var content_cols = [
-        { id:         'company_name',
-          header:     'Brewer',
-          dataIndex:  'company_name',
-          width:      130,
-          editor:     new Ext.form.TextField({
-              readOnly:  true,
-          })},
-        { id:         'product_name',
-          header:     'Product',
-          dataIndex:  'product_name',
-          width:      130,
-          editor:     new Ext.form.TextField({
-              readOnly:  true,
-          })},
-        { id:         'container_size_id',
-          header:     'Cask size',
-          dataIndex:  'container_size_id',
-          width:      40,
-          renderer:   MyComboRenderer(casksize_combo),
-          editor:     casksize_combo },
-        { id:         'stillage_location_id',
-          header:     'Stillage',
-          dataIndex:  'stillage_location_id',
-          width:      130,
-          renderer:   MyComboRenderer(stillage_combo),
-          editor:     stillage_combo, },
-        { id:         'stillage_bay',
-          header:     'Bay',
-          dataIndex:  'stillage_bay',
-          width:      40,
-          renderer:   function(value) { return value ? value : '' }, // bay zero is non-existent.
-          editor:     new Ext.form.NumberField({
-              allowDecimals:  false,
-              allowBlank:     true,
-          })},
-        { id:         'festival_ref',
-          header:     'Festival Cask ID',
-          dataIndex:  'festival_ref',
-          width:      40,
-          editor:     new Ext.form.NumberField({
-              allowDecimals:  false,
-              allowBlank:     true,
-          })},
-        { id:         'int_reference',
-          header:     'Cellar Cask No.',
-          dataIndex:  'int_reference',
-          width:      40,
-          editor:     new Ext.form.NumberField({
-              allowDecimals:  false,
-              allowBlank:     true,
-          })},
-        { id:         'comment',
-          header:     'Comment',
-          dataIndex:  'comment',
-          width:      130,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'cask/view/{cask_id}');
-        window.location=t.apply({cask_id: record.get('cask_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.cask_id     = record.get( 'cask_id' );
-        fields.cask_management_id = record.get( 'cask_management_id' );
-        fields.festival_id = festival_id;
-        return(fields);
-    }
-
-    var myGrid = new MyEditorGrid(
-        {
-            objLabel:           'Cask',
-            idField:            'cask_id',
-            autoExpandColumn:   'product_id',
-            store:              store,
-            comboStores:        [ casksize_store, stillage_store ],
-            contentCols:        content_cols,
-            viewLink:           viewLink,
-            deleteUrl:          url_cask_delete,
-            submitUrl:          url_cask_submit,
-            recordChanges:      recordChanges,
-        }
-    );
-
-    var panel = new MyMainPanel({
-        title: festivalname + ' cask listing: ' + categoryname,
-        layout: 'fit',
-        items: myGrid,
-        tbar:
-        [
-            { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'Festival', handler: function() { window.location = url_festival_view; } },
+        comboUrls: [
+            {
+                url:    url_cask_size_list,
+                onLoad: function (data) {
+                    casksizeOptions = (data.objects || data).map(function (o) {
+                        return { value: o.container_size_id, label: o.description };
+                    });
+                },
+            },
+            {
+                url:    url_stillage_list,
+                onLoad: function (data) {
+                    stillageOptions = (data.objects || data).map(function (o) {
+                        return { value: o.stillage_location_id, label: o.description };
+                    });
+                },
+            },
+        ],
+        columns: [
+            { field: 'company_name',        headerName: 'Brewer',           editable: false },
+            { field: 'product_name',        headerName: 'Product',          editable: false },
+            { field: 'container_size_id',   headerName: 'Cask Size',
+              cellRenderer: function (p) {
+                  var o = casksizeOptions.find(function (x) { return String(x.value) === String(p.value); });
+                  return o ? o.label : (p.value || '');
+              },
+              cellEditor: TomSelectCellEditor,
+              cellEditorParams: function () { return { values: casksizeOptions }; },
+              editable: true },
+            { field: 'stillage_location_id', headerName: 'Stillage',
+              cellRenderer: function (p) {
+                  var o = stillageOptions.find(function (x) { return String(x.value) === String(p.value); });
+                  return o ? o.label : (p.value || '');
+              },
+              cellEditor: TomSelectCellEditor,
+              cellEditorParams: function () { return { values: stillageOptions }; },
+              editable: true },
+            { field: 'stillage_bay',    headerName: 'Bay',
+              cellRenderer: function (p) { return p.value ? p.value : ''; },
+              editable: true },
+            { field: 'festival_ref',    headerName: 'Festival Cask ID', editable: true },
+            { field: 'int_reference',   headerName: 'Cellar Cask No.', editable: true },
+            { field: 'comment',         headerName: 'Comment',          editable: true, flex: 1 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

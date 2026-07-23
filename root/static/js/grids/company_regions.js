@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,74 +16,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    var CompanyRegion = Ext.data.Record.create([
-        { name: 'company_region_id', type: 'int' },
-        { name: 'description',       type: 'string' },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_company_region_list,
-        root:       'objects',
-        fields:     CompanyRegion
-    });
-    
-    var content_cols = [
-        { id:         'description',
-          header:     'Description',
-          dataIndex:  'description',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'companyregion/view/{company_region_id}');
-        window.location=t.apply({company_region_id: record.get('company_region_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.company_region_id = record.get( 'company_region_id' );
-        return(fields);
-    }
-
-    var panel = new MyMainPanel({
-        title: 'All Company Regions',
-        layout: 'fit',
-        items: new MyEditorGrid(
-            {
-                objLabel:           'Company Region',
-                idField:            'company_region_id',
-                autoExpandColumn:   'description',
-                store:              store,
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_company_region_delete,
-                submitUrl:          url_company_region_submit,
-                recordChanges:      recordChanges,
-            }
-        ),
-        tbar:
-        [
-            { text: 'Home',
-              handler: function() { window.location = url_base; } },
+document.addEventListener('DOMContentLoaded', function () {
+    createEditorGrid({
+        container:     '#datagrid',
+        loadUrl:       url_company_region_list,
+        submitUrl:     url_company_region_submit,
+        deleteUrl:     url_company_region_delete,
+        idField:       'company_region_id',
+        objLabel:      'Company Region',
+        firstEditCol:  'description',
+        viewLinkUrl:   function (row) { return url_base + 'companyregion/view/' + row.company_region_id; },
+        recordChanges: function (row) { return { company_region_id: row.company_region_id, description: row.description }; },
+        columns: [
+            { field: 'description', headerName: 'Description', flex: 1 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

@@ -1,8 +1,8 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
- * Copyright (C) 2026 Tim F. Rayner
+ *
+ * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,63 +16,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
-
-    // Enable tooltips
-    Ext.QuickTips.init();
-
-    /* company region form */
-    var companyRegionForm = new MyFormPanel({
-
-        url:         url_company_region_submit,
-        title:       'Company Region details',
-            
-        items: [
-
-            { name:           'description',
-              fieldLabel:     'Description',
-              xtype:          'textfield',
-              allowBlank:     false, },
-
-            { name:           'company_region_id',
-              value:          company_region_id,
-              xtype:          'hidden', },
-            
-        ],
-
-        loadUrl:     url_company_region_load_form,
-        idParams:    { company_region_id: company_region_id },
-        waitMsg:     'Loading Company Region details...',
-    });
-
-    var tabpanel = new Ext.TabPanel({
-        activeTab: 0,
-        items: [
-            { title: 'Company Region Information',
-              layout: 'anchor',
-              items:  companyRegionForm, },
+document.addEventListener('DOMContentLoaded', function () {
+    createViewForm({
+        container:  '#datagrid',
+        loadUrl:    url_company_region_load_form,
+        submitUrl:  url_company_region_submit,
+        idParams:   { company_region_id: company_region_id },
+        fields: [
+            { name: 'description', label: 'Description' },
+            { name: 'company_region_id', label: '', type: 'hidden' },
         ],
     });
-
-    var panel = new MyMainPanel({
-        title:  'Company Region Details',            
-        layout: 'fit',
-        items: tabpanel,
-        tbar:
-        [
-            { text: 'Home', handler: function() { window.location = url_base; } },
-            { text: 'Company Regions', handler: function() { window.location = url_company_region_grid; } },
-        ],
-    });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

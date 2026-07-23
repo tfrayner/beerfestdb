@@ -31,17 +31,63 @@
     background-repeat: no-repeat;
 }
 
-/* ── Required field highlighting ───────────────────────────────────────────
-   Fields and grid cells with allowBlank: false are highlighted in pale yellow
-   when empty.  JS in classes.js adds/removes these classes dynamically. */
+/* ── AG Grid layout ───────────────────────────────────────────────────────── */
 
-/* Form fields and active grid cell editors (editing state) */
-input.bfd-required,
-textarea.bfd-required {
-    background-color: #ffeef2 !important;
+/* Grid-page containers: fill the space below the navbar */
+.bfdb-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
-/* Grid cells in display (non-editing) state */
-td.bfd-required-cell .x-grid3-cell-inner {
-    background-color: #ffeef2;
+/* site/layout wrapper inside .bfdb-content — must also fill its parent */
+#content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#datagrid {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0.5rem;
+}
+
+/* The wrapper div created by createEditorGrid / createViewGrid */
+.bfdb-grid-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* AG Grid fills its parent */
+.bfdb-grid-wrapper .ag-theme-alpine {
+    flex: 1 1 auto;
+    min-height: 300px;
+    width: 100%;
+}
+
+/* Row dirty indicator */
+.bfdb-dirty-row {
+    background-color: #fff8e1 !important;
+}
+
+/* View-link action cell */
+.bfdb-row-link {
+    display: inline-block;
+    text-decoration: none;
+}
+
+/* ── Icon spans (Silk icon set, 16×16) ────────────────────────────────────── */
+/* Used inside toolbar button labels: <span class="icon-plus"></span> Text   */
+[class^="icon-"], [class*=" icon-"] {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    vertical-align: text-bottom;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
 }

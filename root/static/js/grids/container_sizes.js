@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,149 +16,67 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
+document.addEventListener('DOMContentLoaded', function () {
+    let measureOptions  = [];
+    let dispenseOptions = [];
 
-    // Enable tooltips
-    Ext.QuickTips.init();
-    
-    /* Dispense method lookups */
-    var dispense_store = new Ext.data.JsonStore({
-        url:        url_dispense_method_list,
-        root:       'objects',
-        fields:     [{ name: 'dispense_method_id', type: 'int'    },
-                     { name: 'description',        type: 'string' }],
-        idProperty: 'dispense_method_id',
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
+    createEditorGrid({
+        container:     '#datagrid',
+        loadUrl:       url_cask_size_list,
+        submitUrl:     url_cask_size_submit,
+        deleteUrl:     url_cask_size_delete,
+        idField:       'container_size_id',
+        objLabel:      'Container Size',
+        firstEditCol:  'description',
+        viewLinkUrl:   function (row) { return url_base + 'containersize/view/' + row.container_size_id; },
+        recordChanges: function (row) {
+            return { container_size_id: row.container_size_id, description: row.description,
+                      volume: row.volume, container_measure_id: row.container_measure_id,
+                      dispense_method_id: row.dispense_method_id };
         },
-    });
-
-    /* Container measure lookups */
-    var measure_store = new Ext.data.JsonStore({
-        url:        url_container_measure_list,
-        root:       'objects',
-        fields:     [{ name: 'container_measure_id',  type: 'int'    },
-                     { name: 'description', type: 'string' }],
-        idProperty: 'container_measure_id',
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
-        },
-    });
-
-    var ContainerSize = Ext.data.Record.create([
-        { name: 'container_size_id',  type: 'int' },
-        { name: 'description',        type: 'string' },
-        { name: 'volume',             type: 'float' },
-        { name: 'container_measure_id', type: 'int', sortType: myMakeSortTypeFun(measure_store,  'description') },
-        { name: 'dispense_method_id',   type: 'int', sortType: myMakeSortTypeFun(dispense_store, 'description') },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_cask_size_list,
-        root:       'objects',
-        fields:     ContainerSize
-    });
-
-    /* Dispense method drop-down */
-    var dispense_combo = new MyComboBox({
-        typeAhead:      true,
-        triggerAction:  'all',
-        mode:           'local',
-        store:          dispense_store,
-        forceSelection: true,
-        valueField:     'dispense_method_id',
-        displayField:   'description',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-    });
-
-    /* Container measure drop-down */
-    var measure_combo = new MyComboBox({
-        typeAhead:      true,
-        triggerAction:  'all',
-        mode:           'local',
-        store:          measure_store,
-        forceSelection: true,
-        valueField:     'container_measure_id',
-        displayField:   'description',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-    });
-
-    var content_cols = [
-        { id:         'description',
-          header:     'Description',
-          dataIndex:  'description',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     true,
-          })},
-        { id:         'volume',
-          header:     'Volume',
-          dataIndex:  'volume',
-          width:      40,
-          editor:     new Ext.form.NumberField({
-              allowBlank:     false,
-          })},
-        { id:         'container_measure_id',
-          header:     'Measure',
-          dataIndex:  'container_measure_id',
-          width:      100,
-          renderer:   MyComboRenderer(measure_combo),
-          editor:     measure_combo },
-        { id:         'dispense_method_id',
-          header:     'Dispense Method',
-          dataIndex:  'dispense_method_id',
-          width:      100,
-          renderer:   MyComboRenderer(dispense_combo),
-          editor:     dispense_combo },
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'containersize/view/{container_size_id}');
-        window.location=t.apply({container_size_id: record.get('container_size_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.container_size_id = record.get( 'container_size_id' );
-        return(fields);
-    }
-
-    var panel = new MyMainPanel({
-        title: 'All Container Sizes',
-        layout: 'fit',
-        items: new MyEditorGrid(
+        comboUrls: [
             {
-                objLabel:           'Container Size',
-                idField:            'container_size_id',
-                autoExpandColumn:   'description',
-                store:              store,
-                comboStores:        [ dispense_store, measure_store ],
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_cask_size_delete,
-                submitUrl:          url_cask_size_submit,
-                recordChanges:      recordChanges,
-            }
-        ),
-        tbar:
-        [
-            { text: 'Home',
-              handler: function() { window.location = url_base; } },
+                url:    url_container_measure_list,
+                onLoad: function (data) {
+                    measureOptions = (data.objects || data).map(function (r) {
+                        return { value: r.container_measure_id, label: r.description };
+                    });
+                },
+            },
+            {
+                url:    url_dispense_method_list,
+                onLoad: function (data) {
+                    dispenseOptions = (data.objects || data).map(function (r) {
+                        return { value: r.dispense_method_id, label: r.description };
+                    });
+                },
+            },
+        ],
+        columns: [
+            { field: 'description', headerName: 'Description', cellEditor: 'agTextCellEditor', flex: 1 },
+            { field: 'volume',      headerName: 'Volume',      cellEditor: 'agNumberCellEditor', width: 80 },
+            {
+                field: 'container_measure_id', headerName: 'Measure', width: 140,
+                cellRenderer: function (p) {
+                    if (p.value == null) return '';
+                    const o = measureOptions.find(function (x) { return String(x.value) === String(p.value); });
+                    return o ? o.label : String(p.value);
+                },
+                cellEditor: TomSelectCellEditor,
+                cellEditorParams: function () { return { values: measureOptions }; },
+            },
+            {
+                field: 'dispense_method_id', headerName: 'Dispense Method', width: 160,
+                cellRenderer: function (p) {
+                    if (p.value == null) return '';
+                    const o = dispenseOptions.find(function (x) { return String(x.value) === String(p.value); });
+                    return o ? o.label : String(p.value);
+                },
+                cellEditor: TomSelectCellEditor,
+                cellEditorParams: function () { return { values: dispenseOptions }; },
+            },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-

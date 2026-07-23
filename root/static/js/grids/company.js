@@ -1,7 +1,7 @@
 /*
  * This file is part of BeerFestDB, a beer festival product management
  * system.
- * 
+ *
  * Copyright (C) 2010 Tim F. Rayner
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,144 +16,52 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * $Id$
  */
 
-Ext.onReady(function(){
+document.addEventListener('DOMContentLoaded', function () {
+    let regionOptions = [];
 
-    // Enable tooltips
-    Ext.QuickTips.init();
-
-    /* Company region lookups */
-    var region_store = new Ext.data.JsonStore({
-        url:        url_company_region_list,
-        root:       'objects',
-        fields:     [{ name: 'company_region_id', type: 'int'    },
-                     { name: 'description',       type: 'string' }],
-        idProperty: 'company_region_id',
-        sortInfo:   {
-            field:     'description',
-            direction: 'ASC',
+    createEditorGrid({
+        container:     '#datagrid',
+        loadUrl:       url_company_list,
+        submitUrl:     url_company_submit,
+        deleteUrl:     url_company_delete,
+        idField:       'company_id',
+        objLabel:      'Company',
+        firstEditCol:  'name',
+        viewLinkUrl:   function (row) { return url_base + 'company/view/' + row.company_id; },
+        recordChanges: function (row) {
+            return { company_id: row.company_id, name: row.name, full_name: row.full_name,
+                      loc_desc: row.loc_desc, company_region_id: row.company_region_id,
+                      year_founded: row.year_founded, url: row.url,
+                      awrs_urn: row.awrs_urn, comment: row.comment };
         },
-    });
-
-    /* Main company records and store */
-    var Company = Ext.data.Record.create([
-        { name: 'company_id',        type: 'int' },
-        { name: 'name',              type: 'string',   allowBlank: false },
-        { name: 'full_name',         type: 'string' },
-        { name: 'loc_desc',          type: 'string' },
-        { name: 'company_region_id', type: 'int', sortType: myMakeSortTypeFun(region_store, 'description') },
-        { name: 'year_founded',      type: 'int' },
-        { name: 'url',               type: 'string' },
-        { name: 'awrs_urn',          type: 'string' },
-        { name: 'comment',           type: 'string' },
-    ]);
-
-    var store = new Ext.data.JsonStore({
-        url:        url_company_list,
-        root:       'objects',
-        fields:     Company,
-        sortInfo:   {
-            field:     'name',
-            direction: 'ASC',
-        },
-    });
-
-    /* Company region drop-down */
-    var region_combo = new MyComboBox({
-        typeAhead:      true,
-        triggerAction:  'all',
-        mode:           'local',
-        store:          region_store,
-        forceSelection: true,
-        valueField:     'company_region_id',
-        displayField:   'description',
-        lazyRender:     true,
-        listClass:      'x-combo-list-small',
-    });
-
-    var content_cols = [
-        { id:         'name',
-          header:     'Name',
-          dataIndex:  'name',
-          width:      150,
-          editor:     new Ext.form.TextField({
-              allowBlank:     false,
-          })},
-        { id:         'full_name',
-          header:     'Full Name',
-          dataIndex:  'full_name',
-          width:      150,
-          editor:     new Ext.form.TextField()},
-        { id:         'loc_desc',
-          header:     'Location',
-          dataIndex:  'loc_desc',
-          width:      150,
-          editor:     new Ext.form.TextField()},
-        { id:         'company_region_id',
-          header:     'Region',
-          dataIndex:  'company_region_id',
-          width:      70,
-          renderer:   MyComboRenderer(region_combo),
-          editor:     region_combo },
-        { id:         'year_founded',
-          header:     'Year founded',
-          dataIndex:  'year_founded',
-          width:      20,
-          renderer:   function(value) { return value ? value : '' }, // year zero never happened.
-          editor:     new Ext.form.NumberField()},
-        { id:         'url',
-          header:     'Web site',
-          dataIndex:  'url',
-          width:      70,
-          editor:     new Ext.form.TextField()},
-        { id:         'comment',
-          header:     'Comment',
-          dataIndex:  'comment',
-          width:      70,
-          editor:     new Ext.form.TextField()},
-    ];
-
-    function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'company/view/{company_id}');
-        window.location=t.apply({company_id: record.get('company_id')});
-    };
-
-    function recordChanges (record) {
-        var fields = record.getChanges();
-        fields.company_id = record.get( 'company_id' );
-        return(fields);
-    }
-
-    var panel = new MyMainPanel({
-        title:  'Company listing',
-        layout: 'fit',
-        items: new MyEditorGrid(
+        comboUrls: [{
+            url:    url_company_region_list,
+            onLoad: function (data) {
+                regionOptions = (data.objects || data).map(function (r) {
+                    return { value: r.company_region_id, label: r.description };
+                });
+            },
+        }],
+        columns: [
+            { field: 'name',              headerName: 'Name',         cellEditor: 'agTextCellEditor', flex: 1 },
+            { field: 'full_name',         headerName: 'Full Name',    cellEditor: 'agTextCellEditor', flex: 1 },
+            { field: 'loc_desc',          headerName: 'Location',     cellEditor: 'agTextCellEditor', width: 150 },
             {
-                objLabel:           'Company',
-                idField:            'company_id',
-                autoExpandColumn:   'name',
-                store:              store,
-                comboStores:        [ region_store ],
-                contentCols:        content_cols,
-                viewLink:           viewLink,
-                deleteUrl:          url_company_delete,
-                submitUrl:          url_company_submit,
-                recordChanges:      recordChanges,
-            }
-        ),
-        tbar:
-        [
-            { text: 'Home', handler: function() { window.location = url_base; } },
+                field: 'company_region_id', headerName: 'Region', width: 130,
+                cellRenderer: function (p) {
+                    if (p.value == null) return '';
+                    const o = regionOptions.find(function (x) { return String(x.value) === String(p.value); });
+                    return o ? o.label : String(p.value);
+                },
+                cellEditor: TomSelectCellEditor,
+                cellEditorParams: function () { return { values: regionOptions }; },
+            },
+            { field: 'year_founded', headerName: 'Founded', cellEditor: 'agNumberCellEditor', width: 80 },
+            { field: 'url',          headerName: 'Web Site', cellEditor: 'agTextCellEditor', width: 150 },
+            { field: 'awrs_urn',     headerName: 'AWRS URN', cellEditor: 'agTextCellEditor', width: 120 },
+            { field: 'comment',      headerName: 'Comment',  cellEditor: 'agTextCellEditor', flex: 1 },
         ],
     });
-    
-    var view = new Ext.Viewport({
-        layout: 'fit',
-        items:  panel,
-    });
-
 });
-
