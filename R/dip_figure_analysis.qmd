@@ -42,12 +42,13 @@ library(htmltools)
 library(ggplot2)
 library(reshape2)
 library(tibble)
+library(colorspace)
 
 library(BeerFestDB)
 
 # If dip batch names are not already set in the database, we assume the festival
 # starts on the first of these days, and that dips are daily:
-days <- c("Mon", "Tues", "Weds", "Thurs", "Fri", "Sat", "Sun")
+days <- c("Mon", "Tues", "Weds", "Thurs", "Fri", "Sat")
 
 # This is part of a hack to enable datatable in quarto tabsets; see https://stackoverflow.com/a/74708020
 htmltools::tagList(DT::datatable(mtcars))
@@ -65,32 +66,14 @@ creds <- with(params, list(username = username, password = password))
 ```{r data_retrieval, include=FALSE}
 festival <- currentFestival(baseuri = params$baseuri, auth = creds)
 
-cp <- with(params, getFestivalData(baseuri, festival$name, prodcat, auth = creds)) %>%
-  replace_na(list(stillage = "Unassigned")) %>%
-  mutate(
-    stillage = ifelse(nchar(stillage) > 15, paste0(substr(stillage, 1, 12), "..."), stillage)
-  )
+cp <- with(params, getFestivalData(baseuri, festival$name, prodcat, auth = creds))
+
+festdata <- Festival$new(cp, dipnames = days)
 
 # This assumes the dip columns are returned in order, so the rightmost column is the final dip:
-dip_cols <- select(cp, starts_with("dip.")) %>% colnames() %>% append("cask_volume", after = 0)
-cp <- cp %>%
-  rowwise() %>%
-  mutate(volume_lost = c_across(starts_with("dip.")) %>% tail(1)) %>%
-  ungroup() %>%
-  mutate(volume_lost = ifelse(is_condemned == 1, cask_volume, volume_lost)) %>%
-  mutate(volume_sold = cask_volume - volume_lost)
+dip_cols <- c("cask_volume", days)
 
-if (dip_cols[2] == "dip.NA") {
-  j <- dip_cols[-1]
-  names(j) <- days[seq_along(j)]
-} else {
-  j <- dip_cols[-1]
-  names(j) <- sub("^dip\\.", "", j)
-}
-cp <- cp %>% rename(j)
-dip_cols <- c("cask_volume", names(j))
-
-write.csv(cp, "full_dip_dump.csv", row.names = FALSE)
+festdata$write_csv("full_dip_dump.csv")
 ```
 
 
@@ -99,11 +82,12 @@ write.csv(cp, "full_dip_dump.csv", row.names = FALSE)
 The following table summarises the volumes sold, unsold and condemned, further broken down by whether the cask was sold on a sale-or-return basis or not.
 
 ```{r overall_sales_data}
-vol.total <- sum(cp$cask_volume)
+vol.total <- sum(festdata$data$cask_volume)
 pct_format <- function(x) { paste0(round(x / vol.total * 100, 1), '%') }
 
-ob <- with(cp, aggregate(data.frame(cask_volume, volume_sold, volume_lost),
-                         list(order_batch, is_condemned, is_sale_or_return), sum)) %>% 
+ob <- with(festdata$data,
+           aggregate(data.frame(cask_volume, volume_sold, volume_lost),
+                     list(order_batch, is_condemned, is_sale_or_return), sum)) %>% 
   rename(value = 'Group.1', is_condemned = 'Group.2', is_sor = 'Group.3') %>%
   mutate(value = paste('Order:', value),
          is_condemned = factor(is_condemned, levels=c(0,1)),
@@ -164,25 +148,9 @@ d <- d %>% mutate(across(where(is.double), \(x) round(x, 2)))
 Here we calculate the per diem sales levels for each cask, and aggregate those figures by beer style.
 
 ```{r overall_sales_calculation, include=FALSE}
-cps <- subset(cp, is_condemned == 0) %>%
-  mutate(abv_class = cut(abv, breaks=c(2,3.5,4,4.5,5,7,12)))
+cps <- festdata$subset(is_condemned=0)
 
-levels(cps$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(cps$abv_class)))
-
-## Calculate the per diem dips and check for negative values (which would indicate a data error)
-pd <- round(cps[,dip_cols][,-length(dip_cols)] - cps[,dip_cols][,-1], 6)
-colnames(pd) <- dip_cols[-1]
-if ( ! all(pd >= 0) ) {
-    bad <- apply(pd, 1, function(x) any(x < 0))
-    badstr <- paste(apply(cps[bad, c('company_name', 'product_name', 'festival_ref')], 1,
-                          function(x) do.call('sprintf', as.list(c("%s %s (cask %s)", x)))), collapse=', ')
-    stop(sprintf("Negative per diem dips found: probable dip data error in the database for the following: %s", badstr))
-}
-
-dp <- pd %>% mutate(style = cps$style) %>% group_by(style) %>%
-  summarise(across(all_of(dip_cols[-1]), \(x) sum(x, na.rm=TRUE))) %>%
-  ungroup() %>%
-  as.data.frame()
+dp <- cps$grouped_per_diem_sales('style')
 
 ## Drop the last part of the festival (1/4 rounded up) since it'll
 ## usually be non-linear by then.
@@ -195,12 +163,19 @@ This bar chart shows the amount of beer sold per day, broken down by style. The 
 ```{r overall_sales_plot}
 d <- reshape2::melt(dp)
 d$style <- factor(d$style)
-cols <- colorRampPalette(brewer.pal(9, 'Set1'))(nlevels(d$style))
-ggplot(d, aes(x=variable, y=value, fill=style)) +
-  geom_col() +
-  scale_fill_manual(values=cols) +
+cols <- darken(colorRampPalette(brewer.pal(12, 'Set3'))(nlevels(d$style)), amount=0.1)
+
+ggplot(d, aes(x=as.numeric(variable), y=value, fill=style)) +
+  geom_area(stat="identity", colour="black", alpha=0.7) + scale_fill_manual(values=cols) +
+  scale_x_continuous(breaks=1:length(days), labels=days) +
   labs(x='Festival Day', y='Volume Sold (gallons)', color='Style') +
-  theme_minimal() +
+  theme_minimal() + ggtitle("Overall sales") +
+  theme(legend.position='right', legend.title=element_text(size=12), legend.text=element_text(size=10))
+
+ggplot(d, aes(x=variable, y=value, colour=style, group=style)) +
+  geom_line(size=2) + scale_colour_manual(values = cols) +
+  labs(x='Festival Day', y='Volume Sold (gallons)', color='Style') +
+  theme_minimal() + ggtitle("Sales by Style") +
   theme(legend.position='right', legend.title=element_text(size=12), legend.text=element_text(size=10))
 ```
 
@@ -222,7 +197,7 @@ mysum <- function(x, ...) {
     return(sum(x, ...))
   }
 }
-agg <- cp %>%
+agg <- festdata$data %>%
   group_by(
     company_name, product_name, cask_volume, size_name,
     is_sale_or_return, abv, cask_price, sale_price
@@ -299,20 +274,20 @@ FIXME in the following, I think we need to replace the predicted/observed bars i
 ## By ABV
 
 ```{r sales_by_abv}
-plotSalesRate( cps, 'abv_class', w=dip_cols )
-plotModelRatio( cps, 'abv_class', drop=drop, w=dip_cols )
+plotSalesRate( cps$data, 'abv_class', w=days )
+plotModelRatio( cps$data, 'abv_class', drop=drop, w=days )
 ```
 
 ## By Region
 ```{r sales_by_region}
-plotSalesRate( cps, 'region', w=dip_cols )
-plotModelRatio( cps, 'region', drop=drop, w=dip_cols )
+plotSalesRate( cps$data, 'region', w=days )
+plotModelRatio( cps$data, 'region', drop=drop, w=days )
 ```
 
 ## By Stillage Location
 ```{r sales_by_stillage}
-plotSalesRate( cps, 'stillage', w=dip_cols )
-plotModelRatio( cps, 'stillage', drop=drop, w=dip_cols )
+plotSalesRate( cps$data, 'stillage', w=days )
+plotModelRatio( cps$data, 'stillage', drop=drop, w=days )
 ```
 
 ## By Style
@@ -321,7 +296,7 @@ The heatmap below shows the days on which each style sold best, with the colours
 
 ```{r sales_by_style}
 
-plotSalesRate( cps, 'style', w=dip_cols )
+plotSalesRate( cps$data, 'style', w=days )
 
 d <- dp %>% column_to_rownames('style')
   
@@ -329,7 +304,7 @@ heatmap.2(as.matrix(t(scale(t(d)))),
           dendrogram='none', key=FALSE, margins=c(5,12), trace='none',
           Colv=FALSE, lhei=c(2, 10), lwid=c(2, 5), cexRow=1.5, cexCol=1.5)
 
-plotModelRatio( cps, 'style', drop=drop, w=dip_cols )
+plotModelRatio( cps$data, 'style', drop=drop, w=days )
 ```
 
 
@@ -338,8 +313,8 @@ plotModelRatio( cps, 'style', drop=drop, w=dip_cols )
 Here we simply show the proportion of beers ordered by geographic region and style, to give an idea of the diversity of beers ordered for the festival. FIXME perhaps don't use pie charts here?
 
 ```{r order_regional_distributions}
-byprod <- aggregate(cp[,c('region','style')], list( cp$company_name, cp$product_name ), unique)
-drawPie( byprod, 'region', cols=cols, cex=1.25 ) # FIXME different colour scheme
+byprod <- with(festdata$data, aggregate(data.frame(region, style), list(company_name, product_name), unique))
+drawPie( byprod, 'region', cols=cols, cex=1.25 ) # FIXME different colour scheme for region
 drawPie( byprod, 'style', cols=cols, cex=1.25 )
 ```
 

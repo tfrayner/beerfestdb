@@ -100,9 +100,10 @@ Festival <- R6::R6Class(
         names(private$dip_idx) <- sub("^dip\\.", "", names(data)[private$dip_idx])
       }
       # Record metadata column names (all columns that are not dip columns). This is used for subsetting
-      # and for writing CSV output.
-      self$meta_cols <- c(setdiff(names(data), names(data)[private$dip_idx]),
-                          "volume_lost", "volume_sold", "abv_class")
+      # and for writing CSV output. Note that we drop the database cask_id column here as well.
+      self$meta_cols <- c(setdiff(names(data), c(names(data)[private$dip_idx],
+                                  c("cask_id", "volume_lost", "volume_sold", "abv_class"))),
+                          c("volume_lost", "volume_sold", "abv_class"))
 
       # Some data cleanup: replace NA stillage with "Unassigned", truncate long stillage names, 
       # compute volume lost and volume sold
@@ -220,9 +221,9 @@ Festival <- R6::R6Class(
     per_diem_sales = function(remap_names = TRUE) {
       rows <- private$.data
       dip_cols <- c("cask_volume", self$dip_cols)
-      pd <- round(rows[,dip_cols][,-length(dip_cols)] - rows[,dip_cols][,-1], 6) %>%
-        if (remap_names) private$remap_dip_names() else .
+      pd <- round(rows[,dip_cols][,-length(dip_cols)] - rows[,dip_cols][,-1], 6)
       colnames(pd) <- self$dip_cols
+      pd <- if (remap_names) private$remap_dip_names(pd) else pd
       if ( ! all(pd >= 0) ) {
         bad <- apply(pd, 1, function(x) any(x < 0))
         badstr <- paste(apply(rows[bad, c('company_name', 'product_name', 'festival_ref')], 1,
