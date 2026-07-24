@@ -123,7 +123,7 @@ summarizeModel <- function(l, cp, group) {
 #' @param ... Additional arguments (currently unused).
 #' @return Invisibly returns \code{NULL} (called for its side effect of
 #'   producing a plot).
-#' @seealso \code{\link{aggData}}, \code{\link{analyseData}}
+#' @seealso \code{\link{plotModelRatio}}, \code{\link{analyseData}}
 #' @importFrom ggplot2 ggplot aes geom_bar labs theme_minimal coord_flip scale_fill_manual theme element_text
 #' @importFrom reshape2 melt
 #' @export
@@ -134,9 +134,9 @@ plotModelCoeffs <- function(festival, group, drop, ...) {
 
   data <- festival$data
 
-  data[[group]] <- factor(data[[group]])
+  l <- fitModelCoeffs(festival, group, drop, ...)
 
-  l <- fitModelCoeffs(data, group, drop, ...)
+  data[[group]] <- factor(data[[group]])
 
   x <- summarizeModel(l, data, group)
 
@@ -166,7 +166,7 @@ plotModelCoeffs <- function(festival, group, drop, ...) {
 #' @param ... Additional arguments (currently unused).
 #' @return Invisibly returns \code{NULL} (called for its side effect of
 #'   producing a plot).
-#' @seealso \code{\link{aggData}}, \code{\link{analyseData}}
+#' @seealso \code{\link{plotModelCoeffs}}, \code{\link{analyseData}}
 #' @importFrom ggplot2 ggplot aes geom_bar labs theme_minimal coord_flip scale_fill_manual theme element_text
 #' @importFrom reshape2 melt
 #' @export

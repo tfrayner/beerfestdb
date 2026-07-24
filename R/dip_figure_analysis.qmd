@@ -64,14 +64,14 @@ creds <- with(params, list(username = username, password = password))
 ```
 
 ```{r data_retrieval, include=FALSE}
-festival <- currentFestival(baseuri = params$baseuri, auth = creds)
+f <- currentFestival(baseuri = params$baseuri, auth = creds)
 
-festdata <- with(params, getFestivalData(baseuri, festival$name, prodcat, auth = creds, dipnames = days))
+festival <- with(params, getFestivalData(baseuri, f$name, prodcat, auth = creds, dipnames = days))
 
 # This assumes the dip columns are returned in order, so the rightmost column is the final dip:
 dip_cols <- c("cask_volume", days)
 
-festdata$write_csv("full_dip_dump.csv")
+festival$write_csv("full_dip_dump.csv")
 ```
 
 
@@ -80,10 +80,10 @@ festdata$write_csv("full_dip_dump.csv")
 The following table summarises the volumes sold, unsold and condemned, further broken down by whether the cask was sold on a sale-or-return basis or not.
 
 ```{r overall_sales_data}
-vol.total <- sum(festdata$data$cask_volume)
+vol.total <- sum(festival$data$cask_volume)
 pct_format <- function(x) { paste0(round(x / vol.total * 100, 1), '%') }
 
-ob <- with(festdata$data,
+ob <- with(festival$data,
            aggregate(data.frame(cask_volume, volume_sold, volume_lost),
                      list(order_batch, is_condemned, is_sale_or_return), sum)) %>% 
   rename(value = 'Group.1', is_condemned = 'Group.2', is_sor = 'Group.3') %>%
@@ -146,14 +146,14 @@ d <- d %>% mutate(across(where(is.double), \(x) round(x, 2)))
 Here we calculate the per diem sales levels for each cask, and aggregate those figures by beer style.
 
 ```{r overall_sales_calculation, include=FALSE}
-cps <- festdata$subset(is_condemned=0)
+cps <- festival$subset(is_condemned=0)
 
 dp <- cps$grouped_per_diem_sales('style')
 
 ## Drop the last part of the festival (1/4 rounded up) since it'll
 ## usually be non-linear by then.
-dn <- ceiling((ncol(dp)-1)/4) - 1
-drop <- colnames(dp)[ (ncol(dp)-dn):ncol(dp) ]
+dn <- ceiling((ncol(dp)-1)/4)
+drop <- rev(rev(colnames(dp))[ seq_len(dn) ])
 ```
 
 This bar chart shows the amount of beer sold per day, broken down by style. The colours for each style are consistent with the other plots in this report.
@@ -195,7 +195,7 @@ mysum <- function(x, ...) {
     return(sum(x, ...))
   }
 }
-agg <- festdata$data %>%
+agg <- festival$data %>%
   group_by(
     company_name, product_name, cask_volume, size_name,
     is_sale_or_return, abv, cask_price, sale_price
@@ -218,7 +218,8 @@ agg <- festdata$data %>%
     pints_unsold = round(sum(pints_lost), 2),
     pints_total = round(sum(pints_total), 2),
     sales_total = round(sum(sales_total), 2),
-    cost_total = round(mysum(cost_total, na.rm = TRUE), 2)
+    cost_total = round(mysum(cost_total, na.rm = TRUE), 2),
+    .groups = "drop"
   ) %>%
   mutate(
     average_sale_price = ifelse(pints_sold > 0, round(sales_total / pints_sold, 2), NA),
@@ -272,19 +273,19 @@ FIXME in the following, I think we need to replace the predicted/observed bars i
 ## By ABV
 
 ```{r sales_by_abv}
-plotSalesRate( cps, 'abv_class' )
+plotSalesRate( cps, 'abv_class', cols=cols )
 plotModelRatio( cps, 'abv_class', drop=drop )
 ```
 
 ## By Region
 ```{r sales_by_region}
-plotSalesRate( cps, 'region' )
+plotSalesRate( cps, 'region', cols=cols )
 plotModelRatio( cps, 'region', drop=drop )
 ```
 
 ## By Stillage Location
 ```{r sales_by_stillage}
-plotSalesRate( cps, 'stillage' )
+plotSalesRate( cps, 'stillage', cols=cols )
 plotModelRatio( cps, 'stillage', drop=drop )
 ```
 
@@ -293,8 +294,7 @@ plotModelRatio( cps, 'stillage', drop=drop )
 The heatmap below shows the days on which each style sold best, with the colours indicating the relative sales rate for that style on that day. The bar chart below shows the ratio of predicted to observed sales for each style, with a value of 1 indicating that the beer order is predicting the sales accurately.
 
 ```{r sales_by_style}
-
-plotSalesRate( cps, 'style' )
+plotSalesRate( cps, 'style', cols=cols )
 
 d <- cps$grouped_per_diem_sales('style') %>% column_to_rownames('style')
 
@@ -311,7 +311,7 @@ plotModelRatio( cps, 'style', drop=drop )
 Here we simply show the proportion of beers ordered by geographic region and style, to give an idea of the diversity of beers ordered for the festival. FIXME perhaps don't use pie charts here? Also - why not illustrate what we ordered vs. what we sold, or vs. sales rate proportion? Why not all three? And don't scale the stacked barcharts so we get to see how much more we could have sold?
 
 ```{r order_regional_distributions}
-byprod <- with(festdata$data, aggregate(data.frame(region, style), list(company_name, product_name), unique))
+byprod <- with(festival$data, aggregate(data.frame(region, style), list(company_name, product_name), unique))
 drawPie( byprod, 'region', cols=cols, cex=1.25 ) # FIXME different colour scheme for region
 drawPie( byprod, 'style', cols=cols, cex=1.25 )
 ```

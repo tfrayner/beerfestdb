@@ -75,6 +75,7 @@ Festival <- R6::R6Class(
     #'   columns.  If supplied, must have the same length as the number of dip
     #'   columns.  If not supplied, the `"dip."` prefix is removed from the dip
     #'   column names to create display names.
+    #' @param abv_breaks Numeric vector of breakpoints for the ABV classes.
     initialize = function(data, dipnames = NULL, abv_breaks = c(2,3.5,4,4.5,5,7,12)) {
       if (!is.data.frame(data)) {
         stop("`data` must be a data frame (e.g. the output of getFestivalData()).")
@@ -186,8 +187,8 @@ Festival <- R6::R6Class(
     #'   the dip column names.
     cask_dips = function() {
       w <- c("festival_ref", "product_name", "company_name")
-      rows <- private$.data[, c(w, self$dip_cols), drop = FALSE] %>%
-        select(all_of(c(w, self$dip_cols)))
+      rows <- private$.data[, c(w, self$.internal_dip_cols), drop = FALSE] %>%
+        select(all_of(c(w, self$.internal_dip_cols)))
       return(private$remap_dip_names(rows))
     },
 
@@ -206,8 +207,8 @@ Festival <- R6::R6Class(
       }
       rows <- private$.data %>%
         group_by(company_name, product_name) %>%
-        summarise(across(all_of(self$dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
-        select(all_of(c(w, self$dip_cols)))
+        summarise(across(all_of(self$.internal_dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
+        select(all_of(c(w, self$.internal_dip_cols)))
       return(private$remap_dip_names(rows))
     },
 
@@ -224,8 +225,8 @@ Festival <- R6::R6Class(
       }
       rows <- private$.data %>%
         group_by(across(all_of(group_cols))) %>%
-        summarise(across(all_of(self$dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
-        select(all_of(c(group_cols, self$dip_cols)))
+        summarise(across(all_of(self$.internal_dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
+        select(all_of(c(group_cols, self$.internal_dip_cols)))
       return(private$remap_dip_names(rows))
     },
 
@@ -238,9 +239,9 @@ Festival <- R6::R6Class(
     #'   to their display names (i.e., remove the `"dip."` prefix).
     per_diem_sales = function(remap_names = TRUE) {
       rows <- private$.data
-      dip_cols <- c("cask_volume", self$dip_cols)
+      dip_cols <- c("cask_volume", self$.internal_dip_cols)
       pd <- round(rows[,dip_cols][,-length(dip_cols)] - rows[,dip_cols][,-1], 6)
-      colnames(pd) <- self$dip_cols
+      colnames(pd) <- self$.internal_dip_cols
       pd <- if (remap_names) private$remap_dip_names(pd) else pd
       if ( ! all(pd >= 0) ) {
         bad <- apply(pd, 1, function(x) any(x < 0))
@@ -265,7 +266,7 @@ Festival <- R6::R6Class(
       pd <- self$per_diem_sales(remap_names = FALSE)
       pd_grouped <- pd %>%
         group_by(across(all_of(group_cols))) %>%
-        summarise(across(all_of(self$dip_cols), sum, na.rm = TRUE), .groups = "drop")
+        summarise(across(all_of(self$.internal_dip_cols), sum, na.rm = TRUE), .groups = "drop")
       return(private$remap_dip_names(pd_grouped))
     },
 
@@ -275,7 +276,7 @@ Festival <- R6::R6Class(
     #' @param file The path to the output CSV file.
     write_csv = function(file) {
       rows <- private$.data %>%
-        select(all_of(c(self$meta_cols, self$dip_cols))) %>%
+        select(all_of(c(self$meta_cols, self$.internal_dip_cols))) %>%
         private$remap_dip_names()
       write.csv(rows, file = file, row.names = FALSE)
     }
@@ -290,9 +291,14 @@ Festival <- R6::R6Class(
       return(private$.data %>% private$remap_dip_names())
     },
 
-    #' @field dip_cols Character vector of dip column names (all columns whose
-    #'   names start with `"dip."`).
+    #' @field dip_cols Character vector of dip column names in the output data.
     dip_cols = function() {
+      return(names(private$dip_idx))
+    },
+
+    #' @field .internal_dip_cols Character vector of internal dip column names (all columns whose
+    #'   names start with `"dip."`).
+    .internal_dip_cols = function() {
       return(names(private$.data)[private$dip_idx])
     },
 
@@ -314,8 +320,8 @@ Festival <- R6::R6Class(
     #   dip column names with the `"dip."` prefix removed.
     dip_idx = NULL,
 
-    #' @field  abv_breaks Numeric vector of breakpoints for ABV classes.  Used to create 
-    #'   the `abv_class` column in the dataset. Stored for subsetting support.
+    # @field  abv_breaks Numeric vector of breakpoints for ABV classes.  Used to create 
+    #   the `abv_class` column in the dataset. Stored for subsetting support.
     abv_breaks = NULL,
 
     # @description Remap dip column names in a data frame to their corresponding

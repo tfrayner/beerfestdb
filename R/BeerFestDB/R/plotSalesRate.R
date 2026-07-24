@@ -31,8 +31,7 @@
 #' @param ... Additional arguments passed to \code{\link{plotFractions}}.
 #' @return Invisibly returns \code{NULL} (called for its side effect of
 #'   producing a plot).
-#' @seealso \code{\link{plotFractions}}, \code{\link{aggData}},
-#'   \code{\link{analyseData}}
+#' @seealso \code{\link{plotFractions}}, \code{\link{analyseData}}
 #' @importFrom RColorBrewer brewer.pal
 #' @export
 ###############################################################################
@@ -48,7 +47,5 @@ plotSalesRate <- function(festival, colname, ...) {
     summarise(start = sum(cask_volume, na.rm = TRUE)) %>%
     column_to_rownames('get(colname)')
 
-  cols <- brewer.pal(9, "Set1")
-
-  plotFractions(dp / start[rownames(dp), "start"], cols = cols, ylim = c(0, NA), ylab = "Fraction Sold", ...)
+  plotFractions(dp / start[rownames(dp), "start"], ylim = c(0, NA), ylab = "Fraction Sold", ...)
 }

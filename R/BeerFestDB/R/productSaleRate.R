@@ -2,7 +2,7 @@
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
 ##
-## Copyright (C) 2011 Tim F. Rayner
+## Copyright (C) 2011-2026 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -36,22 +36,24 @@
 #' @importFrom stats lm
 #' @export
 ###############################################################################
-productSaleRate <- function(y) {
-  ## Trim off initial non-sale period.
-  y <- c(y[1], y[y != y[1]])
+caskSaleRate <- function(y) {
 
-  ## Trim off trailing non-sale period.
-  n <- length(y)
-  y <- c(y[y != y[n]], y[n])
+  .trimPlateau <- function(y) c(y[1], y[y != y[1]])
 
-  ## Normalise to zero at end of sale period.
-  y <- y - y[length(y)]
+  ## Trim off initial non-sale plateau.
+  y <- .trimPlateau(y)
 
+  ## Trim off trailing non-sale plateau.
+  y <- rev(.trimPlateau(rev(y)))
+
+  # Number of sessions, starting at zero.
   m <- 1:length(y) - 1
 
+  ## Fit a linear model to the trimmed, normalised data: slope represents -(gallons sold per session).
   l <- lm(y ~ m)
 
-  ## FIXME we could also return the std. error here.
+  ## Return Estimate and Std. Error values from the model summary, with the sign 
+  ## of the Estimate reversed to give a positive gallons-per-session value. 
   suppressWarnings(r <- summary(l)$coefficients[-1, c(1, 2)])
   return(c(-r[1], r[2]))
 }

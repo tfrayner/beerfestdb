@@ -39,7 +39,7 @@
 #' @param ... Additional arguments passed to \code{\link[graphics]{matplot}}.
 #' @return Invisibly returns \code{NULL} (called for its side effect of
 #'   producing a plot).
-#' @seealso \code{\link{Festival}}, \code{\link{plotSalesRate}}, \code{\link{aggData}}
+#' @seealso \code{\link{Festival}}, \code{\link{plotSalesRate}}
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
 #' @importFrom graphics matplot axis legend
@@ -59,7 +59,7 @@ plotFractions <- function(data, clusters = rownames(data),
     filter(cluster %in% clusters) %>%
     reshape2::melt(id.vars = "cluster", variable.name = "time", value.name = "fraction") %>%
     ggplot(aes(x = time, y = fraction, group = cluster, colour = cluster)) +
-    geom_line(size = 1) +
+    geom_line(size = 2) +
     scale_color_manual(values = cols) +
     labs(x = "Dip Time", y = ylab, colour = "Cluster") +
     theme_minimal() +
