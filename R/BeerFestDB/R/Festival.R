@@ -54,7 +54,8 @@
 #' }
 #'
 #' @importFrom R6 R6Class
-#' @importFrom dplyr group_by summarise across select '%>%'
+#' @importFrom dplyr group_by summarise across select '%>%' ungroup rowwise c_across rename_with
+#' @importFrom tidyr replace_na
 #' @export
 ###############################################################################
 Festival <- R6::R6Class(
@@ -80,8 +81,10 @@ Festival <- R6::R6Class(
       if (!is.data.frame(data)) {
         stop("`data` must be a data frame (e.g. the output of getFestivalData()).")
       }
-      if (!"festival_ref" %in% names(data)) {
-        stop("`data` must contain a `festival_ref` column.")
+      for (col in c("cask_volume", "abv", "festival_ref", "stillage", "is_condemned")) {
+        if (!col %in% names(data)) {
+          stop("`data` must contain a `", col, "` column.")
+        }
       }
       if (!any(grepl("^dip\\.", names(data)))) {
         stop("`data` must contain at least one `dip.*` column.")
