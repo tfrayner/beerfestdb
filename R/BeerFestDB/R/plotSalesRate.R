@@ -77,6 +77,6 @@ plotSalesHeatmap <- function(festival, colname) {
     geom_tile() + scale_fill_gradient2(low="blue", mid="white", high="red", midpoint=0) +
     scale_x_continuous(breaks=1:ncol(dp), labels=colnames(dp)) +
     labs(x='Festival Day', y='Volume Sold (gallons)') +
-    theme_minimal() + ggtitle(paste("Sales by", colname)) +
+    theme_minimal() +
     theme(legend.position='right', legend.title=element_text(size=12), legend.text=element_text(size=10))
 }

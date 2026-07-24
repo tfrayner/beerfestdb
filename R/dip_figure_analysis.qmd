@@ -282,7 +282,7 @@ knitr_tabset(x, function(i) {
 
 # Sales rates over time
 
-This section divides the beer sales data by various categories, and shows the sales rate over time for each category. This information is plotted in two different ways: a simple line graph, and a heatmap-style plot which can sometimes highlight interesting trends. 
+This section divides the beer sales data by various categories, and shows the sales rate over time for each category. This information is plotted in two different ways: a simple line graph, and a heatmap-style plot which can sometimes highlight interesting trends. The scale of the heatmap is relative to the average sales rate for that category (white), so a red area indicates a higher-than-average sales rate, while a blue area indicates a lower-than-average sales rate.
 
 The bar chart in each case shows the ratio of predicted to observed sales, and is included as a way to direct any changes to the beer order for future festivals. In each case, the sales rate is calculated based on the average time taken to sell a full cask. The relative sales rates are then compared against the original beer order to indicate where there may be shortfalls or over-ordering of given ABVs, styles, or geographic regions. Ideally, the "Recommended change" value should be as close to 1 (i.e., no change needed) as possible.
 
