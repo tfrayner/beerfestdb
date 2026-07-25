@@ -1,0 +1,484 @@
+---
+title: "Cambridge Beer Festival Cellar Report"
+format:
+  html:
+    fig-width: 10
+    fig-height: 8
+    page-layout: full
+    grid:
+      margin-width: 0px
+      body-width: 1200px
+    embed-resources: true
+    anchor-sections: true
+    code-fold: true
+    code-overflow: scroll
+    toc: true
+    toc-location: left
+    toc-depth: 6
+    toc-expand: true
+    highlight-style: arrow
+    theme: simplex
+    execute:
+      warning: false
+      cache: false
+date: last-modified
+params:
+  baseuri: 'https://beerfestdb.cambridgebeerfestival.uk/'
+  prodcat: 'beer'
+  username: ''
+  password: ''
+---
+
+
+# Introduction
+
+```{r setup, include=FALSE}
+# Load libraries
+library(RCurl)
+library(rjson)
+library(RColorBrewer)
+library(gplots)
+library(tidyverse)
+library(DT)
+library(htmltools)
+library(ggplot2)
+library(reshape2)
+library(tibble)
+library(colorspace)
+library(ggrepel)
+
+library(BeerFestDB)
+
+# If dip batch names are not already set in the database, we assume the festival
+# starts on the first of these days, and that dips are daily:
+days <- c("Mon", "Tues", "Weds", "Thurs", "Fri", "Sat")
+
+# This is part of a hack to enable datatable in quarto tabsets; see https://stackoverflow.com/a/74708020
+htmltools::tagList(DT::datatable(mtcars))
+```
+
+```{r credentials, include=FALSE}
+# To render this document using quarto, you will need to include your
+# login details as part of the command line. It is recommended to pass
+# the parameters as environmental variables. For example: 
+#    quarto render dip_figure_analysis.qmd -P username:$BFDB_USERNAME -P password:$BFDB_PASSWORD
+
+creds <- with(params, list(username = username, password = password))
+```
+
+```{r data_retrieval, include=FALSE}
+f <- currentFestival(baseuri = params$baseuri, auth = creds)
+
+festival <- with(params, getFestivalData(baseuri, f$name, prodcat, auth = creds, dipnames = days))
+
+festival$write_csv("full_dip_dump.csv")
+```
+
+```{r festival_name}
+cat(paste("Cellar Sales Report for Festival:", f$name))
+```
+
+This report provides a summary of the sales and costs of beers at the Cambridge Beer Festival, based on the data in the BeerFestDB database. It includes overall sales data, order distributions, and sales by category (ABV, region, stillage location, and style).
+
+# Overall Sales Figures
+
+The following table summarises the volumes sold, unsold and condemned, further broken down by whether the cask was sold on a sale-or-return basis or not.
+
+```{r overall_sales_data}
+vol.total <- sum(festival$data$cask_volume)
+
+pct_format <- function(x) paste0(round(x / vol.total * 100, 1), '%')
+
+ob <- with(festival$data,
+           aggregate(data.frame(cask_volume, volume_sold, volume_lost),
+                     list(order_batch, is_condemned, is_sale_or_return), sum)) %>% 
+  rename(value = 'Group.1', is_condemned = 'Group.2', is_sor = 'Group.3') %>%
+  mutate(value = paste('Order:', value),
+         is_condemned = factor(is_condemned, levels=c(0,1)),
+         is_sor = factor(is_sor, levels=c(0,1)))
+
+d.total <- ob %>%
+  summarise(value = 'Total Ordered',
+            cask_volume = sum(cask_volume))
+
+d.sor <- ob %>% filter(is_sor == 1) %>%
+  summarise(value = 'Sale or Return Ordered',
+            cask_volume = sum(cask_volume))
+
+calcSales <- function(ob, tag='Total') {
+  d.sales <- ob %>% 
+    group_by(is_condemned, .drop = FALSE) %>%
+    summarise(value = 'dummy',
+              cask_volume = sum(volume_lost), ) %>%
+    mutate(value = ifelse(is_condemned == 1,
+                          paste0(tag, ' Condemned'),
+                          paste0(tag, ' Unsold'))) %>%
+    select(-any_of(c('is_condemned')))
+
+  d.sales <- ob %>%
+    filter(is_condemned == 0) %>%
+    summarise(value = paste0(tag, ' Sold'),
+             cask_volume = sum(volume_sold)) %>%
+    rbind(d.sales)
+  return(d.sales)
+}
+
+d.sales <- calcSales(ob) %>% rbind(calcSales(ob %>% filter(is_sor == 1), tag='Sale or Return'))
+
+d <- ob %>% group_by(value) %>%
+  summarise(cask_volume = sum(cask_volume)) %>%
+  arrange(desc(which.max(cask_volume) == seq_len(n()))) %>%
+  rbind(d.total) %>%
+  rbind(d.sor) %>%
+  rbind(d.sales) %>%
+  mutate(kils = cask_volume / 18,
+         pct_total = pct_format(cask_volume))
+
+d <- d %>% mutate(across(where(is.double), \(x) round(x, 2)))
+
+DT::datatable(d, rownames=FALSE, options=list(pageLength=nrow(d)), height=500,
+              filter = "none", selection = "none", autoHideNavigation=TRUE,
+              colnames=c('', 'Volume (gallons)', 'Volume (kils)', 'Percent Total'),
+              caption = htmltools::tags$caption(
+                  style = 'caption-side: bottom; text-align: center; font-size: 90%;',
+                  'Overall Sales Data'
+                  )
+              )
+```
+
+```{r overall_sales_calculation, include=FALSE}
+cps <- festival$subset(is_condemned=0)
+
+dp <- cps$grouped_per_diem_sales('style')
+
+## Drop the last part of the festival (1/4 rounded up) since it'll
+## usually be non-linear by then.
+dn <- ceiling((ncol(dp)-1)/4)
+drop <- rev(rev(colnames(dp))[ seq_len(dn) ])
+```
+
+We calculate the daily sales levels for each cask, and aggregate those figures by beer style. The graphs in @fig-overall-sales show the amount of beer sold per day, broken down by style.
+
+```{r overall_sales_plot}
+#| fig-width: 6
+#| fig-height: 4
+#| label: fig-overall-sales
+#| layout-ncol: 2
+#| fig-cap: "Overall sales"
+#| fig-subcap:
+#|   - "Overall sales"
+#|   - "Sales by style over time"
+#| fig-cap-location: bottom
+#| fig-align: center
+
+d <- reshape2::melt(dp)
+d$style <- factor(d$style)
+cols <- darken(colorRampPalette(brewer.pal(12, 'Set3'))(nlevels(d$style)), amount=0.1)
+
+ggplot(d, aes(x=as.numeric(variable), y=value, fill=style)) +
+  geom_area(stat="identity", colour="black", alpha=0.7) + scale_fill_manual(values=cols) +
+  scale_x_continuous(breaks=1:length(festival$dip_cols), 
+                     labels=festival$dip_cols) +
+  labs(x='Festival Day', y='Volume Sold (gallons)', color='Style') +
+  theme_minimal() +
+  theme(legend.position='right', legend.title=element_text(size=12), legend.text=element_text(size=10))
+
+ggplot(d, aes(x=variable, y=value, colour=style, group=style)) +
+  geom_line(size=2) + scale_colour_manual(values = cols) +
+  labs(x='Festival Day', y='Volume Sold (gallons)', color='Style') +
+  theme_minimal() +
+  theme(legend.position='right', legend.title=element_text(size=12), legend.text=element_text(size=10))
+```
+
+
+# Budget Analysis
+ 
+This section provides a comparison of British beer sales and beer order costs. It is intended to provide a high-level overview of the financial performance of the festival, and to help identify any mismatches between sales and costs.
+
+## Sales Figures
+
+Here we run the calculation of mean sales volumes and costs across cask and keg sizes, and ABV ranges:
+
+```{r calculation}
+# Function to fess up to all-NA values but to optionally gloss over partial-NA values (unreceived invoices)
+mysum <- function(x, ...) {
+  if (all(is.na(x))) {
+    return(NA)
+  } else {
+    return(sum(x, ...))
+  }
+}
+agg <- festival$data %>%
+  group_by(
+    company_name, product_name, cask_volume, size_name,
+    is_sale_or_return, abv, cask_price, sale_price
+  ) %>%
+  summarise(
+    pints_sold = sum(volume_sold) * 8, # Assumes volumes in gallons
+    pints_lost = sum(volume_lost) * 8,
+    pints_total = sum(cask_volume) * 8,
+    cost_total = mysum(cask_price, na.rm = TRUE), # na.rm=TRUE would ideally not be needed here (invoice issue)
+    .groups = "drop"
+  ) %>%
+  mutate(
+    abv_class = cut(abv, c(0, 0.5, 3, 4, 5, 6, 7.5, Inf), right = FALSE),
+    sales_total = sale_price * pints_sold,
+    sales_lost = sale_price * pints_lost
+  ) %>%
+  group_by(abv_class, is_sale_or_return, size_name) %>%
+  summarise(
+    pints_sold = round(sum(pints_sold), 2),
+    pints_unsold = round(sum(pints_lost), 2),
+    pints_total = round(sum(pints_total), 2),
+    sales_total = round(sum(sales_total), 2),
+    cost_total = round(mysum(cost_total, na.rm = TRUE), 2),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    average_sale_price = ifelse(pints_sold > 0, round(sales_total / pints_sold, 2), NA),
+    cost_per_pint = ifelse(pints_total > 0, round(cost_total / pints_total, 2), NA)
+  ) %>%
+  arrange(size_name, is_sale_or_return, abv_class) %>%
+  select(-any_of(c("sales_total", "cost_total"))) %>%
+  mutate(across(c(average_sale_price, cost_per_pint), function(x) sprintf("%.2f", x))) %>%
+  ungroup()
+
+levels(agg$abv_class) <- sub(",", " - ", sub("\\[", "", sub("\\)", "%", levels(agg$abv_class))))
+```
+
+Listing the results for **paid** casks, split by container size:
+
+```{r paid_cask_results}
+#| results: asis
+#| column: body
+x <- subset(agg, is_sale_or_return == 0) %>%
+  select(-all_of(c("is_sale_or_return")))
+x <- split.data.frame(x, list(x$size_name))
+knitr_tabset(x, function(i) {
+  show(htmltools::tagList(DT::datatable(i,
+    autoHideNavigation = TRUE, rownames = FALSE,
+    options = list(pageLength = 20)
+  )))
+})
+```
+
+The tables below show the results for **sale-or-return** casks:
+
+```{r sor_cask_results}
+#| results: asis
+#| column: body
+x <- subset(agg, is_sale_or_return == 1) %>%
+  select(-all_of(c("is_sale_or_return")))
+x <- split.data.frame(x, list(x$size_name))
+knitr_tabset(x, function(i) {
+  show(htmltools::tagList(DT::datatable(i,
+    autoHideNavigation = TRUE, rownames = FALSE,
+    options = list(pageLength = 20)
+  )))
+})
+```
+
+
+# Sales rates over time
+
+This section divides the beer sales data by various categories, and shows the sales rate over time for each category. This information is plotted in two different ways: a simple line graph, and a heatmap-style plot which can sometimes highlight interesting trends. The scale of the heatmap is relative to the average sales rate for that category (white), so a red area indicates a higher-than-average sales rate, while a blue area indicates a lower-than-average sales rate.
+
+The bar chart in each case shows the ratio of predicted to observed sales, and is included as a way to direct any changes to the beer order for future festivals. In each case, the sales rate is calculated based on the average time taken to sell a full cask. The relative sales rates are then compared against the original beer order to indicate where there may be shortfalls or over-ordering of given ABVs, styles, or geographic regions. Ideally, the "Recommended change" value should be as close to 1 (i.e., no change needed) as possible.
+
+## By ABV
+
+```{r sales_by_abv}
+#| fig-width: 6
+#| fig-height: 4
+#| label: fig-sales-by-abv
+#| layout-ncol: 2
+#| fig-cap: "Sales by ABV"
+#| fig-subcap:
+#|   - "Sales by ABV over time"
+#|   - "Sales by ABV heatmap"
+#|   - "Sales compared to Order, by ABV"
+#| fig-cap-location: bottom
+#| fig-align: center
+plotSalesRate( cps, 'abv_class', cols=cols )
+plotSalesHeatmap( cps, 'abv_class' )
+plotModelRatio( cps, 'abv_class', drop=drop )
+```
+
+## By Style
+
+```{r sales_by_style}
+#| fig-width: 6
+#| fig-height: 4
+#| label: fig-sales-by-style
+#| layout-ncol: 2
+#| fig-cap: "Sales by Style"
+#| fig-subcap:
+#|   - "Sales by Style over time"
+#|   - "Sales by Style heatmap"
+#|   - "Sales compared to Order, by Style"
+#| fig-cap-location: bottom
+#| fig-align: center
+plotSalesRate( cps, 'style', cols=cols )
+plotSalesHeatmap( cps, 'style' )
+plotModelRatio( cps, 'style', drop=drop )
+```
+
+## By Region
+
+```{r sales_by_region}
+#| fig-width: 6
+#| fig-height: 4
+#| label: fig-sales-by-region
+#| layout-ncol: 2
+#| fig-cap: "Sales by Region"
+#| fig-subcap:
+#|   - "Sales by Region over time"
+#|   - "Sales by Region heatmap"
+#|   - "Sales compared to Order, by Region"
+#| fig-cap-location: bottom
+#| fig-align: center
+plotSalesRate( cps, 'region', cols=cols )
+plotSalesHeatmap( cps, 'region' )
+plotModelRatio( cps, 'region', drop=drop )
+```
+
+## By Stillage Location
+
+```{r sales_by_stillage}
+#| fig-width: 6
+#| fig-height: 4
+#| label: fig-sales-by-stillage
+#| layout-ncol: 2
+#| fig-cap: "Sales by Stillage Location"
+#| fig-subcap:
+#|   - "Sales by Stillage Location over time"
+#|   - "Sales by Stillage Location heatmap"
+#|   - "Sales compared to Order, by Stillage Location"
+#| fig-cap-location: bottom
+#| fig-align: center
+plotSalesRate( cps, 'stillage', cols=cols )
+plotSalesHeatmap( cps, 'stillage' )
+plotModelRatio( cps, 'stillage', drop=drop )
+```
+
+# Order recommendations
+
+## Ordered beer summary
+
+Here we simply show the proportion of beers ordered by geographic region, style, and ABV class, to give an idea of the diversity of beers ordered for the festival.
+
+```{r order_regional_distributions}
+#| fig-width: 6
+#| fig-height: 6
+#| label: fig-order-distributions
+#| layout-ncol: 2
+#| fig-cap: "Order distributions"
+#| fig-subcap:
+#|   - "Order distributions by region"
+#|   - "Order distributions by style"
+#|   - "Order distributions by ABV"
+#| fig-cap-location: bottom
+#| fig-align: center
+drawPieByVolume( festival, 'region', cols=cols, cex=1.25 )
+drawPieByVolume( festival, 'style', cols=cols, cex=1.25 )
+drawPieByVolume( festival, 'abv_class', cols=cols, cex=1.25 )
+```
+
+## Proposed Order Changes
+
+The table below shows the top and bottom ranked products, based on their average cask sales rates. The top ranked products are those which sold the fastest, while the bottom ranked products are those which sold the slowest.
+
+```{r top_and_bottom_ranked_products}
+#| results: asis
+#| column: body
+#| fig-cap: "Top and Bottom Ranked Products, by Cask Sales Rate"
+rp <- rankProducts(festival, drop) %>%
+  mutate(gallons_per_session = round(gallons_per_session, 1))
+top_products <- head(rp, 10)
+bottom_products <- tail(rp, 10)
+knitr_tabset(list(`Top Products` = top_products, `Bottom Products` = bottom_products), function(i) {
+  show(htmltools::tagList(DT::datatable(i,
+    autoHideNavigation = TRUE, rownames = FALSE,
+    options = list(pageLength = 20)
+  )))
+})
+```
+
+As shown in @fig-order-recommendations, we can use these estimated sales rates to update the order quantities for future festivals. This analysis also highlights beers which were over- or under-ordered for this festival. To do this, we use the following approach:
+
+ - Reduce the order volume for beers which didn't run out, to match what was actually sold. This simply subtracts the final dip from the original order volume.
+ - Increase the order volume for beers which did run out, using the modelled sales rate (gallons per session) to estimate how much more we could have sold if we had ordered more of that beer. To give ourselves a margin of safety, we do not include the last day of the festival in this analysis, since sales and customer levels can be unpredictable at that stage.
+
+```{r order_recommendations}
+#| column: page
+#| label: fig-order-recommendations
+
+cv <- festival$data %>%
+  group_by(company_name, product_name) %>%
+  summarise(ordered_volume = sum(cask_volume, na.rm=T), .groups='drop')
+
+x <- festival$product_dips() %>%
+  inner_join(cv, by=c('company_name', 'product_name')) %>%
+  inner_join(rp, by=c('company_name', 'product_name'))
+  
+y <- rev(rev(festival$dip_cols)[-1]) # Ignore last day of festival
+
+last_dip <- x[[rev(festival$dip_cols)[1]]]
+
+x <- x %>%
+  mutate(proposal = ordered_volume + apply(x[, y], 1, function(x) { sum(x == 0) }) * gallons_per_session) %>%
+  mutate(proposal = round(proposal - last_dip, 1),
+         ordered_volume = round(ordered_volume, 1),
+         difference = round(proposal - ordered_volume, 1)) %>%
+  select(company_name, product_name, style, abv, ordered_volume, proposal, difference) %>%
+  subset(difference != 0) %>%
+  arrange(company_name, product_name)
+
+write.csv(x, "proposed_order_adjustments.csv", row.names=FALSE)
+
+DT::datatable(x, rownames=FALSE, options=list(pageLength=20), height=500,
+              colnames=c('Brewer', 'Product', 'Style', 'ABV', 'Volume Ordered (gallons)',
+                         'Proposed Volume (gallons)', 'Difference (gallons)'),
+              caption = htmltools::tags$caption(
+                  style = 'caption-side: bottom; text-align: center; font-size: 90%;',
+                  'Proposed Order Adjustments'
+                  )
+              )
+```
+
+# Appendices
+
+The following sections contain more technical information that may be of interest to those wishing to understand the details of the analysis, or to reproduce it.
+
+## Data Modelling Checks
+
+The plot in @fig-cask-vs-product-sale-rate shows the relationship between the cask sale rate and the product sale rate for each product. The cask sale rate is calculated based on the average time taken to sell a full cask, modelling each cask separately, while the product sale rate is calculated across casks using a single model. The latter case is more influenced by slow-selling casks for which there are more dip measurements, so the results tend to be lower than the cask sale rate. The plot shows that there is a positive correlation between the two sale rates, but that the product sale rate is generally lower than the cask sale rate. Outlier products are labelled in the plot, and may warrant closer inspection of their dip figures to examine any unexpected features of their sales pattern.
+
+```{r testing_cask_vs_product_sale_rate}
+#| fig-width: 6
+#| fig-height: 6
+#| label: fig-cask-vs-product-sale-rate
+x <- festival$data %>%
+  group_by(company_name, product_name) %>%
+  summarise(product_sale_rate = productSaleRate(cur_data(), festival$dip_cols), .groups = 'drop') %>%
+  inner_join(rp, by=c('company_name', 'product_name'))
+
+# Find outlier products
+w <- abs(log2(with(x, product_sale_rate/gallons_per_session))) > 0.8
+x$label <- ifelse(w, paste(x$company_name, x$product_name), NA)
+
+ggplot(x, aes(x=gallons_per_session, y=product_sale_rate)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  labs(x='Cask Sale Rate', y='Product Sale Rate') +
+  theme_minimal() +
+  geom_label_repel(aes(label=label), max.overlaps=Inf, size=3, box.padding=0.5, point.padding=0.5, min.segment.length=0)
+```
+
+## Technical Information
+
+This section is included to provide information about the R environment used to generate this report, and the versions of packages used. This is intended to help with reproducibility of the analysis. The version number of R and packages loaded for generating this report were as follows:
+
+```{r sessioninfo}
+sessionInfo()
+```

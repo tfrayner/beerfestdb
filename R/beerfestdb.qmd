@@ -55,10 +55,6 @@ This code retrieves the dip data from the database for the festival and product 
 ```{r retrieve_data}
 # The 'creds' list value is set in a hidden chunk to avoid exposing user account credentials.
 cp <- getFestivalData(baseuri, festname, prodcat, auth = creds) %>%
-  mutate(
-    cask_price = as.numeric(cask_price) / 100,
-    sale_price = as.numeric(sale_price) / 100
-  )
 
 # Set NA stillage to 'Unassigned'
 cp$stillage[is.na(cp$stillage)] <- "Unassigned"

@@ -15,10 +15,10 @@
 #'   festname <- "38th Cambridge Beer Festival"
 #'   prodcat  <- "beer"
 #'
-#'   cp <- getFestivalData(baseuri, festname, prodcat)
-#'   write.csv(cp, "full_dip_dump.csv", row.names = FALSE)
+#'   festival <- getFestivalData(baseuri, festname, prodcat)
+#'   festival$write_csv("full_dip_dump.csv")
 #'
-#'   analyseData(cp)
+#'   analyseData(festival)
 #' }
 #' @keywords internal
 "_PACKAGE"
