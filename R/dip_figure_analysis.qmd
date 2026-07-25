@@ -45,6 +45,7 @@ library(ggplot2)
 library(reshape2)
 library(tibble)
 library(colorspace)
+library(ggrepel)
 
 library(BeerFestDB)
 
@@ -69,9 +70,6 @@ creds <- with(params, list(username = username, password = password))
 f <- currentFestival(baseuri = params$baseuri, auth = creds)
 
 festival <- with(params, getFestivalData(baseuri, f$name, prodcat, auth = creds, dipnames = days))
-
-# This assumes the dip columns are returned in order, so the rightmost column is the final dip:
-dip_cols <- c("cask_volume", days)
 
 festival$write_csv("full_dip_dump.csv")
 ```
@@ -179,7 +177,8 @@ cols <- darken(colorRampPalette(brewer.pal(12, 'Set3'))(nlevels(d$style)), amoun
 
 ggplot(d, aes(x=as.numeric(variable), y=value, fill=style)) +
   geom_area(stat="identity", colour="black", alpha=0.7) + scale_fill_manual(values=cols) +
-  scale_x_continuous(breaks=1:length(days), labels=days) +
+  scale_x_continuous(breaks=1:length(festival$dip_cols), 
+                     labels=festival$dip_cols) +
   labs(x='Festival Day', y='Volume Sold (gallons)', color='Style') +
   theme_minimal() +
   theme(legend.position='right', legend.title=element_text(size=12), legend.text=element_text(size=10))
@@ -362,28 +361,121 @@ plotSalesHeatmap( cps, 'stillage' )
 plotModelRatio( cps, 'stillage', drop=drop )
 ```
 
-# Summary of ordered beer proportions
+# Order recommendations
 
-Here we simply show the proportion of beers ordered by geographic region and style, to give an idea of the diversity of beers ordered for the festival. FIXME perhaps don't use pie charts here? Also - why not illustrate what we ordered vs. what we sold, or vs. sales rate proportion? Why not all three? And don't scale the stacked barcharts so we get to see how much more we could have sold?
+## Ordered beer summary
+
+Here we simply show the proportion of beers ordered by geographic region, style, and ABV class, to give an idea of the diversity of beers ordered for the festival.
 
 ```{r order_regional_distributions}
 #| fig-width: 6
-#| fig-height: 4
+#| fig-height: 6
 #| label: fig-order-distributions
 #| layout-ncol: 2
 #| fig-cap: "Order distributions"
 #| fig-subcap:
 #|   - "Order distributions by region"
 #|   - "Order distributions by style"
+#|   - "Order distributions by ABV"
 #| fig-cap-location: bottom
 #| fig-align: center
-byprod <- with(festival$data, aggregate(data.frame(region, style), list(company_name, product_name), unique))
-drawPie( byprod, 'region', cols=cols, cex=1.25 ) # FIXME different colour scheme for region
-drawPie( byprod, 'style', cols=cols, cex=1.25 )
+drawPieByVolume( festival, 'region', cols=cols, cex=1.25 )
+drawPieByVolume( festival, 'style', cols=cols, cex=1.25 )
+drawPieByVolume( festival, 'abv_class', cols=cols, cex=1.25 )
 ```
 
+## Proposed Order Changes
 
-# Technical Information
+The table below shows the top and bottom ranked products, based on their average cask sales rates. The top ranked products are those which sold the fastest, while the bottom ranked products are those which sold the slowest.
+
+```{r top_and_bottom_ranked_products}
+#| results: asis
+#| column: body
+#| fig-cap: "Top and Bottom Ranked Products, by Cask Sales Rate"
+rp <- rankProducts(festival, drop) %>%
+  mutate(gallons_per_session = round(gallons_per_session, 1))
+top_products <- head(rp, 10)
+bottom_products <- tail(rp, 10)
+knitr_tabset(list(`Top Products` = top_products, `Bottom Products` = bottom_products), function(i) {
+  show(htmltools::tagList(DT::datatable(i,
+    autoHideNavigation = TRUE, rownames = FALSE,
+    options = list(pageLength = 20)
+  )))
+})
+```
+
+As shown in @fig-order-recommendations, we can use these estimated sales rates to update the order quantities for future festivals. This analysis also highlights beers which were over- or under-ordered for this festival. To do this, we use the following approach:
+
+ - Reduce the order volume for beers which didn't run out, to match what was actually sold. This simply subtracts the final dip from the original order volume.
+ - Increase the order volume for beers which did run out, using the modelled sales rate (gallons per session) to estimate how much more we could have sold if we had ordered more of that beer. To give ourselves a margin of safety, we do not include the last day of the festival in this analysis, since sales and customer levels can be unpredictable at that stage.
+
+```{r order_recommendations}
+#| column: page
+#| label: fig-order-recommendations
+
+cv <- festival$data %>%
+  group_by(company_name, product_name) %>%
+  summarise(ordered_volume = sum(cask_volume, na.rm=T), .groups='drop')
+
+x <- festival$product_dips() %>%
+  inner_join(cv, by=c('company_name', 'product_name')) %>%
+  inner_join(rp, by=c('company_name', 'product_name'))
+  
+y <- rev(rev(festival$dip_cols)[-1]) # Ignore last day of festival
+
+last_dip <- x[[rev(festival$dip_cols)[1]]]
+
+x <- x %>%
+  mutate(proposal = ordered_volume + apply(x[, y], 1, function(x) { sum(x == 0) }) * gallons_per_session) %>%
+  mutate(proposal = round(proposal - last_dip, 1),
+         ordered_volume = round(ordered_volume, 1),
+         difference = round(proposal - ordered_volume, 1)) %>%
+  select(company_name, product_name, style, abv, ordered_volume, proposal, difference) %>%
+  subset(difference != 0) %>%
+  arrange(company_name, product_name)
+
+write.csv(x, "proposed_order_adjustments.csv", row.names=FALSE)
+
+DT::datatable(x, rownames=FALSE, options=list(pageLength=20), height=500,
+              colnames=c('Brewer', 'Product', 'Style', 'ABV', 'Volume Ordered (gallons)',
+                         'Proposed Volume (gallons)', 'Difference (gallons)'),
+              caption = htmltools::tags$caption(
+                  style = 'caption-side: bottom; text-align: center; font-size: 90%;',
+                  'Proposed Order Adjustments'
+                  )
+              )
+```
+
+# Appendices
+
+The following sections contain more technical information that may be of interest to those wishing to understand the details of the analysis, or to reproduce it.
+
+## Data Modelling Checks
+
+The plot in @fig-cask-vs-product-sale-rate shows the relationship between the cask sale rate and the product sale rate for each product. The cask sale rate is calculated based on the average time taken to sell a full cask, modelling each cask separately, while the product sale rate is calculated across casks using a single model. The latter case is more influenced by slow-selling casks for which there are more dip measurements, so the results tend to be lower than the cask sale rate. The plot shows that there is a positive correlation between the two sale rates, but that the product sale rate is generally lower than the cask sale rate. Outlier products are labelled in the plot, and may warrant closer inspection of their dip figures to examine any unexpected features of their sales pattern.
+
+```{r testing_cask_vs_product_sale_rate}
+#| fig-width: 6
+#| fig-height: 6
+#| label: fig-cask-vs-product-sale-rate
+x <- festival$data %>%
+  group_by(company_name, product_name) %>%
+  summarise(product_sale_rate = productSaleRate(cur_data(), festival$dip_cols), .groups = 'drop') %>%
+  inner_join(rp, by=c('company_name', 'product_name'))
+
+# Find outlier products
+w <- abs(log2(with(x, product_sale_rate/gallons_per_session))) > 0.8
+x$label <- ifelse(w, paste(x$company_name, x$product_name), NA)
+
+ggplot(x, aes(x=gallons_per_session, y=product_sale_rate)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  labs(x='Cask Sale Rate', y='Product Sale Rate') +
+  theme_minimal() +
+  geom_label_repel(aes(label=label), max.overlaps=Inf, size=3, box.padding=0.5, point.padding=0.5, min.segment.length=0)
+```
+
+## Technical Information
 
 This section is included to provide information about the R environment used to generate this report, and the versions of packages used. This is intended to help with reproducibility of the analysis. The version number of R and packages loaded for generating this report were as follows:
 

@@ -71,3 +71,53 @@ drawPie <- function(cp, colname, cols = brewer.pal(9, "Set1"),
     radius = radius, col = cols, ...
   )
 }
+
+################################################################################
+#' Draw a pie chart of total volume from a given category
+#' @description Takes a data frame and a column name, sums the total volume in
+#'   each category, and draws a pie chart illustrating the relative total volume
+#'   per category.  Categories that together account for less than 1\% of
+#'   the total are collapsed into an \code{"Other"} slice.
+#' @details The default output of \code{\link{getFestivalData}} lists dip
+#'   measurements by cask.  To obtain total volume per category you should first
+#'   aggregate the data frame as shown in the example below.
+#' @param festival A data frame.
+#' @param colname A character string naming the column in \code{festival$data} to tally.
+#' @param cols A vector of colours used to fill the pie slices.  Expanded via
+#'   \code{\link[grDevices]{colorRampPalette}} when more slices than colours are required.
+#' @param radius Radius of the pie chart passed to
+#'   \code{\link[graphics]{pie}}.
+#' @param ... Additional arguments passed to \code{\link[graphics]{pie}}.
+#' @return Invisibly returns \code{NULL} (called for its side effect of
+#'   producing a plot).
+#' @examples
+#' \dontrun{
+#'   festival <- getFestivalData(baseuri, festname, prodcat)
+#'   drawPieByVolume(festival, "region")
+#' }
+#' @seealso \code{\link{getFestivalData}}, \code{\link{drawPie}}
+#' @importFrom grDevices colorRampPalette
+#' @importFrom graphics pie
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom stats aggregate
+#' @export
+################################################################################
+drawPieByVolume <- function(festival, colname, cols = brewer.pal(9, "Set1"),
+                    radius = 0.8, ...) {
+  counts <- aggregate(festival$data$cask_volume, list(festival$data[[colname]]), sum)
+
+  w <- counts[, 2] / sum(counts[, 2]) < 0.01
+  if (sum(w) > 0) {
+    s <- sum(counts[w, 2])
+    counts <- rbind(counts[!w, ], c("Other", s))
+  }
+
+  if (nrow(counts) > length(cols)) {
+    cols <- colorRampPalette(cols)(nrow(counts))
+  }
+
+  pie(as.numeric(counts[, 2]),
+    labels = counts[, 1],
+    radius = radius, col = cols, ...
+  )
+}
