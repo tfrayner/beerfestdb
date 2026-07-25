@@ -365,7 +365,7 @@ plotModelRatio( cps, 'stillage', drop=drop )
 
 ## Ordered beer summary
 
-Here we simply show the proportion of beers ordered by geographic region, style, and ABV class, to give an idea of the diversity of beers ordered for the festival.
+Here we simply show the proportion of beers ordered by geographic region, style, and ABV class, to give an idea of the diversity of beers ordered for the festival. These figures are based on the original order, omitting sale-or-return casks, and do not take into account any unsold or condemned casks.
 
 ```{r order_regional_distributions}
 #| fig-width: 6
@@ -379,9 +379,10 @@ Here we simply show the proportion of beers ordered by geographic region, style,
 #|   - "Order distributions by ABV"
 #| fig-cap-location: bottom
 #| fig-align: center
-drawPieByVolume( festival, 'region', cols=cols, cex=1.25 )
-drawPieByVolume( festival, 'style', cols=cols, cex=1.25 )
-drawPieByVolume( festival, 'abv_class', cols=cols, cex=1.25 )
+f <- festival$subset(is_sale_or_return=0)
+drawPieByVolume( f, 'region', cols=cols, cex=1.25 )
+drawPieByVolume( f, 'style', cols=cols, cex=1.25 )
+drawPieByVolume( f, 'abv_class', cols=cols, cex=1.25 )
 ```
 
 ## Proposed Order Changes
@@ -409,21 +410,25 @@ As shown in @fig-order-recommendations, we can use these estimated sales rates t
  - Reduce the order volume for beers which didn't run out, to match what was actually sold. This simply subtracts the final dip from the original order volume.
  - Increase the order volume for beers which did run out, using the modelled sales rate (gallons per session) to estimate how much more we could have sold if we had ordered more of that beer. To give ourselves a margin of safety, we do not include the last day of the festival in this analysis, since sales and customer levels can be unpredictable at that stage.
 
+We restrict this analysis to **uncondemned, non-sale-or-return casks**, since we don't want to base our ordering recommendations on beer that's unsold for either of those reasons. Bear in mind that this analysis may recommend increasing the order of beers which sell out early due to one or more casks being condemned; such cases should be reviewed carefully to ensure that the recommendation is appropriate.
+
 ```{r order_recommendations}
 #| column: page
 #| label: fig-order-recommendations
 
-cv <- festival$data %>%
-  group_by(company_name, product_name) %>%
-  summarise(ordered_volume = sum(cask_volume, na.rm=T), .groups='drop')
+f <- festival$subset(is_sale_or_return=0, is_condemned=0)
 
-x <- festival$product_dips() %>%
+cv <- f$data %>%
+  group_by(company_name, product_name) %>%
+  summarise(ordered_volume = sum(cask_volume, na.rm=TRUE), .groups='drop')
+
+x <- f$product_dips() %>%
   inner_join(cv, by=c('company_name', 'product_name')) %>%
   inner_join(rp, by=c('company_name', 'product_name'))
   
-y <- rev(rev(festival$dip_cols)[-1]) # Ignore last day of festival
+y <- rev(rev(f$dip_cols)[-1]) # Ignore last day of festival
 
-last_dip <- x[[rev(festival$dip_cols)[1]]]
+last_dip <- x[[rev(f$dip_cols)[1]]]
 
 x <- x %>%
   mutate(proposal = ordered_volume + apply(x[, y], 1, function(x) { sum(x == 0) }) * gallons_per_session) %>%
