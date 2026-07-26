@@ -212,13 +212,12 @@ Wine & Mead
     set Sale volume column to glass
 
 Report Graphs
-  Requires local beerfestdb installation, R and package - see Appendix 6
-  The dip_figure_analysis.Rnw script spawns a .tex file to produce the graphs, but the festival name has to be updated manually in the file. The file location is [pathto]/beerfestdb/R/dip_figure_analysis.Rnw, editing instructions are in the header, and the bit to change is helpfully flagged "# Edit these:". Issue the command (also provided	in the file header):
-    % SWEAVE_STYLEPATH_DEFAULT=TRUE R CMD Sweave dip_figure_analysis.Rnw
-  Generates output file dip_figure_analysis.tex and a bunch of .pdf files (for the figures) if all has gone well
+  Requires local beerfestdb installation, quarto, R and package - see Appendix 6. Alternatively, run on pin and copy the resulting report to your local computer.
+  The dip_figure_analysis.qmd script is used to generate an HTML report and needs no additional editing. It will automatically generate a report for the current festival. The file location is [pathto]/beerfestdb/R/dip_figure_analysis.qmd. Issue the following command:
+    % quarto render dip_figure_analysis.qmd -P username:XXXX -P password:XXXX
+  Note that you will need to replace the XXXXs with your beerfestdb web username and password, or environmental variables containing these credentials.
   If it spits out an error message about "negative per diem dips found", it means there's a case where a cask magically has more beer at a later dip than it did at an earlier dip. Correct the dip data rather than the laws of physics.
    easiest way is to regenerate the dip sheets (see above) and eyeball them - the error message should list the cask IDs affected
-   copy dip_figure_analysis.Rnw into local directory in one's ~ if necessary for write-access reasons
 
 October & Winter festivals
   Cellar isn't involved in ordering, so we just do most of the db stuff once beer has arrived.
@@ -375,6 +374,8 @@ Appendix 6 - setting up beerfestdb R to run the graph-generating script
       > biocLite('rjson')
     Then quit R:
       > q()
+
+  Install quarto using the appropriate package from https://quarto.org/docs/get-started/
 
   On a Mac you'll also have to install XQuartz from xquartz.macosforge.org
 
