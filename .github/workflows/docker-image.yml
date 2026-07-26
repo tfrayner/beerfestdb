@@ -25,3 +25,28 @@ jobs:
       with:
         push: true
         tags: tfrayner/beerfestdb:latest
+
+  r-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: 'release'
+
+    - uses: r-lib/actions/setup-r-dependencies@v2
+      with:
+        working-directory: R/BeerFestDB
+        extra-packages: any::testthat, any::devtools
+
+    - name: Build R package
+      working-directory: R/BeerFestDB
+      run: Rscript -e "devtools::check(vignettes = FALSE, error_on = 'error'); devtools::build(path = '.', vignettes = FALSE, manual = TRUE)"
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: beerfestdb-r-package
+        path: R/BeerFestDB/*.tar.gz
