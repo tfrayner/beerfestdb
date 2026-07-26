@@ -210,7 +210,7 @@ Festival <- R6::R6Class(
       }
       rows <- private$.data %>%
         group_by(company_name, product_name) %>%
-        summarise(across(all_of(self$.internal_dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
+        summarise(across(all_of(self$.internal_dip_cols), \(x) sum(x, na.rm = TRUE)), .groups = "drop") %>%
         select(all_of(c(w, self$.internal_dip_cols)))
       return(private$remap_dip_names(rows))
     },
@@ -228,7 +228,7 @@ Festival <- R6::R6Class(
       }
       rows <- private$.data %>%
         group_by(across(all_of(group_cols))) %>%
-        summarise(across(all_of(self$.internal_dip_cols), sum, na.rm = TRUE), .groups = "drop") %>%
+        summarise(across(all_of(self$.internal_dip_cols), \(x) sum(x, na.rm = TRUE)), .groups = "drop") %>%
         select(all_of(c(group_cols, self$.internal_dip_cols)))
       return(private$remap_dip_names(rows))
     },
@@ -269,7 +269,7 @@ Festival <- R6::R6Class(
       pd <- self$per_diem_sales(remap_names = FALSE)
       pd_grouped <- pd %>%
         group_by(across(all_of(group_cols))) %>%
-        summarise(across(all_of(self$.internal_dip_cols), sum, na.rm = TRUE), .groups = "drop")
+        summarise(across(all_of(self$.internal_dip_cols), \(x) sum(x, na.rm = TRUE)), .groups = "drop")
       return(private$remap_dip_names(pd_grouped))
     },
 
