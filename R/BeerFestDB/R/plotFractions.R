@@ -25,7 +25,7 @@
 #'   volume remaining at each dip time for each group (cluster).  Typically
 #'   called via \code{\link{plotSalesRate}} rather than directly.
 #' @param data A matrix or data frame with groups as rows and dip times as
-#'   columns.  Typically the output of \code{\link{Festival$grouped_per_diem_sales()}} divided by its
+#'   columns.  Typically the output of \code{Festival$grouped_per_diem_sales()} divided by its
 #'   first column.
 #' @param clusters Character vector of row names from \code{data} to include
 #'   in the plot.  Defaults to all rows.
@@ -42,7 +42,10 @@
 #' @seealso \code{\link{Festival}}, \code{\link{plotSalesRate}}
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom graphics matplot axis legend
+#' @importFrom ggplot2 ggplot aes geom_line scale_color_manual labs theme_minimal theme element_text
+#' @importFrom dplyr filter
+#' @importFrom tibble rownames_to_column
+#' @importFrom reshape2 melt
 #' @export
 ###############################################################################
 plotFractions <- function(data, clusters = rownames(data),
