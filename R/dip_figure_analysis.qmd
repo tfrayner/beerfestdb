@@ -400,7 +400,7 @@ bottom_products <- tail(rp, 10)
 knitr_tabset(list(`Top Products` = top_products, `Bottom Products` = bottom_products), function(i) {
   show(htmltools::tagList(DT::datatable(i,
     autoHideNavigation = TRUE, rownames = FALSE,
-    options = list(pageLength = 20)
+    options = list(pageLength = 20, columns.type = 'string-utf8')
   )))
 })
 ```
@@ -441,7 +441,7 @@ x <- x %>%
 
 write.csv(x, "proposed_order_adjustments.csv", row.names=FALSE)
 
-DT::datatable(x, rownames=FALSE, options=list(pageLength=20), height=500,
+DT::datatable(x, rownames=FALSE, options=list(pageLength=20, columns.type = 'string-utf8'), height=500,
               colnames=c('Brewer', 'Product', 'Style', 'ABV', 'Volume Ordered (gallons)',
                          'Proposed Volume (gallons)', 'Difference (gallons)'),
               caption = htmltools::tags$caption(
