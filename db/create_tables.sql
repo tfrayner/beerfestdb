@@ -535,6 +535,7 @@ CREATE TABLE `festival` (
   `description` text,
   `fst_start_date` date DEFAULT NULL,
   `fst_end_date` date DEFAULT NULL,
+  `public_status_tag` varchar(30) DEFAULT NULL,
   PRIMARY KEY (`festival_id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -967,6 +968,8 @@ DROP TABLE IF EXISTS `product_category`;
 CREATE TABLE `product_category` (
   `product_category_id` int(6) NOT NULL AUTO_INCREMENT,
   `description` varchar(100) NOT NULL,
+  `is_status_public` tinyint(1) NOT NULL DEFAULT '0',  -- Has product info uploaded to the public status page?
+  `is_stock_public` tinyint(1) NOT NULL DEFAULT '0',   -- Has stock levels uploaded to the public status page?
   PRIMARY KEY (`product_category_id`),
   UNIQUE KEY `description` (`description`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -1196,6 +1199,22 @@ SET character_set_client = utf8;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Table structure for table `protected`
+--
+
+DROP TABLE IF EXISTS `protected`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `protected` (
+  `protected_id` int(11) NOT NULL AUTO_INCREMENT,
+  `classname` varchar(255) NOT NULL,       -- ORM class name, e.g. Product, Festival, etc.
+  `loader_create` tinyint(1) default '0',  -- Can the Loader create instances of this class in the database?
+  PRIMARY KEY (`protected_id`),
+  UNIQUE KEY `classname` (`classname`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `role`
 --
 
@@ -1243,6 +1262,26 @@ CREATE TABLE `stillage_location` (
   PRIMARY KEY (`stillage_location_id`),
   UNIQUE KEY `festival_id` (`festival_id`,`description`),
   CONSTRAINT `stillage_location_ibfk_1` FOREIGN KEY (`festival_id`) REFERENCES `festival` (`festival_id`) ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `system_defaults`
+--
+
+DROP TABLE IF EXISTS `system_defaults`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `system_defaults` (
+  `id`              tinyint(1) NOT NULL DEFAULT 1,   -- enforce singleton row
+  `festival_id`     int(6) DEFAULT NULL,
+  `currency_id`     int(6) DEFAULT NULL,
+  `sale_volume_id`  int(6) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `system_defaults_singleton` CHECK (`id` = 1),
+  CONSTRAINT `sd_ibfk_1` FOREIGN KEY (`festival_id`)    REFERENCES `festival`     (`festival_id`)    ON UPDATE NO ACTION ON DELETE SET NULL,
+  CONSTRAINT `sd_ibfk_2` FOREIGN KEY (`currency_id`)    REFERENCES `currency`     (`currency_id`)    ON UPDATE NO ACTION ON DELETE SET NULL,
+  CONSTRAINT `sd_ibfk_3` FOREIGN KEY (`sale_volume_id`) REFERENCES `sale_volume`  (`sale_volume_id`) ON UPDATE NO ACTION ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
