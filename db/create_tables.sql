@@ -1277,11 +1277,15 @@ CREATE TABLE `system_defaults` (
   `festival_id`     int(6) DEFAULT NULL,   -- current festival for which the system is configured
   `currency_id`     int(6) DEFAULT NULL,
   `sale_volume_id`  int(6) DEFAULT NULL,
+  `product_category_id` int(6) DEFAULT NULL,
+  `container_measure_id` int(6) DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `system_defaults_singleton` CHECK (`id` = 1),
   CONSTRAINT `sd_ibfk_1` FOREIGN KEY (`festival_id`)    REFERENCES `festival`     (`festival_id`)    ON UPDATE NO ACTION ON DELETE SET NULL,
   CONSTRAINT `sd_ibfk_2` FOREIGN KEY (`currency_id`)    REFERENCES `currency`     (`currency_id`)    ON UPDATE NO ACTION ON DELETE SET NULL,
-  CONSTRAINT `sd_ibfk_3` FOREIGN KEY (`sale_volume_id`) REFERENCES `sale_volume`  (`sale_volume_id`) ON UPDATE NO ACTION ON DELETE SET NULL
+  CONSTRAINT `sd_ibfk_3` FOREIGN KEY (`sale_volume_id`) REFERENCES `sale_volume`  (`sale_volume_id`) ON UPDATE NO ACTION ON DELETE SET NULL,
+  CONSTRAINT `sd_ibfk_4` FOREIGN KEY (`product_category_id`) REFERENCES `product_category` (`product_category_id`) ON UPDATE NO ACTION ON DELETE SET NULL,
+  CONSTRAINT `sd_ibfk_5` FOREIGN KEY (`container_measure_id`) REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

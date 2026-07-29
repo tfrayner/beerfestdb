@@ -95,6 +95,8 @@ SET @sql := IF(@tbl_exists = 0,
     `festival_id`    int(6)     DEFAULT NULL,
     `currency_id`    int(6)     DEFAULT NULL,
     `sale_volume_id` int(6)     DEFAULT NULL,
+    `product_category_id` int(6) DEFAULT NULL,
+    `container_measure_id` int(6) DEFAULT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `system_defaults_singleton` CHECK (`id` = 1),
     CONSTRAINT `sd_ibfk_1` FOREIGN KEY (`festival_id`)
@@ -102,7 +104,11 @@ SET @sql := IF(@tbl_exists = 0,
     CONSTRAINT `sd_ibfk_2` FOREIGN KEY (`currency_id`)
       REFERENCES `currency` (`currency_id`) ON UPDATE NO ACTION ON DELETE SET NULL,
     CONSTRAINT `sd_ibfk_3` FOREIGN KEY (`sale_volume_id`)
-      REFERENCES `sale_volume` (`sale_volume_id`) ON UPDATE NO ACTION ON DELETE SET NULL
+      REFERENCES `sale_volume` (`sale_volume_id`) ON UPDATE NO ACTION ON DELETE SET NULL,
+    CONSTRAINT `sd_ibfk_4` FOREIGN KEY (`product_category_id`)
+      REFERENCES `product_category` (`product_category_id`) ON UPDATE NO ACTION ON DELETE SET NULL,
+    CONSTRAINT `sd_ibfk_5` FOREIGN KEY (`container_measure_id`)
+      REFERENCES `container_measure` (`container_measure_id`) ON UPDATE NO ACTION ON DELETE SET NULL
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
   'SELECT "system_defaults already exists"'
 );
@@ -115,7 +121,7 @@ SET @row_exists := (
   WHERE `id` = 1
 );
 SET @sql := IF(@row_exists = 0,
-  'INSERT INTO `system_defaults` (`id`, `festival_id`, `currency_id`, `sale_volume_id`) VALUES (1, NULL, NULL, NULL)',
+  'INSERT INTO `system_defaults` (`id`) VALUES (1)',
   'SELECT "system_defaults default row already exists"'
 );
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
