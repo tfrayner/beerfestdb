@@ -109,7 +109,7 @@ __PACKAGE__->config(
     default_sale_volume => 'pint',
     default_product_category => 'beer',
     default_measurement_unit => 'gallon',
-    stock_control_departments => [],
+
     awrs_urn_prefix => 'https://www.tax.service.gov.uk/check-the-awrs-register?query=',
     using_frontend_proxy => 1,  # create URLs using HTTPS scheme when behind a proxy
     enable_catalyst_header => 0,  # Disable X-Catalyst header
@@ -152,8 +152,8 @@ foreach my $path ( qw(productstyle productcharacteristictype) ) {
 foreach my $path ( qw(bayposition companyregion contacttype containermeasure
                       containersize country currency dispensemethod
                       productallergentype productcharacteristictype
-                      productcategory productstyle role
-                      salevolume telephonetype) ) {
+                      productcategory productstyle protected role
+                      salevolume telephonetype systemdefaults) ) {
     __PACKAGE__->allow_access_if( "/$path/list", [ qw( user ) ] );
     __PACKAGE__->allow_access_if( '/' . $path, [ qw( admin ) ] );
     __PACKAGE__->deny_access( '/' . $path );

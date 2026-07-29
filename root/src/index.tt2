@@ -79,6 +79,12 @@
     <p>Day-to-day management of festivals, suppliers and products.</p>
     <a class="bfdb-card" href="[% c.uri_for('/festival/grid') %]">Festival Records</a>
     <a class="bfdb-card" href="[% c.uri_for('/company/grid') %]">Supplier and Product Listings</a>
+    [% IF c.check_any_user_role('admin') %]
+    <h2>Festival Config</h2>
+    <p>Configuration pages for festival-related settings. Current festival is set under System Defaults.</p>
+    <a class="bfdb-card" href="[% c.uri_for('/protected/grid') %]">Protected Classes</a>
+    <a class="bfdb-card" href="[% c.uri_for('/systemdefaults/view') %]">System Defaults</a>
+    [% END %]
   </div>
 
   [% IF c.check_any_user_role('admin') %]

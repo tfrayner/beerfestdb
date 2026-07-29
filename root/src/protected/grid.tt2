@@ -1,0 +1,5 @@
+[% META title = 'Protected Class listing' %]
+
+[% js_link( src = '/static/js/grids/protected_classes.js' ) %]
+
+<div id="datagrid"></div>

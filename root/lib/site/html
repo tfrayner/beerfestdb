@@ -52,6 +52,7 @@
    var url_contact_type_list    = '[% c.uri_for( "/contacttype/list" ) %]';
    var url_telephone_type_list  = '[% c.uri_for( "/telephonetype/list" ) %]';
    var url_country_list         = '[% c.uri_for( "/country/list" ) %]';
+   var url_protected_list       = '[% c.uri_for( "/protected/list" ) %]';
    var url_role_list            = '[% c.uri_for( "/role/list" ) %]';
    var url_user_list            = '[% c.uri_for( "/user/list" ) %]';
 
@@ -101,6 +102,8 @@
    var url_productorder_submit  = '[% c.uri_for( "/productorder/submit" ) %]';
    var url_productstyle_submit  = '[% c.uri_for( "/productstyle/submit" ) %]';
    var url_productstyle_delete  = '[% c.uri_for( "/productstyle/delete" ) %]';
+   var url_protected_submit     = '[% c.uri_for( "/protected/submit" ) %]';
+   var url_protected_delete     = '[% c.uri_for( "/protected/delete" ) %]';
    var url_sale_volume_submit   = '[% c.uri_for( "/salevolume/submit" ) %]';
    var url_sale_volume_delete   = '[% c.uri_for( "/salevolume/delete" ) %]';
    var url_stillageloc_submit   = '[% c.uri_for( "/stillagelocation/submit" ) %]';
