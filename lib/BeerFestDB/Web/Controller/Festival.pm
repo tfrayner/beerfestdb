@@ -50,6 +50,7 @@ sub BUILD {
         description     => 'description',
         fst_start_date  => 'fst_start_date',
         fst_end_date    => 'fst_end_date',
+        public_status_tag => 'public_status_tag',
     });
 }
 

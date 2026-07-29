@@ -517,7 +517,7 @@ sub _derive_status_report_by_dispense_method : Private {
     FP:
     while ( my $fp = $fp_rs->next() ) {
 
-	$c->log->debug(sprintf("Processing data for festival_product %d", $fp->id));
+        $c->log->debug(sprintf("Processing data for festival_product %d", $fp->id));
         my %gyleabv;
         foreach my $gyle ( $fp->gyles() ) {
             $gyleabv{ $gyle->abv }++ if defined $gyle->abv;
@@ -540,33 +540,35 @@ sub _derive_status_report_by_dispense_method : Private {
         $prodhash->{'abv'}             = $abv;
         $prodhash->{'dispense_method'} = $dispense->description;
 
-	# Some defaults here.prior to opening, "Arrived" is all we
-	# really want.
-	$prodhash->{'status'}     = 'Arrived';
-	$prodhash->{'css_status'} = 'arrived';
-	$prodhash->{'starting_volume'}   = undef;
-	$prodhash->{'stillage_location'} = undef;
+        # Some defaults here.prior to opening, "Arrived" is all we
+        # really want.
+        $prodhash->{'status'}     = 'Arrived';
+        $prodhash->{'css_status'} = 'arrived';
+        $prodhash->{'starting_volume'}   = undef;
+        $prodhash->{'stillage_location'} = undef;
 
         if ( $festival_open ) {
 
-	    $c->log->debug("Updating dispense method status report for open festival.");
+            $c->log->debug("Updating dispense method status report for open festival.");
 
-	    my $catname = $fp->product_id->product_category_id->description();
-	    if ( first { $catname eq $_ } @{ $c->config->{'stock_control_departments'} || [] } ) {
-		my ( $status, $css_status, $starting, $stillage ) =
-		    $self->_obfuscated_amount_remaining($fp, $dispense);
-		$prodhash->{'status'}          = $status;
-		$prodhash->{'css_status'}      = $css_status;
-		$prodhash->{'starting_volume'} = $starting;
+            # We only publish stock information if the database is being used to store it.
+            # This needs to be indicated via the is_stock_public flag on product_category.
+            my $category = $fp->product_id->product_category_id();
+            if ( $category->is_stock_public() ) {
+                my ( $status, $css_status, $starting, $stillage ) =
+                    $self->_obfuscated_amount_remaining($fp, $dispense);
+                $prodhash->{'status'}          = $status;
+                $prodhash->{'css_status'}      = $css_status;
+                $prodhash->{'starting_volume'} = $starting;
 
-		# While we could in theory use stillage info from
-		# non-stock-controlled departments, in practice it
-		# would add many more db queries and currently it adds
-		# nothing.
-		if ( $stillage ) {
-		    $prodhash->{'stillage_location'} = $stillage->description;
-		}
-	    }
+                # While we could in theory use stillage info from
+                # non-stock-controlled departments, in practice it
+                # would add many more db queries and currently it adds
+                # nothing.
+                if ( $stillage ) {
+                    $prodhash->{'stillage_location'} = $stillage->description;
+                }
+            }
         }
 
         $festprod{ $prodkey } = $prodhash;

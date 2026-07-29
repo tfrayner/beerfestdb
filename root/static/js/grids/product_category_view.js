@@ -138,6 +138,16 @@ Ext.onReady(function(){
               xtype:          'textfield',
               allowBlank:     false, },
 
+            { name:           'is_status_public',
+              fieldLabel:     'Is Status Public',
+              xtype:          'checkbox',
+              lazyRender:     true },
+
+            { name:           'is_stock_public',
+              fieldLabel:     'Is Stock Public',
+              xtype:          'checkbox',
+              lazyRender:     true },
+
             { name:           'product_category_id',
               value:          product_category_id,
               xtype:          'hidden', },
