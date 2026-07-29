@@ -357,17 +357,29 @@ sub _load_data {
         },
         'ContainerMeasure');
 
+    my $defaults = $self->database->resultset('SystemDefaults')->find(1);
+
     # Just use the configured currency and sale volumes for now.
-    my $currency = $self->database->resultset('Currency')->find({
-        currency_code => $config->{'default_currency'},
-    }) or die("Unable to retrieve default currency; check config settings.");
+    my $currency;
+    $currency = $defaults->currency_id() if $defaults;
+    if ( ! $currency ) {
+        carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
+        $currency = $self->database->resultset('Currency')->find({
+            currency_code => $config->{ default_currency }
+        }) or die(qq{Error: unable to find default currency in database.\n});
+    }
 
     # Cache the currency so the PriceMunger role doesn't have to keep looking it up.
     $self->default_currency($currency);
 
-    my $sale_volume = $self->database->resultset('SaleVolume')->find({
-        description => $config->{'default_sale_volume'},
-    }) or die("Unable to retrieve default sale volume; check config settings.");
+    my $sale_volume;
+    $sale_volume = $defaults->sale_volume_id() if $defaults;
+    if ( ! $sale_volume ) {
+        carp(qq{Warning: unable to find default sale volume in system_defaults table; falling back to configured default sale volume.\n});
+        $sale_volume = $self->database->resultset('SaleVolume')->find({
+            description => $config->{'default_sale_volume'},
+        }) or die("Unable to retrieve default sale volume; check config settings.");
+    }
 
     # Assumes default currency
     my $sale_price = $self->parse_price( $datahash->{$GYLE_PINT_PRICE} );

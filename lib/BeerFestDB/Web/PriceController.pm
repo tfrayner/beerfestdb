@@ -23,6 +23,7 @@ package BeerFestDB::Web::PriceController;
 use Moose;
 use Scalar::Util qw/reftype/;
 use namespace::autoclean;
+use Carp;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -138,13 +139,21 @@ sub _fetch_default_currency {
 
     my ( $self, $c ) = @_;
 
-    my $def = $c->model('DB::Currency')->find({
-        currency_code => $c->config->{'default_currency'},
-    }) or $self->raise_exception($c, "Error retrieving default currency; check config settings.\n");
+    my $defaults = $c->model('DB::SystemDefaults')->find(1);
 
-    $self->default_currency($def);
+    # Just use the configured currency and sale volumes for now.
+    my $currency;
+    $currency = $defaults->currency_id() if $defaults;
+    if ( ! $currency ) {
+        carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
+        $currency = $c->model('DB::Currency')->find({
+            currency_code => $c->config()->{ default_currency }
+        }) or die(qq{Error: unable to find default currency in database.\n});
+    }
 
-    return $def;
+    $self->default_currency($currency);
+
+    return $currency;
 }
 
 =head1 COPYRIGHT AND LICENSE

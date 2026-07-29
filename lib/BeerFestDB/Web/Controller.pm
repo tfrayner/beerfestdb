@@ -705,11 +705,17 @@ sub get_default_sale_volume : Private {
 
     my ( $self, $c ) = @_;
 
-    my $def = $c->model('DB::SaleVolume')->find({
-        description => $c->config->{'default_sale_volume'},
-    }) or $self->raise_exception($c, "Error retrieving default sale volume; check config settings.\n");
+    my $defaults = $c->model('DB::SystemDefaults')->find(1);
+    my $sale_volume;
+    $sale_volume = $defaults->sale_volume_id() if $defaults;
+    if ( ! defined $sale_volume ) {
+        $c->log->debug("No default sale_volume found in system_defaults; checking config file...");
+        $sale_volume = $c->model('DB::SaleVolume')->find({
+            description => $c->config->{'default_sale_volume'},
+        }) or $self->raise_exception($c, "Error retrieving default sale volume; check config settings.\n");
+    }
 
-    $c->stash->{ 'default_sale_volume' } = $def->sale_volume_id();
+    $c->stash->{ 'default_sale_volume' } = $sale_volume->sale_volume_id();
 
     return;
 }

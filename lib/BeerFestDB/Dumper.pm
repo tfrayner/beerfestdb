@@ -55,9 +55,17 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     # Cache the default currency for use by the price parsing and formatting methods, which may be called by subclasses.
-    my $currency = $self->database()->resultset('Currency')->find({
-        currency_code => BeerFestDB::Web->config()->{ default_currency }
-    }) or die(qq{Error: unable to find default currency in database.\n});
+    my $defaults = $self->database->resultset('SystemDefaults')->find(1);
+
+    # Just use the configured currency and sale volumes for now.
+    my $currency;
+    $currency = $defaults->currency_id() if $defaults;
+    if ( ! $currency ) {
+        carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
+        $currency = $self->database->resultset('Currency')->find({
+            currency_code => BeerFestDB::Web->config()->{ default_currency }
+        }) or die(qq{Error: unable to find default currency in database.\n});
+    }
 
     $self->default_currency($currency);
 

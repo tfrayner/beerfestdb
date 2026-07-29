@@ -33,6 +33,7 @@ package CaskUpdater;
 use Moose;
 use List::Util qw(first);
 use Scalar::Util qw(looks_like_number);
+use Carp;
 
 has 'database'  => ( is       => 'ro',
                      isa      => 'DBIx::Class::Schema',
@@ -64,9 +65,17 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     # Cache the default currency for use by the price parsing and formatting methods (PriceMunger role).
-    my $currency = $self->database()->resultset('Currency')->find({
-        currency_code => BeerFestDB::Web->config()->{ default_currency }
-    }) or die(qq{Error: unable to find default currency in database.\n});
+    my $defaults = $self->database->resultset('SystemDefaults')->find(1);
+
+    # Just use the configured currency and sale volumes for now.
+    my $currency;
+    $currency = $defaults->currency_id() if $defaults;
+    if ( ! $currency ) {
+        carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
+        $currency = $self->database->resultset('Currency')->find({
+            currency_code => BeerFestDB::Web->config()->{ default_currency }
+        }) or die(qq{Error: unable to find default currency in database.\n});
+    }
 
     $self->default_currency($currency);
 

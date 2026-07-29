@@ -4,7 +4,7 @@
 # compatibility, but it is recommended to use the database setting instead.
 
 # IMPORTANT: Set testing to 1 to disable HTTPS requirement for testing. Set it to 0 in production.
-testing:            1
+testing: 1
 
 # A list of classes which will not auto-create upon database
 # loading. We use this as a means to prevent accidentally loading 
@@ -60,12 +60,6 @@ status_query:
 # should have stock control measurements uploaded to the public festival site
 stock_control_departments:
   - beer
-
-# Default currency and sale volume measures. These values must also be
-# entered into the currency.currency_code and
-# sale_volume.sale_volume_description database columns.
-#default_currency:    GBP
-#default_sale_volume: pint
 
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:

@@ -26,6 +26,7 @@ use Scalar::Util qw(looks_like_number);
 use List::Util qw(max);
 use BeerFestDB::Web;
 use BeerFestDB::ORM;
+use Carp;
 
 =head1 NAME
 
@@ -174,17 +175,26 @@ sub _txn_preload_product_order {
     my ( $self, $po, $db, $sale_volume, $currency ) = @_;
 
     my $config = BeerFestDB::Web->config();
+    my $defaults = $db->resultset('SystemDefaults')->find(1);
 
     if ( not defined $currency ) {
-        $currency = $db->resultset('Currency')->find({
-            currency_code => $config->{'default_currency'},
-        }) or die("Unable to retrieve default currency; check config settings.");
+        $currency = $defaults->currency_id() if $defaults;
+        if ( ! $currency ) {
+            carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
+            $currency = $db->resultset('Currency')->find({
+                currency_code => $config->{ default_currency }
+            }) or die(qq{Error: unable to find default currency in database.\n});
+        }
     }
 
     if ( not defined $sale_volume ) {
-        $sale_volume = $db->resultset('SaleVolume')->find({
-            description => $config->{'default_sale_volume'},
-        }) or die("Unable to retrieve default sale volume; check config settings.");
+        $sale_volume = $defaults->sale_volume_id() if $defaults;
+        if ( ! $sale_volume ) {
+            carp(qq{Warning: unable to find default sale volume in system_defaults table; falling back to configured default sale volume.\n});
+            $sale_volume = $db->resultset('SaleVolume')->find({
+                description => $config->{'default_sale_volume'},
+            }) or die("Unable to retrieve default sale volume; check config settings.");
+        }
     }
 
     my $festival_id = $po->order_batch_id()->get_column('festival_id');
