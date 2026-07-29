@@ -1207,8 +1207,8 @@ DROP TABLE IF EXISTS `protected`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `protected` (
   `protected_id` int(11) NOT NULL AUTO_INCREMENT,
-  `classname` varchar(255) NOT NULL,       -- ORM class name, e.g. Product, Festival, etc.
-  `loader_create` tinyint(1) default '0',  -- Can the Loader create instances of this class in the database?
+  `classname` varchar(255) NOT NULL,        -- ORM class name, e.g. Product, Festival, etc.
+  `loader` tinyint(1) NOT NULL default '0', -- Is the Loader blocked from creating/updating instances of this class in the database?
   PRIMARY KEY (`protected_id`),
   UNIQUE KEY `classname` (`classname`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -1274,7 +1274,7 @@ DROP TABLE IF EXISTS `system_defaults`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `system_defaults` (
   `id`              tinyint(1) NOT NULL DEFAULT 1,   -- enforce singleton row
-  `festival_id`     int(6) DEFAULT NULL,
+  `festival_id`     int(6) DEFAULT NULL,   -- current festival for which the system is configured
   `currency_id`     int(6) DEFAULT NULL,
   `sale_volume_id`  int(6) DEFAULT NULL,
   PRIMARY KEY (`id`),

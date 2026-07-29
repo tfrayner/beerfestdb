@@ -55,7 +55,7 @@ SET @sql := IF(@tbl_exists = 0,
   'CREATE TABLE `protected` (
     `protected_id`  int(11)      NOT NULL AUTO_INCREMENT,
     `classname`     varchar(255) NOT NULL,
-    `loader_create` tinyint(1)   DEFAULT 0,
+    `loader` tinyint(1) NOT NULL DEFAULT 0, -- Is the Loader blocked from creating/updating instances of this class in the database?
     PRIMARY KEY (`protected_id`),
     UNIQUE KEY `classname` (`classname`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
@@ -63,7 +63,26 @@ SET @sql := IF(@tbl_exists = 0,
 );
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- 5. Create system_defaults table
+-- 5. Insert default rows into protected
+SET @row_exists := (
+  SELECT COUNT(*)
+  FROM `protected`
+);
+SET @sql := IF(@row_exists = 0,
+  'INSERT INTO `protected` (`classname`)
+       VALUES (''Company''),(''Product''),(''ProductStyle''),
+       (''ProductCategory''),(''Currency''),(''CompanyRegion''),
+       (''ContactType''),(''ContainerMeasure''),(''ContainerSize''),
+       (''Country''),(''ProductCharacteristicType''),(''SaleVolume''),
+       (''TelephoneType''),(''Festival''),(''FestivalProduct''),
+       (''Cask''),(''CaskManagement''),(''Gyle''),
+       (''StillageLocation''),(''BayPosition''),(''OrderBatch''),
+       (''ProductOrder'')',
+  'SELECT "protected default rows already exist"'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- 6. Create system_defaults table
 SET @tbl_exists := (
   SELECT COUNT(*)
   FROM information_schema.TABLES
@@ -86,6 +105,18 @@ SET @sql := IF(@tbl_exists = 0,
       REFERENCES `sale_volume` (`sale_volume_id`) ON UPDATE NO ACTION ON DELETE SET NULL
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
   'SELECT "system_defaults already exists"'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- 7. Insert default row into system_defaults
+SET @row_exists := (
+  SELECT COUNT(*)
+  FROM `system_defaults`
+  WHERE `id` = 1
+);
+SET @sql := IF(@row_exists = 0,
+  'INSERT INTO `system_defaults` (`id`, `festival_id`, `currency_id`, `sale_volume_id`) VALUES (1, NULL, NULL, NULL)',
+  'SELECT "system_defaults default row already exists"'
 );
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 

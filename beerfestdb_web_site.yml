@@ -7,7 +7,10 @@ current_festival:   'TestFestival'
 testing:            1
 
 # A list of classes which will not auto-create upon database
-# loading. Good for maintaining some control over typos.
+# loading. We use this as a means to prevent accidentally loading 
+# typos in brewery and beer names. See the "Protected Classes"
+# section of the web interface for a way to temporarily deactivate
+# this for a single data load.
 protected_classes: []
 #  - Company
 #  - Product

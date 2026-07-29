@@ -38,7 +38,20 @@ has 'database' => ( is       => 'ro',
                     isa      => 'DBIx::Class::Schema',
                     required => 1 );
 
-has 'protected' => ( is       => 'ro',
+# Default protections for database classes which should not be
+# created by the loader. This will be used to reset the protected
+# list to a known state after each load, if reset_protection is true.
+has 'protection_defaults' => ( is       => 'ro',
+                               isa      => 'ArrayRef',
+                               required => 0,
+                               default  => sub { [] } );
+
+has 'reset_protection' => ( is       => 'ro',
+                            isa      => 'Bool',
+                            required => 1,
+                            default  => 1 );
+
+has 'protected' => ( is       => 'rw',
                      isa      => 'ArrayRef',
                      required => 0,
                      default  => sub { [] } );
@@ -515,7 +528,8 @@ sub _load_data {
 
                 $product_order->set_column('is_final', 1); # This is implied.
 
-                # FIXME add $self->protected support here, on principle.
+                # We omit $self->protected support here because all new objects
+                # come from data already loaded.
                 $self->preload_product_order($product_order, $sale_volume, $currency);
             }
         }
@@ -940,6 +954,8 @@ sub load {
 
     # Run the whole load in a single transaction.
     my $db = $self->database();
+    my $protected = $db->resultset('Protected')->search({loader => 1})->get_column('class_name')->all();
+    $self->protected( $protected );
     eval {
         $db->txn_do(
             sub {
@@ -953,7 +969,22 @@ sub load {
                 if ( $self->_error_count > 0 ) {
                     croak("Errors found:\n\n" . $self->_error_report());
                 }
-            }
+
+                # Reset default database protection
+                if ( $self->reset_protection() ) {
+                    foreach my $class ( @{ $self->protection_defaults() } ) {
+                        my $obj = $db->resultset('Protected')->find({class_name => $class});
+                        if ( $obj ) {
+                            $obj->set_column('loader', 1);
+                            $obj->update();
+                        } else {
+                            $db->resultset('Protected')->create(
+                                {class_name => $class, loader => 1}
+                            );
+                        }
+                    }
+                }
+            }   
         );
     };
     if ( $@ ) {

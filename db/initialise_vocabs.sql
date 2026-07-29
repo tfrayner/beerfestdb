@@ -25,3 +25,8 @@ insert into user_role (`role_id`, `user_id`)
 insert into category_auth (`role_id`, `product_category_id`)
        values ( (select role_id from role where rolename='cellar'),
                 (select product_category_id from product_category where description='beer'));
+
+insert into system_defaults (`id`, `festival_id`, `currency_id`, `sale_volume_id`)
+       values (1, null, null, null);
+insert into protected (`classname`)
+       values ('Company'),('Product'),('ProductStyle'),('ProductCategory'),('Currency'),('CompanyRegion'),('ContactType'),('ContainerMeasure'),('ContainerSize'),('Country'),('ProductCharacteristicType'),('SaleVolume'),('TelephoneType'),('Festival'),('FestivalProduct'),('Cask'),('CaskManagement'),('Gyle'),('StillageLocation'),('BayPosition'),('OrderBatch'),('ProductOrder');
