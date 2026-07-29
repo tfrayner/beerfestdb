@@ -331,7 +331,12 @@ sub _belongs_to_current_festival : Private {
     my $festival = $self->_get_festival($c, $dbobj);
 
     if ( defined $festival ) {
-        return $festival eq $c->config->{'current_festival'};
+        my $defaults = $c->model('DB::SystemDefaults')->find(1);
+        if ( $defaults ) {
+            return $festival eq $defaults->festival_id();
+        } else {
+            return $festival eq $c->config->{'current_festival'};  # Fallback to config file if no defaults found.
+        }
     }
     else {
         return 1;  # If it doesn't belong to a festival, it's fair game.

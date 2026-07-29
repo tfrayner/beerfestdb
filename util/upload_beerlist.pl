@@ -46,10 +46,6 @@ has 'uri'              => ( is       => 'ro',
                             isa      => 'Str',
                             required => 1 );
 
-has 'festival_name'    => ( is       => 'ro',
-                            isa      => 'Str',
-                            required => 1 );
-
 has 'product_category' => ( is       => 'ro',
                             isa      => 'Str',
                             required => 1 );
@@ -75,31 +71,25 @@ has 'debug'            => ( is       => 'ro',
 
 # Cache for credentials and IDs to avoid unnecessary queries and repeated credential prompts.
 my $CREDENTIALS_CACHE = {};
-my $FESTIVAL_ID_CACHE = {};
+my $FESTIVAL_ID_CACHE;
 my $CATEGORY_ID_CACHE = {};
 
 sub _find_festival_id {
 
     my ( $self ) = @_;
 
-    if ( exists $FESTIVAL_ID_CACHE->{ $self->festival_name() } ) {
-        return $FESTIVAL_ID_CACHE->{ $self->festival_name() };
+    if ( defined $FESTIVAL_ID_CACHE ) {
+        return $FESTIVAL_ID_CACHE;
     }
 
-    $self->debug && warn("Retrieving festival list...\n");
+    $self->debug && warn("Retrieving current festival...\n");
 
-    my $fest_name = $self->festival_name();
-    my $fest_list = $self->_data_from_uri( $self->uri() . '/festival/list' );
+    my $fest_data = $self->_data_from_uri( $self->uri() . '/festival/current_festival' );
 
-    # Make this search case-insensitive.
-    foreach my $festref ( @$fest_list ) {
-        if ( lc $festref->{name} eq lc $fest_name ) {
-            $FESTIVAL_ID_CACHE->{ $fest_name } = $festref->{festival_id};
-            return $festref->{festival_id};
-        }
-    }
+    my $festival_id = $fest_data->{festival_id}
+        or die("Error: Unable to retrieve current festival ID from BeerFestDB web site.\n");
 
-    die(qq{Error: Unable to find festival named "$fest_name".});
+    return $FESTIVAL_ID_CACHE = $festival_id;
 }
 
 sub _find_category_id {
@@ -449,9 +439,6 @@ sub parse_args {
     my $st = $config->{ status_query }
         or die("Error: No status_query section in config file.");
 
-    # We don't really want to set this twice.
-    $st->{ festival_name } ||= $config->{ current_festival };
-
     return( $st, $debug );
 }
 
@@ -462,7 +449,6 @@ sub upload_department {
     my $brewery_info = {};
 
     my $qobj = MyQueryClass->new(
-        festival_name    => $config->{festival_name},
         product_category => $prodcat,
         uri              => $config->{beerfestdb_uri},
         useragent        => $ua,
@@ -534,8 +520,7 @@ sub upload_department {
 my ( $config, $debug ) = parse_args();
 
 # Check that the appropriate config parameters have been set
-foreach my $item ( qw(festival_name
-                      departments
+foreach my $item ( qw(departments
                       beerfestdb_uri
                       public_site_upload_uri
                       public_festival_tag) ) {

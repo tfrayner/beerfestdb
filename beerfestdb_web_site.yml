@@ -1,7 +1,7 @@
-# We operate a single festival at a time, so the current festival is set here.
-# This is used for the public site and for some internal queries. It must be
-# set to a valid festival name from the database.
-current_festival:   'TestFestival'
+# Note: previous versions of this system used a "current_festival" setting in the 
+# config file, but this has been deprecated in favor of storing the current festival 
+# in the database. The "current_festival" setting is still supported for backwards
+# compatibility, but it is recommended to use the database setting instead.
 
 # IMPORTANT: Set testing to 1 to disable HTTPS requirement for testing. Set it to 0 in production.
 testing:            1

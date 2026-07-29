@@ -23,6 +23,7 @@ package BeerFestDB::Web::Controller::Festival;
 use Moose;
 use namespace::autoclean;
 use JSON::MaybeXS qw(JSON);
+use Carp;
 
 BEGIN {extends 'BeerFestDB::Web::Controller'; }
 
@@ -87,11 +88,20 @@ sub current_festival : Local {
 
     my ( $self, $c ) = @_;
 
-    my $festival_name = $c->config->{'current_festival'}
-        or die("No current festival name set in config.");
+    my $obj;
+    # First try to retrieve the current festival from the system_defaults table.
+    my $defaults = $c->model('DB::SystemDefaults')->find(1);
+    $obj = $defaults->festival_id() if $defaults;
 
-    my $obj = $c->model('DB::Festival')->find({ name => $festival_name })
-        or die("Unable to find current festival with name '$festival_name'; check config settings.");
+    if ( ! $obj && $c->config->{'current_festival'} ) {
+        # Fallback to the config file if we don't have a current festival in the database.
+        carp("Warning: current festival not set in system_defaults table; falling back to config file setting.");
+        my $festival_name = $c->config->{'current_festival'}
+            or die("No current festival name set in config.");
+
+        $obj = $c->model('DB::Festival')->find({ name => $festival_name })
+            or die("Unable to find current festival with name '$festival_name'; check config settings.");
+    }
     
     $c->stash->{ 'data' } = $self->generate_object_viewhash( $obj, $c );
     $c->stash->{ 'success' } = JSON->true();
@@ -99,7 +109,6 @@ sub current_festival : Local {
     $c->forward( 'View::JSON' );
 
     return;
-    
 }
 
 =head2 list

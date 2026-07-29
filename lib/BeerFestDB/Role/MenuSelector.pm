@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2010-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ package BeerFestDB::Role::MenuSelector;
 use Moose::Role;
 use namespace::autoclean;
 use Scalar::Util qw(looks_like_number);
+use Carp;
 
 has '_festival' => ( is       => 'rw',
                      isa      => 'BeerFestDB::ORM::Festival' );
@@ -156,13 +157,22 @@ sub festival {
 
     require BeerFestDB::Web;
     my $config = BeerFestDB::Web->config();
-    if ( my $festname = $config->{'current_festival'} ) {
+    
+    # Current festival should be recorded in the system_defaults table.
+    my $defaults = $self->database->resultset('SystemDefaults')->find(1);
+    $fest = $defaults->festival_id() if $defaults;
+
+    # Deprecated fallback to the configured current_festival option.
+    if ( ! $fest && $config->{'current_festival'} ) {
+        carp(qq{Warning: the "current_festival" option is deprecated. Please set the current festival in the system_defaults table.\n});
         $fest = $self->database->resultset('Festival')
-                               ->find({ name => $festname })
+                               ->find({ name => $config->{'current_festival'} })
             or die(q{Error retrieving configured festival}
-                . qq{ "$festname" from the database.\n});
+                . qq{ "$config->{'current_festival'}" from the database.\n});
     }
     else {
+
+        # Final fallback to an interactive menu if we still don't have a festival.
         $fest = $self->select_festival();
     }
 
@@ -173,7 +183,7 @@ sub festival {
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2013 by Tim F. Rayner
+Copyright (C) 2013-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).
