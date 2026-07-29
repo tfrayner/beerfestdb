@@ -728,11 +728,17 @@ sub get_default_product_category : Private {
 
     my ( $self, $c ) = @_;
 
-    my $def = $c->model('DB::ProductCategory')->find({
-        description => $c->config->{'default_product_category'},
-    }) or $self->raise_exception($c, "Error retrieving default product_category; check config settings.\n");
+    my $defaults = $c->model('DB::SystemDefaults')->find(1);
+    my $pcat;
+    $pcat = $defaults->product_category_id() if $defaults;
+    if ( ! defined $pcat ) {
+        $c->log->debug("No default product_category found in system_defaults; checking config file...");
+        $pcat = $c->model('DB::ProductCategory')->find({
+            description => $c->config->{'default_product_category'},
+        }) or $self->raise_exception($c, "Error retrieving default product_category; check config settings.\n");
+    }
 
-    $c->stash->{ 'default_product_category' } = $def->product_category_id();
+    $c->stash->{ 'default_product_category' } = $pcat->product_category_id();
 
     return;
 }

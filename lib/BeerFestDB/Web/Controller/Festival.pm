@@ -195,9 +195,14 @@ sub status : Local {
         $c->forward( 'View::JSON' );
     }
 
-    my $default_meas_unit = $c->model('DB::ContainerMeasure')->find({
-        description => $c->config->{'default_measurement_unit'},
-    }) or die("Unable to retrieve default measurement unit; check config settings.");
+    my $defaults = $c->model('DB::SystemDefaults')->find(1);
+    my $default_meas_unit;
+    $default_meas_unit = $defaults->container_measure_id if $defaults;
+    if ( !defined $default_meas_unit ) {
+        $default_meas_unit = $c->model('DB::ContainerMeasure')->find({
+            description => $c->config->{'default_measurement_unit'},
+        }) or die("Unable to retrieve default measurement unit; check config settings.");
+    }
 
     # Here we're going to be a bit cheeky and hard-code a
     # ProductCategory (beer) and ContainerSize

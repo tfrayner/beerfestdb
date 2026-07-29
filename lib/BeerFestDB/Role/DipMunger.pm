@@ -60,9 +60,14 @@ sub munge_dips {
 
     my $config = BeerFestDB::Web->config();
     my $db = $cask->result_source()->schema();
-    my $default_meas_unit = $db->resultset('ContainerMeasure')->find({
-        description => $config->{'default_measurement_unit'},
-    }) or die("Unable to retrieve default measurement unit; check config settings.");
+    my $defaults = $db->resultset('SystemDefaults')->find(1);
+    my $default_meas_unit;
+    $default_meas_unit = $defaults->container_measure_id if $defaults;
+    if ( !defined $default_meas_unit ) {
+        $default_meas_unit = $db->resultset('ContainerMeasure')->find({
+            description => $config->{'default_measurement_unit'},
+        }) or die("Unable to retrieve default measurement unit; check config settings.");
+    }
 
     my @batches = $festival->measurement_batches(
         undef,

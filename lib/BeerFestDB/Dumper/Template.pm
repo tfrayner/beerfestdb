@@ -223,9 +223,14 @@ sub order_hash {
     my $fest = $self->festival();
 
     my $config = BeerFestDB::Web->config();
-    my $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
-        description => $config->{'default_measurement_unit'},
-    }) or die("Unable to retrieve default measurement unit; check config settings.");
+    my $defaults = $self->database->resultset('SystemDefaults')->find(1);
+    my $default_meas_unit;
+    $default_meas_unit = $defaults->container_measure_id if $defaults;
+    if (! $default_meas_unit ) {
+        $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
+            description => $config->{'default_measurement_unit'},
+        }) or die("Unable to retrieve default measurement unit; check config settings.");
+    }
 
     my $local_cask_size = $order->container_size_id->container_volume();
     my $cask_measure    = $order->container_size_id->container_measure_id();
@@ -360,9 +365,14 @@ sub update_caskman_hash {
     my ( $self, $caskmanhash, $caskman ) = @_;
 
     my $config = BeerFestDB::Web->config();
-    my $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
-        description => $config->{'default_measurement_unit'},
-    }) or die("Unable to retrieve default measurement unit; check config settings.");
+    my $defaults = $self->database->resultset('SystemDefaults')->find(1);
+    my $default_meas_unit;
+    $default_meas_unit = $defaults->container_measure_id if $defaults;
+    if (! $default_meas_unit ) {
+        $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
+            description => $config->{'default_measurement_unit'},
+        }) or die("Unable to retrieve default measurement unit; check config settings.");
+    }
 
     my $local_cask_size = $caskman->container_size_id->container_volume();
     my $cask_measure    = $caskman->container_size_id->container_measure_id();
@@ -761,7 +771,7 @@ The name of the beer, cider, or whatever.
 =item cask_size_std
 
 (Cask-level export only). The size of the cask in the currently
-configured default_measurement_unit (e.g., gallons).
+configured default container_size (e.g., gallons).
 
 =item cask_size_name
 
