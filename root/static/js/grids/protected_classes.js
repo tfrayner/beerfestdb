@@ -46,16 +46,18 @@ Ext.onReady(function(){
         { id:         'classname',
           header:     'Class Name',
           dataIndex:  'classname',
-          width:      150,
+          width:      100,
           editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
         { id:         'loader',
           header:     'Loader Protected',
           dataIndex:  'loader',
-          width:      100,
+          width:      200,
+          renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
               allowBlank:     true,
+              cls:            'bfd-loader-cb',
           })},
     ];
 

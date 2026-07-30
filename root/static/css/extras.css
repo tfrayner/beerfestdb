@@ -52,3 +52,8 @@ td.bfd-required-cell .x-grid3-cell-inner {
 .x-toolbar .x-item-disabled button {
     opacity: 0.8;
 }
+
+/* Left-align the checkbox editor in the Loader Protected column */
+.x-grid-editor .x-form-check-wrap:has(input.bfd-loader-cb) {
+    text-align: left;
+}

@@ -71,6 +71,7 @@ Ext.onReady(function(){
           width:      30,
           renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
+              cls:            'bfd-loader-cb',
           })},
         { id:         'is_tapped',
           header:     'Tapped',
@@ -78,6 +79,7 @@ Ext.onReady(function(){
           width:      30,
           renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
+              cls:            'bfd-loader-cb',
           })},
         { id:         'is_ready',
           header:     'Ready',
@@ -85,6 +87,7 @@ Ext.onReady(function(){
           width:      30,
           renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
+              cls:            'bfd-loader-cb',
           })},
         { id:         'internal_reference',
           header:     'Cellaring Order',
@@ -137,6 +140,7 @@ Ext.onReady(function(){
           width:      40,
           renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
+              cls:            'bfd-loader-cb',
           })},
     ];
 
