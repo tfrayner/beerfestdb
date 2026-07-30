@@ -966,7 +966,7 @@ sub load {
 
     # Run the whole load in a single transaction.
     my $db = $self->database();
-    my $protected = $db->resultset('Protected')->search({loader => 1})->get_column('classname')->all();
+    my $protected = [ $db->resultset('Protected')->search({loader => 1})->get_column('classname')->all() ];
     $self->protected( $protected );
     eval {
         $db->txn_do(

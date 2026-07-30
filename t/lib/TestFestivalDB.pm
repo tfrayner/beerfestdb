@@ -147,6 +147,10 @@ BEGIN {
                               festival_id => 1,
                               description => "TestOrderBatch"});
 
+        $schema->resultset("SystemDefaults")
+            ->update_or_create({id => 1,
+                                festival_id => 1});
+
     }
 
     # Refresh from pristine_testing.db every time.

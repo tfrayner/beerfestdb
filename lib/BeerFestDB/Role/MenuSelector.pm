@@ -163,17 +163,17 @@ sub festival {
     $fest = $defaults->festival() if $defaults;
 
     # Deprecated fallback to the configured current_festival option.
-    if ( ! $fest && $config->{'current_festival'} ) {
-        carp(qq{Warning: the "current_festival" option is deprecated. Please set the current festival in the system_defaults table.\n});
-        $fest = $self->database->resultset('Festival')
-                               ->find({ name => $config->{'current_festival'} })
-            or die(q{Error retrieving configured festival}
-                . qq{ "$config->{'current_festival'}" from the database.\n});
-    }
-    else {
-
-        # Final fallback to an interactive menu if we still don't have a festival.
-        $fest = $self->select_festival();
+    if ( ! $fest ) {
+        if ( $config->{'current_festival'} ) {
+            carp(qq{Warning: the "current_festival" option is deprecated. Please set the current festival in the system_defaults table.\n});
+            $fest = $self->database->resultset('Festival')
+                                   ->find({ name => $config->{'current_festival'} })
+                or die(q{Error retrieving configured festival}
+                    . qq{ "$config->{'current_festival'}" from the database.\n});
+        } else {
+            # Fall back to an interactive menu if we still don't have a festival.
+            $fest = $self->select_festival();
+        }
     }
 
     $self->_festival($fest);
