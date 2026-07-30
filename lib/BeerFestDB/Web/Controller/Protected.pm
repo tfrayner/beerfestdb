@@ -43,7 +43,7 @@ sub BUILD {
 
     $self->model_view_map({
         protected_id   => 'protected_id',
-        class_name     => 'class_name',
+        classname      => 'classname',
         loader         => 'loader',
     });
 

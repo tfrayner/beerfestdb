@@ -69,7 +69,7 @@ sub BUILD {
 
     # Just use the configured currency and sale volumes for now.
     my $currency;
-    $currency = $defaults->currency_id() if $defaults;
+    $currency = $defaults->currency() if $defaults;
     if ( ! $currency ) {
         carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
         $currency = $self->database->resultset('Currency')->find({

@@ -93,16 +93,16 @@ Ext.onReady(function(){
         allowBlank:     false,
     });
 
-    var container_size_store = new Ext.data.JsonStore({
-        url:        url_container_size_list,
+    var container_measure_store = new Ext.data.JsonStore({
+        url:        url_container_measure_list,
         root:       'objects',
-        fields:     ['container_size_id', 'description'],
+        fields:     ['container_measure_id', 'description'],
     });
 
-    var container_size_combo = new Ext.form.ComboBox({
-        store:          container_size_store,
+    var container_measure_combo = new Ext.form.ComboBox({
+        store:          container_measure_store,
         displayField:   'description',
-        valueField:     'container_size_id',
+        valueField:     'container_measure_id',
         mode:           'local',
         triggerAction:  'all',
         editable:       false,
@@ -169,13 +169,13 @@ Ext.onReady(function(){
               noSelection:    emptySelect,
               allowBlank:     true, },
             
-            { name:           'container_size_id',
-              fieldLabel:     'Container Size',
+            { name:           'container_measure_id',
+              fieldLabel:     'Measurement Unit',
               typeAhead:      true,
               triggerAction:  'all',
               mode:           'local',
-              store:          container_size_store,
-              valueField:     'container_size_id',
+              store:          container_measure_store,
+              valueField:     'container_measure_id',
               displayField:   'description',
               lazyRender:     true,
               xtype:          'mycombo',
@@ -183,7 +183,7 @@ Ext.onReady(function(){
               allowBlank:     true, },
         ],
 
-        comboStores: [festival_store, currency_store, sale_volume_store, product_category_store, container_size_store],
+        comboStores: [festival_store, currency_store, sale_volume_store, product_category_store, container_measure_store],
 
         loadUrl:     url_system_defaults_load_form,
         idParams:    { id: 1 },

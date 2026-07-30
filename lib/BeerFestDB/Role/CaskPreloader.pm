@@ -178,7 +178,7 @@ sub _txn_preload_product_order {
     my $defaults = $db->resultset('SystemDefaults')->find(1);
 
     if ( not defined $currency ) {
-        $currency = $defaults->currency_id() if $defaults;
+        $currency = $defaults->currency() if $defaults;
         if ( ! $currency ) {
             carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
             $currency = $db->resultset('Currency')->find({
@@ -188,7 +188,7 @@ sub _txn_preload_product_order {
     }
 
     if ( not defined $sale_volume ) {
-        $sale_volume = $defaults->sale_volume_id() if $defaults;
+        $sale_volume = $defaults->sale_volume() if $defaults;
         if ( ! $sale_volume ) {
             carp(qq{Warning: unable to find default sale volume in system_defaults table; falling back to configured default sale volume.\n});
             $sale_volume = $db->resultset('SaleVolume')->find({

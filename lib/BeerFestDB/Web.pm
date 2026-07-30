@@ -153,11 +153,15 @@ foreach my $path ( qw(bayposition companyregion contacttype containermeasure
                       containersize country currency dispensemethod
                       productallergentype productcharacteristictype
                       productcategory productstyle protected role
-                      salevolume telephonetype systemdefaults) ) {
+                      salevolume telephonetype) ) {
     __PACKAGE__->allow_access_if( "/$path/list", [ qw( user ) ] );
     __PACKAGE__->allow_access_if( '/' . $path, [ qw( admin ) ] );
     __PACKAGE__->deny_access( '/' . $path );
 }
+
+# No list methods for system defaults, but admin can edit them.
+__PACKAGE__->allow_access_if( '/systemdefaults', [ qw( admin ) ] );
+__PACKAGE__->deny_access( '/systemdefaults' );
 
 # Special handling for user management: users can edit their own account but only admins
 # can edit other accounts or assign roles.

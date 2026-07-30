@@ -160,7 +160,7 @@ sub festival {
     
     # Current festival should be recorded in the system_defaults table.
     my $defaults = $self->database->resultset('SystemDefaults')->find(1);
-    $fest = $defaults->festival_id() if $defaults;
+    $fest = $defaults->festival() if $defaults;
 
     # Deprecated fallback to the configured current_festival option.
     if ( ! $fest && $config->{'current_festival'} ) {

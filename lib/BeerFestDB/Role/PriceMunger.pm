@@ -87,8 +87,8 @@ sub _build_currency {
     my $defaults = $schema->resultset('SystemDefaults')->find(1);
 
     my $currency;
-    $currency = $defaults->currency_id() if $defaults;
-    if ( ! $currency ) {
+    $currency = $defaults->currency() if $defaults;
+    if ( ! defined $currency ) {
         carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
         $currency = $schema->resultset('Currency')->find({
             currency_code => $config->{ default_currency }

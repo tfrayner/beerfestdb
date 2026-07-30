@@ -62,7 +62,7 @@ sub munge_dips {
     my $db = $cask->result_source()->schema();
     my $defaults = $db->resultset('SystemDefaults')->find(1);
     my $default_meas_unit;
-    $default_meas_unit = $defaults->container_measure_id if $defaults;
+    $default_meas_unit = $defaults->container_measure if $defaults;
     if ( !defined $default_meas_unit ) {
         $default_meas_unit = $db->resultset('ContainerMeasure')->find({
             description => $config->{'default_measurement_unit'},

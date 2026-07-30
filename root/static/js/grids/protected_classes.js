@@ -27,20 +27,25 @@ Ext.onReady(function(){
     
     var Protected = Ext.data.Record.create([
         { name: 'protected_id', type: 'int' },
-        { name: 'class_name',   type: 'string' },
+        { name: 'classname',    type: 'string' },
         { name: 'loader',       type: 'boolean' },
     ]);
 
     var store = new Ext.data.JsonStore({
         url:        url_protected_list,
         root:       'objects',
-        fields:     Protected
+        fields:     Protected,
+        sortInfo:   {
+            field:     'classname',
+            direction: 'ASC',
+        },
+        idProperty: 'protected_id',
     });
     
     var content_cols = [
-        { id:         'class_name',
+        { id:         'classname',
           header:     'Class Name',
-          dataIndex:  'class_name',
+          dataIndex:  'classname',
           width:      150,
           editor:     new Ext.form.TextField({
               allowBlank:     true,
@@ -72,7 +77,7 @@ Ext.onReady(function(){
             {
                 objLabel:           'Protected Class',
                 idField:            'protected_id',
-                autoExpandColumn:   'class_name',
+                autoExpandColumn:   'classname',
                 store:              store,
                 contentCols:        content_cols,
                 viewLink:           viewLink,

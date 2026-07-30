@@ -361,7 +361,7 @@ sub _load_data {
 
     # Just use the configured currency and sale volumes for now.
     my $currency;
-    $currency = $defaults->currency_id() if $defaults;
+    $currency = $defaults->currency() if $defaults;
     if ( ! $currency ) {
         carp(qq{Warning: unable to find default currency in system_defaults table; falling back to configured default currency.\n});
         $currency = $self->database->resultset('Currency')->find({
@@ -373,7 +373,7 @@ sub _load_data {
     $self->default_currency($currency);
 
     my $sale_volume;
-    $sale_volume = $defaults->sale_volume_id() if $defaults;
+    $sale_volume = $defaults->sale_volume() if $defaults;
     if ( ! $sale_volume ) {
         carp(qq{Warning: unable to find default sale volume in system_defaults table; falling back to configured default sale volume.\n});
         $sale_volume = $self->database->resultset('SaleVolume')->find({
@@ -966,7 +966,7 @@ sub load {
 
     # Run the whole load in a single transaction.
     my $db = $self->database();
-    my $protected = $db->resultset('Protected')->search({loader => 1})->get_column('class_name')->all();
+    my $protected = $db->resultset('Protected')->search({loader => 1})->get_column('classname')->all();
     $self->protected( $protected );
     eval {
         $db->txn_do(
@@ -985,13 +985,13 @@ sub load {
                 # Reset default database protection
                 if ( $self->reset_protection() ) {
                     foreach my $class ( @{ $self->protection_defaults() } ) {
-                        my $obj = $db->resultset('Protected')->find({class_name => $class});
+                        my $obj = $db->resultset('Protected')->find({classname => $class});
                         if ( $obj ) {
                             $obj->set_column('loader', 1);
                             $obj->update();
                         } else {
                             $db->resultset('Protected')->create(
-                                {class_name => $class, loader => 1}
+                                {classname => $class, loader => 1}
                             );
                         }
                     }

@@ -33,7 +33,7 @@ Ext.onReady(function(){
             
         items: [
 
-            { name:           'class_name',
+            { name:           'classname',
               fieldLabel:     'Class Name',
               xtype:          'textfield',
               allowBlank:     false, },

@@ -367,7 +367,7 @@ sub update_caskman_hash {
     my $config = BeerFestDB::Web->config();
     my $defaults = $self->database->resultset('SystemDefaults')->find(1);
     my $default_meas_unit;
-    $default_meas_unit = $defaults->container_measure_id if $defaults;
+    $default_meas_unit = $defaults->container_measure if $defaults;
     if (! $default_meas_unit ) {
         $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
             description => $config->{'default_measurement_unit'},

@@ -139,12 +139,12 @@ Ext.onReady(function(){
               allowBlank:     false, },
 
             { name:           'is_status_public',
-              fieldLabel:     'Is Status Public',
+              fieldLabel:     'Is Status Public?',
               xtype:          'checkbox',
               lazyRender:     true },
 
             { name:           'is_stock_public',
-              fieldLabel:     'Is Stock Public',
+              fieldLabel:     'Is Stock Public?',
               xtype:          'checkbox',
               lazyRender:     true },
 

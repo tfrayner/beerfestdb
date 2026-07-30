@@ -332,8 +332,8 @@ sub _belongs_to_current_festival : Private {
 
     if ( defined $festival ) {
         my $defaults = $c->model('DB::SystemDefaults')->find(1);
-        if ( $defaults ) {
-            return $festival eq $defaults->festival_id();
+        if ( $defaults && $defaults->festival() ) {
+            return $festival eq $defaults->festival()->get_column('name');
         } else {
             return $festival eq $c->config->{'current_festival'};  # Fallback to config file if no defaults found.
         }
@@ -707,7 +707,7 @@ sub get_default_sale_volume : Private {
 
     my $defaults = $c->model('DB::SystemDefaults')->find(1);
     my $sale_volume;
-    $sale_volume = $defaults->sale_volume_id() if $defaults;
+    $sale_volume = $defaults->sale_volume() if $defaults;
     if ( ! defined $sale_volume ) {
         $c->log->debug("No default sale_volume found in system_defaults; checking config file...");
         $sale_volume = $c->model('DB::SaleVolume')->find({
@@ -730,7 +730,7 @@ sub get_default_product_category : Private {
 
     my $defaults = $c->model('DB::SystemDefaults')->find(1);
     my $pcat;
-    $pcat = $defaults->product_category_id() if $defaults;
+    $pcat = $defaults->product_category() if $defaults;
     if ( ! defined $pcat ) {
         $c->log->debug("No default product_category found in system_defaults; checking config file...");
         $pcat = $c->model('DB::ProductCategory')->find({

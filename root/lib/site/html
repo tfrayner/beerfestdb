@@ -116,6 +116,7 @@
    var url_user_delete          = '[% c.uri_for( "/user/delete" ) %]';
    var url_user_modify                  = '[% c.uri_for( "/user/modify" ) %]';
    var url_user_request_password_reset  = '[% c.uri_for( "/user/request_password_reset" ) %]';
+   var url_system_defaults_submit = '[% c.uri_for( "/systemdefaults/submit" ) %]';
 
    var url_product_index        = '[% c.uri_for( "/product" ) %]';
 

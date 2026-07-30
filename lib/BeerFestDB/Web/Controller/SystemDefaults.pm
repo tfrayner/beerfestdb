@@ -42,11 +42,13 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     $self->model_view_map({
-        system_default_id    => 'system_default_id',
-        description          => 'description',
+        id                   => 'id',
+        festival_id          => 'festival_id',
+        currency_id          => 'currency_id',
+        sale_volume_id       => 'sale_volume_id',
+        product_category_id  => 'product_category_id',
+        container_measure_id => 'container_measure_id',
     });
-
-    $self->model_name('DB::SystemDefaults');
 }
 
 =head2 load_form
@@ -57,9 +59,9 @@ sub load_form : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( $self->model_name() );
+    my $rs = $c->model('DB::SystemDefaults');
 
-    $self->form_json_and_detach( $c, $rs, 'system_default_id' );
+    $self->form_json_and_detach( $c, $rs, 'id' );
 }
 
 =head2 view
@@ -70,7 +72,7 @@ sub view : Local {
 
     my ( $self, $c ) = @_;
 
-    my $object = $c->model( $self->model_name() )->find(1);
+    my $object = $c->model('DB::SystemDefaults')->find(1);
 
     unless ( $object ) {
         $c->flash->{error} = "Error: SystemDefault not found.";
@@ -91,7 +93,7 @@ sub submit : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( $self->model_name() );
+    my $rs = $c->model('DB::SystemDefaults');
 
     $self->write_to_resultset( $c, $rs );
 }

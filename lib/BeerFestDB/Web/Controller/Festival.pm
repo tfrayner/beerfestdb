@@ -92,7 +92,7 @@ sub current_festival : Local {
     my $obj;
     # First try to retrieve the current festival from the system_defaults table.
     my $defaults = $c->model('DB::SystemDefaults')->find(1);
-    $obj = $defaults->festival_id() if $defaults;
+    $obj = $defaults->festival() if $defaults;
 
     if ( ! $obj && $c->config->{'current_festival'} ) {
         # Fallback to the config file if we don't have a current festival in the database.
@@ -198,7 +198,7 @@ sub status : Local {
 
     my $defaults = $c->model('DB::SystemDefaults')->find(1);
     my $default_meas_unit;
-    $default_meas_unit = $defaults->container_measure_id if $defaults;
+    $default_meas_unit = $defaults->container_measure if $defaults;
     if ( !defined $default_meas_unit ) {
         $default_meas_unit = $c->model('DB::ContainerMeasure')->find({
             description => $c->config->{'default_measurement_unit'},
