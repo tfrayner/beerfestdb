@@ -97,7 +97,15 @@ sub access_denied : Private {
 
 =cut
 
-sub index : Private {};
+sub index : Private {
+
+    my ( $self, $c ) = @_;
+
+    if ( $c->user_exists ) {
+        my $defaults = $c->model('DB::SystemDefaults')->find(1);
+        $c->stash->{current_festival} = $defaults->festival() if $defaults;
+    }
+};
 
 =head2 login
 

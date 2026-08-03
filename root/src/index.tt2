@@ -77,14 +77,26 @@
   <div class="bfdb-panel" id="bfdb-main-menu">
     <h2>Festival &amp; Products</h2>
     <p>Day-to-day management of festivals, suppliers and products.</p>
-    <a class="bfdb-card" href="[% c.uri_for('/festival/grid') %]">Festival Records</a>
-    <a class="bfdb-card" href="[% c.uri_for('/company/grid') %]">Supplier and Product Listings</a>
+
+    <div class="bfdb-subgroup">
+      <h3>Festival Management</h3>
+      [% IF c.stash.current_festival %]
+      <a class="bfdb-card" href="[% c.uri_for('/festival/view', c.stash.current_festival.festival_id) %]">Current Festival</a>
+      [% END %]
+      <a class="bfdb-card" href="[% c.uri_for('/festival/grid') %]">All Festival Records</a>
+    </div>
+
+    <div class="bfdb-subgroup">
+      <h3>Product Management</h3>
+      <a class="bfdb-card" href="[% c.uri_for('/company/grid') %]">Supplier and Product Listings</a>
+    </div>
+
     [% IF c.check_any_user_role('admin') %]
-    <p>
-    <h2>Festival Config</h2>
-    <p>Configuration pages for festival-related settings. Current festival is set under System Defaults.</p>
-    <a class="bfdb-card" href="[% c.uri_for('/protected/grid') %]">Protected Classes</a>
-    <a class="bfdb-card" href="[% c.uri_for('/systemdefaults/view') %]">System Defaults</a>
+    <div class="bfdb-subgroup">
+      <h3>Festival Admin</h3>
+      <a class="bfdb-card" href="[% c.uri_for('/protected/grid') %]">Protected Classes</a>
+      <a class="bfdb-card" href="[% c.uri_for('/systemdefaults/view') %]">System Defaults</a>
+    </div>
     [% END %]
   </div>
 
