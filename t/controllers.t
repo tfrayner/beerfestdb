@@ -53,9 +53,11 @@ use_ok $_ for qw(
     BeerFestDB::Web::Controller::ProductCharacteristicType
     BeerFestDB::Web::Controller::ProductOrder
     BeerFestDB::Web::Controller::ProductStyle
+    BeerFestDB::Web::Controller::Protected
     BeerFestDB::Web::Controller::Role
     BeerFestDB::Web::Controller::SaleVolume
     BeerFestDB::Web::Controller::StillageLocation
+    BeerFestDB::Web::Controller::SystemDefaults
     BeerFestDB::Web::Controller::Telephone
     BeerFestDB::Web::Controller::TelephoneType
     BeerFestDB::Web::Controller::User
@@ -298,6 +300,19 @@ subtest 'ProductStyle' => sub {
 };
 
 # ---------------------------------------------------------------------------
+subtest 'Protected' => sub {
+    # list is accessible to all authenticated users (user role).
+    $cellar->get_ok('/protected/list',     'list should succeed');
+    $admin->get_ok('/protected/grid',      'grid should succeed');
+    # Protected id=1 ('Company') is seeded by initialise_vocabs.sql.
+    $admin->get_ok('/protected/view/1',    'view should succeed');
+    $admin->get_ok('/protected/load_form', 'load_form should succeed');
+    # Needs JSON payload / confirmation:
+    #$admin->get_ok('/protected/submit',   'submit should succeed');
+    #$admin->get_ok('/protected/delete',   'delete should succeed');
+};
+
+# ---------------------------------------------------------------------------
 subtest 'Role' => sub {
     $admin->get_ok('/role/list', 'list should succeed');
 };
@@ -316,6 +331,16 @@ subtest 'StillageLocation' => sub {
     # Needs JSON payload / confirmation:
     #$cellar->get_ok('/stillagelocation/submit','submit should succeed');
     #$cellar->get_ok('/stillagelocation/delete','delete should succeed');
+};
+
+# ---------------------------------------------------------------------------
+subtest 'SystemDefaults' => sub {
+    # Singleton row (id=1) is seeded by initialise_vocabs.sql; admin-only.
+    $admin->get_ok('/systemdefaults/view',          'view should succeed');
+    $admin->get_ok('/systemdefaults/load_form?id=1', 'load_form should succeed');
+    # Needs JSON payload / confirmation:
+    #$admin->post_ok('/systemdefaults/submit', ..., 'submit should succeed');
+    # delete is not supported (the controller rejects it with a flash error).
 };
 
 # ---------------------------------------------------------------------------
