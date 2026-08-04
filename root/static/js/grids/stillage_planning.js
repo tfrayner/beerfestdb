@@ -51,8 +51,20 @@ Ext.onReady(function(){
         },
     });
 
-    var Cask = Ext.data.Record.create([
-        { name: 'cask_id',              type: 'int' },
+    /* Bay Position lookups */
+    var bay_position_store = new Ext.data.JsonStore({
+        url:        url_bay_position_list,
+        root:       'objects',
+        fields:     [{ name: 'bay_position_id', type: 'int' },
+                     { name: 'description',     type: 'string'}],
+        idProperty: 'bay_position_id',
+        sortInfo:   {
+            field:     'description',
+            direction: 'ASC',
+        },
+    });
+
+    var CaskManagement = Ext.data.Record.create([
         { name: 'cask_management_id',   type: 'int' },
         { name: 'product_name',         type: 'string' },
         { name: 'company_name',         type: 'string' },
@@ -63,13 +75,15 @@ Ext.onReady(function(){
         { name: 'bar_id',               type: 'int' },
         { name: 'gyle_id',              type: 'int' },
         { name: 'stillage_bay',         type: 'int' },
-        { name: 'comment',              type: 'string' },
+        { name: 'bay_position_id',      type: 'int', sortType: myMakeSortTypeFun(bay_position_store, 'description') },
+        { name: 'distributor_name',     type: 'string' },
+        { name: 'cask_graveyard',       type: 'string' },
     ]);
 
     var store = new Ext.data.JsonStore({
         url:        url_object_list,
         root:       'objects',
-        fields:     Cask
+        fields:     CaskManagement
     });
 
     /* Cask size drop-down */
@@ -89,6 +103,20 @@ Ext.onReady(function(){
     var stillage_combo = new MyComboBox({
         store:          stillage_store,
         valueField:     'stillage_location_id',
+        displayField:   'description',
+        lazyRender:     true,
+        triggerAction:  'all',
+        mode:           'local',
+        forceSelection: true,
+        allowBlank:     true,
+        noSelection:    emptySelect,
+        typeAhead:      true,
+    });
+
+    /* Bay Position drop-down */
+    var bay_position_combo = new MyComboBox({
+        store:          bay_position_store,
+        valueField:     'bay_position_id',
         displayField:   'description',
         lazyRender:     true,
         triggerAction:  'all',
@@ -123,18 +151,24 @@ Ext.onReady(function(){
         { id:         'stillage_location_id',
           header:     'Stillage',
           dataIndex:  'stillage_location_id',
-          width:      130,
+          width:      50,
           renderer:   MyComboRenderer(stillage_combo),
           editor:     stillage_combo, },
         { id:         'stillage_bay',
           header:     'Bay',
           dataIndex:  'stillage_bay',
-          width:      40,
+          width:      30,
           renderer:   function(value) { return value ? value : '' }, // bay zero is non-existent.
           editor:     new Ext.form.NumberField({
               allowDecimals:  false,
               allowBlank:     true,
           })},
+        { id:         'bay_position_id',
+          header:     'Bay Position',
+          dataIndex:  'bay_position_id',
+          width:      50,
+          renderer:   MyComboRenderer(bay_position_combo),
+          editor:     bay_position_combo, },
         { id:         'festival_ref',
           header:     'Festival Cask ID',
           dataIndex:  'festival_ref',
@@ -151,23 +185,29 @@ Ext.onReady(function(){
               allowDecimals:  false,
               allowBlank:     true,
           })},
-        { id:         'comment',
-          header:     'Comment',
-          dataIndex:  'comment',
-          width:      130,
+        { id:         'distributor_name',
+          header:     'Distributor',
+          dataIndex:  'distributor_name',
+          width:      40,
+          editor:     new Ext.form.TextField({
+              readOnly:  true,
+          })},
+        { id:         'cask_graveyard',
+          header:     'Cask Graveyard',
+          dataIndex:  'cask_graveyard',
+          width:      40,
           editor:     new Ext.form.TextField({
               allowBlank:     true,
           })},
     ];
 
     function viewLink (grid, record, action, row, col) {
-        var t = new Ext.XTemplate(url_base + 'cask/view/{cask_id}');
-        window.location=t.apply({cask_id: record.get('cask_id')});
+        var t = new Ext.XTemplate(url_base + 'caskmanagement/view/{cask_management_id}');
+        window.location=t.apply({cask_management_id: record.get('cask_management_id')});
     };
 
     function recordChanges (record) {
         var fields = record.getChanges();
-        fields.cask_id     = record.get( 'cask_id' );
         fields.cask_management_id = record.get( 'cask_management_id' );
         fields.festival_id = festival_id;
         return(fields);
@@ -177,14 +217,14 @@ Ext.onReady(function(){
         {
             changesOnly:        true,
             objLabel:           'Cask',
-            idField:            'cask_id',
+            idField:            'cask_management_id',
             autoExpandColumn:   'product_id',
             store:              store,
-            comboStores:        [ casksize_store, stillage_store ],
+            comboStores:        [ casksize_store, stillage_store, bay_position_store ],
             contentCols:        content_cols,
             viewLink:           viewLink,
-            deleteUrl:          url_cask_delete,
-            submitUrl:          url_cask_submit,
+            deleteUrl:          url_caskmanagement_delete,
+            submitUrl:          url_caskmanagement_submit,
             recordChanges:      recordChanges,
         }
     );
