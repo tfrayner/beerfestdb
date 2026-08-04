@@ -597,6 +597,8 @@ sub _obfuscated_amount_remaining : Private {
             },
         },
         {
+            # stillage_location_id is LEFT-JOINed (nullable FK) so casks
+            # without a stillage assignment are still included.
             prefetch => [
                 { cask_management_id =>
                       [
@@ -604,7 +606,7 @@ sub _obfuscated_amount_remaining : Private {
                           'stillage_location_id',
                       ],
                   cask_measurements => 'container_measure_id',
-              },
+                },
             ],
         },
     );
