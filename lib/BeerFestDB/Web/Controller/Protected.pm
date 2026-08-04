@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2017-2026 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,15 +19,15 @@
 #
 # $Id$
 
-package BeerFestDB::Web::Controller::ProductCategory;
+package BeerFestDB::Web::Controller::Protected;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
+BEGIN { extends 'BeerFestDB::Web::GenericGrid'; }
 
 =head1 NAME
 
-BeerFestDB::Web::Controller::ProductCategory - Catalyst Controller
+BeerFestDB::Web::Controller::Protected - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -42,13 +42,12 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     $self->model_view_map({
-        product_category_id   => 'product_category_id',
-        description           => 'description',
-        is_status_public      => 'is_status_public',
-        is_stock_public       => 'is_stock_public',
+        protected_id   => 'protected_id',
+        classname      => 'classname',
+        loader         => 'loader',
     });
 
-    $self->model_name('DB::ProductCategory');
+    $self->model_name('DB::Protected');
 }
 
 =head2 load_form
@@ -61,7 +60,7 @@ sub load_form : Local {
 
     my $rs = $c->model( $self->model_name() );
 
-    $self->form_json_and_detach( $c, $rs, 'product_category_id' );
+    $self->form_json_and_detach( $c, $rs, 'protected_id' );
 }
 
 =head2 view
@@ -75,7 +74,7 @@ sub view : Local {
     my $object = $c->model( $self->model_name() )->find($id);
 
     unless ( $object ) {
-        $c->flash->{error} = "Error: ProductCategory not found.";
+        $c->flash->{error} = "Error: Protected not found.";
         $c->res->redirect( $c->uri_for('/default') );
         $c->detach();        
     }
@@ -87,7 +86,7 @@ sub view : Local {
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2017-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

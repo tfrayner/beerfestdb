@@ -252,6 +252,9 @@ Ext.onReady(function(){
             { name:       'festival_id',
               value:      festival_id,
               xtype:      'hidden', },
+            { name:       'public_status_tag',
+              fieldLabel: 'Public Status Tag',
+              allowBlank: true, },
         ],
 
         loadUrl:     url_festival_load_form,

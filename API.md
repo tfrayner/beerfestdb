@@ -198,6 +198,7 @@ Base path: `/festival`
 | `description` | string | Longer description |
 | `fst_start_date` | date | Start date |
 | `fst_end_date` | date | End date |
+| `public_status_tag` | string | Tag identifier for public website upload (`upload_beerlist.pl`) |
 
 ### Endpoints
 
@@ -1175,6 +1176,53 @@ Omitting `categories` leaves existing category associations unchanged.
 
 Delete role records by ID.
 
+---
+
+## SystemDefaults
+
+Base path: `/systemdefaults`
+
+Stores a single singleton row (enforced by a `CHECK (id = 1)` constraint) that
+holds application-wide defaults used when no explicit value is supplied.
+
+**Access:** admin only. There are no `list` or `grid` endpoints.
+
+### Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Always `1` (singleton primary key) |
+| `festival_id` | integer | FK → Festival — the current active festival |
+| `currency_id` | integer | FK → Currency — default currency |
+| `sale_volume_id` | integer | FK → SaleVolume — default sale volume |
+| `product_category_id` | integer | FK → ProductCategory — default product category |
+| `container_measure_id` | integer | FK → ContainerMeasure — default container measure |
+
+### Endpoints
+
+#### `GET /systemdefaults/load_form?id=1`
+
+Returns the singleton system-defaults record.
+
+**Response:** `{success, data:{...}}`
+
+---
+
+#### `POST /systemdefaults/submit`
+
+Update the singleton system-defaults record. Body param `changes` = JSON array
+containing a single record hash (the row is created if absent, updated if
+present).
+
+---
+
+#### `POST /systemdefaults/delete`
+
+Not supported. The controller rejects this with a flash error and redirects
+to `/systemdefaults/view`. Do not call this endpoint.
+
+---
+
 ## Reference / Vocabulary Tables
 
 The following controllers expose read-only (or lightly managed) reference
@@ -1278,6 +1326,8 @@ Base path: `/productcategory`
 |---|---|---|
 | `product_category_id` | integer | Primary key |
 | `description` | string | Category (e.g. `"beer"`, `"cider"`) |
+| `is_status_public` | boolean | Upload product details to public website (`upload_beerlist.pl`) |
+| `is_stock_public` | boolean | Upload product stock levels to public website |
 
 Endpoints: `list`, `submit`, `delete`.
 
@@ -1342,6 +1392,29 @@ Base path: `/contacttype`
 | `description` | string | Type name |
 
 **Endpoints:** `GET /contacttype/list` only (read-only reference table).
+
+---
+
+### Protected
+
+Base path: `/protected`
+
+Records which ORM classes are shielded from bulk-loader creation/updates.
+The `list` endpoint is accessible to all authenticated users; all other
+operations require admin access.
+
+| Field | Type | Description |
+|---|---|---|
+| `protected_id` | integer | Primary key |
+| `classname` | string | ORM class name (e.g. `"Product"`, `"Festival"`); unique |
+| `loader` | boolean | `1` if the Loader is blocked from creating/updating instances of this class; `0` otherwise |
+
+**Endpoints:**
+
+- `GET /protected/list` — all protected class entries (user-level access)
+- `GET /protected/load_form?protected_id=N`
+- `POST /protected/submit` — create or update entries (admin only)
+- `POST /protected/delete` — delete entries by ID (admin only)
 
 ---
 

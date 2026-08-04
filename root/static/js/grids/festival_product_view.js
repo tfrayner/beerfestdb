@@ -380,7 +380,9 @@ Ext.onReady(function(){
 		  dataIndex:  'is_sale_or_return',
 		  width:      40,
 		  renderer:   MyCheckboxRenderer(),
-		  editor:     new Ext.form.Checkbox()
+		  editor:     new Ext.form.Checkbox({
+              cls:            'bfd-loader-cb',
+          }),
 		},
                 { id:         'order_batch_name',
                   header:     'Order Batch',
@@ -401,6 +403,7 @@ Ext.onReady(function(){
                   width:      50,
                   renderer:   MyCheckboxRenderer(),
                   editor:     new Ext.form.Checkbox({
+                      cls:            'bfd-loader-cb',
                   })},
             ],
             viewLink: function (grid, record, action, row, col) {

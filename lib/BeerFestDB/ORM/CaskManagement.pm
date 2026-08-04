@@ -321,6 +321,7 @@ __PACKAGE__->belongs_to(
   "stillage_location_id",
   "BeerFestDB::ORM::StillageLocation",
   { stillage_location_id => "stillage_location_id" },
+  { is_foreign_key_constraint => 1, join_type => "LEFT OUTER" },
 );
 
 

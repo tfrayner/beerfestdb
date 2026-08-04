@@ -2,7 +2,7 @@
 # This file is part of BeerFestDB, a beer festival product management
 # system.
 # 
-# Copyright (C) 2010 Tim F. Rayner
+# Copyright (C) 2017 Tim F. Rayner
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,15 +19,15 @@
 #
 # $Id$
 
-package BeerFestDB::Web::Controller::ProductCategory;
+package BeerFestDB::Web::Controller::SystemDefaults;
 use Moose;
 use namespace::autoclean;
 
-BEGIN {extends 'BeerFestDB::Web::GenericGrid'; }
+BEGIN { extends 'BeerFestDB::Web::Controller'; }
 
 =head1 NAME
 
-BeerFestDB::Web::Controller::ProductCategory - Catalyst Controller
+BeerFestDB::Web::Controller::SystemDefaults - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -42,13 +42,13 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     $self->model_view_map({
-        product_category_id   => 'product_category_id',
-        description           => 'description',
-        is_status_public      => 'is_status_public',
-        is_stock_public       => 'is_stock_public',
+        id                   => 'id',
+        festival_id          => 'festival_id',
+        currency_id          => 'currency_id',
+        sale_volume_id       => 'sale_volume_id',
+        product_category_id  => 'product_category_id',
+        container_measure_id => 'container_measure_id',
     });
-
-    $self->model_name('DB::ProductCategory');
 }
 
 =head2 load_form
@@ -59,9 +59,9 @@ sub load_form : Local {
 
     my ( $self, $c ) = @_;
 
-    my $rs = $c->model( $self->model_name() );
+    my $rs = $c->model('DB::SystemDefaults');
 
-    $self->form_json_and_detach( $c, $rs, 'product_category_id' );
+    $self->form_json_and_detach( $c, $rs, 'id' );
 }
 
 =head2 view
@@ -70,13 +70,13 @@ sub load_form : Local {
 
 sub view : Local {
 
-    my ( $self, $c, $id ) = @_;
+    my ( $self, $c ) = @_;
 
-    my $object = $c->model( $self->model_name() )->find($id);
+    my $object = $c->model('DB::SystemDefaults')->find(1);
 
     unless ( $object ) {
-        $c->flash->{error} = "Error: ProductCategory not found.";
-        $c->res->redirect( $c->uri_for('/default') );
+        $c->flash->{error} = "Error: SystemDefault not found.";
+        $c->res->redirect( $c->uri_for('/systemdefaults/grid') );
         $c->detach();        
     }
 
@@ -85,9 +85,36 @@ sub view : Local {
     return;
 }
 
+=head2 submit
+
+=cut
+
+sub submit : Local {
+
+    my ( $self, $c ) = @_;
+
+    my $rs = $c->model('DB::SystemDefaults');
+
+    $self->write_to_resultset( $c, $rs );
+}
+
+=head2 delete
+
+=cut
+
+sub delete : Local {
+
+    my ( $self, $c ) = @_;
+
+    $self->flash->{error} = "Error: SystemDefaults cannot be deleted.";
+
+    $self->res->redirect( $c->uri_for('/systemdefaults/view') );
+}
+
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Tim F. Rayner
+Copyright (C) 2017-2026 by Tim F. Rayner
 
 This library is released under version 3 of the GNU General Public
 License (GPL).

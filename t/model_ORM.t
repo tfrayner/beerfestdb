@@ -44,9 +44,11 @@ BEGIN {
     use_ok 'BeerFestDB::ORM::ProductOrder';
     use_ok 'BeerFestDB::ORM::ProductStyle';
     use_ok 'BeerFestDB::ORM::ProgrammeNotesView';
+    use_ok 'BeerFestDB::ORM::Protected';
     use_ok 'BeerFestDB::ORM::Role';
     use_ok 'BeerFestDB::ORM::SaleVolume';
     use_ok 'BeerFestDB::ORM::StillageLocation';
+    use_ok 'BeerFestDB::ORM::SystemDefaults';
     use_ok 'BeerFestDB::ORM::Telephone';
     use_ok 'BeerFestDB::ORM::TelephoneType';
     use_ok 'BeerFestDB::ORM::User';

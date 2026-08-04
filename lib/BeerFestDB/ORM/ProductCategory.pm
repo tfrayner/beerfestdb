@@ -42,6 +42,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "description",
   { data_type => "varchar", is_nullable => 0, size => 100 },
+  "is_status_public",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "is_stock_public",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
