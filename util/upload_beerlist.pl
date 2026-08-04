@@ -48,7 +48,8 @@ has 'uri'              => ( is       => 'ro',
 
 has 'festival_data'    => ( is       => 'rw',
                             isa      => 'HashRef',
-                            required => 0 );
+                            required => 0,
+                            default  => sub { {} } );
 
 has 'useragent'        => ( is       => 'ro',
                             isa      => 'LWP::UserAgent',
@@ -84,7 +85,7 @@ sub _find_festival_id {
 
     $self->debug && warn("Retrieving current festival...\n");
 
-    my $fest_data = $self->_data_from_uri( $self->uri() . '/festival/current_festival' );
+    my $fest_data = $self->_data_from_uri( $self->uri() . '/festival/current_festival', 'data' );
 
     my $festival_id = $fest_data->{festival_id}
         or die("Error: Unable to retrieve current festival ID from BeerFestDB web site.\n");
@@ -192,17 +193,24 @@ sub _attempt_login {
         username => $username,
         password => $password,
     });
+
+    # Get the login page first to set cookies, then post the login data.
+    my $preres = $ua->get( sprintf('%s/login', $self->uri()) );
+    my $headers = $preres->headers();
+    my $csrf_token = $headers->header('X-CSRF-Token') || '';
+
+    # We should only need the CSRF token for this one post operation.
     my $res = $ua->post( sprintf('%s/login', $self->uri()),
-                         { data => $json });
+                         { data => $json, csrf_token => $csrf_token } );
 
     if ( $res->is_error() ) {  # Allows redirects.
         die("Error: Unable to login to BeerFestDB web site: "
-                . $res->status_line() . " (" . $self->uri() . ")\n");
+                . $res->status_line() . " (" . $res->decoded_content() . "; " . $self->uri() . ")\n");
     }
     my $login = $self->json_parser->decode( decode("UTF-8", $res->decoded_content()) );
     unless ( $login->{success} ) {
         die("Error: Unable to login to BeerFestDB web site: "
-                . $res->status_line() . " (" . $self->uri() . ")\n");                
+                . $res->status_line() . " (" . $res->decoded_content() . "; " . $self->uri() . ")\n");
     }
 
     return;
@@ -210,7 +218,9 @@ sub _attempt_login {
 
 sub _data_from_uri {
 
-    my ( $self, $uri ) = @_;
+    my ( $self, $uri, $field ) = @_;
+
+    $field ||= 'objects';
 
     my $ua  = $self->useragent();
 
@@ -254,7 +264,7 @@ sub _data_from_uri {
     }
 
     # Escape all newlines to avoid problems with JSON parsers which don't handle them in strings.
-    my $objdata = $data->{objects};
+    my $objdata = $data->{$field};
     $objdata =~ s/\n/\\n/g;
 
     return( $objdata );
