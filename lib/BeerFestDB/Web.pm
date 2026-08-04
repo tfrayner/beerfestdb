@@ -105,6 +105,10 @@ __PACKAGE__->config(
         'auto_check' => 1,
         'default_secret' => 'a very long and secret string that should be overridden in production',
     },
+
+    # FIXME these default values should be read from the system_defaults table in the
+    # database instead of being hard-coded here. We will remove these hard-coded defaults
+    # once the system_defaults table is fully implemented and populated in production.
     default_currency    => 'GBP',
     default_sale_volume => 'pint',
     default_product_category => 'beer',
