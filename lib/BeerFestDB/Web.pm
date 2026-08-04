@@ -48,7 +48,7 @@ use Catalyst qw/ConfigLoader
 
                 CSRFToken
                /;
-our $VERSION = '1.2';
+our $VERSION = '1.3';
 
 # Configure the application. 
 #
@@ -105,11 +105,15 @@ __PACKAGE__->config(
         'auto_check' => 1,
         'default_secret' => 'a very long and secret string that should be overridden in production',
     },
+
+    # FIXME these default values should be read from the system_defaults table in the
+    # database instead of being hard-coded here. We will remove these hard-coded defaults
+    # once the system_defaults table is fully implemented and populated in production.
     default_currency    => 'GBP',
     default_sale_volume => 'pint',
     default_product_category => 'beer',
     default_measurement_unit => 'gallon',
-    stock_control_departments => [],
+
     awrs_urn_prefix => 'https://www.tax.service.gov.uk/check-the-awrs-register?query=',
     using_frontend_proxy => 1,  # create URLs using HTTPS scheme when behind a proxy
     enable_catalyst_header => 0,  # Disable X-Catalyst header
@@ -152,12 +156,16 @@ foreach my $path ( qw(productstyle productcharacteristictype) ) {
 foreach my $path ( qw(bayposition companyregion contacttype containermeasure
                       containersize country currency dispensemethod
                       productallergentype productcharacteristictype
-                      productcategory productstyle role
+                      productcategory productstyle protected role
                       salevolume telephonetype) ) {
     __PACKAGE__->allow_access_if( "/$path/list", [ qw( user ) ] );
     __PACKAGE__->allow_access_if( '/' . $path, [ qw( admin ) ] );
     __PACKAGE__->deny_access( '/' . $path );
 }
+
+# No list methods for system defaults, but admin can edit them.
+__PACKAGE__->allow_access_if( '/systemdefaults', [ qw( admin ) ] );
+__PACKAGE__->deny_access( '/systemdefaults' );
 
 # Special handling for user management: users can edit their own account but only admins
 # can edit other accounts or assign roles.

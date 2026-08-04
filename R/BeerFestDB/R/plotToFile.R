@@ -2,7 +2,7 @@
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
 ##
-## Copyright (C) 2011 Tim F. Rayner
+## Copyright (C) 2011-2026 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -28,13 +28,20 @@
 #'   arguments (e.g., \code{\link{plotTotalBeerSales}},
 #'   \code{\link{plotSalesRate}}).
 #' @param ... Additional arguments forwarded to \code{fn}.
+#' @param .echo Logical; if \code{TRUE} the return value of \code{fn} is printed
+#'   to the console.  This is useful for functions that return a ggplot2 object,
+#'   since the plot is only drawn when the object is printed.
 #' @return The (invisible) return value of \code{\link[grDevices]{dev.off}}.
 #' @seealso \code{\link{analyseData}}
 #' @importFrom grDevices dev.off pdf
 #' @export
 ###############################################################################
-plotToFile <- function(file, fn, ...) {
+plotToFile <- function(file, fn, ..., .echo = TRUE) {
   pdf(file = file)
-  fn(...)
-  dev.off()
+  if (.echo) {
+    show(fn(...))
+  } else {
+    fn(...)
+  }
+  invisible(dev.off())
 }

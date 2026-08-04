@@ -175,6 +175,7 @@ Ext.onReady(function(){
 
     var myGrid = new MyEditorGrid(
         {
+            changesOnly:        true,
             objLabel:           'Cask',
             idField:            'cask_id',
             autoExpandColumn:   'product_id',

@@ -35,12 +35,13 @@ use BeerFestDB::Web;
 
 sub parse_args {
 
-    my ( $input, $overwrite, $default_festival, $want_version, $want_help );
+    my ( $input, $overwrite, $keep_protection, $default_festival, $want_version, $want_help );
 
     GetOptions(
-	"i|input=s"   => \$input,
-	"o|overwrite" => \$overwrite,
-	"d|default-festival" => \$default_festival,
+        "i|input=s"   => \$input,
+        "o|overwrite" => \$overwrite,
+        "k|keep-protection"  => \$keep_protection,
+        "d|default-festival" => \$default_festival,
         "h|help"      => \$want_help,
     );
 
@@ -63,10 +64,10 @@ sub parse_args {
 
     my $config = BeerFestDB::Web->config();
 
-    return( $input, $config, $overwrite, $default_festival );
+    return( $input, $config, $overwrite, ! $keep_protection, $default_festival );
 }
 
-my ( $input, $config, $overwrite, $default_festival ) = parse_args();
+my ( $input, $config, $overwrite, $reset_protection, $default_festival ) = parse_args();
 
 ########
 # MAIN #
@@ -85,7 +86,8 @@ my $schema = BeerFestDB::ORM->connect( @{ $config->{'Model::DB'}{'connect_info'}
 my $loader = BeerFestDB::Loader->new(
     database  => $schema,
     csv_file  => $input,
-    protected => ( $config->{'protected_classes'} || [] ),
+    protection_defaults => ( $config->{'protected_classes'} || [] ),
+    reset_protection => $reset_protection,
     overwrite => $overwrite,
     use_default_festival => $default_festival,
 );

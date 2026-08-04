@@ -252,6 +252,9 @@ Ext.onReady(function(){
             { name:       'festival_id',
               value:      festival_id,
               xtype:      'hidden', },
+            { name:       'public_status_tag',
+              fieldLabel: 'Public Status Tag',
+              allowBlank: true, },
         ],
 
         loadUrl:     url_festival_load_form,
@@ -259,10 +262,11 @@ Ext.onReady(function(){
         waitMsg:     'Loading Festival details...',
     });
 
-    var festivalStatus = new MyFormPanel({ // FIXME not entirely appropriate for readOnly.
+    var festivalStatus = new MyFormPanel({
 
         title:       'Festival status',
-            
+        readOnly:    true,
+
         items: [
             { name:       'kils_ordered',
               fieldLabel: 'Total kils of beer ordered',

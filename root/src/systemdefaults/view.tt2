@@ -1,0 +1,9 @@
+[% META title = 'System Defaults' %]
+
+<script type="text/javascript">
+   var url_system_defaults_load_form = '[% c.uri_for( "/systemdefaults/load_form" ) %]';
+</script>
+
+[% js_link( src = '/static/js/grids/system_defaults_view.js' ) %]
+
+<div id="datagrid"></div>

@@ -2,7 +2,7 @@
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
 ##
-## Copyright (C) 2011 Tim F. Rayner
+## Copyright (C) 2011-2026 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -23,25 +23,24 @@
 #' Plot overall beer sales over time
 #' @description Sums per-session sales across all products and draws a line
 #'   chart of total gallons sold per session.
-#' @param pd A data frame or matrix of per-session sales volumes (gallons),
-#'   with one row per cask and one column per session.  Typically computed as
-#'   consecutive differences of the dip columns returned by
-#'   \code{\link{getFestivalData}}.
-#' @param ... Additional arguments passed to \code{\link[graphics]{plot}}.
-#' @return Invisibly returns \code{NULL} (called for its side effect of
-#'   producing a plot).
+#' @param festival A Festival object as returned by \code{\link{getFestivalData}}.
+#' @return A ggplot2 object.
 #' @seealso \code{\link{analyseData}}
-#' @importFrom graphics plot axis
+#' @importFrom ggplot2 ggplot aes geom_line geom_point labs theme_minimal theme element_text
 #' @export
 ###############################################################################
-plotTotalBeerSales <- function(pd, ...) {
-  d <- apply(pd, 2, sum)
+plotTotalBeerSales <- function(festival) {
+  sales <- festival$per_diem_sales() %>%
+    select(all_of(festival$dip_cols)) %>%
+    apply(2, sum)
 
-  plot(d,
-    ylim = c(0, max(d)),
-    lwd = 2, type = "l", ylab = "Gallons sold", xlab = "Day",
-    axes = FALSE, cex.lab = 1.5, ...
-  )
-  axis(2, cex.axis = 1.5)
-  axis(1, cex.axis = 1.5, labels = colnames(pd), at = 1:ncol(pd))
+  day <- factor(festival$dip_cols, levels = festival$dip_cols)
+  d <- data.frame(day = day, gallons_sold = sales)
+
+  ggplot(d, aes(x = day, y = gallons_sold, group = 1)) +
+    geom_line(size = 1) +
+    geom_point(size = 2) +
+    labs(x = "Day", y = "Gallons sold") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 }

@@ -388,6 +388,16 @@ sub build_database_object : Private {
         my ($caskman, $caskman_rec, $caskman_mvmap);
         ( $rec, $caskman_rec, $caskman_mvmap ) = $self->_extract_caskman_terms( $rec, $mv_map );
 
+        # If $caskman_rec->{'cellar_reference'} is null, query the database for the next 
+        # available cellar_reference for the festival and assign it to the record.
+        if ( ! defined $caskman_rec->{'cellar_reference'} ) {
+            $c->log->debug("No cellar_reference found in record, querying database for next available value.");
+            $caskman_rec->{'cellar_reference'} =
+                $c->model( 'DB::CaskManagement' )
+                  ->search({ 'festival_id' => $caskman_rec->{'festival_id'} } )
+                  ->get_column('cellar_reference')->max() + 1;
+        }
+
         $c->log->debug("Cask management model-view map: " . Dumper $caskman_mvmap);
         $c->log->debug("Cask management record data: " . Dumper $caskman_rec);
         $c->log->debug("Cleaned Cask record data: " . Dumper $rec);

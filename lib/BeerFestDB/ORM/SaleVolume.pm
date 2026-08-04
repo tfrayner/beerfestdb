@@ -123,6 +123,12 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->might_have(
+  "system_defaults",
+  "BeerFestDB::ORM::SystemDefaults",
+  { "foreign.sale_volume_id" => "self.sale_volume_id" },
+);
+
 sub repr {
     my ( $self ) = @_; return $self->description;
 }
