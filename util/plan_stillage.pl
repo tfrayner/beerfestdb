@@ -73,46 +73,10 @@ my $planner_config = BeerFestDB::StillagePlanner::Config->new(
     config_file => $opt_config,
 );
 
-# ── Festival selection ────────────────────────────────────────────────────────
-
-my $festival;
-if ( my $festname = $web_config->{'current_festival'} ) {
-    $festival = $schema->resultset('Festival')
-        ->find({ name => $festname })
-            or die(qq{Error: configured festival "$festname" not found.\n});
-}
-else {
-    my @festivals = $schema->resultset('Festival')->all;
-    die("Error: no festivals found in the database.\n") unless @festivals;
-
-    if ( @festivals == 1 ) {
-        $festival = $festivals[0];
-    }
-    else {
-        my $wanted;
-        SELECT_FEST: {
-            warn("Please select the beer festival of interest:\n\n");
-            for my $n ( 1 .. @festivals ) {
-                my $f = $festivals[$n-1];
-                warn( sprintf( "  %d: %d %s\n", $n, $f->year, $f->name ) );
-            }
-            warn("\n");
-            chomp( my $sel = <STDIN> );
-            redo SELECT_FEST
-                unless looks_like_number($sel)
-                    && ( $wanted = $festivals[$sel-1] );
-        }
-        $festival = $wanted;
-    }
-}
-
-warn( sprintf( "Festival: %d %s\n\n", $festival->year, $festival->name ) );
-
 # ── Build the planner ─────────────────────────────────────────────────────────
 
 my %planner_args = (
     database => $schema,
-    festival => $festival,
     config   => $planner_config,
 );
 
@@ -120,6 +84,8 @@ $planner_args{max_iterations}    = $opt_max_iter    if defined $opt_max_iter;
 $planner_args{convergence_streak} = $opt_convergence if defined $opt_convergence;
 
 my $planner = BeerFestDB::StillagePlanner->new(%planner_args);
+
+warn( sprintf( "Festival: %d %s\n\n", $planner->festival->year, $planner->festival->name ) );
 
 # ── Load, build slots, and plan ───────────────────────────────────────────────
 

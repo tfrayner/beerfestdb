@@ -240,7 +240,7 @@ sub dispense_methods {
     return ref($dms) eq 'ARRAY' ? $dms : [$dms];
 }
 
-=head2 build_slot_groups($schema)
+=head2 build_slot_groups($schema, $festival)
 
 Constructs and returns an array-ref of
 L<BeerFestDB::StillagePlanner::SlotGroup> objects by resolving the
@@ -251,7 +251,7 @@ Dies if a named C<StillageLocation> or C<BayPosition> cannot be found.
 =cut
 
 sub build_slot_groups {
-    my ( $self, $schema ) = @_;
+    my ( $self, $schema, $festival ) = @_;
 
     my @groups;
     my $margin = $self->margin;
@@ -262,8 +262,11 @@ sub build_slot_groups {
             or croak "Stillage config entry missing 'description'";
 
         my $sl = $schema->resultset('StillageLocation')
-            ->search( { description => $desc } )->first
-            or croak "StillageLocation '$desc' not found in the database";
+            ->search( {
+                description => $desc,
+                festival_id => $festival->get_column('festival_id')
+            } )->first
+                or croak "StillageLocation '$desc' not found for festival";
 
         for my $bay_cfg ( @{ $sl_cfg->{bays} // [] } ) {
 

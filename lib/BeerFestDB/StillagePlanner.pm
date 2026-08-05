@@ -133,19 +133,6 @@ has 'database' => (
     required => 1,
 );
 
-=head2 festival
-
-A L<BeerFestDB::ORM::Festival> row identifying which festival's
-unassigned casks to plan.  Required.
-
-=cut
-
-has 'festival' => (
-    is       => 'ro',
-    isa      => 'Object',
-    required => 1,
-);
-
 =head2 config
 
 A L<BeerFestDB::StillagePlanner::Config> instance.  Required.
@@ -214,6 +201,8 @@ has '_used_width' => (
     default => sub { [] },
 );
 
+with 'BeerFestDB::Role::MenuSelector';
+
 # ── Public methods ────────────────────────────────────────────────────────────
 
 =head1 METHODS
@@ -222,7 +211,7 @@ has '_used_width' => (
 
 Loads all active, unassigned C<cask_management> rows for the planner's
 festival from the database (i.e. rows where C<stillage_location_id> is
-NULL and C<cask_graveyard> is NULL).  Product and brewery information
+NULL).  Product and brewery information
 is resolved via the linked C<product_order>.
 
 If the config specifies a C<product_categories> list, only casks whose
@@ -267,7 +256,6 @@ sub load_casks {
         {
             festival_id          => $festival_id,
             stillage_location_id => undef,
-            cask_graveyard       => undef,
         },
     )->all;
 
@@ -366,7 +354,7 @@ groups created.
 
 sub build_slots {
     my ($self) = @_;
-    my $groups = $self->config->build_slot_groups( $self->database );
+    my $groups = $self->config->build_slot_groups( $self->database, $self->festival );
     $self->_slot_groups($groups);
     return scalar @$groups;
 }
@@ -528,10 +516,9 @@ Writes the current planned assignment back to the database inside a
 single transaction.
 
 For on-stillage casks, sets C<stillage_location_id>, C<stillage_bay>,
-and C<bay_position_id>, and clears C<cask_graveyard>.
+and C<bay_position_id>.
 
-For deck casks, NULLs all three location fields and sets
-C<cask_graveyard> to C<"deck">.
+For deck casks, NULLs all three location fields.
 
 Note: C<stillage_x_location>, C<stillage_y_location>, and
 C<stillage_z_location> are not modified.
@@ -561,7 +548,6 @@ sub apply {
                             stillage_bay    => $g->bay_number,
                             bay_position_id => $g->bay_position
                                 ->get_column('bay_position_id'),
-                            cask_graveyard => undef,
                         }
                     );
                 }
@@ -571,7 +557,6 @@ sub apply {
                             stillage_location_id => undef,
                             stillage_bay         => undef,
                             bay_position_id      => undef,
-                            cask_graveyard       => 'deck',
                         }
                     );
                 }
