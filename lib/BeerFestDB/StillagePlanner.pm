@@ -723,7 +723,7 @@ sub _score_assignment {
         my $gi = $assign->[$ci];
         next if $gi == DECK_IDX;
         my $bay_id = $groups->[$gi]->bay_id;
-        my ($level, $depth) = ( $groups->[$gi]->bay_position->description =~ /^(\S+)\s+(\.+)/ );
+        my ($level, $depth) = ( $groups->[$gi]->bay_position->description =~ /\A (\S+) \s+ (.+)/xms );
         $pullthroughs{ $bay_id }{ $level }{ $depth }{ $casks->[$ci]->product_group_id }++;
     }
     while (my ($bay_id, $bayhash) = each %pullthroughs ) {

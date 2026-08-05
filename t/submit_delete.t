@@ -324,17 +324,18 @@ my $gyle_ids = submit_ok(
 ok( defined $gyle_ids && @$gyle_ids, 'Gyle: ids returned' );
 my $gyle_id = $gyle_ids->[0];
 
-# 12. CaskManagement — no HTTP submit controller; create directly via DBIC.
-#     cellar_reference is NOT NULL. product_order_id is left NULL so that
+# 12. CaskManagement — product_order_id is left NULL so that
 #     the Cask delete controller will auto-remove this row.
-my $cask_management = $schema->resultset('CaskManagement')->create({
-    festival_id       => $festival_id,
-    container_size_id => 1,
-    currency_id       => 1,
-    cellar_reference  => 1,
-});
-my $cask_management_id = $cask_management->cask_management_id();
-ok( $cask_management_id, 'CaskManagement: created directly via DBIC' );
+my $cask_management_ids = submit_ok(
+    $ua, '/caskmanagement/submit',
+    [{ festival_id       => $festival_id,
+       container_size_id => 1,
+       currency_id       => 1,
+       festival_ref      => 1 }],
+    'CaskManagement submit',
+);
+ok( defined $cask_management_ids && @$cask_management_ids, 'CaskManagement: ids returned' );
+my $cask_management_id = $cask_management_ids->[0];
 
 # 13. Cask — needs gyle_id, cask_management_id.
 my $cask_ids = submit_ok(
