@@ -88,31 +88,37 @@ sub viewhash_from_model : Private {
 
     my ( $self, $view_key, $dbrow, $lookup ) = @_;
 
-    # We navigate to the company and product via the cask_id if it exists, otherwise we use the product_order_id.
-    if ( $dbrow->result_source->has_column('casks') && $dbrow->casks->count ) {
-        my $map = {
-            company_name => sub { $_[0]->casks->first->gyle_id->festival_product_id->product_id->company_id->name },
-            company_id   => sub { $_[0]->casks->first->gyle_id->festival_product_id->product_id->company_id->id },
-            product_name => sub { $_[0]->casks->first->gyle_id->festival_product_id->product_id->name },
-            product_id   => sub { $_[0]->casks->first->gyle_id->festival_product_id->product_id->id },
-            order_batch_name => sub { undef },
-            order_batch_id   => sub { undef },
-        };
-        if ( exists $map->{$view_key} ) {
+    my %derived = map { $_ => 1 }
+                  grep { ! defined $self->model_view_map()->{$_} } 
+                  keys %{ $self->model_view_map() };
+
+    if ( $derived{$view_key} ) {
+        # We navigate to the company and product via casks if any exist,
+        # otherwise via product_order_id.
+        if ( $dbrow->casks->count ) {
+            my $map = {
+                company_name     => sub { $_[0]->casks->first->gyle_id->festival_product_id->product_id->company_id->name },
+                company_id       => sub { $_[0]->casks->first->gyle_id->festival_product_id->product_id->company_id->id },
+                product_name     => sub { $_[0]->casks->first->gyle_id->festival_product_id->product_id->name },
+                product_id       => sub { $_[0]->casks->first->gyle_id->festival_product_id->product_id->id },
+                order_batch_name => sub { undef },
+                order_batch_id   => sub { undef },
+            };
             return $map->{$view_key}->($dbrow);
         }
-    }
-    elsif ( $dbrow->result_source->has_column('product_order_id') && $dbrow->product_order_id ) {
-        my $map = {
-            company_name => sub { $_[0]->product_order_id->product_id->company_id->name },
-            company_id   => sub { $_[0]->product_order_id->product_id->company_id->id },
-            product_name => sub { $_[0]->product_order_id->product_id->name },
-            product_id   => sub { $_[0]->product_order_id->product_id->id },
-            order_batch_name => sub { $_[0]->product_order_id->order_batch_id->description },
-            order_batch_id   => sub { $_[0]->product_order_id->order_batch_id->id },
-        };
-        if ( exists $map->{$view_key} ) {
+        elsif ( $dbrow->product_order_id ) {
+            my $map = {
+                company_name     => sub { $_[0]->product_order_id->product_id->company_id->name },
+                company_id       => sub { $_[0]->product_order_id->product_id->company_id->id },
+                product_name     => sub { $_[0]->product_order_id->product_id->name },
+                product_id       => sub { $_[0]->product_order_id->product_id->id },
+                order_batch_name => sub { $_[0]->product_order_id->order_batch_id->description },
+                order_batch_id   => sub { $_[0]->product_order_id->order_batch_id->id },
+            };
             return $map->{$view_key}->($dbrow);
+        }
+        else {
+            return undef;
         }
     }
 
@@ -192,19 +198,26 @@ sub list : Local {
             $c->detach();
         }
         # Collect matching cask_management_id values via two independent subqueries —
-        # one traversing the casks->gyle->festival_product->product path and one
-        # traversing the product_order->product path — then return CaskManagement
-        # objects for the union.  Using separate subqueries avoids a single query
-        # with conflicting JOIN requirements and preserves LEFT-JOIN semantics for
-        # each path independently.
-        my $via_casks = $festival->search_related(
-            'cask_managements',
-            { 'product_id.product_category_id' => $category_id },
+        # one starting from the Cask table and joining through gyle->festival_product->product
+        # (this naturally includes CaskManagement rows with NULL product_order_id, provided
+        # they have casks in the given category) and one traversing the
+        # product_order->product path — then return CaskManagement objects for the union.
+        # Starting from Cask (not CaskManagement) avoids the alias collision that would arise
+        # from a correlated EXISTS against the outer CaskManagement alias.
+        my $via_casks = $c->model('DB::Cask')->search(
             {
-                join    => { casks => { gyle_id => { festival_product_id => 'product_id' } } },
+                'festival_product_id.festival_id' => $festival->festival_id,
+                'product_id.product_category_id'  => $category_id,
+            },
+            {
+                join    => { gyle_id => { festival_product_id => 'product_id' } },
                 columns => ['me.cask_management_id'],
             }
-        )->as_query;
+        );
+
+        $c->log->debug( sprintf(
+            'DEBUG via_casks: festival_id=%s category_id=%s count=%d',
+            $festival->festival_id, $category_id, $via_casks->count ) );
 
         my $via_orders = $festival->search_related(
             'cask_managements',
@@ -213,20 +226,24 @@ sub list : Local {
                 join    => { product_order_id => 'product_id' },
                 columns => ['me.cask_management_id'],
             }
-        )->as_query;
+        );
+
+        $c->log->debug( sprintf(
+            'DEBUG via_orders: festival_id=%s category_id=%s count=%d',
+            $festival->festival_id, $category_id, $via_orders->count ) );
 
         $rs = $c->model('DB::CaskManagement')->search(
             [
-                { 'me.cask_management_id' => { '-in' => $via_casks  } },
-                { 'me.cask_management_id' => { '-in' => $via_orders } },
+                { 'me.cask_management_id' => { '-in' => $via_casks->as_query  } },
+                { 'me.cask_management_id' => { '-in' => $via_orders->as_query } },
             ],
             {
+                # Beware adding anything beyond product_order_id to the prefetch list here, 
+                # as it will result in INNER JOINs that will exclude CaskManagement rows 
+                # with NULL product_order_id.
                 prefetch => [
                     { casks => { gyle_id => { festival_product_id => { product_id => 'company_id' } } } },
-                    { product_order_id => [
-                        { product_id => 'company_id' },
-                        'order_batch_id',
-                    ] },
+                    'product_order_id',
                 ],
             }
         );

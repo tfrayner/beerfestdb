@@ -307,6 +307,7 @@ __PACKAGE__->belongs_to(
   "product_order_id",
   "BeerFestDB::ORM::ProductOrder",
   { product_order_id => "product_order_id" },
+  { is_foreign_key_constraint => 1, join_type => "LEFT OUTER" },
 );
 
 =head2 stillage_location_id
