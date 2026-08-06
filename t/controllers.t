@@ -88,8 +88,8 @@ subtest 'BayPosition' => sub {
 # ---------------------------------------------------------------------------
 subtest 'Cask' => sub {
     $cellar->get_ok('/cask/view/1',                        'view should succeed');
-    $cellar->get_ok('/cask/list/1/1',                      'list should succeed');
-    $cellar->get_ok('/cask/grid/1/1',                      'grid should succeed');
+#    $cellar->get_ok('/cask/list/1/1',                      'list should succeed');
+#    $cellar->get_ok('/cask/grid/1/1',                      'grid should succeed');
     $cellar->get_ok('/cask/load_form',                     'load_form should succeed');
     $cellar->get_ok('/cask/list_by_stillage/1',            'list_by_stillage should succeed');
     $cellar->get_ok('/cask/list_by_festival_product/1',    'list_by_festival_product should succeed');
@@ -98,6 +98,18 @@ subtest 'Cask' => sub {
     #$cellar->get_ok('/cask/submit',                       'submit should succeed');
     #$cellar->get_ok('/cask/delete',                       'delete should succeed');
     #$cellar->get_ok('/cask/delete_from_stillage',         'delete_from_stillage should succeed');
+};
+
+# ---------------------------------------------------------------------------
+subtest 'CaskManagement' => sub {
+    $cellar->get_ok('/caskmanagement/view/1',              'view should succeed');
+    $cellar->get_ok('/caskmanagement/list/1/1',            'list should succeed');
+    $cellar->get_ok('/caskmanagement/grid/1/1',            'grid should succeed');
+    $cellar->get_ok('/caskmanagement/load_form',           'load_form should succeed');
+    # Needs JSON payload / confirmation:
+    #$cellar->get_ok('/caskmanagement/submit',             'submit should succeed');
+    #$cellar->get_ok('/caskmanagement/delete',             'delete should succeed');
+    #$cellar->get_ok('/caskmanagement/delete_from_stillage', 'delete_from_stillage should succeed');
 };
 
 # ---------------------------------------------------------------------------

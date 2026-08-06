@@ -660,12 +660,6 @@ Base path: `/cask`
 
 ### Endpoints
 
-#### `GET /cask/list/{festival_id}/{category_id}`
-
-All casks at a festival for a product category.
-
----
-
 #### `GET /cask/list_by_stillage/{stillage_location_id}`
 
 Casks at a given stillage location.
@@ -728,6 +722,67 @@ Remove casks from their stillage location without deleting them.
 
 Sets `stillage_location_id` to `NULL` on the associated `CaskManagement`
 rows.
+
+---
+
+## CaskManagement
+
+A `CaskManagement` object is the virtual representation of a cask before it has physically arrived at the festival. The cask preloading process creates and links a `Cask` to this object once the product order is marked as having arrived. The `CaskManagement` objects are used to store cellar logistics that can be used in planning cask handling activities such as stillage placement.
+
+Base path: `/caskmanagement`
+
+### Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `cask_management_id` | integer | Primary key |
+| `festival_id` | integer | Festival (read-only) |
+| `festival_name` | string | Festival name (read-only) |
+| `distributor_id` | integer | FK → Company (distributor) |
+| `order_batch_id` | integer | FK → OrderBatch |
+| `order_batch_name` | string | Order batch description (read-only) |
+| `container_size_id` | integer | FK → ContainerSize |
+| `bar_id` | integer | FK → Bar |
+| `stillage_location_id` | integer | FK → StillageLocation |
+| `currency_id` | integer | FK → Currency |
+| `price` | string | Formatted purchase price |
+| `product_id` | integer | FK → Product (read-only, via Gyle or ProductOrder) |
+| `product_name` | string | Product name (read-only) |
+| `company_id` | integer | FK → Company (brewer, read-only) |
+| `company_name` | string | Company name (read-only) |
+| `stillage_bay` | integer | Bay number on the stillage |
+| `bay_position_id` | integer | FK → BayPosition |
+| `stillage_x` | integer | X coordinate on stillage plan |
+| `stillage_y` | integer | Y coordinate on stillage plan |
+| `stillage_z` | integer | Z coordinate (layer/shelf) |
+| `int_reference` | string | Internal cellar reference |
+| `festival_ref` | string | Cellar reference number |
+| `is_sale_or_return` | boolean | Sale-or-return cask |
+| `cask_graveyard` | boolean | Cask is in the graveyard section |
+
+### Endpoints
+
+#### `GET /caskmanagement/list/{festival_id}/{category_id}`
+
+All cask management objects at a festival for a product category.
+
+---
+
+#### `GET /caskmanagement/load_form?cask_management_id=N`
+
+Returns a single cask management record.
+
+---
+
+#### `POST /caskmanagement/submit`
+
+Create or update cask management records.
+
+---
+
+#### `POST /caskmanagement/delete`
+
+Delete cask management records.
 
 ---
 

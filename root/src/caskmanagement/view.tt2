@@ -1,0 +1,14 @@
+[% META title = 'Cask Management' %]
+
+<script type="text/javascript">
+   var url_festival_view            = '[% c.uri_for( "/festival/view/$object.festival_id.id" ) %]';
+   var url_stillage_planning_view   = '[% c.uri_for( "/caskmanagement/grid/$object.festival_id.id/$category_id" ) %]';
+   var url_stillage_list            = '[% c.uri_for( "/stillagelocation/list/$object.festival_id.id" ) %]';
+   var url_caskmanagement_load_form = '[% c.uri_for( "/caskmanagement/load_form" ) %]';
+
+   var cask_management_id  = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/caskmanagement_view.js' ) %]
+
+<div id="datagrid"></div>

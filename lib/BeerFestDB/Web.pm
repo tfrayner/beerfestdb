@@ -141,7 +141,7 @@ __PACKAGE__->log->levels( qw/info warn error fatal/ ) unless __PACKAGE__->debug;
 # Access control. First, general areas which are editable by users
 # (product category level authorization handled in the Controller base
 # class).
-foreach my $path ( qw(bar caskmeasurement cask company
+foreach my $path ( qw(bar caskmeasurement cask caskmanagement company
                       contact festival festivalproduct gyle
                       measurementbatch orderbatch productorder
                       product stillagelocation telephone) ) {
