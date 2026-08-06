@@ -170,6 +170,23 @@ has 'convergence_streak' => (
     default => 500,
 );
 
+=head2 max_swap_distance
+
+When set to a positive integer, limits the maximum index distance
+between the two casks chosen for each random swap.  Because casks are
+sorted alphabetically before planning, this restricts swaps to
+nearby-alphabetical partners, promoting moves that do not drastically
+disrupt ordering.  Set to C<undef> (the default) for unrestricted
+sampling.
+
+=cut
+
+has 'max_swap_distance' => (
+    is      => 'ro',
+    isa     => 'Maybe[Int]',
+    default => undef,
+);
+
 # ── Internal state ────────────────────────────────────────────────────────────
 
 # Ordered list of CaskEntry objects (sorted alphabetically after initialise())
@@ -455,7 +472,7 @@ sub plan {
 
   ITER: for my $iter ( 1 .. $self->max_iterations ) {
 
-        my ( $i, $j ) = _random_pair($n_casks);
+        my ( $i, $j ) = _random_pair( $n_casks, $self->max_swap_distance );
         my $gi = $assign[$i];
         my $gj = $assign[$j];
 
@@ -750,11 +767,22 @@ sub _state_string {
 }
 
 # Returns two distinct random indices in [0, $n-1].
+# If $max_dist is defined, |i - j| <= $max_dist is guaranteed.
 sub _random_pair {
-    my ($n) = @_;
+    my ( $n, $max_dist ) = @_;
     my $i = int( rand($n) );
     my $j;
-    do { $j = int( rand($n) ) } while $j == $i;
+    if ( defined $max_dist && $max_dist > 0 ) {
+        my $lo = ( $i - $max_dist ) < 0     ? 0      : $i - $max_dist;
+        my $hi = ( $i + $max_dist ) >= $n   ? $n - 1 : $i + $max_dist;
+        my $range = $hi - $lo;       # number of candidates excluding $i itself
+        # Avoid infinite loop when $i is the only index in range
+        return ( $i, $i ) if $range == 0;
+        do { $j = $lo + int( rand( $range + 1 ) ) } while $j == $i;
+    }
+    else {
+        do { $j = int( rand($n) ) } while $j == $i;
+    }
     return ( $i, $j );
 }
 

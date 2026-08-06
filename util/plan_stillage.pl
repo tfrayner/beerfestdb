@@ -37,7 +37,7 @@ use BeerFestDB::StillagePlanner::Config;
 ########################################################################
 
 my ( $want_help, $opt_apply, $opt_config,
-     $opt_max_iter, $opt_convergence, $opt_seed );
+     $opt_max_iter, $opt_convergence, $opt_max_swap_distance, $opt_seed );
 
 GetOptions(
     'h|help'            => \$want_help,
@@ -45,6 +45,7 @@ GetOptions(
     'config=s'          => \$opt_config,
     'max-iterations=i'  => \$opt_max_iter,
     'convergence=i'     => \$opt_convergence,
+    'max-swap-distance=i' => \$opt_max_swap_distance,
     'seed=i'            => \$opt_seed,
 ) or pod2usage( -exitval => 1, -output => \*STDERR );
 
@@ -80,8 +81,9 @@ my %planner_args = (
     config   => $planner_config,
 );
 
-$planner_args{max_iterations}    = $opt_max_iter    if defined $opt_max_iter;
+$planner_args{max_iterations}     = $opt_max_iter    if defined $opt_max_iter;
 $planner_args{convergence_streak} = $opt_convergence if defined $opt_convergence;
+$planner_args{max_swap_distance}  = $opt_max_swap_distance if defined $opt_max_swap_distance;
 
 my $planner = BeerFestDB::StillagePlanner->new(%planner_args);
 
