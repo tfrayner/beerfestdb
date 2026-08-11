@@ -187,6 +187,22 @@ has 'max_swap_distance' => (
     default => undef,
 );
 
+=head2 trace_filehandle
+
+If set to a filehandle, each swap attempt is logged to it in CSV format:
+
+  ITERATION_NUMBER,SCORE,NEW_SCORE,I,J,G1,G2
+
+Where I and J are the cask indices, and G1 and G2 are the slot group indices.
+
+=cut
+
+has 'trace_filehandle' => (
+    is      => 'rw',
+    isa     => 'Maybe[FileHandle]',
+    default => undef,
+);
+
 # ── Internal state ────────────────────────────────────────────────────────────
 
 # Ordered list of CaskEntry objects (sorted alphabetically after initialise())
@@ -519,6 +535,11 @@ sub plan {
             $used_w[$gj] += $wj - $wi if $gj != DECK_IDX;
 
             last ITER if ++$no_improv >= $self->convergence_streak;
+        }
+
+        if ( my $fh = $self->trace_filehandle ) {
+            printf $fh "%d,%.1f,%.1f,%d,%d,%d,%d\n",
+                $iter, $cur_score, $new_score, $i, $j, $gi, $gj;
         }
     }
 

@@ -37,7 +37,8 @@ use BeerFestDB::StillagePlanner::Config;
 ########################################################################
 
 my ( $want_help, $opt_apply, $opt_config,
-     $opt_max_iter, $opt_convergence, $opt_max_swap_distance, $opt_seed );
+     $opt_max_iter, $opt_convergence, $opt_max_swap_distance,
+     $opt_trace_file, $opt_seed );
 
 GetOptions(
     'h|help'            => \$want_help,
@@ -46,6 +47,7 @@ GetOptions(
     'max-iterations=i'  => \$opt_max_iter,
     'convergence=i'     => \$opt_convergence,
     'max-swap-distance=i' => \$opt_max_swap_distance,
+    'trace-file=s'       => \$opt_trace_file,
     'seed=i'            => \$opt_seed,
 ) or pod2usage( -exitval => 1, -output => \*STDERR );
 
@@ -86,6 +88,12 @@ $planner_args{convergence_streak} = $opt_convergence if defined $opt_convergence
 $planner_args{max_swap_distance}  = $opt_max_swap_distance if defined $opt_max_swap_distance;
 
 my $planner = BeerFestDB::StillagePlanner->new(%planner_args);
+if ( defined $opt_trace_file ) {
+    open my $fh, '>', $opt_trace_file
+        or die("Error: cannot open trace file '$opt_trace_file' for writing: $!\n");
+    $planner->trace_filehandle($fh);
+    printf $fh "# Iteration,CurrentScore,NewScore,Cask1,Cask2,SlotGroup1,SlotGroup2\n";
+}
 
 warn( sprintf( "Festival: %d %s\n\n", $planner->festival->year, $planner->festival->name ) );
 
