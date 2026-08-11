@@ -37,3 +37,7 @@ weights:
   proximity: 5
   deck: 20
   sor_deck_multiplier: 0.1
+
+initial_temperature: 1500
+cooling_rate: 0.99
+temperature_floor: 0.5
