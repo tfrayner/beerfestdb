@@ -168,6 +168,9 @@ subtest 'Config loads YAML correctly' => sub {
     is( $cfg->weight('deck', 20),               20,   'deck weight 20' );
     is( $cfg->weight('pull_through', 15),       15,   'pull_through weight 15' );
     is( $cfg->weight('sor_deck_multiplier', 0.1), 0.1,'SOR multiplier 0.1' );
+    is( $cfg->initial_temperature, 1500, 'initial temperature 1500' );
+    is( $cfg->cooling_rate, 0.99, 'cooling rate 0.99' );
+    is( $cfg->temperature_floor, 0.5, 'temperature floor 0.5' );
 
     # product_categories is set in the test YAML
     my $cats = $cfg->product_categories;
@@ -344,6 +347,29 @@ subtest 'score returns a non-negative number' => sub {
     lives_ok { $s = $p->score() } 'score lives';
     ok( defined $s, 'score returns a value' );
     cmp_ok( $s, '>=', 0, 'score is non-negative' );
+};
+
+# ── annealing test ───────────────────────────────────────────────────────────
+
+subtest 'acceptance probability depends on temperature' => sub {
+    is(
+        BeerFestDB::StillagePlanner::_acceptance_probability( -1, 10 ),
+        1,
+        'improving moves are always accepted',
+    );
+
+    is(
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, 0 ),
+        0,
+        'zero temperature rejects uphill moves',
+    );
+
+    cmp_ok(
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, 20 ),
+        '>',
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, 5 ),
+        'higher temperatures accept uphill moves more readily',
+    );
 };
 
 # ── plan test ─────────────────────────────────────────────────────────────────

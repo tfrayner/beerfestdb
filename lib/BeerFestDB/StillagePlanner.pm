@@ -30,8 +30,6 @@ use Moose;
 use namespace::autoclean;
 
 use Carp;
-use Digest::MD5 qw(md5_hex);
-
 use BeerFestDB::StillagePlanner::CaskEntry;
 use BeerFestDB::StillagePlanner::Config;
 use BeerFestDB::StillagePlanner::SlotGroup;
@@ -93,8 +91,8 @@ C<floor(bay_width / effective_cask_pitch)> casks.
 
 =back
 
-Capacity is enforced as a hard constraint: the hill-climber never
-proposes a swap that would overfill a slot group.
+Capacity is enforced as a hard constraint: the annealer never accepts a
+swap that would overfill a slot group.
 
 The penalty score combines three soft objectives:
 
@@ -147,7 +145,8 @@ has 'config' => (
 
 =head2 max_iterations
 
-Maximum number of swap attempts before giving up (default 5000).
+Maximum number of simulated-annealing iterations before giving up
+(default 5000).
 
 =cut
 
@@ -159,8 +158,9 @@ has 'max_iterations' => (
 
 =head2 convergence_streak
 
-Stop when this many consecutive swap attempts fail to improve the
-score (default 500).
+Optional early stop once the search has cooled to the temperature
+floor and this many consecutive iterations have failed to improve the
+best score (default 500).
 
 =cut
 
@@ -168,6 +168,43 @@ has 'convergence_streak' => (
     is      => 'ro',
     isa     => 'Int',
     default => 500,
+);
+
+=head2 initial_temperature
+
+Starting temperature for the annealing schedule (default 1000).
+
+=cut
+
+has 'initial_temperature' => (
+    is      => 'ro',
+    isa     => 'Num',
+    default => 100,
+);
+
+=head2 cooling_rate
+
+Multiplicative temperature decay applied after each iteration
+(default 0.9995).
+
+=cut
+
+has 'cooling_rate' => (
+    is      => 'ro',
+    isa     => 'Num',
+    default => 0.9999,
+);
+
+=head2 temperature_floor
+
+Lower bound for the annealing temperature (default 1).
+
+=cut
+
+has 'temperature_floor' => (
+    is      => 'ro',
+    isa     => 'Num',
+    default => 1,
 );
 
 =head2 max_swap_distance
@@ -191,7 +228,7 @@ has 'max_swap_distance' => (
 
 If set to a filehandle, each swap attempt is logged to it in CSV format:
 
-  ITERATION_NUMBER,SCORE,NEW_SCORE,I,J,G1,G2
+  ITERATION_NUMBER,TEMPERATURE,SCORE,NEW_SCORE,I,J,G1,G2
 
 Where I and J are the cask indices, and G1 and G2 are the slot group indices.
 
@@ -457,14 +494,19 @@ sub score {
 
 =head2 plan
 
-Runs the random-pair-swap hill-climber.  Only swaps that satisfy the
-physical width constraints of both affected slot groups are considered.
+Runs a random-pair-swap simulated annealer.  Only swaps that satisfy
+the physical width constraints of both affected slot groups are
+considered.
 
-Stops when the C<convergence_streak> consecutive non-improving swaps
-threshold is reached, when C<max_iterations> have been attempted, or
-when a previously seen assignment state (cycle) is detected.
+Worse swaps may be accepted probabilistically according to the current
+temperature.  The best assignment seen during the run is retained and
+returned.
 
-Returns the final total score.
+Stops when the C<convergence_streak> threshold is reached after the
+temperature has cooled to the floor, or when C<max_iterations> have
+been attempted.
+
+Returns the best total score seen.
 
 =cut
 
@@ -474,6 +516,13 @@ sub plan {
     croak 'Call initialise() before plan()'
         unless @{ $self->_assignment };
 
+    croak 'initial_temperature must be positive'
+        if $self->initial_temperature <= 0;
+    croak 'cooling_rate must be in the range (0, 1]'
+        if $self->cooling_rate <= 0 || $self->cooling_rate > 1;
+    croak 'temperature_floor must be positive'
+        if $self->temperature_floor <= 0;
+
     my $casks     = $self->_cask_entries;
     my $groups    = $self->_slot_groups;
     my $n_casks   = scalar @$casks;
@@ -481,10 +530,14 @@ sub plan {
 
     my @assign    = @{ $self->_assignment };
     my @used_w    = @{ $self->_used_width };
+    my @best_assign = @assign;
+    my @best_used_w = @used_w;
 
-    my $cur_score = $self->_score_assignment( \@assign, \@used_w );
-    my $no_improv = 0;
-    my %seen      = ( _state_string( \@assign ) => 1 );
+    my $cur_score       = $self->_score_assignment( \@assign, \@used_w );
+    my $best_score      = $cur_score;
+    my $best_no_improv   = 0;
+    my $temperature     = $self->initial_temperature;
+    my $temperature_low = $self->temperature_floor;
 
   ITER: for my $iter ( 1 .. $self->max_iterations ) {
 
@@ -492,60 +545,82 @@ sub plan {
         my $gi = $assign[$i];
         my $gj = $assign[$j];
 
-        next ITER if $gi == $gj;    # same group, no-op
+        my $new_score = $cur_score;
 
-        my $wi = $casks->[$i]->cask_width * ( 1 + $margin );
-        my $wj = $casks->[$j]->cask_width * ( 1 + $margin );
+        if ( $gi != $gj ) {
+            my $wi = $casks->[$i]->cask_width * ( 1 + $margin );
+            my $wj = $casks->[$j]->cask_width * ( 1 + $margin );
 
-        # Hard width-constraint check: would either group overflow after swap?
-        if ( $gi != DECK_IDX ) {
-            my $new_w = $used_w[$gi] - $wi + $wj;
-            next ITER if $new_w > $groups->[$gi]->width + 1e-9;
-        }
-        if ( $gj != DECK_IDX ) {
-            my $new_w = $used_w[$gj] - $wj + $wi;
-            next ITER if $new_w > $groups->[$gj]->width + 1e-9;
-        }
-
-        # Tentative swap
-        @assign[ $i, $j ] = @assign[ $j, $i ];
-        $used_w[$gi] += $wj - $wi if $gi != DECK_IDX;
-        $used_w[$gj] += $wi - $wj if $gj != DECK_IDX;
-
-        my $new_score = $self->_score_assignment( \@assign, \@used_w );
-
-        if ( $new_score < $cur_score ) {
-            $cur_score = $new_score;
-            $no_improv = 0;
-
-            my $state = _state_string( \@assign );
-            if ( $seen{$state} ) {
-                # Cycle detected - revert and stop
-                @assign[ $i, $j ] = @assign[ $j, $i ];
-                $used_w[$gi] += $wi - $wj if $gi != DECK_IDX;
-                $used_w[$gj] += $wj - $wi if $gj != DECK_IDX;
-                last ITER;
+            my $fits = 1;
+            if ( $gi != DECK_IDX ) {
+                my $new_w = $used_w[$gi] - $wi + $wj;
+                $fits = 0 if $new_w > $groups->[$gi]->width + 1e-9;
             }
-            $seen{$state} = 1;
-        }
-        else {
-            # Revert
-            @assign[ $i, $j ] = @assign[ $j, $i ];
-            $used_w[$gi] += $wi - $wj if $gi != DECK_IDX;
-            $used_w[$gj] += $wj - $wi if $gj != DECK_IDX;
+            if ( $fits && $gj != DECK_IDX ) {
+                my $new_w = $used_w[$gj] - $wj + $wi;
+                $fits = 0 if $new_w > $groups->[$gj]->width + 1e-9;
+            }
 
-            last ITER if ++$no_improv >= $self->convergence_streak;
+            if ($fits) {
+                @assign[ $i, $j ] = @assign[ $j, $i ];
+                $used_w[$gi] += $wj - $wi if $gi != DECK_IDX;
+                $used_w[$gj] += $wi - $wj if $gj != DECK_IDX;
+
+                $new_score = $self->_score_assignment( \@assign, \@used_w );
+
+                my $acceptance = _acceptance_probability(
+                    $new_score - $cur_score,
+                    $temperature,
+                );
+
+                if ( rand() < $acceptance ) {
+                    $cur_score = $new_score;
+
+                    if ( $new_score < $best_score ) {
+                        $best_score = $new_score;
+                        @best_assign = @assign;
+                        @best_used_w = @used_w;
+                        $best_no_improv = 0;
+                    }
+                    elsif ( $temperature <= $temperature_low ) {
+                        ++$best_no_improv;
+                    }
+                }
+                else {
+                    @assign[ $i, $j ] = @assign[ $j, $i ];
+                    $used_w[$gi] += $wi - $wj if $gi != DECK_IDX;
+                    $used_w[$gj] += $wj - $wi if $gj != DECK_IDX;
+
+                    ++$best_no_improv if $temperature <= $temperature_low;
+                }
+
+                if ( my $fh = $self->trace_filehandle ) {
+                    printf $fh "%d,%.1f,%.1f,%.1f,%.1f,%d,%d,%d,%d\n",
+                        $iter, $temperature, $best_score, $cur_score, $new_score, $i, $j, $gi, $gj;
+                }
+            }
         }
 
-        if ( my $fh = $self->trace_filehandle ) {
-            printf $fh "%d,%.1f,%.1f,%d,%d,%d,%d\n",
-                $iter, $cur_score, $new_score, $i, $j, $gi, $gj;
-        }
+        $temperature *= $self->cooling_rate;
+        $temperature = $temperature_low if $temperature < $temperature_low;
+
+        last ITER
+            if $temperature <= $temperature_low
+            && $best_no_improv >= $self->convergence_streak;
     }
 
-    $self->_assignment( \@assign );
-    $self->_used_width( \@used_w );
-    return $cur_score;
+    $self->_assignment( \@best_assign );
+    $self->_used_width( \@best_used_w );
+    return $best_score;
+}
+
+sub _acceptance_probability {
+    my ( $delta, $temperature ) = @_;
+
+    return 1 if $delta <= 0;
+    return 0 if !defined $temperature || $temperature <= 0;
+
+    return exp( -$delta / $temperature );
 }
 
 =head2 apply
@@ -781,12 +856,6 @@ sub _score_assignment {
     return $score;
 }
 
-# Compact fingerprint of the current assignment for cycle detection.
-sub _state_string {
-    my ($assign) = @_;
-    return md5_hex( join( ',', @$assign ) );
-}
-
 # Returns two distinct random indices in [0, $n-1].
 # If $max_dist is defined, |i - j| <= $max_dist is guaranteed.
 sub _random_pair {
@@ -859,7 +928,7 @@ beer to be aligned front-to-back for pull-through dispensing.
 =head1 ALGORITHM
 
 Starting from a greedy alphabetical first-fit initial assignment,
-L</plan> applies a random-pair-swap hill-climber:
+L</plan> applies a random-pair-swap simulated annealer:
 
 =over 4
 
@@ -871,11 +940,13 @@ L</plan> applies a random-pair-swap hill-climber:
 it is immediately rejected.
 
 =item 4. Otherwise the new score is computed.  If it improved, the swap
-is kept; otherwise it is reverted.
+is kept.  If it worsened, it may still be kept with a probability that
+decreases as the temperature cools; otherwise it is reverted.
 
-=item 5. After C<convergence_streak> consecutive non-improving swaps, or
-after C<max_iterations> attempts, or upon detecting a previously seen
-assignment state, the loop terminates.
+=item 5. The temperature is cooled after each iteration.  After the
+search has cooled to the floor and C<convergence_streak> consecutive
+iterations have failed to improve the best score, or after
+C<max_iterations> attempts, the loop terminates.
 
 =back
 

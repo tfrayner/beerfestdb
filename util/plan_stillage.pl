@@ -87,13 +87,14 @@ $planner_args{max_iterations}     = $opt_max_iter    if defined $opt_max_iter;
 $planner_args{convergence_streak} = $opt_convergence if defined $opt_convergence;
 $planner_args{max_swap_distance}  = $opt_max_swap_distance if defined $opt_max_swap_distance;
 
-my $planner = BeerFestDB::StillagePlanner->new(%planner_args);
 if ( defined $opt_trace_file ) {
     open my $fh, '>', $opt_trace_file
         or die("Error: cannot open trace file '$opt_trace_file' for writing: $!\n");
-    $planner->trace_filehandle($fh);
-    printf $fh "# Iteration,CurrentScore,NewScore,Cask1,Cask2,SlotGroup1,SlotGroup2\n";
+    $planner_args{trace_filehandle} = $fh;
+    printf $fh "# Iteration,Temperature,BestScore,CurrentScore,NewScore,Cask1,Cask2,SlotGroup1,SlotGroup2\n";
 }
+
+my $planner = BeerFestDB::StillagePlanner->new(%planner_args);
 
 warn( sprintf( "Festival: %d %s\n\n", $planner->festival->year, $planner->festival->name ) );
 

@@ -69,6 +69,9 @@ each bay position having a physical width in metres.
 =item * Optional scoring weights (with the same defaults as
 L<BeerFestDB::StillagePlanner>).
 
+=item * Optional simulated-annealing controls:
+C<initial_temperature>, C<cooling_rate>, and C<temperature_floor>.
+
 =back
 
 =head2 Example YAML
@@ -103,6 +106,10 @@ L<BeerFestDB::StillagePlanner>).
     pull_through:        15
     sor_deck_multiplier: 0.1
     stillage:           1000
+
+    initial_temperature: 1000
+    cooling_rate: 0.9995
+    temperature_floor: 1
 
 =head1 ATTRIBUTES
 
@@ -192,6 +199,41 @@ config, falling back to C<$default> if it is not specified.
 sub weight {
     my ( $self, $name, $default ) = @_;
     return ( $self->_data->{weights} // {} )->{$name} // $default;
+}
+
+=head2 initial_temperature
+
+Returns the starting temperature for simulated annealing (default 100).
+
+=cut
+
+sub initial_temperature {
+    my ($self) = @_;
+    return $self->_data->{initial_temperature} // 100;
+}
+
+=head2 cooling_rate
+
+Returns the multiplicative cooling rate for simulated annealing
+(default 0.9999).
+
+=cut
+
+sub cooling_rate {
+    my ($self) = @_;
+    return $self->_data->{cooling_rate} // 0.9999;
+}
+
+=head2 temperature_floor
+
+Returns the lower temperature bound for simulated annealing
+(default 1).
+
+=cut
+
+sub temperature_floor {
+    my ($self) = @_;
+    return $self->_data->{temperature_floor} // 1;
 }
 
 =head2 product_categories
