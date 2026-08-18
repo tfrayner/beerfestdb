@@ -27,6 +27,7 @@ params:
   prodcat: 'beer'
   username: ''
   password: ''
+  ssl_verify: true
 ---
 
 
@@ -67,9 +68,11 @@ creds <- with(params, list(username = username, password = password))
 ```
 
 ```{r data_retrieval, include=FALSE}
-f <- currentFestival(baseuri = params$baseuri, auth = creds)
+f <- with(params, currentFestival(baseuri = baseuri, auth = creds,
+                                 .opts=list(ssl.verifypeer=ssl_verify, ssl.verifyhost=ssl_verify)))
 
-festival <- with(params, getFestivalData(baseuri, f$name, prodcat, auth = creds, dipnames = days))
+festival <- with(params, getFestivalData(baseuri, f$name, prodcat, auth = creds, dipnames = days,
+                                         .opts=list(ssl.verifypeer=ssl_verify, ssl.verifyhost=ssl_verify)))
 
 festival$write_csv("full_dip_dump.csv")
 ```
@@ -159,7 +162,7 @@ drop <- rev(rev(colnames(dp))[ seq_len(dn) ])
 
 We calculate the daily sales levels for each cask, and aggregate those figures by beer style. The graphs in @fig-overall-sales show the amount of beer sold per day, broken down by style.
 
-```{r overall_sales_plot}
+```{r}
 #| fig-width: 6
 #| fig-height: 4
 #| label: fig-overall-sales
@@ -287,7 +290,7 @@ The bar chart in each case shows the ratio of predicted to observed sales, and i
 
 ## By ABV
 
-```{r sales_by_abv}
+```{r}
 #| fig-width: 6
 #| fig-height: 4
 #| label: fig-sales-by-abv
@@ -306,7 +309,7 @@ plotModelRatio( cps, 'abv_class', drop=drop )
 
 ## By Style
 
-```{r sales_by_style}
+```{r}
 #| fig-width: 6
 #| fig-height: 4
 #| label: fig-sales-by-style
@@ -325,7 +328,7 @@ plotModelRatio( cps, 'style', drop=drop )
 
 ## By Region
 
-```{r sales_by_region}
+```{r}
 #| fig-width: 6
 #| fig-height: 4
 #| label: fig-sales-by-region
@@ -344,7 +347,7 @@ plotModelRatio( cps, 'region', drop=drop )
 
 ## By Stillage Location
 
-```{r sales_by_stillage}
+```{r}
 #| fig-width: 6
 #| fig-height: 4
 #| label: fig-sales-by-stillage
@@ -367,7 +370,7 @@ plotModelRatio( cps, 'stillage', drop=drop )
 
 Here we simply show the proportion of beers ordered by geographic region, style, and ABV class, to give an idea of the diversity of beers ordered for the festival. These figures are based on the original order, omitting sale-or-return casks, and do not take into account any unsold or condemned casks.
 
-```{r order_regional_distributions}
+```{r}
 #| fig-width: 6
 #| fig-height: 6
 #| label: fig-order-distributions
@@ -412,7 +415,7 @@ As shown in @fig-order-recommendations, we can use these estimated sales rates t
 
 We restrict this analysis to **uncondemned, non-sale-or-return casks**, since we don't want to base our ordering recommendations on beer that's unsold for either of those reasons. Bear in mind that this analysis may recommend increasing the order of beers which sell out early due to one or more casks being condemned; such cases should be reviewed carefully to ensure that the recommendation is appropriate.
 
-```{r order_recommendations}
+```{r}
 #| column: page
 #| label: fig-order-recommendations
 
@@ -459,7 +462,7 @@ The following sections contain more technical information that may be of interes
 
 The plot in @fig-cask-vs-product-sale-rate shows the relationship between the cask sale rate and the product sale rate for each product. The cask sale rate is calculated based on the average time taken to sell a full cask, modelling each cask separately, while the product sale rate is calculated across casks using a single model. The latter case is more influenced by slow-selling casks for which there are more dip measurements, so the results tend to be lower than the cask sale rate. The plot shows that there is a positive correlation between the two sale rates, but that the product sale rate is generally lower than the cask sale rate. Outlier products are labelled in the plot, and may warrant closer inspection of their dip figures to examine any unexpected features of their sales pattern.
 
-```{r testing_cask_vs_product_sale_rate}
+```{r}
 #| fig-width: 6
 #| fig-height: 6
 #| label: fig-cask-vs-product-sale-rate
