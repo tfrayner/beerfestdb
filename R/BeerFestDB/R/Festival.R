@@ -121,7 +121,7 @@ Festival <- R6::R6Class(
         ungroup() %>%
         mutate(volume_lost = ifelse(is_condemned == 1, cask_volume, volume_lost)) %>%
         mutate(volume_sold = cask_volume - volume_lost) %>%
-        mutate(abv_class = cut(abv, breaks = private$abv_breaks))
+        mutate(abv_class = cut(as.numeric(abv), breaks = private$abv_breaks))
 
       # Clean up the abv_class factor levels to remove parentheses and replace commas with " - "
       levels(data$abv_class) <- gsub('\\(|\\]', '', gsub(',',' - ',levels(data$abv_class)))

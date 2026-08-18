@@ -88,8 +88,7 @@ subtest 'BayPosition' => sub {
 # ---------------------------------------------------------------------------
 subtest 'Cask' => sub {
     $cellar->get_ok('/cask/view/1',                        'view should succeed');
-#    $cellar->get_ok('/cask/list/1/1',                      'list should succeed');
-#    $cellar->get_ok('/cask/grid/1/1',                      'grid should succeed');
+    $cellar->get_ok('/cask/list/1/1',                      'list should succeed');
     $cellar->get_ok('/cask/load_form',                     'load_form should succeed');
     $cellar->get_ok('/cask/list_by_stillage/1',            'list_by_stillage should succeed');
     $cellar->get_ok('/cask/list_by_festival_product/1',    'list_by_festival_product should succeed');

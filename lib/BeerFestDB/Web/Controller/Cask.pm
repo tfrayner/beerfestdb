@@ -183,6 +183,49 @@ sub load_form : Local {
     $self->form_json_and_detach( $c, $rs, 'cask_id' );
 }
 
+=head2 list
+
+Full cask listing; this computationally-expensive action is primarily used by
+the R post-festival reporting code and should not be used unless really needed.
+
+=cut
+
+sub list : Local {
+
+    my ( $self, $c, $festival_id, $category_id ) = @_;
+
+    my ( $rs, $festival );
+    if ( defined $festival_id ) {
+        $festival = $c->model( 'DB::Festival' )->find({festival_id => $festival_id});
+        unless ( $festival ) {
+            $c->stash->{error} = qq{Festival ID "$festival_id" not found.};
+            $c->res->redirect( $c->uri_for('/default') );
+            $c->detach();
+        }
+        $rs = $festival->search_related('cask_managements')
+                       ->search_related('casks',
+                                        { 'product_id.product_category_id' => $category_id },
+                                        {
+                                            prefetch => [
+                                                'cask_management_id',
+                                                { gyle_id => [
+                                                    { festival_product_id => 'product_id' },
+                                                    'company_id',
+                                                ] },
+                                            ],
+                                            join     => {
+                                                gyle_id => {
+                                                    festival_product_id => {
+                                                        product_id => 'product_category_id' } } },
+                                        });
+    }
+    else {
+        die('Error: festival_id not defined.');
+    }
+
+    $self->generate_json_and_detach( $c, $rs );
+}
+
 =head2 list_by_stillage
 
 =cut

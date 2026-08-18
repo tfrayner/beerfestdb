@@ -249,6 +249,10 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
   cp <- merge(cp, dipmat, by.x = "cask_id", by.y = 0, all.x = TRUE) %>%
     mutate(cask_volume = as.numeric(cask_volume))
 
+  if (nrow(cp) == 0) {
+    warning("No cask data found for festival '", festname, "' and product category '", prodcat, "'.")
+  }
+
   return(Festival$new(cp, ...))
 }
 
