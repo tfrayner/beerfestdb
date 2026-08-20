@@ -41,3 +41,6 @@ R/BeerFestDB/*.Rproj
 R/BeerFestDB*.tar.gz
 .Rproj.user
 
+.nextflow*
+work/
+smoketests/output/

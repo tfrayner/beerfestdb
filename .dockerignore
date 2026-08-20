@@ -25,3 +25,5 @@ MYMETA.*
 **-bak
 **tmp.*
 **Dockerfile*
+.nextflow*
+work

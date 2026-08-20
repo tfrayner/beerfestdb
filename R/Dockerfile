@@ -5,7 +5,7 @@ FROM rocker/tidyverse:4.6.1
 # Install BeerFestDB, its dependencies, and other packages used in the quarto reports.
 WORKDIR /tmp
 COPY BeerFestDB /tmp/BeerFestDB
-RUN Rscript -e "install.packages(c('reshape2', 'DT'))" \
+RUN Rscript -e "install.packages(c('reshape2', 'DT', 'colorspace', 'ggrepel'))" \
     && Rscript -e "library(devtools); install('BeerFestDB', dependencies = TRUE, upgrade = FALSE)" \
     && rm -rf /tmp/BeerFestDB
 
