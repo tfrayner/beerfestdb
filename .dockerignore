@@ -27,3 +27,4 @@ MYMETA.*
 **Dockerfile*
 .nextflow*
 work
+smoketests/output
