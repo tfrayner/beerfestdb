@@ -375,6 +375,7 @@ Ext.onReady(function(){
     /* Festival Product grid */
     var fpGrid = new MyEditorGrid(
         {
+            changesOnly:        true,
             objLabel:           'Festival Product',
             idField:            'festival_product_id',
             autoExpandColumn:   'festival_id',

@@ -259,6 +259,7 @@ Ext.onReady(function(){
           width:      40,
           renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
+              cls:            'bfd-loader-cb',
           })},
         { id:         'is_final',
           header:     'Ordered',
@@ -266,6 +267,7 @@ Ext.onReady(function(){
           width:      60,
           renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
+              cls:            'bfd-loader-cb',
           })},
         { id:         'is_received',
           header:     'Arrived',
@@ -273,6 +275,7 @@ Ext.onReady(function(){
           width:      60,
           renderer:   MyCheckboxRenderer(),
           editor:     new Ext.form.Checkbox({
+              cls:            'bfd-loader-cb',
           })},
     ];
 

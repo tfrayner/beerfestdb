@@ -40,6 +40,7 @@
 #'   \code{CURLHandle} the \code{baseuri} argument must also be supplied.
 #' @param .opts Named list of additional options forwarded to
 #'   \code{\link[RCurl]{curlPerform}}.
+#' @param field Character string naming the field in the JSON response to return.
 #' @param ... Additional arguments passed to \code{\link{queryBFDB}}.
 #' @return A data frame with one row per API record.  All columns are
 #'   character except those whose names end in \code{_id}, which are integer.
@@ -47,8 +48,8 @@
 #' @export
 ###############################################################################
 getBFData <- function(dbclass, action, params = c(), columns = NULL,
-                      auth, .opts = list(), ...) {
-  objects <- queryBFDB(dbclass, action, params, auth, .opts, ...)
+                      auth, .opts = list(), field = "objects", ...) {
+  objects <- queryBFDB(dbclass, action, params, auth, .opts, field = field, ...)
 
   terms <- sort(Reduce(union, sapply(objects, names)))
   cleaned <- lapply(objects, function(x) {
@@ -63,7 +64,7 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL,
       if (is.null(el) || (length(el) == 1L && is.na(el))) {
         NA_character_
       } else {
-        as.character(el)[[1L]]
+        .normalize_utf8_scalar(as.character(el)[[1L]])
       }
     }, character(1L))
   })
@@ -101,6 +102,110 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL,
   return(res)
 }
 
+# These functions are defensive coding against bad UTF-8 data in the JSON API response.
+#  The API should always return valid UTF-8, but some installations have in practice 
+#  yielded badly encoded sequences (possibly from older mysql versions?)
+.looks_like_utf8_mojibake <- function(text) {
+  text <- enc2utf8(text)
+
+  # Invalid UTF-8 can occur in damaged payloads; treat as not-mojibake here
+  # and let upstream JSON parsing handle hard failures.
+  if (is.na(iconv(text, from = "UTF-8", to = "UTF-8", sub = NA))) {
+    return(FALSE)
+  }
+
+  # Common marker sequences seen when UTF-8 bytes are mis-decoded as Latin-1/CP1252.
+  # We intentionally avoid broad single-letter classes (e.g. Ø, â) because they
+  # occur legitimately in names such as "To Øl" and "Cwrw Iâl".
+  has_mojibake_markers <- grepl("(?:Ã.|Â.|â€|â€™|â€œ|â€˜|â€\x9d|â€“|â€”|â€¦|â„¢|â€¢)",
+                                text, perl = TRUE, useBytes = TRUE)
+  if (!has_mojibake_markers) {
+    return(FALSE)
+  }
+
+  codepoints <- utf8ToInt(text)
+  if (any(codepoints > 255L)) {
+    return(FALSE)
+  }
+
+  repaired <- tryCatch({
+    x <- rawToChar(as.raw(codepoints))
+    Encoding(x) <- "UTF-8"
+    if (is.na(iconv(x, from = "UTF-8", to = "UTF-8", sub = NA))) {
+      return(NA_character_)
+    }
+    enc2utf8(x)
+  }, error = function(e) {
+    NA_character_
+  })
+
+  if (is.na(repaired) || identical(repaired, text)) {
+    return(FALSE)
+  }
+
+  if (is.na(iconv(repaired, from = "UTF-8", to = "UTF-8", sub = NA))) {
+    return(FALSE)
+  }
+
+  if (grepl("\uFFFD", repaired, fixed = TRUE, useBytes = TRUE)) {
+    return(FALSE)
+  }
+
+  marker_score <- function(x) {
+    m <- gregexpr("(?:Ã.|Â.|â€|â€™|â€œ|â€˜|â€\x9d|â€“|â€”|â€¦|â„¢|â€¢)", x, perl = TRUE, useBytes = TRUE)[[1L]]
+    if (identical(m[1L], -1L)) 0L else length(m)
+  }
+
+  marker_score(repaired) < marker_score(text)
+}
+
+.normalize_utf8_scalar <- function(text) {
+  if (is.na(text)) {
+    return(text)
+  }
+
+  text <- enc2utf8(text)
+  if (!.looks_like_utf8_mojibake(text)) {
+    return(text)
+  }
+
+  codepoints <- utf8ToInt(text)
+  repaired <- rawToChar(as.raw(codepoints))
+  Encoding(repaired) <- "UTF-8"
+  if (is.na(iconv(repaired, from = "UTF-8", to = "UTF-8", sub = NA))) {
+    return(text)
+  }
+  repaired <- enc2utf8(repaired)
+
+  if (.looks_like_utf8_mojibake(repaired)) {
+    return(text)
+  }
+
+  repaired
+}
+
+.normalize_utf8_value <- function(value) {
+  if (is.list(value)) {
+    return(lapply(value, .normalize_utf8_value))
+  }
+
+  if (is.character(value)) {
+    return(vapply(value, .normalize_utf8_scalar, character(1L), USE.NAMES = FALSE))
+  }
+
+  value
+}
+
+.sanitize_json_payload <- function(payload) {
+  payload <- enc2utf8(payload)
+  iconv(payload, from = "UTF-8", to = "UTF-8", sub = "byte")
+}
+
+.parse_bfdb_json <- function(payload) {
+  payload <- .sanitize_json_payload(payload)
+  .normalize_utf8_value(rjson::fromJSON(payload))
+}
+
 ###############################################################################
 #' Query the BeerFestDB database via JSON API
 #' @description S4 generic that issues an HTTP request to the BeerFestDB JSON
@@ -118,6 +223,7 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL,
 #' @param auth Authentication object; see Description for dispatch details.
 #' @param .opts Named list of options forwarded to
 #'   \code{\link[RCurl]{curlPerform}}.
+#' @param field Character string naming the field in the JSON response to return.
 #' @param ... Additional arguments (reserved for future use).
 #' @return A list of named lists, one element per API record.
 #' @seealso \code{\link{getBFData}}, \code{\link{getFestivalData}}
@@ -125,7 +231,7 @@ getBFData <- function(dbclass, action, params = c(), columns = NULL,
 #' @export
 ###############################################################################
 setGeneric("queryBFDB", def = function(dbclass, action, params = c(),
-                                       auth, .opts = list(), ...)
+                                       auth, .opts = list(), field = "objects", ...)
   standardGeneric("queryBFDB")
 )
 
@@ -139,7 +245,7 @@ setGeneric("queryBFDB", def = function(dbclass, action, params = c(),
 setMethod(
   "queryBFDB", signature(auth = "CURLHandle"),
   function(dbclass, action, params = c(),
-           auth, .opts = list(), ...) {
+           auth, .opts = list(), field = "objects", ...) {
     # Assumes that all JSON query actions in the web server behave
     # roughly the same; i.e. they act on a set of (usually only one or
     # two) numeric parameters which will be encoded in the query URI,
@@ -179,7 +285,7 @@ setMethod(
     )
 
     ## Check the response for errors.
-    rc <- try(status <- rjson::fromJSON(status$value()))
+    rc <- try(status <- .parse_bfdb_json(status$value()))
 
     if (inherits(rc, "try-error")) {
       stop(sprintf("Error encountered: %s", rc))
@@ -189,7 +295,7 @@ setMethod(
       stop(status$message)
     }
 
-    return(status$objects)
+    return(status[[field]])
   }
 )
 
@@ -202,7 +308,7 @@ setMethod(
 setMethod(
   "queryBFDB", signature(auth = "ANY"),
   function(dbclass, action, params = c(),
-           auth = NULL, .opts = list(), baseuri = NULL, ...) {
+           auth = NULL, .opts = list(), field = "objects", baseuri = NULL, ...) {
 
     if (is.null(baseuri)) {
       stop("Error: baseuri argument is required unless using CURLHandle-based authentication.")
@@ -210,7 +316,7 @@ setMethod(
 
     curl <- .getBFDBHandle(baseuri = baseuri, auth = auth, .opts = .opts)
 
-    response <- queryBFDB(dbclass, action, params, auth = curl, .opts = .opts, ...)
+    response <- queryBFDB(dbclass, action, params, auth = curl, .opts = .opts, field = field, ...)
 
     ## Log out for the sake of completeness (check for failure and warn).
     .logoutBFDBHandle(curl, .opts)
@@ -306,7 +412,7 @@ setMethod(
   )
 
   ## Check the response for errors.
-  status <- rjson::fromJSON(status$value())
+  status <- .parse_bfdb_json(status$value())
   if (!isTRUE(status$success)) {
     stop(status$message)
   }
@@ -354,7 +460,7 @@ setMethod(
 
   ## Check the response for errors. FIXME test this part once the
   ## json_logout method has been properly installed on the server.
-  status <- rjson::fromJSON(status$value())
+  status <- .parse_bfdb_json(status$value())
   if (!isTRUE(status$success)) {
     stop(status$message)
   }

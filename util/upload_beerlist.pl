@@ -46,13 +46,10 @@ has 'uri'              => ( is       => 'ro',
                             isa      => 'Str',
                             required => 1 );
 
-has 'festival_name'    => ( is       => 'ro',
-                            isa      => 'Str',
-                            required => 1 );
-
-has 'product_category' => ( is       => 'ro',
-                            isa      => 'Str',
-                            required => 1 );
+has 'festival_data'    => ( is       => 'rw',
+                            isa      => 'HashRef',
+                            required => 0,
+                            default  => sub { {} } );
 
 has 'useragent'        => ( is       => 'ro',
                             isa      => 'LWP::UserAgent',
@@ -75,66 +72,84 @@ has 'debug'            => ( is       => 'ro',
 
 # Cache for credentials and IDs to avoid unnecessary queries and repeated credential prompts.
 my $CREDENTIALS_CACHE = {};
-my $FESTIVAL_ID_CACHE = {};
+my $FESTIVAL_CACHE = {};
 my $CATEGORY_ID_CACHE = {};
 
 sub _find_festival_id {
 
     my ( $self ) = @_;
 
-    if ( exists $FESTIVAL_ID_CACHE->{ $self->festival_name() } ) {
-        return $FESTIVAL_ID_CACHE->{ $self->festival_name() };
+    if ( defined $self->festival_data->{festival_id} ) {
+        return $self->festival_data->{festival_id};
     }
 
-    $self->debug && warn("Retrieving festival list...\n");
+    $self->debug && warn("Retrieving current festival...\n");
 
-    my $fest_name = $self->festival_name();
-    my $fest_list = $self->_data_from_uri( $self->uri() . '/festival/list' );
+    my $fest_data = $self->_data_from_uri( $self->uri() . '/festival/current_festival', 'data' );
 
-    # Make this search case-insensitive.
-    foreach my $festref ( @$fest_list ) {
-        if ( lc $festref->{name} eq lc $fest_name ) {
-            $FESTIVAL_ID_CACHE->{ $fest_name } = $festref->{festival_id};
-            return $festref->{festival_id};
-        }
-    }
+    my $festival_id = $fest_data->{festival_id}
+        or die("Error: Unable to retrieve current festival ID from BeerFestDB web site.\n");
 
-    die(qq{Error: Unable to find festival named "$fest_name".});
+    $self->festival_data($fest_data);
+
+    return $festival_id;
 }
 
 sub _find_category_id {
 
-    my ( $self ) = @_;
+    # This is a slightly wasteful search through a listing of all product
+    # categories, since we don't currently have a direct API query by prodcat
+    # name. We cache the results to make this slightly less bad.
+    my ( $self, $prodcat ) = @_;
 
-    if ( exists $CATEGORY_ID_CACHE->{ $self->product_category() } ) {
-        return $CATEGORY_ID_CACHE->{ $self->product_category() };
+    $self->debug && warn(sprintf("Searching category list for %s...\n", $prodcat));
+
+    if ( exists $CATEGORY_ID_CACHE->{ $prodcat } ) {
+        return $CATEGORY_ID_CACHE->{ $prodcat };
     }
-
-    my $prod_cat = $self->product_category();
-
-    $self->debug && warn(sprintf("Retrieving category list for %s...\n", $prod_cat));
 
     my $cat_list = $self->_data_from_uri( $self->uri() . '/productcategory/list' );
 
     # Make this search case-insensitive.
     foreach my $catref ( @$cat_list ) {
-        if ( lc $catref->{description} eq lc $prod_cat ) {
-            $CATEGORY_ID_CACHE->{ $prod_cat } = $catref->{product_category_id};
+        if ( lc $catref->{description} eq lc $prodcat ) {
+            $CATEGORY_ID_CACHE->{ $prodcat } = $catref->{product_category_id};
             return $catref->{product_category_id};
         }
     }
 
-    die(qq{Error: Unable to find product category named "$prod_cat".});
+    die(qq{Error: Unable to find product category named "$prodcat".});
+}
+
+sub get_upload_departments {
+
+    my ( $self ) = @_;
+
+    $self->debug && warn(sprintf("Retrieving full product category list...\n"));
+
+    my $cat_list = $self->_data_from_uri( $self->uri() . '/productcategory/list' );
+
+    my @uploadable;
+
+    # May as well pre-cache these results for later use, since we have them already.
+    foreach my $catref( @$cat_list ) {
+        $CATEGORY_ID_CACHE->{ $catref->{description} } = $catref->{product_category_id};
+        if ( $catref->{is_status_public} ) {
+            push @uploadable, $catref->{description};
+        }
+    }
+
+    return \@uploadable;
 }
 
 sub query_status_list {
 
-    my ( $self ) = @_;
+    my ( $self, $prodcat ) = @_;
 
     $self->debug && warn("Retrieving status list...\n");
 
     my $fid = $self->_find_festival_id();
-    my $cid = $self->_find_category_id();
+    my $cid = $self->_find_category_id($prodcat);
 
     my $status_list = $self->_data_from_uri(
         sprintf('%s/festivalproduct/list_status/%s/%s', $self->uri(), $fid, $cid) );
@@ -178,17 +193,24 @@ sub _attempt_login {
         username => $username,
         password => $password,
     });
+
+    # Get the login page first to set cookies, then post the login data.
+    my $preres = $ua->get( sprintf('%s/login', $self->uri()) );
+    my $headers = $preres->headers();
+    my $csrf_token = $headers->header('X-CSRF-Token') || '';
+
+    # We should only need the CSRF token for this one post operation.
     my $res = $ua->post( sprintf('%s/login', $self->uri()),
-                         { data => $json });
+                         { data => $json, csrf_token => $csrf_token } );
 
     if ( $res->is_error() ) {  # Allows redirects.
         die("Error: Unable to login to BeerFestDB web site: "
-                . $res->status_line() . " (" . $self->uri() . ")\n");
+                . $res->status_line() . " (" . $res->decoded_content() . "; " . $self->uri() . ")\n");
     }
     my $login = $self->json_parser->decode( decode("UTF-8", $res->decoded_content()) );
     unless ( $login->{success} ) {
         die("Error: Unable to login to BeerFestDB web site: "
-                . $res->status_line() . " (" . $self->uri() . ")\n");                
+                . $res->status_line() . " (" . $res->decoded_content() . "; " . $self->uri() . ")\n");
     }
 
     return;
@@ -196,7 +218,9 @@ sub _attempt_login {
 
 sub _data_from_uri {
 
-    my ( $self, $uri ) = @_;
+    my ( $self, $uri, $field ) = @_;
+
+    $field ||= 'objects';
 
     my $ua  = $self->useragent();
 
@@ -240,7 +264,7 @@ sub _data_from_uri {
     }
 
     # Escape all newlines to avoid problems with JSON parsers which don't handle them in strings.
-    my $objdata = $data->{objects};
+    my $objdata = $data->{$field};
     $objdata =~ s/\n/\\n/g;
 
     return( $objdata );
@@ -264,6 +288,7 @@ use URI;
 use Carp;
 use Try::Tiny::ByClass;
 use BeerFestDB::Exceptions qw(UriAuthorizationError);
+use HTTP::CookieJar::LWP;
 
 use utf8;
 
@@ -449,30 +474,19 @@ sub parse_args {
     my $st = $config->{ status_query }
         or die("Error: No status_query section in config file.");
 
-    # We don't really want to set this twice.
-    $st->{ festival_name } ||= $config->{ current_festival };
-
     return( $st, $debug );
 }
 
 sub upload_department {
 
-    my ( $prodcat, $config, $ua, $debug ) = @_;
+    my ( $prodcat, $config, $qobj, $debug ) = @_;
 
     my $brewery_info = {};
-
-    my $qobj = MyQueryClass->new(
-        festival_name    => $config->{festival_name},
-        product_category => $prodcat,
-        uri              => $config->{beerfestdb_uri},
-        useragent        => $ua,
-        debug            => $debug,
-    );
 
     # Query the JSON API for latest status list.
     my $statuslist;
     try {
-        $statuslist = $qobj->query_status_list();
+        $statuslist = $qobj->query_status_list($prodcat);
     }
     catch_case [
          'BeerFestDB::Exceptions::UriAuthorizationError' => sub {
@@ -504,14 +518,14 @@ sub upload_department {
     }
 
     # Warn on unusual/new characters. Add new characters here only if
-    # you're sure the server can handle it.
-    my $core_re = qr/[^[:alnum:]_&\$"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄçßøπ°·žĀě \*\#-]+/;
-    my $re = qr/( .{0,8} $core_re .{0,8} )/xms;
-    if ( $output =~ $re ) {
-        warn("Warning: uploaded content contains unexpected characters and may fail."
-           . " Context follows:\n\n$1\n\n"
-           . "If failure occurs, try using -d to examine the upload string.\n");
-    }
+    # you're sure the server can handle it. FIXME less important now we're using XML::Entities.
+#    my $core_re = qr/[^[:alnum:]_&\$"'+.,!?:;(){}\[\]%\/\\âëöäüáéÄçßøπ°·žĀě \*\#-]+/;
+#    my $re = qr/( .{0,8} $core_re .{0,8} )/xms;
+#    if ( $output =~ $re ) {
+#        warn("Warning: uploaded content contains unexpected characters and may fail."
+#           . " Context follows:\n\n$1\n\n"
+#           . "If failure occurs, try using -d to examine the upload string.\n");
+#    }
 
     $debug && print STDOUT "\n$output\n";
 
@@ -519,10 +533,12 @@ sub upload_department {
 
     # Do the upload itself. This may fail but should not block
     # department updates subsequently listed in the config file.
+    # FIXME config public_festival_tag is deprecated and will be
+    # removed in future; the festival tag is now retrieved from the BeerFestDB web site.
     eval {
         send_update($output,
                     $config->{'public_site_upload_uri'},
-                    $config->{'public_festival_tag'},
+                    $qobj->festival_data->{public_status_tag} || $config->{'public_festival_tag'},
                     $prodcat,
                     $debug);
     };
@@ -534,22 +550,27 @@ sub upload_department {
 my ( $config, $debug ) = parse_args();
 
 # Check that the appropriate config parameters have been set
-foreach my $item ( qw(festival_name
-                      departments
-                      beerfestdb_uri
-                      public_site_upload_uri
-                      public_festival_tag) ) {
+foreach my $item ( qw(beerfestdb_uri
+                      public_site_upload_uri) ) {
     unless ( defined $config->{ $item } ) {
         die(qq{Error: Config variable "$item" has not been set in the configuration file.});
     }
 }
 
 # Just one user agent for the whole run, to preserve cookies and avoid unnecessary overhead.
-my $ua = LWP::UserAgent->new();
+my $ua = LWP::UserAgent->new(cookie_jar_class => 'HTTP::CookieJar::LWP');
 $ua->cookie_jar({});
 
-foreach my $dept ( @{ $config->{departments} } ) {
-    upload_department($dept, $config, $ua, $debug)
+my $qobj = MyQueryClass->new(
+    uri              => $config->{beerfestdb_uri},
+    useragent        => $ua,
+    debug            => $debug,
+);
+
+my $departments = $qobj->get_upload_departments();
+
+foreach my $dept ( @{ $departments } ) {
+    upload_department($dept, $config, $qobj, $debug);
 }
 
 =head1 NAME

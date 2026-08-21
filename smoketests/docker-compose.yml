@@ -1,0 +1,59 @@
+services:
+  mysql:
+    image: mysql:9.7
+    environment:
+      MYSQL_DATABASE: beerfestdb
+      MYSQL_USER: beerfestdb
+      MYSQL_PASSWORD: vent&T4p
+      MYSQL_ROOT_PASSWORD: rootpass
+    volumes:
+      - beerfestdb_smoke_mysql:/var/lib/mysql
+      - ../db/create_tables.sql:/docker-entrypoint-initdb.d/01-create_tables.sql:ro
+      - ../db/initialise_vocabs.sql:/docker-entrypoint-initdb.d/02-initialise_vocabs.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u beerfestdb --password='vent&T4p' --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  redis:
+    image: redis:7
+
+  app:
+    image: tfrayner/beerfestdb:latest
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      BEERFESTDB_WEB_CONFIG: /etc/beerfestdb/beerfestdb_web.yml
+      BEERFESTDB_ROOT_PATH: /var/lib/BeerFestDB/root
+    volumes:
+      - ./beerfestdb_smoke.yml:/etc/beerfestdb/beerfestdb_web.yml:ro
+      - ../:/workspace:ro
+      - ./output:/output
+    working_dir: /workspace
+    ports:
+      - "${BFDB_SMOKE_APP_PORT:-3000}:3000"
+    command: >
+      bash -lc "beerfestdb_web_server.pl -r"
+
+  rstudio:
+    image: tfrayner/beerfestdb-rstudio:latest
+    depends_on:
+      app:
+        condition: service_started
+    volumes:
+      - ../:/workspace:ro
+      - ./output:/output
+    working_dir: /workspace
+    environment:
+      BFDB_BASEURI: http://app:3000
+      BFDB_USERNAME: admin
+      BFDB_PASSWORD: admin
+    command: bash -lc "sleep infinity"
+
+volumes:
+  beerfestdb_smoke_mysql:

@@ -1,0 +1,3 @@
+brewery_name	brewery_region	product_name	product_style	product_abv	cask_size	cask_count	cask_price	distributor_name	order_batch	product_category	festival_name	festival_year	order_finalized	order_sale_or_return
+Smoke Brewery	East Anglia	Smoke Ale	Ale	4.5	firkin	4	90.00	Smoke Distributor	Smoke Batch	beer	Smoke Festival	2026	1	0
+Fog Brewery	West Midlands	Smoke Stout	Stout	5.2	firkin	2	95.00	Smoke Distributor	Smoke Batch	beer	Smoke Festival	2026	1	0

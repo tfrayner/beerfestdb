@@ -1,8 +1,7 @@
-[% META title = 'Cask listing' %]
+[% META title = 'Stillage Planning' %]
 
 <script type="text/javascript">
-   var url_object_list      = '[% c.uri_for( "/cask/list/$festival.id/$category.id" ) %]';
-   var url_product_list     = '[% c.uri_for( "/product/list/$category.id/$festival.id" ) %]';
+   var url_object_list      = '[% c.uri_for( "/caskmanagement/list/$festival.id/$category.id" ) %]';
    var url_stillage_list    = '[% c.uri_for( "/stillagelocation/list/$festival.id" ) %]';
    var url_festival_view    = '[% c.uri_for( "/festival/view/$festival.id" ) %]';
    var category_id          = '[% category.id %]';
@@ -13,6 +12,6 @@
    var default_currency     = '[% default_currency %]';
 </script>
 
-[% js_link( src = '/static/js/grids/festival_cask.js' ) %]
+[% js_link( src = '/static/js/grids/stillage_planning.js' ) %]
 
 <div id="datagrid"></div>
