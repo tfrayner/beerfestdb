@@ -37,6 +37,8 @@ process loadFestival {
   """
   docker compose -f ${projectDir}/docker-compose.yml run --rm app \
     bash -lc "load_data.pl -i /workspace/smoketests/data/festival_seed.csv"
+
+  # Set current festival to the one we just loaded, so that subsequent processes can use it
   docker exec smoketests-mysql-1 mysql -u beerfestdb -p"vent&T4p" -D beerfestdb \
     -e "UPDATE system_defaults SET festival_id = (SELECT festival_id FROM festival WHERE name = 'Smoke Festival') WHERE id = 1;"
   """
@@ -101,12 +103,15 @@ process assignStillage {
 
   script:
   """
+  # Create stillage locations for the festival
   docker exec smoketests-mysql-1 mysql -u beerfestdb -p"vent&T4p" -D beerfestdb \
     -e "INSERT INTO stillage_location (festival_id, description) \
         SELECT festival_id, 'DMZ' FROM system_defaults WHERE id = 1 \
         UNION ALL \
         SELECT festival_id, 'Marquee' FROM system_defaults WHERE id = 1 \
         ON DUPLICATE KEY UPDATE description = VALUES(description);"
+
+  # Assign stillage locations to casks
   docker compose -f ${projectDir}/docker-compose.yml run --rm app \
     bash -lc "update_cask_details.pl -a -i /workspace/smoketests/data/cask_stillage.tsv"
   """
@@ -166,8 +171,6 @@ process reportFinal {
   mkdir -p ${params.outdir}
   docker compose -f ${projectDir}/docker-compose.yml exec -T rstudio bash -lc \
     "cp /workspace/R/dip_figure_analysis.qmd /tmp/dip_figure_analysis.qmd && cd /tmp && quarto render dip_figure_analysis.qmd --output-dir /output -P baseuri:${params.baseuri} -P username:${params.username} -P password:${params.password} -P ssl_verify:false"
-  cp -f ${params.outdir}/dip_figure_analysis.html ${params.outdir}/festival_report.html 2>/dev/null || true
-  ls -l ${params.outdir}
   """
 }
 
