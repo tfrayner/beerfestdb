@@ -1,0 +1,54 @@
+testing: 1
+
+protected_classes: []
+
+status_query:
+  beerfestdb_uri: 'http://app:3000'
+  public_site_upload_uri: 'file://localhost/www/data/push'
+
+OODoc:
+  styles:
+    bar_name: 'Bar Name'
+    beer_name: 'Beer'
+    beer_notes: 'Tasting Notes'
+    brewery_name: 'Brewery'
+    brewery_location: 'Brewery Location'
+  dump_tasting_notes: 1
+
+Model::DB:
+  connect_info:
+    - 'DBI:MariaDB:database=beerfestdb;host=mysql;port=3306'
+    - 'beerfestdb'
+    - 'vent&T4p'
+    - RaiseError: 1
+      AutoCommit: 1
+      limit_dialect: 'LimitXY'
+
+Plugin::OpenIDConnect:
+  issuer:
+    url: 'http://app:3000/app'
+    private_key_file: '/path/to/beerfestdb/keys/private.pem'
+    public_key_file: '/path/to/beerfestdb/keys/public.pem'
+    key_id: 'smoke-key'
+
+  clients:
+    'dashboard':
+       client_secret: 'smoke-client-secret'
+       redirect_uris: 'http://localhost:8501/dashboard/oauth2callback'
+       post_logout_redirect_uris: 'http://localhost:8501/dashboard/oauth2callback'
+
+  store_class: 'Catalyst::Plugin::OpenIDConnect::Utils::Store::Redis'
+  store_args:
+    server: 'redis:6379'
+    prefix: 'oidc:beerfestdb:'
+    code_ttl: 600
+
+Plugin::CSRFToken:
+  max_age: 3600
+  auto_check: 1
+  default_secret: 'smoke-test-secret-please-change'
+
+email:
+  from_address: 'beerfestdb@example.com'
+  smtp_host: 'localhost'
+  smtp_port: 25
