@@ -158,6 +158,9 @@ process reportFinal {
   input:
   val dipsLoaded
 
+  output:
+  val true
+
   script:
   """
   mkdir -p ${params.outdir}
@@ -165,6 +168,19 @@ process reportFinal {
     "cp /workspace/R/dip_figure_analysis.qmd /tmp/dip_figure_analysis.qmd && cd /tmp && quarto render dip_figure_analysis.qmd --output-dir /output -P baseuri:${params.baseuri} -P username:${params.username} -P password:${params.password} -P ssl_verify:false"
   cp -f ${params.outdir}/dip_figure_analysis.html ${params.outdir}/festival_report.html 2>/dev/null || true
   ls -l ${params.outdir}
+  """
+}
+
+process cleanupStack {
+  executor 'local'
+
+  input:
+  val reportGenerated
+
+  script:
+  """
+  docker compose -f ${projectDir}/docker-compose.yml down -v >/dev/null 2>&1 || true
+  docker volume rm -f smoketests_beerfestdb_smoke_mysql >/dev/null 2>&1 || true
   """
 }
 
@@ -177,5 +193,6 @@ workflow {
   stillageAssigned = assignStillage(salePriceSet)
   labelsGenerated = generateLabels(stillageAssigned)
   dipsLoaded = loadDips(labelsGenerated)
-  reportFinal(dipsLoaded)
+  reportGenerated = reportFinal(dipsLoaded)
+  cleanupStack(reportGenerated)
 }
