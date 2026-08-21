@@ -79,14 +79,13 @@ jobs:
     # tfrayner/beerfestdb-rstudio:latest image to be built and pushed to Docker Hub, which is
     # done in the `rstudio-docker` job.
     needs: [docker, rstudio-docker]
+
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Setup Nextflow
-      # You may pin to the exact commit or the version.
-      # uses: nf-core/setup-nextflow@b4ec1bc7c16a94435159de94a05253542fddf6ef
       uses: nf-core/setup-nextflow@v3.0.0
     
     - name: Run smoke tests
