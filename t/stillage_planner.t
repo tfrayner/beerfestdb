@@ -372,6 +372,35 @@ subtest 'acceptance probability depends on temperature' => sub {
     );
 };
 
+# ── hill-climbing fallback test ──────────────────────────────────────────────
+
+subtest 'negative initial_temperature falls back to pure hill-climbing' => sub {
+    srand(42);
+    my $p = make_planner(
+        initial_temperature => -1,
+        max_iterations       => 200,
+        convergence_streak   => 50,
+    );
+    $p->load_casks();
+    $p->build_slots();
+    $p->initialise();
+
+    my $initial_score = $p->score();
+    my $final_score;
+    lives_ok { $final_score = $p->plan() } 'plan lives with negative initial_temperature';
+    cmp_ok( $final_score, '<=', $initial_score,
+        'plan score <= initial score under hill-climbing' );
+
+    # A pure hill-climber can only ever accept moves that do not worsen
+    # the score, so the acceptance probability for any uphill move must
+    # be zero throughout (the temperature never becomes positive).
+    is(
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, $p->initial_temperature ),
+        0,
+        'uphill moves are never accepted when initial_temperature is negative',
+    );
+};
+
 # ── plan test ─────────────────────────────────────────────────────────────────
 
 subtest 'plan runs without error and returns a score' => sub {

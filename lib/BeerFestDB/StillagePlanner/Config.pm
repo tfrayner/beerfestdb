@@ -72,6 +72,8 @@ L<BeerFestDB::StillagePlanner>).
 =item * Optional simulated-annealing controls:
 C<initial_temperature>, C<cooling_rate>, and C<temperature_floor>.
 
+=item * Optional cask-mixing controls: C<max_swap_distance>.
+
 =back
 
 =head2 Example YAML
@@ -203,7 +205,8 @@ sub weight {
 
 =head2 initial_temperature
 
-Returns the starting temperature for simulated annealing (default 100).
+Returns the starting temperature for simulated annealing (default 100). 
+Set C<-1> to disable simulated annealing and use a pure hill-climbing algorithm.
 
 =cut
 
@@ -227,13 +230,29 @@ sub cooling_rate {
 =head2 temperature_floor
 
 Returns the lower temperature bound for simulated annealing
-(default 1).
+(default 1). Must be greater than or equal to 1.
 
 =cut
 
 sub temperature_floor {
     my ($self) = @_;
     return $self->_data->{temperature_floor} // 1;
+}
+
+=head2 max_swap_distance
+
+When set to a positive integer, limits the maximum index distance
+between the two casks chosen for each random swap.  Because casks are
+sorted alphabetically before planning, this restricts swaps to
+nearby-alphabetical partners, promoting moves that do not drastically
+disrupt ordering.  Set to C<undef> (the default) for unrestricted
+sampling.
+
+=cut
+
+sub max_swap_distance {
+    my ($self) = @_;
+    return $self->_data->{max_swap_distance};
 }
 
 =head2 product_categories
