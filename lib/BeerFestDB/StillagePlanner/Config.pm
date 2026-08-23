@@ -205,8 +205,9 @@ sub weight {
 
 =head2 initial_temperature
 
-Returns the starting temperature for simulated annealing (default 100). 
-Set C<-1> to disable simulated annealing and use a pure hill-climbing algorithm.
+Starting temperature for the annealing schedule (default 100). A
+negative value disables simulated annealing entirely and switches to a
+pure hill-climbing search (uphill moves are never accepted).
 
 =cut
 
@@ -217,7 +218,7 @@ sub initial_temperature {
 
 =head2 cooling_rate
 
-Returns the multiplicative cooling rate for simulated annealing
+Multiplicative temperature decay applied after each iteration of simulated annealing
 (default 0.9999).
 
 =cut
@@ -230,7 +231,7 @@ sub cooling_rate {
 =head2 temperature_floor
 
 Returns the lower temperature bound for simulated annealing
-(default 1). Must be greater than or equal to 1.
+(default 1). Must be greater than 0.
 
 =cut
 

@@ -170,45 +170,6 @@ has 'convergence_streak' => (
     default => 500,
 );
 
-=head2 initial_temperature
-
-Starting temperature for the annealing schedule (default 1000). A
-negative value disables simulated annealing entirely and switches to a
-pure hill-climbing search (uphill moves are never accepted).
-
-=cut
-
-has 'initial_temperature' => (
-    is      => 'ro',
-    isa     => 'Num',
-    default => 100,
-);
-
-=head2 cooling_rate
-
-Multiplicative temperature decay applied after each iteration
-(default 0.9995).
-
-=cut
-
-has 'cooling_rate' => (
-    is      => 'ro',
-    isa     => 'Num',
-    default => 0.9999,
-);
-
-=head2 temperature_floor
-
-Lower bound for the annealing temperature (default 1).
-
-=cut
-
-has 'temperature_floor' => (
-    is      => 'ro',
-    isa     => 'Num',
-    default => 1,
-);
-
 =head2 trace_filehandle
 
 If set to a filehandle, each swap attempt is logged to it in CSV format:
@@ -502,11 +463,11 @@ sub plan {
         unless @{ $self->_assignment };
 
     croak 'initial_temperature must be non-zero (negative selects pure hill-climbing)'
-        if $self->initial_temperature == 0;
+        if $self->config->initial_temperature == 0;
     croak 'cooling_rate must be in the range (0, 1]'
-        if $self->cooling_rate <= 0 || $self->cooling_rate > 1;
+        if $self->config->cooling_rate <= 0 || $self->config->cooling_rate > 1;
     croak 'temperature_floor must be positive'
-        if $self->temperature_floor <= 0;
+        if $self->config->temperature_floor <= 0;
 
     my $casks     = $self->_cask_entries;
     my $groups    = $self->_slot_groups;
@@ -521,8 +482,8 @@ sub plan {
     my $cur_score       = $self->_score_assignment( \@assign, \@used_w );
     my $best_score      = $cur_score;
     my $best_no_improv   = 0;
-    my $temperature     = $self->initial_temperature;
-    my $temperature_low = $self->temperature_floor;
+    my $temperature     = $self->config->initial_temperature;
+    my $temperature_low = $self->config->temperature_floor;
 
   ITER: for my $iter ( 1 .. $self->max_iterations ) {
 
@@ -589,7 +550,7 @@ sub plan {
         if ( $temperature >= 0 ) {
             # Simulated annealing: cool the temperature and stop if cooled to floor
             # with no improvement for convergence_streak iterations
-            $temperature *= $self->cooling_rate;
+            $temperature *= $self->config->cooling_rate;
             $temperature = $temperature_low if $temperature < $temperature_low;
             last ITER
                 if $temperature <= $temperature_low
