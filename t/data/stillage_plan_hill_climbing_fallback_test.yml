@@ -1,0 +1,43 @@
+---
+# Test YAML config for BeerFestDB::StillagePlanner tests.
+# Uses "PlannerTestStillage" which is created by the test fixtures.
+
+margin: 0.10
+
+# Test products use product_category_id=2 ('foreign beer').
+# This verifies the category filter passes matching products through.
+product_categories:
+  - foreign beer
+
+# Test container sizes use dispense_method_id=1 ('cask').
+# This verifies the dispense method filter passes matching casks through.
+dispense_methods:
+  - cask
+
+container_widths:
+  firkin: 0.45
+  kilderkin: 0.58
+
+stillages:
+  - description: PlannerTestStillage
+    bays:
+      - number: 1
+        positions:
+          - bay_position: Top Front
+            width: 4.0
+          - bay_position: Bottom Front
+            width: 3.0
+      - number: 2
+        positions:
+          - bay_position: Top Front
+            width: 2.0
+
+weights:
+  alphabetical: 10
+  proximity: 5
+  deck: 20
+  sor_deck_multiplier: 0.1
+
+initial_temperature: -1
+cooling_rate: 0.99
+temperature_floor: 0.5

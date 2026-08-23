@@ -376,10 +376,14 @@ subtest 'acceptance probability depends on temperature' => sub {
 
 subtest 'negative initial_temperature falls back to pure hill-climbing' => sub {
     srand(42);
-    my $p = make_planner(
-        initial_temperature => -1,
-        max_iterations       => 200,
-        convergence_streak   => 50,
+    my $hc_cfg = BeerFestDB::StillagePlanner::Config->new(
+        config_file => 't/data/stillage_plan_hill_climbing_fallback_test.yml',
+    );
+    my $fest = $s->resultset('Festival')->find(1);
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $fest,
+        config   => $hc_cfg,
     );
     $p->load_casks();
     $p->build_slots();
@@ -395,7 +399,7 @@ subtest 'negative initial_temperature falls back to pure hill-climbing' => sub {
     # the score, so the acceptance probability for any uphill move must
     # be zero throughout (the temperature never becomes positive).
     is(
-        BeerFestDB::StillagePlanner::_acceptance_probability( 10, $p->initial_temperature ),
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, $p->config->initial_temperature ),
         0,
         'uphill moves are never accepted when initial_temperature is negative',
     );
