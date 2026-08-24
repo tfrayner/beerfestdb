@@ -381,9 +381,20 @@ sub build_slots {
 =head2 initialise
 
 Builds the initial assignment by sorting all loaded cask entries
-alphabetically (by C<sort_key>, then C<cask_number>) and assigning
-them to slot groups in config order using a greedy first-fit strategy.
-Casks that cannot fit in any slot group are assigned to the deck.
+alphabetically (by C<sort_key>, then C<cask_number>), then placing
+them beer-by-beer using a greedy first-fit strategy.
+
+Each beer is placed entirely within a single stillage location: for
+every stillage, a trial first-fit placement of the beer's casks is
+simulated across just that stillage's slot groups, and the stillage
+that can accommodate the most of them is used.  Any casks of the beer
+that do not fit there are sent to the deck rather than being placed on
+a different stillage, so a beer is never split across stillages.
+
+If C<initial_deck_reserve> is configured (see
+L<BeerFestDB::StillagePlanner::Config/initial_deck_reserve>), that
+many casks are then deliberately evicted back to the deck from each
+slot group, freeing capacity for L</plan> to work with.
 
 Must be called after both L</load_casks> and L</build_slots>.
 
@@ -404,22 +415,75 @@ sub initialise {
     my $n_groups = scalar @$groups;
     my $margin   = $self->config->margin;
 
+    # Slot group indices grouped by stillage, in first-seen (config) order.
+    my ( @stillage_ids, %stillage_group_idx );
+    for my $gi ( 0 .. $n_groups - 1 ) {
+        my $sl_id = $groups->[$gi]->stillage_location->get_column('stillage_location_id');
+        push @stillage_ids, $sl_id unless exists $stillage_group_idx{$sl_id};
+        push @{ $stillage_group_idx{$sl_id} }, $gi;
+    }
+
     my @used_w = (0) x $n_groups;
-    my @assign;
+    my @assign = (DECK_IDX) x scalar(@sorted);
 
-  CASK: for my $ci ( 0 .. $#sorted ) {
-        my $cw = $sorted[$ci]->cask_width;
+    # Process casks beer-by-beer (contiguous runs after the alphabetical
+    # sort, since all of a beer's casks share the same sort_key) so that
+    # a beer is never split across stillage locations.
+    my $ci = 0;
+    while ( $ci <= $#sorted ) {
+        my $prod_id = $sorted[$ci]->product_group_id;
+        my $start   = $ci;
+        $ci++ while $ci <= $#sorted && $sorted[$ci]->product_group_id == $prod_id;
+        my @beer_idx = ( $start .. $ci - 1 );
 
-        for my $gi ( 0 .. $n_groups - 1 ) {
-            if ( $groups->[$gi]->can_fit( $used_w[$gi], $cw ) ) {
-                $assign[$ci]  = $gi;
-                $used_w[$gi] += $cw * ( 1 + $margin );
-                next CASK;
+        my ( $best_placement, $best_count ) = ( {}, -1 );
+
+        for my $sl_id (@stillage_ids) {
+            my @trial_used = @used_w;
+            my %placement;
+            my $count = 0;
+
+            for my $bi (@beer_idx) {
+                my $cw = $sorted[$bi]->cask_width;
+                for my $gi ( @{ $stillage_group_idx{$sl_id} } ) {
+                    if ( $groups->[$gi]->can_fit( $trial_used[$gi], $cw ) ) {
+                        $placement{$bi} = $gi;
+                        $trial_used[$gi] += $cw * ( 1 + $margin );
+                        $count++;
+                        last;
+                    }
+                }
             }
+
+            if ( $count > $best_count ) {
+                $best_count     = $count;
+                $best_placement = \%placement;
+            }
+            last if $best_count == scalar(@beer_idx);
         }
 
-        # No group has room – overflow to deck
-        $assign[$ci] = DECK_IDX;
+        for my $bi (@beer_idx) {
+            if ( exists $best_placement->{$bi} ) {
+                my $gi = $best_placement->{$bi};
+                $assign[$bi]  = $gi;
+                $used_w[$gi] += $sorted[$bi]->cask_width * ( 1 + $margin );
+            }
+        }
+    }
+
+    # Deliberately free up space for the annealer: evict the last
+    # $reserve casks placed in each slot group back to the deck.
+    if ( my $reserve = $self->config->initial_deck_reserve ) {
+        for my $gi ( 0 .. $n_groups - 1 ) {
+            my @occupants = grep { $assign[$_] == $gi } 0 .. $#sorted;
+            my $n_evict   = $reserve < @occupants ? $reserve : scalar @occupants;
+            next unless $n_evict;
+
+            for my $bi ( @occupants[ scalar(@occupants) - $n_evict .. $#occupants ] ) {
+                $used_w[$gi] -= $sorted[$bi]->cask_width * ( 1 + $margin );
+                $assign[$bi]  = DECK_IDX;
+            }
+        }
     }
 
     # Store sorted entries so _assignment[i] <-> _cask_entries[i] are consistent

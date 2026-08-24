@@ -1,0 +1,33 @@
+---
+# Test YAML config for BeerFestDB::StillagePlanner "no split beers"
+# initialise() tests.  Uses "TestStillage" (id=1) and
+# "PlannerTestStillage" (id=2), both created by the base test fixtures
+# in t/stillage_planner.t.  Each stillage has just one slot group,
+# sized to hold exactly one firkin, so that a two-cask beer would
+# spill onto the other stillage under a naive cask-by-cask first-fit.
+
+margin: 0.10
+
+container_widths:
+  firkin: 0.45
+
+stillages:
+  - description: TestStillage
+    bays:
+      - number: 1
+        positions:
+          - bay_position: Top Front
+            width: 0.5
+  - description: PlannerTestStillage
+    bays:
+      - number: 1
+        positions:
+          - bay_position: Top Front
+            width: 0.5
+
+weights:
+  alphabetical: 10
+  proximity: 5
+  deck: 20
+  stillage: 1000
+  sor_deck_multiplier: 0.1

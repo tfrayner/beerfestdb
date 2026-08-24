@@ -335,6 +335,66 @@ subtest 'initialise builds a valid assignment' => sub {
     }
 };
 
+# ── initialise: no split beers test ───────────────────────────────────────────
+
+subtest 'initialise never splits a beer across two stillage locations' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => BeerFestDB::StillagePlanner::Config->new(
+            config_file => 't/data/stillage_plan_split_test.yml',
+        ),
+    );
+    $p->load_casks();    # cm2/3 AardvarkBrew Amber, cm4/5 ZymurgyZone Zenith
+    $p->build_slots();   # each of the two stillages holds exactly 1 firkin
+    lives_ok { $p->initialise() } 'initialise lives with narrow single-cask bays';
+
+    my $casks  = $p->_cask_entries;
+    my $groups = $p->_slot_groups;
+    my $assign = $p->_assignment;
+
+    my %stillages_by_product;
+    for my $ci ( 0 .. $#$casks ) {
+        my $gi = $assign->[$ci];
+        next if $gi == BeerFestDB::StillagePlanner::DECK_IDX;
+        my $sl_id = $groups->[$gi]->stillage_location->get_column('stillage_location_id');
+        $stillages_by_product{ $casks->[$ci]->product_group_id }{$sl_id} = 1;
+    }
+
+    for my $prod_id ( keys %stillages_by_product ) {
+        is( scalar( keys %{ $stillages_by_product{$prod_id} } ), 1,
+            "product $prod_id is placed on a single stillage location" );
+    }
+
+    # With only one cask's worth of room per stillage, at least one cask
+    # of each two-cask beer must have overflowed to the deck rather than
+    # being placed on the other stillage.
+    my @deck = grep { $assign->[$_] == BeerFestDB::StillagePlanner::DECK_IDX } 0 .. $#$casks;
+    cmp_ok( scalar(@deck), '>=', 2, 'at least one cask per beer overflowed to the deck' );
+};
+
+# ── initialise: deck reserve test ─────────────────────────────────────────────
+
+subtest 'initialise reserves deck space per slot group when configured' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => BeerFestDB::StillagePlanner::Config->new(
+            config_file => 't/data/stillage_plan_reserve_test.yml',
+        ),
+    );
+    $p->load_casks();    # 4 unassigned casks, ample capacity for all of them
+    $p->build_slots();   # single slot group
+    lives_ok { $p->initialise() } 'initialise lives with initial_deck_reserve set';
+
+    my $casks  = $p->_cask_entries;
+    my $assign = $p->_assignment;
+
+    my @deck = grep { $assign->[$_] == BeerFestDB::StillagePlanner::DECK_IDX } 0 .. $#$casks;
+    is( scalar(@deck), 1,
+        'exactly initial_deck_reserve (1) cask evicted to the deck despite ample capacity' );
+};
+
 # ── score test ────────────────────────────────────────────────────────────────
 
 subtest 'score returns a non-negative number' => sub {
@@ -459,6 +519,7 @@ subtest 'Config exposes cask-mixing options with sensible defaults' => sub {
     is( $cfg->bias_probability,       0.75,  'bias_probability defaults to 0.75' );
     is( $cfg->relocation_probability, 0.3,   'relocation_probability defaults to 0.3' );
     is( $cfg->consolidation_interval, undef, 'consolidation_interval defaults to undef' );
+    is( $cfg->initial_deck_reserve,   0,      'initial_deck_reserve defaults to 0' );
 
     my $mix_cfg = make_mix_config();
     is( $mix_cfg->bias_probability,       0.9, 'bias_probability read from config' );

@@ -73,8 +73,8 @@ L<BeerFestDB::StillagePlanner>).
 C<initial_temperature>, C<cooling_rate>, and C<temperature_floor>.
 
 =item * Optional cask-mixing controls: C<max_swap_distance>,
-C<bias_probability>, C<relocation_probability>, and
-C<consolidation_interval>.
+C<bias_probability>, C<relocation_probability>,
+C<consolidation_interval>, and C<initial_deck_reserve>.
 
 =back
 
@@ -256,6 +256,22 @@ sampling.
 sub max_swap_distance {
     my ($self) = @_;
     return $self->_data->{max_swap_distance};
+}
+
+=head2 initial_deck_reserve
+
+Number of casks to deliberately hold back on the deck for each slot
+group (bay) after the initial greedy placement in
+L<BeerFestDB::StillagePlanner/initialise>, so that free capacity
+remains for L<BeerFestDB::StillagePlanner/plan> to work with.  Set to
+0 (the default) to disable this reservation and pack slot groups as
+full as possible.
+
+=cut
+
+sub initial_deck_reserve {
+    my ($self) = @_;
+    return $self->_data->{initial_deck_reserve} // 0;
 }
 
 =head2 bias_probability
