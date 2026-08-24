@@ -88,7 +88,7 @@ if ( defined $opt_trace_file ) {
     open my $fh, '>', $opt_trace_file
         or die("Error: cannot open trace file '$opt_trace_file' for writing: $!\n");
     $planner_args{trace_filehandle} = $fh;
-    printf $fh "# Iteration,Temperature,BestScore,CurrentScore,NewScore,Cask1,Cask2,SlotGroup1,SlotGroup2\n";
+    printf $fh "# Iteration,Temperature,BestScore,CurrentScore,NewScore,Cask1,Cask2,SlotGroup1,SlotGroup2,MoveType\n";
 }
 
 my $planner = BeerFestDB::StillagePlanner->new(%planner_args);

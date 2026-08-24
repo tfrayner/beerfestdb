@@ -72,7 +72,9 @@ L<BeerFestDB::StillagePlanner>).
 =item * Optional simulated-annealing controls:
 C<initial_temperature>, C<cooling_rate>, and C<temperature_floor>.
 
-=item * Optional cask-mixing controls: C<max_swap_distance>.
+=item * Optional cask-mixing controls: C<max_swap_distance>,
+C<bias_probability>, C<relocation_probability>, and
+C<consolidation_interval>.
 
 =back
 
@@ -254,6 +256,50 @@ sampling.
 sub max_swap_distance {
     my ($self) = @_;
     return $self->_data->{max_swap_distance};
+}
+
+=head2 bias_probability
+
+Probability (0-1) that the cask chosen for a swap or relocation move
+is drawn from the current set of "offending" casks - those on the
+deck, or belonging to a beer currently split across bays or stillages
+- rather than uniformly at random.  This biases the annealer towards
+repairing known problems instead of testing arbitrary moves.  Defaults
+to 0.75.
+
+=cut
+
+sub bias_probability {
+    my ($self) = @_;
+    return $self->_data->{bias_probability} // 0.75;
+}
+
+=head2 relocation_probability
+
+Probability (0-1) that a given annealing iteration attempts a
+single-cask relocation move (to a different slot group or the deck)
+rather than a two-cask swap.  Defaults to 0.3.
+
+=cut
+
+sub relocation_probability {
+    my ($self) = @_;
+    return $self->_data->{relocation_probability} // 0.3;
+}
+
+=head2 consolidation_interval
+
+If set to a positive integer, every that many annealing iterations a
+deterministic pass attempts to consolidate each beer currently split
+across multiple stillages onto whichever stillage already holds most
+of its casks.  The pass is kept only if it improves the score.
+Defaults to C<undef> (disabled).
+
+=cut
+
+sub consolidation_interval {
+    my ($self) = @_;
+    return $self->_data->{consolidation_interval};
 }
 
 =head2 product_categories
