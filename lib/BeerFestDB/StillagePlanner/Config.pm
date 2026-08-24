@@ -69,6 +69,13 @@ each bay position having a physical width in metres.
 =item * Optional scoring weights (with the same defaults as
 L<BeerFestDB::StillagePlanner>).
 
+=item * Optional simulated-annealing controls:
+C<initial_temperature>, C<cooling_rate>, and C<temperature_floor>.
+
+=item * Optional cask-mixing controls: C<max_swap_distance>,
+C<bias_probability>, C<relocation_probability>,
+C<consolidation_interval>, and C<initial_deck_reserve>.
+
 =back
 
 =head2 Example YAML
@@ -103,6 +110,10 @@ L<BeerFestDB::StillagePlanner>).
     pull_through:        15
     sor_deck_multiplier: 0.1
     stillage:           1000
+
+    initial_temperature: 1000
+    cooling_rate: 0.9995
+    temperature_floor: 1
 
 =head1 ATTRIBUTES
 
@@ -192,6 +203,119 @@ config, falling back to C<$default> if it is not specified.
 sub weight {
     my ( $self, $name, $default ) = @_;
     return ( $self->_data->{weights} // {} )->{$name} // $default;
+}
+
+=head2 initial_temperature
+
+Starting temperature for the annealing schedule (default 100). A
+negative value disables simulated annealing entirely and switches to a
+pure hill-climbing search (uphill moves are never accepted).
+
+=cut
+
+sub initial_temperature {
+    my ($self) = @_;
+    return $self->_data->{initial_temperature} // 100;
+}
+
+=head2 cooling_rate
+
+Multiplicative temperature decay applied after each iteration of simulated annealing
+(default 0.9999).
+
+=cut
+
+sub cooling_rate {
+    my ($self) = @_;
+    return $self->_data->{cooling_rate} // 0.9999;
+}
+
+=head2 temperature_floor
+
+Returns the lower temperature bound for simulated annealing
+(default 1). Must be greater than 0.
+
+=cut
+
+sub temperature_floor {
+    my ($self) = @_;
+    return $self->_data->{temperature_floor} // 1;
+}
+
+=head2 max_swap_distance
+
+When set to a positive integer, limits the maximum index distance
+between the two casks chosen for each random swap.  Because casks are
+sorted alphabetically before planning, this restricts swaps to
+nearby-alphabetical partners, promoting moves that do not drastically
+disrupt ordering.  Set to C<undef> (the default) for unrestricted
+sampling.
+
+=cut
+
+sub max_swap_distance {
+    my ($self) = @_;
+    return $self->_data->{max_swap_distance};
+}
+
+=head2 initial_deck_reserve
+
+Number of casks to deliberately hold back on the deck for each slot
+group (bay) after the initial greedy placement in
+L<BeerFestDB::StillagePlanner/initialise>, so that free capacity
+remains for L<BeerFestDB::StillagePlanner/plan> to work with.  Set to
+0 (the default) to disable this reservation and pack slot groups as
+full as possible.
+
+=cut
+
+sub initial_deck_reserve {
+    my ($self) = @_;
+    return $self->_data->{initial_deck_reserve} // 0;
+}
+
+=head2 bias_probability
+
+Probability (0-1) that the cask chosen for a swap or relocation move
+is drawn from the current set of "offending" casks - those on the
+deck, or belonging to a beer currently split across bays or stillages
+- rather than uniformly at random.  This biases the annealer towards
+repairing known problems instead of testing arbitrary moves.  Defaults
+to 0.75.
+
+=cut
+
+sub bias_probability {
+    my ($self) = @_;
+    return $self->_data->{bias_probability} // 0.75;
+}
+
+=head2 relocation_probability
+
+Probability (0-1) that a given annealing iteration attempts a
+single-cask relocation move (to a different slot group or the deck)
+rather than a two-cask swap.  Defaults to 0.3.
+
+=cut
+
+sub relocation_probability {
+    my ($self) = @_;
+    return $self->_data->{relocation_probability} // 0.3;
+}
+
+=head2 consolidation_interval
+
+If set to a positive integer, every that many annealing iterations a
+deterministic pass attempts to consolidate each beer currently split
+across multiple stillages onto whichever stillage already holds most
+of its casks.  The pass is kept only if it improves the score.
+Defaults to C<undef> (disabled).
+
+=cut
+
+sub consolidation_interval {
+    my ($self) = @_;
+    return $self->_data->{consolidation_interval};
 }
 
 =head2 product_categories

@@ -168,6 +168,9 @@ subtest 'Config loads YAML correctly' => sub {
     is( $cfg->weight('deck', 20),               20,   'deck weight 20' );
     is( $cfg->weight('pull_through', 15),       15,   'pull_through weight 15' );
     is( $cfg->weight('sor_deck_multiplier', 0.1), 0.1,'SOR multiplier 0.1' );
+    is( $cfg->initial_temperature, 1500, 'initial temperature 1500' );
+    is( $cfg->cooling_rate, 0.99, 'cooling rate 0.99' );
+    is( $cfg->temperature_floor, 0.5, 'temperature floor 0.5' );
 
     # product_categories is set in the test YAML
     my $cats = $cfg->product_categories;
@@ -332,6 +335,66 @@ subtest 'initialise builds a valid assignment' => sub {
     }
 };
 
+# ── initialise: no split beers test ───────────────────────────────────────────
+
+subtest 'initialise never splits a beer across two stillage locations' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => BeerFestDB::StillagePlanner::Config->new(
+            config_file => 't/data/stillage_plan_split_test.yml',
+        ),
+    );
+    $p->load_casks();    # cm2/3 AardvarkBrew Amber, cm4/5 ZymurgyZone Zenith
+    $p->build_slots();   # each of the two stillages holds exactly 1 firkin
+    lives_ok { $p->initialise() } 'initialise lives with narrow single-cask bays';
+
+    my $casks  = $p->_cask_entries;
+    my $groups = $p->_slot_groups;
+    my $assign = $p->_assignment;
+
+    my %stillages_by_product;
+    for my $ci ( 0 .. $#$casks ) {
+        my $gi = $assign->[$ci];
+        next if $gi == BeerFestDB::StillagePlanner::DECK_IDX;
+        my $sl_id = $groups->[$gi]->stillage_location->get_column('stillage_location_id');
+        $stillages_by_product{ $casks->[$ci]->product_group_id }{$sl_id} = 1;
+    }
+
+    for my $prod_id ( keys %stillages_by_product ) {
+        is( scalar( keys %{ $stillages_by_product{$prod_id} } ), 1,
+            "product $prod_id is placed on a single stillage location" );
+    }
+
+    # With only one cask's worth of room per stillage, at least one cask
+    # of each two-cask beer must have overflowed to the deck rather than
+    # being placed on the other stillage.
+    my @deck = grep { $assign->[$_] == BeerFestDB::StillagePlanner::DECK_IDX } 0 .. $#$casks;
+    cmp_ok( scalar(@deck), '>=', 2, 'at least one cask per beer overflowed to the deck' );
+};
+
+# ── initialise: deck reserve test ─────────────────────────────────────────────
+
+subtest 'initialise reserves deck space per slot group when configured' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => BeerFestDB::StillagePlanner::Config->new(
+            config_file => 't/data/stillage_plan_reserve_test.yml',
+        ),
+    );
+    $p->load_casks();    # 4 unassigned casks, ample capacity for all of them
+    $p->build_slots();   # single slot group
+    lives_ok { $p->initialise() } 'initialise lives with initial_deck_reserve set';
+
+    my $casks  = $p->_cask_entries;
+    my $assign = $p->_assignment;
+
+    my @deck = grep { $assign->[$_] == BeerFestDB::StillagePlanner::DECK_IDX } 0 .. $#$casks;
+    is( scalar(@deck), 1,
+        'exactly initial_deck_reserve (1) cask evicted to the deck despite ample capacity' );
+};
+
 # ── score test ────────────────────────────────────────────────────────────────
 
 subtest 'score returns a non-negative number' => sub {
@@ -344,6 +407,62 @@ subtest 'score returns a non-negative number' => sub {
     lives_ok { $s = $p->score() } 'score lives';
     ok( defined $s, 'score returns a value' );
     cmp_ok( $s, '>=', 0, 'score is non-negative' );
+};
+
+# ── annealing test ───────────────────────────────────────────────────────────
+
+subtest 'acceptance probability depends on temperature' => sub {
+    is(
+        BeerFestDB::StillagePlanner::_acceptance_probability( -1, 10 ),
+        1,
+        'improving moves are always accepted',
+    );
+
+    is(
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, 0 ),
+        0,
+        'zero temperature rejects uphill moves',
+    );
+
+    cmp_ok(
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, 20 ),
+        '>',
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, 5 ),
+        'higher temperatures accept uphill moves more readily',
+    );
+};
+
+# ── hill-climbing fallback test ──────────────────────────────────────────────
+
+subtest 'negative initial_temperature falls back to pure hill-climbing' => sub {
+    srand(42);
+    my $hc_cfg = BeerFestDB::StillagePlanner::Config->new(
+        config_file => 't/data/stillage_plan_hill_climbing_fallback_test.yml',
+    );
+    my $fest = $s->resultset('Festival')->find(1);
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $fest,
+        config   => $hc_cfg,
+    );
+    $p->load_casks();
+    $p->build_slots();
+    $p->initialise();
+
+    my $initial_score = $p->score();
+    my $final_score;
+    lives_ok { $final_score = $p->plan() } 'plan lives with negative initial_temperature';
+    cmp_ok( $final_score, '<=', $initial_score,
+        'plan score <= initial score under hill-climbing' );
+
+    # A pure hill-climber can only ever accept moves that do not worsen
+    # the score, so the acceptance probability for any uphill move must
+    # be zero throughout (the temperature never becomes positive).
+    is(
+        BeerFestDB::StillagePlanner::_acceptance_probability( 10, $p->config->initial_temperature ),
+        0,
+        'uphill moves are never accepted when initial_temperature is negative',
+    );
 };
 
 # ── plan test ─────────────────────────────────────────────────────────────────
@@ -374,6 +493,310 @@ subtest 'render returns a non-empty string' => sub {
     lives_ok { $out = $p->render() } 'render lives';
     ok( defined $out && length($out) > 0, 'render returns non-empty string' );
     like( $out, qr/Score:/, 'render output contains Score:' );
+};
+
+# ── Cask-mixing strategy tests ────────────────────────────────────────────────
+#
+# t/data/stillage_plan_mixing_test.yml defines two stillages
+# (TestStillage id=1, PlannerTestStillage id=2), each with one slot
+# group of ample capacity, plus explicit bias_probability,
+# relocation_probability and consolidation_interval settings.
+#
+# These run before the "apply" test below, which persists
+# stillage_location_id back to the DB for cask_management 2-5 and
+# would otherwise make them invisible to load_casks() here.
+
+my $MIX_CONFIG_FILE = 't/data/stillage_plan_mixing_test.yml';
+
+sub make_mix_config {
+    return BeerFestDB::StillagePlanner::Config->new(
+        config_file => $MIX_CONFIG_FILE,
+    );
+}
+
+subtest 'Config exposes cask-mixing options with sensible defaults' => sub {
+    my $cfg = make_config();    # base test yml: no mixing keys set
+    is( $cfg->bias_probability,       0.75,  'bias_probability defaults to 0.75' );
+    is( $cfg->relocation_probability, 0.3,   'relocation_probability defaults to 0.3' );
+    is( $cfg->consolidation_interval, undef, 'consolidation_interval defaults to undef' );
+    is( $cfg->initial_deck_reserve,   0,      'initial_deck_reserve defaults to 0' );
+
+    my $mix_cfg = make_mix_config();
+    is( $mix_cfg->bias_probability,       0.9, 'bias_probability read from config' );
+    is( $mix_cfg->relocation_probability, 0.5, 'relocation_probability read from config' );
+    is( $mix_cfg->consolidation_interval, 1,   'consolidation_interval read from config' );
+};
+
+subtest '_offender_indices flags deck casks and split beers only' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => make_mix_config(),
+    );
+    $p->load_casks();
+    $p->build_slots();
+
+    my $casks  = $p->_cask_entries;
+    my $groups = $p->_slot_groups;
+
+    my %idx_by_cmid;
+    for my $ci ( 0 .. $#$casks ) {
+        $idx_by_cmid{ $casks->[$ci]->cask_management->get_column('cask_management_id') } = $ci;
+    }
+
+    my @assign = ( BeerFestDB::StillagePlanner::DECK_IDX ) x scalar(@$casks);
+    $assign[ $idx_by_cmid{2} ] = 0;    # AardvarkBrew Amber cask 1 -> group 0 (TestStillage)
+    $assign[ $idx_by_cmid{3} ] = 1;    # AardvarkBrew Amber cask 2 -> group 1 (PlannerTestStillage): split!
+    $assign[ $idx_by_cmid{4} ] = 0;    # ZymurgyZone Zenith cask 1 -> group 0
+    $assign[ $idx_by_cmid{5} ] = BeerFestDB::StillagePlanner::DECK_IDX;    # cask 2 -> deck
+
+    my $offenders = BeerFestDB::StillagePlanner::_offender_indices( $casks, $groups, \@assign );
+    my %is_offender = map { $_ => 1 } @$offenders;
+
+    ok(  $is_offender{ $idx_by_cmid{2} }, 'split-beer cask on stillage A flagged' );
+    ok(  $is_offender{ $idx_by_cmid{3} }, 'split-beer cask on stillage B flagged' );
+    ok(  $is_offender{ $idx_by_cmid{5} }, 'deck cask flagged' );
+    ok( !$is_offender{ $idx_by_cmid{4} }, 'un-split, on-stillage cask not flagged' );
+};
+
+subtest '_try_relocation_move rescues a deck cask onto a slot group with room' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => make_mix_config(),
+    );
+
+    my $entry = BeerFestDB::StillagePlanner::CaskEntry->new(
+        cask_management   => $s->resultset('CaskManagement')->find(2),
+        beer_name         => 'Amber',
+        brewery_name      => 'AardvarkBrew',
+        sort_key          => 'aardvarkbrew amber',
+        cask_number       => 1,
+        cask_count        => 1,
+        is_sale_or_return => 0,
+        container_type    => 'firkin',
+        product_group_id  => 999,
+        cask_width        => 0.45,
+    );
+    my $group = BeerFestDB::StillagePlanner::SlotGroup->new(
+        stillage_location => $s->resultset('StillageLocation')->find(2),
+        bay_number        => 1,
+        bay_position      => $s->resultset('BayPosition')->find(1),
+        width             => 4.0,
+        margin            => 0.10,
+    );
+    $p->_cask_entries( [$entry] );
+    $p->_slot_groups( [$group] );
+
+    my @assign = ( BeerFestDB::StillagePlanner::DECK_IDX );
+    my @used_w = (0);
+    my $cur_score = $p->_score_assignment( \@assign, \@used_w );
+
+    my ( $new_score, $i, $gi, $target, $move_type ) = $p->_try_relocation_move(
+        $p->_cask_entries, $p->_slot_groups, \@assign, \@used_w, 0.10,
+        1, 1, [0], 1, $cur_score, 1000,
+    );
+
+    is( $move_type, 'R', 'relocation move was attempted and accepted' );
+    is( $assign[0], 0, 'cask relocated from the deck onto the slot group' );
+    cmp_ok( $used_w[0], '>', 0, 'slot group used width updated' );
+    cmp_ok( $new_score, '<', $cur_score, 'score improved by rescuing the deck cask' );
+};
+
+subtest '_try_swap_move fixes an out-of-order pair of casks' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => make_mix_config(),
+    );
+
+    my $entry_a = BeerFestDB::StillagePlanner::CaskEntry->new(
+        cask_management   => $s->resultset('CaskManagement')->find(2),
+        beer_name         => 'Amber',    brewery_name => 'AardvarkBrew',
+        sort_key          => 'aardvarkbrew amber',
+        cask_number => 1, cask_count => 1, is_sale_or_return => 0,
+        container_type => 'firkin', product_group_id => 991, cask_width => 0.45,
+    );
+    my $entry_b = BeerFestDB::StillagePlanner::CaskEntry->new(
+        cask_management   => $s->resultset('CaskManagement')->find(4),
+        beer_name         => 'Zenith',   brewery_name => 'ZymurgyZone',
+        sort_key          => 'zymurgyzone zenith',
+        cask_number => 1, cask_count => 1, is_sale_or_return => 0,
+        container_type => 'firkin', product_group_id => 992, cask_width => 0.45,
+    );
+
+    my $group0 = BeerFestDB::StillagePlanner::SlotGroup->new(
+        stillage_location => $s->resultset('StillageLocation')->find(1),
+        bay_number => 1, bay_position => $s->resultset('BayPosition')->find(1),
+        width => 4.0, margin => 0.10,
+    );
+    my $group1 = BeerFestDB::StillagePlanner::SlotGroup->new(
+        stillage_location => $s->resultset('StillageLocation')->find(2),
+        bay_number => 1, bay_position => $s->resultset('BayPosition')->find(1),
+        width => 4.0, margin => 0.10,
+    );
+
+    $p->_cask_entries( [ $entry_a, $entry_b ] );
+    $p->_slot_groups( [ $group0, $group1 ] );
+
+    # 'zymurgyzone zenith' placed in the physically-first group, ahead of
+    # 'aardvarkbrew amber' in the second group: out of alphabetical order.
+    my @assign = ( 1, 0 );
+    my @used_w = ( 0.45 * 1.10, 0.45 * 1.10 );
+
+    my $cur_score = $p->_score_assignment( \@assign, \@used_w );
+
+    my ( $new_score, $i, $j, $gi, $gj, $move_type ) = $p->_try_swap_move(
+        $p->_cask_entries, $p->_slot_groups, \@assign, \@used_w, 0.10,
+        2, [], 0, $cur_score, 1000,
+    );
+
+    is( $move_type, 'S', 'swap move was attempted and accepted' );
+    is( $assign[0], 0, 'amber cask now in the physically-first group' );
+    is( $assign[1], 1, 'zenith cask now in the physically-second group' );
+    cmp_ok( $new_score, '<', $cur_score, 'score improved by fixing the ordering' );
+};
+
+subtest '_consolidate_split_beers merges a split beer onto one stillage' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => make_mix_config(),
+    );
+    $p->load_casks();
+    $p->build_slots();
+
+    my $casks  = $p->_cask_entries;
+    my $groups = $p->_slot_groups;
+
+    my %idx_by_cmid;
+    for my $ci ( 0 .. $#$casks ) {
+        $idx_by_cmid{ $casks->[$ci]->cask_management->get_column('cask_management_id') } = $ci;
+    }
+
+    my @assign = ( BeerFestDB::StillagePlanner::DECK_IDX ) x scalar(@$casks);
+    $assign[ $idx_by_cmid{2} ] = 0;
+    $assign[ $idx_by_cmid{3} ] = 1;    # split across the two stillages
+
+    my @used_w = (0) x scalar(@$groups);
+    my $margin = $p->config->margin;
+    $used_w[0] = $casks->[ $idx_by_cmid{2} ]->cask_width * ( 1 + $margin );
+    $used_w[1] = $casks->[ $idx_by_cmid{3} ]->cask_width * ( 1 + $margin );
+
+    my @assign_before = @assign;
+    my $cur_score     = $p->_score_assignment( \@assign, \@used_w );
+    my $before_score   = $cur_score;
+
+    my $improved = $p->_consolidate_split_beers( \@assign, \@used_w, \$cur_score );
+
+    ok( $improved, 'consolidation pass reports an improvement' );
+    is( $assign[ $idx_by_cmid{2} ], $assign[ $idx_by_cmid{3} ],
+        'both casks of the split beer now share a slot group' );
+    cmp_ok( $cur_score, '<', $before_score, 'score improved after consolidation' );
+};
+
+subtest '_consolidate_split_beers leaves the assignment untouched when there is no room' => sub {
+    my $p = BeerFestDB::StillagePlanner->new(
+        database => $s,
+        festival => $s->resultset('Festival')->find(1),
+        config   => make_mix_config(),
+    );
+    $p->load_casks();
+    $p->build_slots();
+
+    my $casks = $p->_cask_entries;
+
+    # Tiny-width copies of the same two slot groups: exactly enough room
+    # for one firkin each, so the minority cask can never be relocated.
+    my @small_groups = map {
+        BeerFestDB::StillagePlanner::SlotGroup->new(
+            stillage_location => $_->stillage_location,
+            bay_number        => $_->bay_number,
+            bay_position      => $_->bay_position,
+            width             => 0.5,
+            margin            => $_->margin,
+        );
+    } @{ $p->_slot_groups };
+    $p->_slot_groups( \@small_groups );
+
+    my %idx_by_cmid;
+    for my $ci ( 0 .. $#$casks ) {
+        $idx_by_cmid{ $casks->[$ci]->cask_management->get_column('cask_management_id') } = $ci;
+    }
+
+    my @assign = ( BeerFestDB::StillagePlanner::DECK_IDX ) x scalar(@$casks);
+    $assign[ $idx_by_cmid{2} ] = 0;
+    $assign[ $idx_by_cmid{3} ] = 1;
+
+    my @used_w = (0) x scalar(@small_groups);
+    my $margin = $p->config->margin;
+    $used_w[0] = $casks->[ $idx_by_cmid{2} ]->cask_width * ( 1 + $margin );
+    $used_w[1] = $casks->[ $idx_by_cmid{3} ]->cask_width * ( 1 + $margin );
+
+    my @assign_before = @assign;
+    my @used_w_before = @used_w;
+    my $cur_score     = $p->_score_assignment( \@assign, \@used_w );
+    my $before_score  = $cur_score;
+
+    my $improved = $p->_consolidate_split_beers( \@assign, \@used_w, \$cur_score );
+
+    ok( !$improved, 'no improvement reported when the target group has no spare capacity' );
+    is_deeply( \@assign, \@assign_before, 'assignment left untouched' );
+    is_deeply( \@used_w, \@used_w_before, 'used widths left untouched' );
+    is( $cur_score, $before_score, 'score left untouched' );
+};
+
+subtest 'plan() consolidates a pre-existing split beer via biased/relocation moves' => sub {
+    srand(7);
+
+    my $p = BeerFestDB::StillagePlanner->new(
+        database           => $s,
+        festival           => $s->resultset('Festival')->find(1),
+        config             => make_mix_config(),
+        max_iterations     => 200,
+        convergence_streak => 50,
+    );
+    $p->load_casks();
+    $p->build_slots();
+
+    my $casks  = $p->_cask_entries;
+    my $groups = $p->_slot_groups;
+
+    my %idx_by_cmid;
+    for my $ci ( 0 .. $#$casks ) {
+        $idx_by_cmid{ $casks->[$ci]->cask_management->get_column('cask_management_id') } = $ci;
+    }
+
+    # Deliberately split AardvarkBrew Amber across both stillages, keep
+    # ZymurgyZone Zenith together, so there's exactly one thing to fix.
+    my @assign = ( BeerFestDB::StillagePlanner::DECK_IDX ) x scalar(@$casks);
+    $assign[ $idx_by_cmid{2} ] = 0;
+    $assign[ $idx_by_cmid{3} ] = 1;
+    $assign[ $idx_by_cmid{4} ] = 0;
+    $assign[ $idx_by_cmid{5} ] = 0;
+
+    my @used_w = (0) x scalar(@$groups);
+    my $margin = $p->config->margin;
+    for my $cmid ( 2, 3, 4, 5 ) {
+        my $ci = $idx_by_cmid{$cmid};
+        my $gi = $assign[$ci];
+        $used_w[$gi] += $casks->[$ci]->cask_width * ( 1 + $margin );
+    }
+
+    $p->_assignment( \@assign );
+    $p->_used_width( \@used_w );
+
+    my $initial_score = $p->score;
+    my $final_score;
+    lives_ok { $final_score = $p->plan() } 'plan lives with a pre-existing split beer';
+    cmp_ok( $final_score, '<=', $initial_score, 'plan score does not worsen' );
+
+    my $final_assign = $p->_assignment;
+    is(
+        $final_assign->[ $idx_by_cmid{2} ],
+        $final_assign->[ $idx_by_cmid{3} ],
+        'previously split beer consolidated onto a single slot group',
+    );
 };
 
 # ── apply test ────────────────────────────────────────────────────────────────
@@ -425,5 +848,6 @@ subtest 'apply writes stillage_location_id, stillage_bay, bay_position_id' => su
 };
 
 # ── Finish ────────────────────────────────────────────────────────────────────
+
 
 done_testing();

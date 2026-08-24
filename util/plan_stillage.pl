@@ -37,7 +37,7 @@ use BeerFestDB::StillagePlanner::Config;
 ########################################################################
 
 my ( $want_help, $opt_apply, $opt_config,
-     $opt_max_iter, $opt_convergence, $opt_seed );
+     $opt_max_iter, $opt_convergence, $opt_trace_file, $opt_seed );
 
 GetOptions(
     'h|help'            => \$want_help,
@@ -45,6 +45,7 @@ GetOptions(
     'config=s'          => \$opt_config,
     'max-iterations=i'  => \$opt_max_iter,
     'convergence=i'     => \$opt_convergence,
+    'trace-file=s'      => \$opt_trace_file,
     'seed=i'            => \$opt_seed,
 ) or pod2usage( -exitval => 1, -output => \*STDERR );
 
@@ -80,8 +81,15 @@ my %planner_args = (
     config   => $planner_config,
 );
 
-$planner_args{max_iterations}    = $opt_max_iter    if defined $opt_max_iter;
+$planner_args{max_iterations}     = $opt_max_iter    if defined $opt_max_iter;
 $planner_args{convergence_streak} = $opt_convergence if defined $opt_convergence;
+
+if ( defined $opt_trace_file ) {
+    open my $fh, '>', $opt_trace_file
+        or die("Error: cannot open trace file '$opt_trace_file' for writing: $!\n");
+    $planner_args{trace_filehandle} = $fh;
+    printf $fh "# Iteration,Temperature,BestScore,CurrentScore,NewScore,Cask1,Cask2,SlotGroup1,SlotGroup2,MoveType\n";
+}
 
 my $planner = BeerFestDB::StillagePlanner->new(%planner_args);
 
@@ -149,8 +157,7 @@ plan_stillage.pl - Automatically assign unplaced casks to stillage positions
 
 C<plan_stillage.pl> uses L<BeerFestDB::StillagePlanner> to assign all
 unplaced casks for a festival (C<cask_management> rows whose
-C<stillage_location_id> is NULL and C<cask_graveyard> is NULL) to the
-bay positions defined in the YAML config file.
+C<stillage_location_id> is NULL) to the bay positions defined in the YAML config file.
 
 If the config contains a C<product_categories> list, only casks whose
 product belongs to one of the named categories are considered.  If it
@@ -162,8 +169,8 @@ bottle and keyleg products.
 The script prints a human-readable plan to standard output.  Pass
 C<--apply> to write C<stillage_location_id>, C<stillage_bay>, and
 C<bay_position_id> back to the C<cask_management> table.  Casks that
-cannot fit in any available bay position have their C<cask_graveyard>
-set to C<"deck">.
+cannot fit in any available bay position have their stillage location
+left undefined.
 
 The script will prompt interactively for the festival unless
 C<current_festival> is set in the BeerFestDB configuration.  All
@@ -173,7 +180,7 @@ See C<example_data/stillage_plan.yml> for an annotated example.
 
 =head2 Reproducibility
 
-Because the hill-climber uses random pair selection, different runs
+Because the algorithm uses random pair selection, different runs
 may produce slightly different layouts.  Use C<--seed N> to fix the
 random seed and obtain repeatable results.
 

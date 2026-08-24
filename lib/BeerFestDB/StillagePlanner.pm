@@ -30,8 +30,6 @@ use Moose;
 use namespace::autoclean;
 
 use Carp;
-use Digest::MD5 qw(md5_hex);
-
 use BeerFestDB::StillagePlanner::CaskEntry;
 use BeerFestDB::StillagePlanner::Config;
 use BeerFestDB::StillagePlanner::SlotGroup;
@@ -93,8 +91,8 @@ C<floor(bay_width / effective_cask_pitch)> casks.
 
 =back
 
-Capacity is enforced as a hard constraint: the hill-climber never
-proposes a swap that would overfill a slot group.
+Capacity is enforced as a hard constraint: the annealer never accepts a
+swap that would overfill a slot group.
 
 The penalty score combines three soft objectives:
 
@@ -147,7 +145,8 @@ has 'config' => (
 
 =head2 max_iterations
 
-Maximum number of swap attempts before giving up (default 5000).
+Maximum number of simulated-annealing iterations before giving up
+(default 5000).
 
 =cut
 
@@ -159,8 +158,9 @@ has 'max_iterations' => (
 
 =head2 convergence_streak
 
-Stop when this many consecutive swap attempts fail to improve the
-score (default 500).
+Optional early stop once the search has cooled to the temperature
+floor and this many consecutive iterations have failed to improve the
+best score (default 500).
 
 =cut
 
@@ -168,6 +168,25 @@ has 'convergence_streak' => (
     is      => 'ro',
     isa     => 'Int',
     default => 500,
+);
+
+=head2 trace_filehandle
+
+If set to a filehandle, each attempted move is logged to it in CSV
+format:
+
+  ITERATION_NUMBER,TEMPERATURE,BEST_SCORE,SCORE,NEW_SCORE,I,J,G1,G2,MOVE_TYPE
+
+Where I and J are the cask indices (equal for relocation moves), G1
+and G2 are the slot group indices (I<from> and I<to>), and MOVE_TYPE
+is C<S> for a swap or C<R> for a relocation.
+
+=cut
+
+has 'trace_filehandle' => (
+    is      => 'rw',
+    isa     => 'Maybe[FileHandle]',
+    default => undef,
 );
 
 # ── Internal state ────────────────────────────────────────────────────────────
@@ -362,9 +381,20 @@ sub build_slots {
 =head2 initialise
 
 Builds the initial assignment by sorting all loaded cask entries
-alphabetically (by C<sort_key>, then C<cask_number>) and assigning
-them to slot groups in config order using a greedy first-fit strategy.
-Casks that cannot fit in any slot group are assigned to the deck.
+alphabetically (by C<sort_key>, then C<cask_number>), then placing
+them beer-by-beer using a greedy first-fit strategy.
+
+Each beer is placed entirely within a single stillage location: for
+every stillage, a trial first-fit placement of the beer's casks is
+simulated across just that stillage's slot groups, and the stillage
+that can accommodate the most of them is used.  Any casks of the beer
+that do not fit there are sent to the deck rather than being placed on
+a different stillage, so a beer is never split across stillages.
+
+If C<initial_deck_reserve> is configured (see
+L<BeerFestDB::StillagePlanner::Config/initial_deck_reserve>), that
+many casks are then deliberately evicted back to the deck from each
+slot group, freeing capacity for L</plan> to work with.
 
 Must be called after both L</load_casks> and L</build_slots>.
 
@@ -385,22 +415,75 @@ sub initialise {
     my $n_groups = scalar @$groups;
     my $margin   = $self->config->margin;
 
+    # Slot group indices grouped by stillage, in first-seen (config) order.
+    my ( @stillage_ids, %stillage_group_idx );
+    for my $gi ( 0 .. $n_groups - 1 ) {
+        my $sl_id = $groups->[$gi]->stillage_location->get_column('stillage_location_id');
+        push @stillage_ids, $sl_id unless exists $stillage_group_idx{$sl_id};
+        push @{ $stillage_group_idx{$sl_id} }, $gi;
+    }
+
     my @used_w = (0) x $n_groups;
-    my @assign;
+    my @assign = (DECK_IDX) x scalar(@sorted);
 
-  CASK: for my $ci ( 0 .. $#sorted ) {
-        my $cw = $sorted[$ci]->cask_width;
+    # Process casks beer-by-beer (contiguous runs after the alphabetical
+    # sort, since all of a beer's casks share the same sort_key) so that
+    # a beer is never split across stillage locations.
+    my $ci = 0;
+    while ( $ci <= $#sorted ) {
+        my $prod_id = $sorted[$ci]->product_group_id;
+        my $start   = $ci;
+        $ci++ while $ci <= $#sorted && $sorted[$ci]->product_group_id == $prod_id;
+        my @beer_idx = ( $start .. $ci - 1 );
 
-        for my $gi ( 0 .. $n_groups - 1 ) {
-            if ( $groups->[$gi]->can_fit( $used_w[$gi], $cw ) ) {
-                $assign[$ci]  = $gi;
-                $used_w[$gi] += $cw * ( 1 + $margin );
-                next CASK;
+        my ( $best_placement, $best_count ) = ( {}, -1 );
+
+        for my $sl_id (@stillage_ids) {
+            my @trial_used = @used_w;
+            my %placement;
+            my $count = 0;
+
+            for my $bi (@beer_idx) {
+                my $cw = $sorted[$bi]->cask_width;
+                for my $gi ( @{ $stillage_group_idx{$sl_id} } ) {
+                    if ( $groups->[$gi]->can_fit( $trial_used[$gi], $cw ) ) {
+                        $placement{$bi} = $gi;
+                        $trial_used[$gi] += $cw * ( 1 + $margin );
+                        $count++;
+                        last;
+                    }
+                }
             }
+
+            if ( $count > $best_count ) {
+                $best_count     = $count;
+                $best_placement = \%placement;
+            }
+            last if $best_count == scalar(@beer_idx);
         }
 
-        # No group has room – overflow to deck
-        $assign[$ci] = DECK_IDX;
+        for my $bi (@beer_idx) {
+            if ( exists $best_placement->{$bi} ) {
+                my $gi = $best_placement->{$bi};
+                $assign[$bi]  = $gi;
+                $used_w[$gi] += $sorted[$bi]->cask_width * ( 1 + $margin );
+            }
+        }
+    }
+
+    # Deliberately free up space for the annealer: evict the last
+    # $reserve casks placed in each slot group back to the deck.
+    if ( my $reserve = $self->config->initial_deck_reserve ) {
+        for my $gi ( 0 .. $n_groups - 1 ) {
+            my @occupants = grep { $assign[$_] == $gi } 0 .. $#sorted;
+            my $n_evict   = $reserve < @occupants ? $reserve : scalar @occupants;
+            next unless $n_evict;
+
+            for my $bi ( @occupants[ scalar(@occupants) - $n_evict .. $#occupants ] ) {
+                $used_w[$gi] -= $sorted[$bi]->cask_width * ( 1 + $margin );
+                $assign[$bi]  = DECK_IDX;
+            }
+        }
     }
 
     # Store sorted entries so _assignment[i] <-> _cask_entries[i] are consistent
@@ -424,14 +507,44 @@ sub score {
 
 =head2 plan
 
-Runs the random-pair-swap hill-climber.  Only swaps that satisfy the
-physical width constraints of both affected slot groups are considered.
+Runs a simulated annealer over two move types:
 
-Stops when the C<convergence_streak> consecutive non-improving swaps
-threshold is reached, when C<max_iterations> have been attempted, or
-when a previously seen assignment state (cycle) is detected.
+=over 4
 
-Returns the final total score.
+=item * B<Swap moves> - two casks exchange slot groups (or one may be
+on the deck).  This is the original move type.
+
+=item * B<Relocation moves> - a single cask moves to a different slot
+group (or to/from the deck) without a swap partner, chosen with
+probability C<relocation_probability> (see
+L<BeerFestDB::StillagePlanner::Config/relocation_probability>).
+
+=back
+
+For both move types, the first cask is usually *not* chosen uniformly
+at random: with probability C<bias_probability> (see
+L<BeerFestDB::StillagePlanner::Config/bias_probability>) it is instead
+drawn from the current set of "offending" casks - those on the deck,
+or belonging to a beer currently split across bays or stillages - so
+that the search spends most of its effort repairing known problems
+rather than testing arbitrary, likely-neutral swaps.
+
+Only moves that satisfy the physical width constraints of the affected
+slot group(s) are considered.  Worse moves may still be accepted
+probabilistically according to the current temperature.  The best
+assignment seen during the run is retained and returned.
+
+If C<consolidation_interval> is configured, a deterministic
+beer-consolidation pass (see L</_consolidate_split_beers>) runs every
+that many iterations, attempting to move all casks of a split beer
+onto whichever stillage already holds most of them; it is kept only if
+it improves the current score.
+
+Stops when the C<convergence_streak> threshold is reached after the
+temperature has cooled to the floor, or when C<max_iterations> have
+been attempted.
+
+Returns the best total score seen.
 
 =cut
 
@@ -441,73 +554,286 @@ sub plan {
     croak 'Call initialise() before plan()'
         unless @{ $self->_assignment };
 
+    croak 'initial_temperature must be non-zero (negative selects pure hill-climbing)'
+        if $self->config->initial_temperature == 0;
+    croak 'cooling_rate must be in the range (0, 1]'
+        if $self->config->cooling_rate <= 0 || $self->config->cooling_rate > 1;
+    croak 'temperature_floor must be positive'
+        if $self->config->temperature_floor <= 0;
+
     my $casks     = $self->_cask_entries;
     my $groups    = $self->_slot_groups;
     my $n_casks   = scalar @$casks;
+    my $n_groups  = scalar @$groups;
     my $margin    = $self->config->margin;
 
     my @assign    = @{ $self->_assignment };
     my @used_w    = @{ $self->_used_width };
+    my @best_assign = @assign;
+    my @best_used_w = @used_w;
 
-    my $cur_score = $self->_score_assignment( \@assign, \@used_w );
-    my $no_improv = 0;
-    my %seen      = ( _state_string( \@assign ) => 1 );
+    my $cur_score       = $self->_score_assignment( \@assign, \@used_w );
+    my $best_score      = $cur_score;
+    my $best_no_improv   = 0;
+    my $temperature     = $self->config->initial_temperature;
+    my $temperature_low = $self->config->temperature_floor;
+
+    my $bias_prob          = $self->config->bias_probability;
+    my $relocation_prob    = $self->config->relocation_probability;
+    my $consolidate_every  = $self->config->consolidation_interval;
 
   ITER: for my $iter ( 1 .. $self->max_iterations ) {
 
-        my ( $i, $j ) = _random_pair($n_casks);
-        my $gi = $assign[$i];
-        my $gj = $assign[$j];
-
-        next ITER if $gi == $gj;    # same group, no-op
-
-        my $wi = $casks->[$i]->cask_width * ( 1 + $margin );
-        my $wj = $casks->[$j]->cask_width * ( 1 + $margin );
-
-        # Hard width-constraint check: would either group overflow after swap?
-        if ( $gi != DECK_IDX ) {
-            my $new_w = $used_w[$gi] - $wi + $wj;
-            next ITER if $new_w > $groups->[$gi]->width + 1e-9;
-        }
-        if ( $gj != DECK_IDX ) {
-            my $new_w = $used_w[$gj] - $wj + $wi;
-            next ITER if $new_w > $groups->[$gj]->width + 1e-9;
-        }
-
-        # Tentative swap
-        @assign[ $i, $j ] = @assign[ $j, $i ];
-        $used_w[$gi] += $wj - $wi if $gi != DECK_IDX;
-        $used_w[$gj] += $wi - $wj if $gj != DECK_IDX;
-
-        my $new_score = $self->_score_assignment( \@assign, \@used_w );
-
-        if ( $new_score < $cur_score ) {
-            $cur_score = $new_score;
-            $no_improv = 0;
-
-            my $state = _state_string( \@assign );
-            if ( $seen{$state} ) {
-                # Cycle detected - revert and stop
-                @assign[ $i, $j ] = @assign[ $j, $i ];
-                $used_w[$gi] += $wi - $wj if $gi != DECK_IDX;
-                $used_w[$gj] += $wj - $wi if $gj != DECK_IDX;
-                last ITER;
+        if ( $consolidate_every && $iter % $consolidate_every == 0 ) {
+            if ( $self->_consolidate_split_beers( \@assign, \@used_w, \$cur_score ) ) {
+                if ( $cur_score < $best_score ) {
+                    $best_score  = $cur_score;
+                    @best_assign = @assign;
+                    @best_used_w = @used_w;
+                    $best_no_improv = 0;
+                }
             }
-            $seen{$state} = 1;
+        }
+
+        my $offenders = _offender_indices( $casks, $groups, \@assign );
+
+        my $new_score = $cur_score;
+        my ( $i, $j, $gi, $gj, $move_type );
+
+        if ( rand() < $relocation_prob ) {
+            ( $new_score, $i, $gi, $gj, $move_type ) = $self->_try_relocation_move(
+                $casks, $groups, \@assign, \@used_w, $margin,
+                $n_casks, $n_groups, $offenders, $bias_prob,
+                $cur_score, $temperature,
+            );
+            $j = $i;
         }
         else {
-            # Revert
-            @assign[ $i, $j ] = @assign[ $j, $i ];
-            $used_w[$gi] += $wi - $wj if $gi != DECK_IDX;
-            $used_w[$gj] += $wj - $wi if $gj != DECK_IDX;
+            ( $new_score, $i, $j, $gi, $gj, $move_type ) = $self->_try_swap_move(
+                $casks, $groups, \@assign, \@used_w, $margin,
+                $n_casks, $offenders, $bias_prob,
+                $cur_score, $temperature,
+            );
+        }
 
-            last ITER if ++$no_improv >= $self->convergence_streak;
+        if ( defined $move_type ) {
+            $cur_score = $new_score;
+
+            if ( $new_score < $best_score ) {
+                $best_score  = $new_score;
+                @best_assign = @assign;
+                @best_used_w = @used_w;
+                $best_no_improv = 0;
+            }
+            elsif ( $temperature <= $temperature_low ) {
+                ++$best_no_improv;
+            }
+
+            if ( my $fh = $self->trace_filehandle ) {
+                printf $fh "%d,%.1f,%.1f,%.1f,%.1f,%d,%d,%d,%d,%s\n",
+                    $iter, $temperature, $best_score, $cur_score, $new_score,
+                    $i, $j, $gi, $gj, $move_type;
+            }
+        }
+
+        if ( $temperature >= 0 ) {
+            # Simulated annealing: cool the temperature and stop if cooled to floor
+            # with no improvement for convergence_streak iterations
+            $temperature *= $self->config->cooling_rate;
+            $temperature = $temperature_low if $temperature < $temperature_low;
+            last ITER
+                if $temperature <= $temperature_low
+                && $best_no_improv >= $self->convergence_streak;
+        } else {
+            # Pure hill-climbing: stop if no improvement for convergence_streak iterations
+            last ITER
+                if $best_no_improv >= $self->convergence_streak;
         }
     }
 
-    $self->_assignment( \@assign );
-    $self->_used_width( \@used_w );
-    return $cur_score;
+    $self->_assignment( \@best_assign );
+    $self->_used_width( \@best_used_w );
+    return $best_score;
+}
+
+sub _acceptance_probability {
+    my ( $delta, $temperature ) = @_;
+
+    return 1 if $delta <= 0;
+    return 0 if !defined $temperature || $temperature <= 0;
+
+    return exp( -$delta / $temperature );
+}
+
+# Attempts a two-cask swap move, mutating $assign/$used_w in place and
+# reverting them if the move is rejected.  Returns
+# ( resulting_score, i, j, gi, gj, move_type ) where move_type is
+# undef if no move was attempted (same group, or capacity exceeded).
+sub _try_swap_move {
+    my ( $self, $casks, $groups, $assign, $used_w, $margin,
+         $n_casks, $offenders, $bias_prob, $cur_score, $temperature ) = @_;
+
+    my ( $i, $j ) = _choose_pair(
+        $n_casks, $self->config->max_swap_distance, $offenders, $bias_prob,
+    );
+    my $gi = $assign->[$i];
+    my $gj = $assign->[$j];
+
+    return ( $cur_score, $i, $j, $gi, $gj, undef ) if $gi == $gj;
+
+    my $wi = $casks->[$i]->cask_width * ( 1 + $margin );
+    my $wj = $casks->[$j]->cask_width * ( 1 + $margin );
+
+    my $fits = 1;
+    if ( $gi != DECK_IDX ) {
+        my $new_w = $used_w->[$gi] - $wi + $wj;
+        $fits = 0 if $new_w > $groups->[$gi]->width + 1e-9;
+    }
+    if ( $fits && $gj != DECK_IDX ) {
+        my $new_w = $used_w->[$gj] - $wj + $wi;
+        $fits = 0 if $new_w > $groups->[$gj]->width + 1e-9;
+    }
+
+    return ( $cur_score, $i, $j, $gi, $gj, undef ) unless $fits;
+
+    @{$assign}[ $i, $j ] = @{$assign}[ $j, $i ];
+    $used_w->[$gi] += $wj - $wi if $gi != DECK_IDX;
+    $used_w->[$gj] += $wi - $wj if $gj != DECK_IDX;
+
+    my $new_score = $self->_score_assignment( $assign, $used_w );
+
+    if ( rand() < _acceptance_probability( $new_score - $cur_score, $temperature ) ) {
+        return ( $new_score, $i, $j, $gi, $gj, 'S' );
+    }
+
+    @{$assign}[ $i, $j ] = @{$assign}[ $j, $i ];
+    $used_w->[$gi] += $wi - $wj if $gi != DECK_IDX;
+    $used_w->[$gj] += $wj - $wi if $gj != DECK_IDX;
+
+    return ( $cur_score, $i, $j, $gi, $gj, 'S' );
+}
+
+# Attempts a single-cask relocation move (to a different slot group or
+# the deck), mutating $assign/$used_w in place and reverting them if
+# the move is rejected.  Returns ( resulting_score, i, gi, target,
+# move_type ) where move_type is undef if the target has no capacity.
+sub _try_relocation_move {
+    my ( $self, $casks, $groups, $assign, $used_w, $margin,
+         $n_casks, $n_groups, $offenders, $bias_prob, $cur_score, $temperature ) = @_;
+
+    my $i      = _choose_index( $n_casks, $offenders, $bias_prob );
+    my $gi     = $assign->[$i];
+    my $target = _random_target_group( $n_groups, $gi );
+
+    my $wi = $casks->[$i]->cask_width * ( 1 + $margin );
+
+    if ( $target != DECK_IDX ) {
+        my $new_w = $used_w->[$target] + $wi;
+        return ( $cur_score, $i, $gi, $target, undef )
+            if $new_w > $groups->[$target]->width + 1e-9;
+    }
+
+    $assign->[$i] = $target;
+    $used_w->[$gi]     -= $wi if $gi     != DECK_IDX;
+    $used_w->[$target] += $wi if $target != DECK_IDX;
+
+    my $new_score = $self->_score_assignment( $assign, $used_w );
+
+    if ( rand() < _acceptance_probability( $new_score - $cur_score, $temperature ) ) {
+        return ( $new_score, $i, $gi, $target, 'R' );
+    }
+
+    $assign->[$i] = $gi;
+    $used_w->[$gi]     += $wi if $gi     != DECK_IDX;
+    $used_w->[$target] -= $wi if $target != DECK_IDX;
+
+    return ( $cur_score, $i, $gi, $target, 'R' );
+}
+
+=head2 _consolidate_split_beers
+
+Deterministic repair pass invoked periodically from L</plan> (see
+C<consolidation_interval>).  For every beer currently split across
+more than one stillage, relocates its casks from minority stillages
+onto whichever slot groups have spare capacity on the majority
+stillage.  The change is kept only if it strictly improves
+C<$$cur_score_ref>; otherwise all relocations are reverted.
+
+Mutates C<$assign> and C<$used_w> in place.  Returns true if the
+change was kept.
+
+=cut
+
+sub _consolidate_split_beers {
+    my ( $self, $assign, $used_w, $cur_score_ref ) = @_;
+
+    my $casks  = $self->_cask_entries;
+    my $groups = $self->_slot_groups;
+    my $margin = $self->config->margin;
+
+    my %stillage_counts;
+    for my $ci ( 0 .. $#$assign ) {
+        my $gi = $assign->[$ci];
+        next if $gi == DECK_IDX;
+        my $prod_id = $casks->[$ci]->product_group_id;
+        my $sl_id   = $groups->[$gi]->stillage_location
+            ->get_column('stillage_location_id');
+        $stillage_counts{$prod_id}{$sl_id}++;
+    }
+
+    my @changes;    # [ cask_index, previous_group_index ]
+
+    for my $prod_id ( keys %stillage_counts ) {
+        my $counts = $stillage_counts{$prod_id};
+        next if scalar( keys %$counts ) <= 1;    # not split
+
+        my ($target_sl_id) = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
+
+        for my $ci ( 0 .. $#$assign ) {
+            next unless $casks->[$ci]->product_group_id == $prod_id;
+            my $gi = $assign->[$ci];
+            next if $gi == DECK_IDX;
+            next if $groups->[$gi]->stillage_location
+                ->get_column('stillage_location_id') == $target_sl_id;
+
+            my $new_gi;
+            for my $gj ( 0 .. $#$groups ) {
+                next unless $groups->[$gj]->stillage_location
+                    ->get_column('stillage_location_id') == $target_sl_id;
+                if ( $groups->[$gj]->can_fit( $used_w->[$gj], $casks->[$ci]->cask_width ) ) {
+                    $new_gi = $gj;
+                    last;
+                }
+            }
+            next unless defined $new_gi;
+
+            my $wi = $casks->[$ci]->cask_width * ( 1 + $margin );
+            $used_w->[$gi]     -= $wi;
+            $used_w->[$new_gi] += $wi;
+            $assign->[$ci] = $new_gi;
+            push @changes, [ $ci, $gi ];
+        }
+    }
+
+    return 0 unless @changes;
+
+    my $new_score = $self->_score_assignment( $assign, $used_w );
+
+    if ( $new_score < $$cur_score_ref ) {
+        $$cur_score_ref = $new_score;
+        return 1;
+    }
+
+    for my $change ( reverse @changes ) {
+        my ( $ci, $old_gi ) = @$change;
+        my $cur_gi = $assign->[$ci];
+        my $wi     = $casks->[$ci]->cask_width * ( 1 + $margin );
+        $used_w->[$cur_gi] -= $wi;
+        $used_w->[$old_gi] += $wi;
+        $assign->[$ci] = $old_gi;
+    }
+
+    return 0;
 }
 
 =head2 apply
@@ -743,20 +1069,85 @@ sub _score_assignment {
     return $score;
 }
 
-# Compact fingerprint of the current assignment for cycle detection.
-sub _state_string {
-    my ($assign) = @_;
-    return md5_hex( join( ',', @$assign ) );
+# Returns an arrayref of cask indices that are currently "offending":
+# on the deck, or belonging to a beer split across bays or stillages.
+# Used to bias move selection towards casks worth fixing.
+sub _offender_indices {
+    my ( $casks, $groups, $assign ) = @_;
+
+    my ( %bay_of_product, %stillage_of_product );
+    for my $ci ( 0 .. $#$assign ) {
+        my $gi = $assign->[$ci];
+        next if $gi == DECK_IDX;
+        my $prod_id = $casks->[$ci]->product_group_id;
+        $bay_of_product{$prod_id}{ $groups->[$gi]->bay_id } = 1;
+        $stillage_of_product{$prod_id}{
+            $groups->[$gi]->stillage_location->get_column('stillage_location_id')
+        } = 1;
+    }
+
+    my @offenders;
+    for my $ci ( 0 .. $#$assign ) {
+        my $gi = $assign->[$ci];
+        if ( $gi == DECK_IDX ) {
+            push @offenders, $ci;
+            next;
+        }
+        my $prod_id = $casks->[$ci]->product_group_id;
+        push @offenders, $ci
+            if scalar( keys %{ $bay_of_product{$prod_id} } ) > 1
+            || scalar( keys %{ $stillage_of_product{$prod_id} } ) > 1;
+    }
+
+    return \@offenders;
 }
 
-# Returns two distinct random indices in [0, $n-1].
-sub _random_pair {
-    my ($n) = @_;
-    my $i = int( rand($n) );
+# Returns a single cask index, drawn from @$offenders with probability
+# $bias_prob (if any offenders exist), otherwise uniformly from [0, $n-1].
+sub _choose_index {
+    my ( $n, $offenders, $bias_prob ) = @_;
+    if ( @$offenders && rand() < $bias_prob ) {
+        return $offenders->[ int( rand( scalar @$offenders ) ) ];
+    }
+    return int( rand($n) );
+}
+
+# Returns two distinct cask indices ($i, $j).  $i is chosen via
+# _choose_index (biased towards @$offenders); $j is a uniformly random
+# partner, restricted to |i - j| <= $max_dist if defined.
+sub _choose_pair {
+    my ( $n, $max_dist, $offenders, $bias_prob ) = @_;
+    my $i = _choose_index( $n, $offenders, $bias_prob );
     my $j;
-    do { $j = int( rand($n) ) } while $j == $i;
+    if ( defined $max_dist && $max_dist > 0 ) {
+        my $lo = ( $i - $max_dist ) < 0     ? 0      : $i - $max_dist;
+        my $hi = ( $i + $max_dist ) >= $n   ? $n - 1 : $i + $max_dist;
+        my $range = $hi - $lo;       # number of candidates excluding $i itself
+        # Avoid infinite loop when $i is the only index in range
+        return ( $i, $i ) if $range == 0;
+        do { $j = $lo + int( rand( $range + 1 ) ) } while $j == $i;
+    }
+    else {
+        do { $j = int( rand($n) ) } while $j == $i;
+    }
     return ( $i, $j );
 }
+
+# Returns a slot group index different from $exclude_gi, or DECK_IDX,
+# as the target of a relocation move.  The deck is offered with
+# probability 1/($n_groups+1); otherwise a slot group is chosen
+# uniformly at random.
+sub _random_target_group {
+    my ( $n_groups, $exclude_gi ) = @_;
+    my $target;
+    do {
+        $target = ( rand() < 1 / ( $n_groups + 1 ) )
+            ? DECK_IDX
+            : int( rand($n_groups) );
+    } while ( $target == $exclude_gi );
+    return $target;
+}
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -810,23 +1201,39 @@ beer to be aligned front-to-back for pull-through dispensing.
 =head1 ALGORITHM
 
 Starting from a greedy alphabetical first-fit initial assignment,
-L</plan> applies a random-pair-swap hill-climber:
+L</plan> applies a simulated annealer with two move types, swap and
+relocation, biased towards casks that are currently causing penalty:
 
 =over 4
 
-=item 1. Two cask indices are chosen uniformly at random.
+=item 1. On each iteration, with probability C<relocation_probability>
+a single-cask relocation move is attempted; otherwise a two-cask swap
+is attempted.
 
-=item 2. Their slot group assignments are swapped provisionally.
+=item 2. The first cask involved is usually not chosen uniformly at
+random: with probability C<bias_probability> it is instead drawn from
+the current set of "offending" casks (on the deck, or belonging to a
+beer split across bays or stillages), so the search concentrates on
+fixing known problems rather than testing arbitrary moves.  The
+remaining cask (swap partner, or relocation target slot group/deck) is
+chosen at random.
 
-=item 3. If the swap would overfill either slot group (width constraint),
-it is immediately rejected.
+=item 3. If the move would overfill any affected slot group (width
+constraint), it is immediately rejected.
 
-=item 4. Otherwise the new score is computed.  If it improved, the swap
-is kept; otherwise it is reverted.
+=item 4. Otherwise the new score is computed.  If it improved, the move
+is kept.  If it worsened, it may still be kept with a probability that
+decreases as the temperature cools; otherwise it is reverted.
 
-=item 5. After C<convergence_streak> consecutive non-improving swaps, or
-after C<max_iterations> attempts, or upon detecting a previously seen
-assignment state, the loop terminates.
+=item 5. The temperature is cooled after each iteration.  After the
+search has cooled to the floor and C<convergence_streak> consecutive
+iterations have failed to improve the best score, or after
+C<max_iterations> attempts, the loop terminates.
+
+=item 6. If C<consolidation_interval> is set, every that many
+iterations a deterministic pass tries to move each split beer's casks
+onto whichever stillage already holds most of them, keeping the change
+only if it improves the score.
 
 =back
 

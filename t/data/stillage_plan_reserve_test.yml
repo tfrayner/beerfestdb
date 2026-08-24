@@ -1,0 +1,28 @@
+---
+# Test YAML config for BeerFestDB::StillagePlanner initial_deck_reserve
+# tests.  Uses "PlannerTestStillage" (id=2), created by the base test
+# fixtures in t/stillage_planner.t.  Ample capacity in the single slot
+# group so every loaded cask would otherwise fit without needing the
+# deck at all.
+
+margin: 0.10
+
+container_widths:
+  firkin: 0.45
+
+stillages:
+  - description: PlannerTestStillage
+    bays:
+      - number: 1
+        positions:
+          - bay_position: Top Front
+            width: 4.0
+
+weights:
+  alphabetical: 10
+  proximity: 5
+  deck: 20
+  stillage: 1000
+  sor_deck_multiplier: 0.1
+
+initial_deck_reserve: 1

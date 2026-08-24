@@ -1,0 +1,39 @@
+---
+# Test YAML config for BeerFestDB::StillagePlanner cask-mixing strategy
+# tests (biased move selection, relocation moves, beer consolidation).
+# Uses "TestStillage" (id=1) and "PlannerTestStillage" (id=2), both
+# created by the base test fixtures in t/stillage_planner.t.
+
+margin: 0.10
+
+container_widths:
+  firkin: 0.45
+
+stillages:
+  - description: TestStillage
+    bays:
+      - number: 1
+        positions:
+          - bay_position: Top Front
+            width: 4.0
+  - description: PlannerTestStillage
+    bays:
+      - number: 1
+        positions:
+          - bay_position: Top Front
+            width: 4.0
+
+weights:
+  alphabetical: 10
+  proximity: 5
+  deck: 20
+  stillage: 1000
+  sor_deck_multiplier: 0.1
+
+bias_probability: 0.9
+relocation_probability: 0.5
+consolidation_interval: 1
+
+initial_temperature: 500
+cooling_rate: 0.95
+temperature_floor: 0.5
