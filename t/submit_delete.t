@@ -88,6 +88,8 @@ BEGIN {
     $schema->resultset('ProductCategory')->create({
         product_category_id => 1,
         description         => 'beer',
+        is_status_public    => 1,
+        is_stock_public     => 0,
     });
 
     $schema->resultset('CompanyRegion')->create({
@@ -185,14 +187,39 @@ sub delete_ok {
 # SUBMIT — create one of each object in dependency order
 # ===========================================================================
 
+# 0. Protected — no FK dependencies; creates a new protected-class row.
+my $protected_ids = submit_ok(
+    $ua, '/protected/submit',
+    [{ classname => 'TestProtectedClass', loader => 1 }],
+    'Protected submit',
+);
+ok( defined $protected_ids && @$protected_ids, 'Protected: ids returned' );
+my $protected_id = $protected_ids->[0];
+
 # 1. Festival — no FK deps on submit-able tables.
 my $festival_ids = submit_ok(
     $ua, '/festival/submit',
-    [{ year => 2025, name => 'TestFestival', description => 'Test Festival' }],
+    [{ year => 2025, name => 'TestFestival', description => 'Test Festival', public_status_tag => 'tf1' }],
     'Festival submit',
 );
 ok( defined $festival_ids && @$festival_ids, 'Festival: ids returned' );
 my $festival_id = $festival_ids->[0];
+
+# 1b. SystemDefaults — singleton (id=1); submitted after Festival so festival_id is available.
+#     The delete endpoint is intentionally unsupported (controller does not call
+#     delete_from_resultset) and is therefore not tested here.
+my $systemdefaults_ids = submit_ok(
+    $ua, '/systemdefaults/submit',
+    [{ id                   => 1,
+       festival_id          => $festival_id,
+       currency_id          => 1,
+       sale_volume_id       => 1,
+       product_category_id  => 1,
+       container_measure_id => 1 }],
+    'SystemDefaults submit',
+);
+ok( defined $systemdefaults_ids && @$systemdefaults_ids, 'SystemDefaults: ids returned' );
+is( $systemdefaults_ids->[0], 1, 'SystemDefaults: singleton id is 1' );
 
 # 2. Company — needs company_region_id (seeded).
 my $company_ids = submit_ok(
@@ -297,17 +324,18 @@ my $gyle_ids = submit_ok(
 ok( defined $gyle_ids && @$gyle_ids, 'Gyle: ids returned' );
 my $gyle_id = $gyle_ids->[0];
 
-# 12. CaskManagement — no HTTP submit controller; create directly via DBIC.
-#     cellar_reference is NOT NULL. product_order_id is left NULL so that
+# 12. CaskManagement — product_order_id is left NULL so that
 #     the Cask delete controller will auto-remove this row.
-my $cask_management = $schema->resultset('CaskManagement')->create({
-    festival_id       => $festival_id,
-    container_size_id => 1,
-    currency_id       => 1,
-    cellar_reference  => 1,
-});
-my $cask_management_id = $cask_management->cask_management_id();
-ok( $cask_management_id, 'CaskManagement: created directly via DBIC' );
+my $cask_management_ids = submit_ok(
+    $ua, '/caskmanagement/submit',
+    [{ festival_id       => $festival_id,
+       container_size_id => 1,
+       currency_id       => 1,
+       festival_ref      => 1 }],
+    'CaskManagement submit',
+);
+ok( defined $cask_management_ids && @$cask_management_ids, 'CaskManagement: ids returned' );
+my $cask_management_id = $cask_management_ids->[0];
 
 # 13. Cask — needs gyle_id, cask_management_id.
 my $cask_ids = submit_ok(
@@ -393,5 +421,8 @@ delete_ok( $ua, '/company/delete',          [$company_id],             'Company 
 
 # 1. Festival
 delete_ok( $ua, '/festival/delete',         [$festival_id],            'Festival delete' );
+
+# 0. Protected — no FK dependencies; safe to remove last.
+delete_ok( $ua, '/protected/delete',        [$protected_id],           'Protected delete' );
 
 done_testing();

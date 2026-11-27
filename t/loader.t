@@ -203,4 +203,99 @@ lives_ok { $loader_prefixed->load() }
 is( $db->resultset('ProductCharacteristic')->count(), 1,
     'No duplicate created when loading with product_characteristic_type/value headers' );
 
+# -----------------------------------------------------------------------
+# Protected system
+# -----------------------------------------------------------------------
+
+# 1. Attempting to create a new instance of a protected class causes the
+#    load to die and the transaction to be rolled back.
+
+my $prot_db1 = schema();
+$prot_db1->resultset('Protected')->delete_all();
+$prot_db1->resultset('Protected')->create({ classname => 'Company', loader => 1 });
+
+my $blocked_tsv = _make_tsv(
+    [ 'brewery_name', 'brewery_loc_desc' ],
+    [ 'ProtectedNewBrewery', 'Suffolk' ],
+);
+my $loader_blocked = BeerFestDB::Loader->new(
+    database  => $prot_db1,
+    csv_file  => $blocked_tsv,
+    protected => [],
+);
+dies_ok { $loader_blocked->load() }
+    'protected: load() dies when attempting to create an instance of a protected class';
+is( $prot_db1->resultset('Company')->search({ name => 'ProtectedNewBrewery' })->count(), 0,
+    'protected: no Company created for protected class (transaction rolled back)' );
+
+# 2. Loading a row whose protected-class instance already exists succeeds
+#    — the loader finds the existing record without triggering an error.
+
+my $prot_db2 = schema();
+$prot_db2->resultset('Protected')->delete_all();
+$prot_db2->resultset('Protected')->create({ classname => 'Company', loader => 1 });
+
+my $existing_tsv = _make_tsv(
+    [ 'brewery_name', 'brewery_loc_desc' ],
+    [ 'TestBrewer', 'Cambridgeshire' ],
+);
+my $loader_existing = BeerFestDB::Loader->new(
+    database  => $prot_db2,
+    csv_file  => $existing_tsv,
+    protected => [],
+);
+lives_ok { $loader_existing->load() }
+    'protected: load() succeeds when the protected-class instance already exists in the DB';
+is( $prot_db2->resultset('Company')->search({ name => 'TestBrewer' })->count(), 1,
+    'protected: existing Company record still present after loading a protected class' );
+
+# 3. After a successful load, protection_defaults are written back to
+#    the Protected table (reset_protection creates missing rows).
+
+my $prot_db3 = schema();
+$prot_db3->resultset('Protected')->delete_all();
+is( $prot_db3->resultset('Protected')->count(), 0,
+    'protected: Protected table is empty before protection-reset test' );
+
+my $reset_tsv = _make_tsv(
+    [ 'brewery_name', 'brewery_loc_desc' ],
+    [ 'TestBrewer', 'Cambridgeshire' ],
+);
+my $loader_reset = BeerFestDB::Loader->new(
+    database            => $prot_db3,
+    csv_file            => $reset_tsv,
+    protection_defaults => ['Company'],
+    reset_protection    => 1,
+);
+lives_ok { $loader_reset->load() }
+    'protected: load() with protection_defaults completes successfully';
+my $restored = $prot_db3->resultset('Protected')->find({ classname => 'Company' });
+ok( defined $restored,
+    'protected: Protected row for Company created after successful load (reset_protection)' );
+is( $restored->loader(), 1,
+    'protected: restored Protected row has loader=1' );
+
+# 4. reset_protection also updates an existing Protected row whose
+#    loader flag was previously 0 (loader was not blocking).
+
+my $prot_db4 = schema();
+$prot_db4->resultset('Protected')->delete_all();
+$prot_db4->resultset('Protected')->create({ classname => 'Company', loader => 0 });
+
+my $update_reset_tsv = _make_tsv(
+    [ 'brewery_name', 'brewery_loc_desc' ],
+    [ 'TestBrewer', 'Cambridgeshire' ],
+);
+my $loader_update_reset = BeerFestDB::Loader->new(
+    database            => $prot_db4,
+    csv_file            => $update_reset_tsv,
+    protection_defaults => ['Company'],
+    reset_protection    => 1,
+);
+lives_ok { $loader_update_reset->load() }
+    'protected: load() succeeds when Protected row has loader=0';
+my $updated = $prot_db4->resultset('Protected')->find({ classname => 'Company' });
+is( $updated->loader(), 1,
+    'protected: existing Protected row (loader=0) updated to loader=1 after reset_protection' );
+
 done_testing();

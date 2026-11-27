@@ -185,6 +185,9 @@ sub load_form : Local {
 
 =head2 list
 
+Full cask listing; this computationally-expensive action is primarily used by
+the R post-festival reporting code and should not be used unless really needed.
+
 =cut
 
 sub list : Local {
@@ -221,33 +224,6 @@ sub list : Local {
     }
 
     $self->generate_json_and_detach( $c, $rs );
-}
-
-=head2 grid
-
-=cut
-
-sub grid : Local {
-
-    my ( $self, $c, $festival_id, $category_id ) = @_;
-
-    my $festival = $c->model('DB::Festival')->find($festival_id);
-    unless ( $festival ) {
-        $c->flash->{error} = qq{Festival ID "$festival_id" not found.};
-        $c->res->redirect( $c->uri_for('/default') );
-        $c->detach();        
-    }
-    $c->stash->{festival} = $festival;
-
-    my $category = $c->model('DB::ProductCategory')->find($category_id);
-    unless ( $category ) {
-        $c->flash->{error} = qq{Product category ID "$category_id" not found.};
-        $c->res->redirect( $c->uri_for('/default') );
-        $c->detach();        
-    }
-    $c->stash->{category} = $category;
-
-    $self->get_default_currency( $c );
 }
 
 =head2 list_by_stillage
@@ -387,6 +363,16 @@ sub build_database_object : Private {
         $c->log->debug("Attempting to create CaskManagement object.");
         my ($caskman, $caskman_rec, $caskman_mvmap);
         ( $rec, $caskman_rec, $caskman_mvmap ) = $self->_extract_caskman_terms( $rec, $mv_map );
+
+        # If $caskman_rec->{'cellar_reference'} is null, query the database for the next 
+        # available cellar_reference for the festival and assign it to the record.
+        if ( ! defined $caskman_rec->{'cellar_reference'} ) {
+            $c->log->debug("No cellar_reference found in record, querying database for next available value.");
+            $caskman_rec->{'cellar_reference'} =
+                $c->model( 'DB::CaskManagement' )
+                  ->search({ 'festival_id' => $caskman_rec->{'festival_id'} } )
+                  ->get_column('cellar_reference')->max() + 1;
+        }
 
         $c->log->debug("Cask management model-view map: " . Dumper $caskman_mvmap);
         $c->log->debug("Cask management record data: " . Dumper $caskman_rec);

@@ -1,13 +1,16 @@
-# We operate a single festival at a time, so the current festival is set here.
-# This is used for the public site and for some internal queries. It must be
-# set to a valid festival name from the database.
-current_festival:   'TestFestival'
+# Note: previous versions of this system used a "current_festival" setting in the 
+# config file, but this has been deprecated in favor of storing the current festival 
+# in the database. The "current_festival" setting is still supported for backwards
+# compatibility, but it is recommended to use the database setting instead.
 
 # IMPORTANT: Set testing to 1 to disable HTTPS requirement for testing. Set it to 0 in production.
-testing:            1
+testing: 1
 
 # A list of classes which will not auto-create upon database
-# loading. Good for maintaining some control over typos.
+# loading. We use this as a means to prevent accidentally loading 
+# typos in brewery and beer names. See the "Protected Classes"
+# section of the web interface for a way to temporarily deactivate
+# this for a single data load.
 protected_classes: []
 #  - Company
 #  - Product
@@ -39,30 +42,9 @@ protected_classes: []
 # site can receive uploads. The public_festival_tag identifies the festival
 # for the public site.
 status_query:
-  departments:
-    - beer
-    - foreign beer
-    - cider
-    - apple juice
-    - perry
-    - wine
-    - mead
   # This was set for internal use within the cluster, which is from where the relevant scripts will run.
   beerfestdb_uri:          'https://beerfestdb-nginx-service:443/app'
   public_site_upload_uri:  'file://localhost/www/data/push'
-  public_festival_tag:      test
-
-# Indicate which departments are using the database to manage stock control
-# measurements (i.e., dip values). This is used to determine which products
-# should have stock control measurements uploaded to the public festival site
-stock_control_departments:
-  - beer
-
-# Default currency and sale volume measures. These values must also be
-# entered into the currency.currency_code and
-# sale_volume.sale_volume_description database columns.
-#default_currency:    GBP
-#default_sale_volume: pint
 
 # Configuration options specific to generation of a OpenOffice beer listing.
 OODoc:

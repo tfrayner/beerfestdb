@@ -1,0 +1,12 @@
+[% META title = 'Protected Class Details' %]
+
+<script type="text/javascript">
+   var url_protected_load_form = '[% c.uri_for( "/protected/load_form" ) %]';
+   var url_protected_grid = '[% c.uri_for( "/protected/grid" ) %]';
+   
+   var protected_id = '[% object.id %]';
+</script>
+
+[% js_link( src = '/static/js/grids/protected_class_view.js' ) %]
+
+<div id="datagrid"></div>

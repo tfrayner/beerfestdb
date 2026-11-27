@@ -25,3 +25,68 @@ jobs:
       with:
         push: true
         tags: tfrayner/beerfestdb:latest
+
+  rstudio-docker:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ vars.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Build and push RStudio Docker image
+      uses: docker/build-push-action@v6.19.2
+      with:
+        context: ./R
+        file: ./R/Dockerfile
+        push: true
+        tags: tfrayner/beerfestdb-rstudio:latest
+
+  r-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: 'release'
+
+    - uses: r-lib/actions/setup-r-dependencies@v2
+      with:
+        working-directory: R/BeerFestDB
+        extra-packages: any::testthat, any::devtools
+
+    - name: Build R package
+      working-directory: R/BeerFestDB
+      run: Rscript -e "devtools::check(vignettes = FALSE, error_on = 'error'); devtools::build(path = '.', vignettes = FALSE, manual = TRUE)"
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: beerfestdb-r-package
+        path: R/BeerFestDB/*.tar.gz
+
+  smoke-tests:
+    # This job relies on the Docker image built in the `docker` job, so we need to ensure that
+    # it runs after that job has completed successfully. Note that we also need the 
+    # tfrayner/beerfestdb-rstudio:latest image to be built and pushed to Docker Hub, which is
+    # done in the `rstudio-docker` job.
+    needs: [docker, rstudio-docker]
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Nextflow
+      uses: nf-core/setup-nextflow@v3.0.0
+    
+    - name: Run smoke tests
+      run: nextflow run smoketests/main.nf --app_port 3100

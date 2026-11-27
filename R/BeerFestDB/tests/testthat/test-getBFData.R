@@ -42,6 +42,87 @@ test_that("getBFData fills missing fields with NA", {
   expect_true(is.na(result[result$name == "Beer B", "brewery"]))
 })
 
+test_that("getBFData repairs mojibake in UTF-8 text fields", {
+  mock_objects <- list(
+    list(name = "Imperial CrÃ¨me BearlÃ©e", beer_id = "1")
+  )
+
+  local_mocked_bindings(
+    queryBFDB = function(...) mock_objects,
+    .package = "BeerFestDB"
+  )
+
+  result <- getBFData("Cask", "list", auth = list())
+
+  expect_equal(result$name, "Imperial Crème Bearlée")
+})
+
+test_that("getBFData repairs additional mojibake patterns", {
+  mock_objects <- list(
+    list(name = "FranÃ§ois", beer_id = "2")
+  )
+
+  local_mocked_bindings(
+    queryBFDB = function(...) mock_objects,
+    .package = "BeerFestDB"
+  )
+
+  result <- getBFData("Cask", "list", auth = list())
+
+  expect_equal(result$name, "François")
+})
+
+test_that("getBFData does not alter valid UTF-8 text", {
+  mock_objects <- list(
+    list(name = "Crème brûlée", beer_id = "3")
+  )
+
+  local_mocked_bindings(
+    queryBFDB = function(...) mock_objects,
+    .package = "BeerFestDB"
+  )
+
+  result <- getBFData("Cask", "list", auth = list())
+
+  expect_equal(result$name, "Crème brûlée")
+})
+
+test_that("getBFData preserves valid UTF-8 names with Ø and â without warnings", {
+  mock_objects <- list(
+    list(name = "To Øl", beer_id = "10"),
+    list(name = "Cwrw Iâl Community Brewing Company", beer_id = "11")
+  )
+
+  local_mocked_bindings(
+    queryBFDB = function(...) mock_objects,
+    .package = "BeerFestDB"
+  )
+
+  expect_warning(
+    result <- getBFData("Cask", "list", auth = list()),
+    NA
+  )
+
+  expect_equal(result$name, c("To Øl", "Cwrw Iâl Community Brewing Company"))
+})
+
+test_that(".parse_bfdb_json handles invalid UTF-8 payload bytes without warnings", {
+  payload_raw <- c(
+    charToRaw('{"success":true,"objects":[{"name":"'),
+    as.raw(c(0xC3, 0x28)),
+    charToRaw('","beer_id":"9"}]}')
+  )
+  payload <- rawToChar(payload_raw)
+  Encoding(payload) <- "UTF-8"
+
+  expect_warning(
+    parsed <- BeerFestDB:::.parse_bfdb_json(payload),
+    NA
+  )
+  expect_equal(parsed$success, TRUE)
+  expect_equal(parsed$objects[[1L]]$beer_id, "9")
+})
+
 test_that("getBFData converts *_id columns to integer", {
   mock_objects <- list(
     list(name = "Beer A", beer_id = "1"),

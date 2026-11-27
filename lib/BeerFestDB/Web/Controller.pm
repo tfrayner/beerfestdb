@@ -331,7 +331,12 @@ sub _belongs_to_current_festival : Private {
     my $festival = $self->_get_festival($c, $dbobj);
 
     if ( defined $festival ) {
-        return $festival eq $c->config->{'current_festival'};
+        my $defaults = $c->model('DB::SystemDefaults')->find(1);
+        if ( $defaults && $defaults->festival() ) {
+            return $festival eq $defaults->festival()->get_column('name');
+        } else {
+            return $festival eq $c->config->{'current_festival'};  # Fallback to config file if no defaults found.
+        }
     }
     else {
         return 1;  # If it doesn't belong to a festival, it's fair game.
@@ -700,11 +705,17 @@ sub get_default_sale_volume : Private {
 
     my ( $self, $c ) = @_;
 
-    my $def = $c->model('DB::SaleVolume')->find({
-        description => $c->config->{'default_sale_volume'},
-    }) or $self->raise_exception($c, "Error retrieving default sale volume; check config settings.\n");
+    my $defaults = $c->model('DB::SystemDefaults')->find(1);
+    my $sale_volume;
+    $sale_volume = $defaults->sale_volume() if $defaults;
+    if ( ! defined $sale_volume ) {
+        $c->log->debug("No default sale_volume found in system_defaults; checking config file...");
+        $sale_volume = $c->model('DB::SaleVolume')->find({
+            description => $c->config->{'default_sale_volume'},
+        }) or $self->raise_exception($c, "Error retrieving default sale volume; check config settings.\n");
+    }
 
-    $c->stash->{ 'default_sale_volume' } = $def->sale_volume_id();
+    $c->stash->{ 'default_sale_volume' } = $sale_volume->sale_volume_id();
 
     return;
 }
@@ -717,11 +728,17 @@ sub get_default_product_category : Private {
 
     my ( $self, $c ) = @_;
 
-    my $def = $c->model('DB::ProductCategory')->find({
-        description => $c->config->{'default_product_category'},
-    }) or $self->raise_exception($c, "Error retrieving default product_category; check config settings.\n");
+    my $defaults = $c->model('DB::SystemDefaults')->find(1);
+    my $pcat;
+    $pcat = $defaults->product_category() if $defaults;
+    if ( ! defined $pcat ) {
+        $c->log->debug("No default product_category found in system_defaults; checking config file...");
+        $pcat = $c->model('DB::ProductCategory')->find({
+            description => $c->config->{'default_product_category'},
+        }) or $self->raise_exception($c, "Error retrieving default product_category; check config settings.\n");
+    }
 
-    $c->stash->{ 'default_product_category' } = $def->product_category_id();
+    $c->stash->{ 'default_product_category' } = $pcat->product_category_id();
 
     return;
 }

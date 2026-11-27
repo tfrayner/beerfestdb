@@ -24,13 +24,13 @@ string.toUpperCase() or string.toLowerCase() table entry.
 
 Summer Festival
 
-1. Edit beerfestdb_web.yml to set current_festival to the new festival name. It is important that this is the first step.
-2. Create festival - use web interface
+1. Create festival - use web interface
+2. Set the new festival as the current one in the web interface (under "System Defaults"). This replaces editing of the config file.
 3. Create "Main Beer Order" order batch - web interface
 4. a. Can enter small things (e.g. early orders a la Buxton) manually
 	good idea to confirm that it "takes" by reloading page
    b. Most order data will go in via load_data.pl
-5. Edit beerfestdb_web.yml with (temporary) edits as needed to allow convenient loading (consult USAGE.txt for details).
+5. Use the "Protected Classes" section of the web interface to unprotect classes as needed to allow convenient loading (consult USAGE.txt for details). These settings will automatically reset upon a successful data load.
 6. If using a logo on orders, update the file, i.e. add current to home/images/directory; otherwise skip to step 7.
 7. Update beerfestdb/util/templates/order_template.tt2 to refer to shiny new logo.
 8. Use dump_to_template.pl to generate order .tex files. You know the rest. e.g.
@@ -55,11 +55,11 @@ Info gathering spreadsheet --> load_data input
     brewery_name	product_name	product_abv	product_style	cask_size	cask_count	cask_price	order_sor	distributor_name	order_batch	product_category	festival_name	festival_year	order_finalized
     	a. For cask_size, use one of the text descriptions from the database (see list below). Watch for typos, especially if a load fails. (New 2017-04; previously used number of gallons)
 	b. Need order_finalized to tick the 'ordered' boxes ... and make orders actually get spawned! product_category and festival_year are less critical; although the category is useful, the load won't actually fail without it. (Based on experience in 2019.)
-8. Feed to load_data.pl with default beerfestdb_web.yml (i.e. default protected categories including company, product)
-	a. if it squawks "Protection error (ProductOrder):" uncomment ProductOrder to create (wait for it) this product order
+8. Feed to load_data.pl with default "Protected Class" categories including company, product.
+	a. if it squawks "Protection error (ProductOrder):" set ProductOrder as unprotected to create (wait for it) this product order
 9. Correct any errors revealed by step 7; confirm that all remaining differences from existing data are indeed new things
    9a. Make sure nothing got missed out, duplicated, or otherwise mangled!
-10. Unprotect company & product in beerfestdb_web.yml; load!
+10. Unprotect company & product in the web interface; load!
 11. Spawn 'n' send orders as above
 
 Alternative to steps 1-6: Copy just columns A-F from spreadsheet GUI; don't forget to repeat with updated quantities for any SOR casks. Paste into file destined to be input for load_data.pl, add remaining column, and edit container size descriptions as indicated above.
@@ -160,10 +160,11 @@ When beer comes
 	can edit size of existing casks
 	to add cask, need existing gyle for the beer
 	  to add a gyle, type "auto-generated" as its ID, and select the brewery from the pulldown in the "actual brewer" column
-	manually assign cask ID, preferably next available in sequence
-	  use this query:  select max(cm.cellar_reference) from cask_management cm, festival f where f.festival_id=cm.festival_id and f.name='41st Cambridge Beer Festival';
-	  for "new cask", mandatory columns are Festival cask ID, Cask size, Gyle, and Distributor
-	NOTE: new casks added at this point should NOT have an order batch assigned
+  leave the cask ID blank to auto-assign the next available ID in sequence
+    alternatively, manually assign cask ID;
+  	  use this query:  select max(cm.cellar_reference) from cask_management cm, festival f where f.festival_id=cm.festival_id and f.name='41st Cambridge Beer Festival';
+	    for "new cask", mandatory columns are Cask size, Gyle, and Distributor
+	NOTE: new casks added at this point should NOT have an order batch assigned (the web page will not let you)
 	if there are fewer casks than expected, mark all as "arrived", then go to Products Received to delete one (or more, as needed)
   Prices go in Products Received tab, sale price column
 	Both the web interface and load_data.pl take prices in pounds
@@ -211,13 +212,12 @@ Wine & Mead
     set Sale volume column to glass
 
 Report Graphs
-  Requires local beerfestdb installation, R and package - see Appendix 6
-  The dip_figure_analysis.Rnw script spawns a .tex file to produce the graphs, but the festival name has to be updated manually in the file. The file location is [pathto]/beerfestdb/R/dip_figure_analysis.Rnw, editing instructions are in the header, and the bit to change is helpfully flagged "# Edit these:". Issue the command (also provided	in the file header):
-    % SWEAVE_STYLEPATH_DEFAULT=TRUE R CMD Sweave dip_figure_analysis.Rnw
-  Generates output file dip_figure_analysis.tex and a bunch of .pdf files (for the figures) if all has gone well
+  Requires local beerfestdb installation, quarto, R and package - see Appendix 6. Alternatively, run on pin and copy the resulting report to your local computer.
+  The dip_figure_analysis.qmd script is used to generate an HTML report and needs no additional editing. It will automatically generate a report for the current festival. The file location is [pathto]/beerfestdb/R/dip_figure_analysis.qmd. Issue the following command:
+    % quarto render dip_figure_analysis.qmd -P username:XXXX -P password:XXXX
+  Note that you will need to replace the XXXXs with your beerfestdb web username and password, or environmental variables containing these credentials.
   If it spits out an error message about "negative per diem dips found", it means there's a case where a cask magically has more beer at a later dip than it did at an earlier dip. Correct the dip data rather than the laws of physics.
    easiest way is to regenerate the dip sheets (see above) and eyeball them - the error message should list the cask IDs affected
-   copy dip_figure_analysis.Rnw into local directory in one's ~ if necessary for write-access reasons
 
 October & Winter festivals
   Cellar isn't involved in ordering, so we just do most of the db stuff once beer has arrived.
@@ -375,6 +375,8 @@ Appendix 6 - setting up beerfestdb R to run the graph-generating script
     Then quit R:
       > q()
 
+  Install quarto using the appropriate package from https://quarto.org/docs/get-started/
+
   On a Mac you'll also have to install XQuartz from xquartz.macosforge.org
 
   Now we're ready to install the beerfestdb R package for real
@@ -408,7 +410,7 @@ Navigate to https://beerfestdbtools.cambridgebeerfestival.uk/. Log in using your
 Tips on using the Sale Price Generator:
 - Timing: Recommend using it after preload_festival_casks.pl has been run
 -- This is when cask prices become available to the query
-- Make sure festival_product is protected in beerfestdb_web.yml, so duplicates aren't created
+- Make sure festival_product is a "Protected Class" in the web interface, so duplicates aren't created
 - Default display includes the essential columns for loading, so that's a good selection to download
 -- columns: festival_name, brewery_name, product_name, product_sale_price
 - After downloading a file, manually enter any overrides 

@@ -2,7 +2,7 @@
 ## This file is part of BeerFestDB, a beer festival product management
 ## system.
 ##
-## Copyright (C) 2011-2025 Tim F. Rayner
+## Copyright (C) 2011-2026 Tim F. Rayner
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -39,7 +39,9 @@
 #'   \code{NULL} to prompt interactively.
 #' @param .opts Named list of additional options forwarded to
 #'   \code{\link[RCurl]{curlPerform}}.
-#' @return A data frame with one row per cask.  Columns include cask metadata
+#' @param ... Additional arguments (passed to Festival$new()).
+#' @return A Festival object that wraps a data frame with one row per cask.  
+#'   Data frame columns include cask metadata
 #'   (\code{cask_id}, \code{cask_volume}, \code{festival_ref},
 #'   \code{is_condemned}, \code{is_sale_or_return}, \code{cask_price},
 #'   \code{sale_price}, \code{comment}, \code{order_batch}, \code{size_name}),
@@ -47,13 +49,13 @@
 #'   \code{abv}), location details (\code{region}, \code{stillage}), and one
 #'   \code{dip.*} column per measurement batch containing the recorded volume
 #'   in gallons.
-#' @seealso \code{\link{analyseData}}, \code{\link{getBFData}},
+#' @seealso \code{\link{Festival}}, \code{\link{analyseData}}, \code{\link{getBFData}},
 #'   \code{\link{retrieveDips}}
 #' @importFrom dplyr %>% pull rename mutate arrange left_join select any_of matches
 #' @importFrom tidyr replace_na
 #' @export
 ###############################################################################
-getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = list()) {
+getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = list(), ...) {
   if (is.null(auth) || !inherits(auth, "CURLHandle")) {
     auth <- .getBFDBHandle(baseuri = baseuri, auth = auth, .opts = .opts)
   }
@@ -247,5 +249,30 @@ getFestivalData <- function(baseuri, festname, prodcat, auth = NULL, .opts = lis
   cp <- merge(cp, dipmat, by.x = "cask_id", by.y = 0, all.x = TRUE) %>%
     mutate(cask_volume = as.numeric(cask_volume))
 
-  return(cp)
+  if (nrow(cp) == 0) {
+    warning("No cask data found for festival '", festname, "' and product category '", prodcat, "'.")
+  }
+
+  return(Festival$new(cp, ...))
+}
+
+################################################################################
+#' Retrieve the current festival data from the BeerFestDB database
+#' @description Downloads and returns the current festival data from the
+#'   BeerFestDB JSON API.  This is a convenience function that wraps
+#'   \code{\link{queryBFDB}} with the appropriate parameters for the
+#'   \code{current_festival} action.
+#' @details Requires an authenticated connection to a running BeerFestDB
+#'   instance.  If \code{auth} is \code{NULL} or not a \code{CURLHandle}, the user is prompted for credentials.
+#' @param auth Authentication object: a \code{CURLHandle} with a live session, a list with elements \code{username} and \code{password}, or \code{NULL} to prompt interactively.
+#' @param .opts Named list of additional options forwarded to
+#'   \code{\link[RCurl]{curlPerform}}.
+#' @param ... Additional arguments (reserved for future use).
+#' @return A named list containing the current festival data.
+#' @seealso \code{\link{getBFData}}, \code{\link{queryBFDB}}, \code{\link{getFestivalData}}
+#' @export
+currentFestival <- function(auth, .opts = list(), ...) {
+  festdata <- queryBFDB(dbclass="Festival", action="current_festival", auth=auth,
+                        .opts=.opts, field="data", ...)
+  return(festdata)
 }

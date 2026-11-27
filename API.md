@@ -198,6 +198,7 @@ Base path: `/festival`
 | `description` | string | Longer description |
 | `fst_start_date` | date | Start date |
 | `fst_end_date` | date | End date |
+| `public_status_tag` | string | Tag identifier for public website upload (`upload_beerlist.pl`) |
 
 ### Endpoints
 
@@ -659,12 +660,6 @@ Base path: `/cask`
 
 ### Endpoints
 
-#### `GET /cask/list/{festival_id}/{category_id}`
-
-All casks at a festival for a product category.
-
----
-
 #### `GET /cask/list_by_stillage/{stillage_location_id}`
 
 Casks at a given stillage location.
@@ -727,6 +722,67 @@ Remove casks from their stillage location without deleting them.
 
 Sets `stillage_location_id` to `NULL` on the associated `CaskManagement`
 rows.
+
+---
+
+## CaskManagement
+
+A `CaskManagement` object is the virtual representation of a cask before it has physically arrived at the festival. The cask preloading process creates and links a `Cask` to this object once the product order is marked as having arrived. The `CaskManagement` objects are used to store cellar logistics that can be used in planning cask handling activities such as stillage placement.
+
+Base path: `/caskmanagement`
+
+### Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `cask_management_id` | integer | Primary key |
+| `festival_id` | integer | Festival (read-only) |
+| `festival_name` | string | Festival name (read-only) |
+| `distributor_id` | integer | FK → Company (distributor) |
+| `order_batch_id` | integer | FK → OrderBatch |
+| `order_batch_name` | string | Order batch description (read-only) |
+| `container_size_id` | integer | FK → ContainerSize |
+| `bar_id` | integer | FK → Bar |
+| `stillage_location_id` | integer | FK → StillageLocation |
+| `currency_id` | integer | FK → Currency |
+| `price` | string | Formatted purchase price |
+| `product_id` | integer | FK → Product (read-only, via Gyle or ProductOrder) |
+| `product_name` | string | Product name (read-only) |
+| `company_id` | integer | FK → Company (brewer, read-only) |
+| `company_name` | string | Company name (read-only) |
+| `stillage_bay` | integer | Bay number on the stillage |
+| `bay_position_id` | integer | FK → BayPosition |
+| `stillage_x` | integer | X coordinate on stillage plan |
+| `stillage_y` | integer | Y coordinate on stillage plan |
+| `stillage_z` | integer | Z coordinate (layer/shelf) |
+| `int_reference` | string | Internal cellar reference |
+| `festival_ref` | string | Cellar reference number |
+| `is_sale_or_return` | boolean | Sale-or-return cask |
+| `cask_graveyard` | boolean | Cask is in the graveyard section |
+
+### Endpoints
+
+#### `GET /caskmanagement/list/{festival_id}/{category_id}`
+
+All cask management objects at a festival for a product category.
+
+---
+
+#### `GET /caskmanagement/load_form?cask_management_id=N`
+
+Returns a single cask management record.
+
+---
+
+#### `POST /caskmanagement/submit`
+
+Create or update cask management records.
+
+---
+
+#### `POST /caskmanagement/delete`
+
+Delete cask management records.
 
 ---
 
@@ -1175,6 +1231,53 @@ Omitting `categories` leaves existing category associations unchanged.
 
 Delete role records by ID.
 
+---
+
+## SystemDefaults
+
+Base path: `/systemdefaults`
+
+Stores a single singleton row (enforced by a `CHECK (id = 1)` constraint) that
+holds application-wide defaults used when no explicit value is supplied.
+
+**Access:** admin only. There are no `list` or `grid` endpoints.
+
+### Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Always `1` (singleton primary key) |
+| `festival_id` | integer | FK → Festival — the current active festival |
+| `currency_id` | integer | FK → Currency — default currency |
+| `sale_volume_id` | integer | FK → SaleVolume — default sale volume |
+| `product_category_id` | integer | FK → ProductCategory — default product category |
+| `container_measure_id` | integer | FK → ContainerMeasure — default container measure |
+
+### Endpoints
+
+#### `GET /systemdefaults/load_form?id=1`
+
+Returns the singleton system-defaults record.
+
+**Response:** `{success, data:{...}}`
+
+---
+
+#### `POST /systemdefaults/submit`
+
+Update the singleton system-defaults record. Body param `changes` = JSON array
+containing a single record hash (the row is created if absent, updated if
+present).
+
+---
+
+#### `POST /systemdefaults/delete`
+
+Not supported. The controller rejects this with a flash error and redirects
+to `/systemdefaults/view`. Do not call this endpoint.
+
+---
+
 ## Reference / Vocabulary Tables
 
 The following controllers expose read-only (or lightly managed) reference
@@ -1278,6 +1381,8 @@ Base path: `/productcategory`
 |---|---|---|
 | `product_category_id` | integer | Primary key |
 | `description` | string | Category (e.g. `"beer"`, `"cider"`) |
+| `is_status_public` | boolean | Upload product details to public website (`upload_beerlist.pl`) |
+| `is_stock_public` | boolean | Upload product stock levels to public website |
 
 Endpoints: `list`, `submit`, `delete`.
 
@@ -1342,6 +1447,29 @@ Base path: `/contacttype`
 | `description` | string | Type name |
 
 **Endpoints:** `GET /contacttype/list` only (read-only reference table).
+
+---
+
+### Protected
+
+Base path: `/protected`
+
+Records which ORM classes are shielded from bulk-loader creation/updates.
+The `list` endpoint is accessible to all authenticated users; all other
+operations require admin access.
+
+| Field | Type | Description |
+|---|---|---|
+| `protected_id` | integer | Primary key |
+| `classname` | string | ORM class name (e.g. `"Product"`, `"Festival"`); unique |
+| `loader` | boolean | `1` if the Loader is blocked from creating/updating instances of this class; `0` otherwise |
+
+**Endpoints:**
+
+- `GET /protected/list` — all protected class entries (user-level access)
+- `GET /protected/load_form?protected_id=N`
+- `POST /protected/submit` — create or update entries (admin only)
+- `POST /protected/delete` — delete entries by ID (admin only)
 
 ---
 

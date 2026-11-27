@@ -33,22 +33,24 @@ Since this script is so powerful, a mechanism has been created to
 protect various object types from being changed at any given time. In
 effect, we treat different tables as containing controlled
 vocabularies depending on what we're trying to accomplish. This is
-controlled from within the main beerfestdb_web.yml config file. The
-"protected_classes" setting gives a listing of the object types which
-cannot be added or modified by the load_data.pl script. If you are
+controlled via an admin-level area of the web interface which allows
+the user to temporarily unprotect some parts of the database during
+loading. Post-load, default protections are reapplied as specified in
+the main beerfestdb_web.yml config file. The "Protected Classes" 
+setting gives a listing of the object types which cannot be added 
+or modified by the load_data.pl script. If you are
 trying to make a change but are blocked from doing so with a
-"Protection error", you can temporarily comment out the relevant
-object type to bypass the error (but be aware that the error may be
+"Protection error", you can temporarily deactivate the protection 
+in the web interface. This bypasses the error, but be aware that this may be
 warning you of a genuine problem, e.g. mis-spelling of a given beer
-name). 
+name. 
 
-During the festival only object types likely to need
-addition/modification are as follows: ProductOrder, OrderBatch. Other
-possible object types would be FestivalProduct, Gyle, CaskManagement,
-Cask. Finally, it's conceivable but unlikely that both Company and
-Product might need additions (if, say, the reorder gets in some
-genuinely new beers) but in practice I think that this will almost
-never happen.
+During the festival, the only object types likely to need
+addition/modification are as follows: ProductOrder, OrderBatch, 
+FestivalProduct, Gyle, CaskManagement, Cask. It's conceivable but 
+unlikely that Company or Product might need additions (if, say, 
+the reorder includes some genuinely new beers); in practice, 
+this will almost never happen during festival opening.
 
 Typical script usage:
 

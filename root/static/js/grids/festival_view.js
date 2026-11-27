@@ -183,7 +183,7 @@ Ext.onReady(function(){
                   dataIndex: 'description' },
             ],
             viewLink: function (grid, record, action, row, col) {
-                var t = new Ext.XTemplate(url_base + 'cask/grid/{festival_id}/{product_category_id}');
+                var t = new Ext.XTemplate(url_base + 'caskmanagement/grid/{festival_id}/{product_category_id}');
                 window.location=t.apply({
                         product_category_id: record.get('product_category_id'),
                         festival_id: festival_id,
@@ -252,6 +252,9 @@ Ext.onReady(function(){
             { name:       'festival_id',
               value:      festival_id,
               xtype:      'hidden', },
+            { name:       'public_status_tag',
+              fieldLabel: 'Public Status Tag',
+              allowBlank: true, },
         ],
 
         loadUrl:     url_festival_load_form,
@@ -259,10 +262,11 @@ Ext.onReady(function(){
         waitMsg:     'Loading Festival details...',
     });
 
-    var festivalStatus = new MyFormPanel({ // FIXME not entirely appropriate for readOnly.
+    var festivalStatus = new MyFormPanel({
 
         title:       'Festival status',
-            
+        readOnly:    true,
+
         items: [
             { name:       'kils_ordered',
               fieldLabel: 'Total kils of beer ordered',
@@ -292,19 +296,19 @@ Ext.onReady(function(){
             { title: 'Festival Status',
               layout: 'anchor',
               items:  festivalStatus, },
+            { title: 'Product Orders',
+              layout: 'fit',
+              items:  orderBatchGrid, },
+            { title: 'Stillage Planning',
+              layout: 'fit',
+              items:  caskGrid, },
             { title: 'Products Received',
               layout: 'fit',
               items:  receivedGrid, },
-            { title: 'All Casks Received',
-              layout: 'fit',
-              items:  caskGrid, },
-            { title: 'Casks by Stillage',
+            { title: 'Stillaged Casks',
               layout: 'fit',
               items:  stillageGrid, },
-            { title: 'Product Order Batches',
-              layout: 'fit',
-              items:  orderBatchGrid, },
-            { title: 'Cask Dip Batches',
+            { title: 'Cask Dips',
               layout: 'fit',
               items:  measurementBatchGrid, },
         ],

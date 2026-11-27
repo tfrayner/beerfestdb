@@ -36,9 +36,13 @@ use Cwd;
 use File::Spec::Functions qw(catfile);
 use Template;
 use POSIX qw(ceil);
+use LaTeX::Encode qw(latex_encode);
+use XML::Entities;
 use utf8;
 
 our $VERSION = '0.01';
+
+*xml_decode = \&XML::Entities::decode;
 
 extends 'BeerFestDB::Dumper';
 
@@ -219,9 +223,14 @@ sub order_hash {
     my $fest = $self->festival();
 
     my $config = BeerFestDB::Web->config();
-    my $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
-        description => $config->{'default_measurement_unit'},
-    }) or die("Unable to retrieve default measurement unit; check config settings.");
+    my $defaults = $self->database->resultset('SystemDefaults')->find(1);
+    my $default_meas_unit;
+    $default_meas_unit = $defaults->container_measure_id if $defaults;
+    if (! $default_meas_unit ) {
+        $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
+            description => $config->{'default_measurement_unit'},
+        }) or die("Unable to retrieve default measurement unit; check config settings.");
+    }
 
     my $local_cask_size = $order->container_size_id->container_volume();
     my $cask_measure    = $order->container_size_id->container_measure_id();
@@ -356,9 +365,14 @@ sub update_caskman_hash {
     my ( $self, $caskmanhash, $caskman ) = @_;
 
     my $config = BeerFestDB::Web->config();
-    my $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
-        description => $config->{'default_measurement_unit'},
-    }) or die("Unable to retrieve default measurement unit; check config settings.");
+    my $defaults = $self->database->resultset('SystemDefaults')->find(1);
+    my $default_meas_unit;
+    $default_meas_unit = $defaults->container_measure if $defaults;
+    if (! $default_meas_unit ) {
+        $default_meas_unit = $self->database->resultset('ContainerMeasure')->find({
+            description => $config->{'default_measurement_unit'},
+        }) or die("Unable to retrieve default measurement unit; check config settings.");
+    }
 
     my $local_cask_size = $caskman->container_size_id->container_volume();
     my $cask_measure    = $caskman->container_size_id->container_measure_id();
@@ -665,7 +679,7 @@ sub filter_to_latex {
 
     my ( $text ) = @_;
 
-    # Common characters.
+    # Common ASCII characters.
     $text =~ s/ \{  /\\{/gxms;
     $text =~ s/ \}  /\\}/gxms;
     $text =~ s/ \&  /\\&/gxms;
@@ -677,69 +691,15 @@ sub filter_to_latex {
     $text =~ s/ \'  /\{\\textquotesingle\}/gxms;
     $text =~ s/ \"  /\{\\textquotedbl\}/gxms; # Requires \usepackage[T1]{fontenc}
 
-    # In the following we try to support both Latin-1 and UTF-8
-    # encodings. Note that the UTF-8 substitution requires
-    # mysql_enable_utf8 => 1 in the DBD::mysql connection options (see
-    # beerfestdb_web.yml).
+    # Non-ASCII characters; we use XML::Entities and LaTeX::Encode to do the heavy lifting.
+    # In the following we try to support both Latin-1 and UTF-8 encodings.
+    $text =~ s/ ([^[:ascii:]]) /latex_encode(xml_decode('all', $1))/gxmse;
 
-    # N.B. we're not covering all capitals yet FIXME?
-
-    # Hex representations can be found by running e.g.:
-    #    printf "%x", ord('ç')
-    # (although make sure you 'use utf8' when doing so).
-
-    # Grave accents.
-    $text =~ s/ (?: à | \x{e0} ) /\\`{a}/gxms;
-    $text =~ s/ (?: è | \x{e8} ) /\\`{e}/gxms;
-    $text =~ s/ (?: ì | \x{ec} ) /\\`{\\i}/gxms;
-    $text =~ s/ (?: ò | \x{f2} ) /\\`{o}/gxms;
-    $text =~ s/ (?: ù | \x{f9} ) /\\`{u}/gxms;
-
-    # Acute accents.
-    $text =~ s/ (?: á | \x{e1} ) /\\'{a}/gxms;
-    $text =~ s/ (?: é | \x{e9} ) /\\'{e}/gxms;
-    $text =~ s/ (?: í | \x{ed} ) /\\'{\\i}/gxms;
-    $text =~ s/ (?: ó | \x{f3} ) /\\'{o}/gxms;
-    $text =~ s/ (?: ú | \x{fa} ) /\\'{u}/gxms;
-    $text =~ s/ (?: ý | \x{fd} ) /\\'{y}/gxms;
-
-    $text =~ s/ (?: Á | \x{c1} ) /\\'{A}/gxms;
-    $text =~ s/ (?: É | \x{c9} ) /\\'{E}/gxms;
-    $text =~ s/ (?: Í | \x{cd} ) /\\'{\\I}/gxms;
-    $text =~ s/ (?: Ó | \x{d3} ) /\\'{O}/gxms;
-    $text =~ s/ (?: Ú | \x{da} ) /\\'{U}/gxms;
-
-    # Circumflex accents.
-    $text =~ s/ (?: â | \x{e2} ) /\\^{a}/gxms;
-    $text =~ s/ (?: ê | \x{ea} ) /\\^{e}/gxms;
-    $text =~ s/ (?: î | \x{ee} ) /\\^{\\i}/gxms;
-    $text =~ s/ (?: ô | \x{f4} ) /\\^{o}/gxms;
-    $text =~ s/ (?: û | \x{fb} ) /\\^{u}/gxms;
-
-    # Umlauts.
-    $text =~ s/ (?: ä | \x{e4} ) /\\"{a}/gxms;
-    $text =~ s/ (?: ë | \x{eb} ) /\\"{e}/gxms;
-    $text =~ s/ (?: ï | \x{ef} ) /\\"{\\i}/gxms;
-    $text =~ s/ (?: ö | \x{f6} ) /\\"{o}/gxms;
-    $text =~ s/ (?: ü | \x{fc} ) /\\"{u}/gxms;
-
-    $text =~ s/ (?: Ä | \x{c4} ) /\\"{A}/gxms;
-    $text =~ s/ (?: Ë | \x{cb} ) /\\"{E}/gxms;
-    $text =~ s/ (?: Ï | \x{cf} ) /\\"{\\I}/gxms;
-    $text =~ s/ (?: Ö | \x{d6} ) /\\"{O}/gxms;
-    $text =~ s/ (?: Ü | \x{dc} ) /\\"{U}/gxms;
-
-    # Misc. (brewers can be such smartarses).
-    $text =~ s/ (?: \£ | \x{a3} ) /\\pounds/gxms;
-    $text =~ s/ (?: ç  | \x{e7} ) /\\c{c}/gxms;
-    $text =~ s/ (?: ß  | \x{df} ) /\{\\ss}/gxms;
-    $text =~ s/ (?: ø  | \x{f8} ) /\\o /gxms;
-    $text =~ s/ (?: π  | \x{3c0} ) /\$\\pi\$/gxms;
-    $text =~ s/ (?: °  | \x{b0} ) /\$\^\{\\circ\}\$/gxms;
-    $text =~ s/ (?: ·  | \x{b7} ) /\\textperiodcentered /gxms;
-    $text =~ s/ (?: ž | \x{17e} ) /\\v{z}/gxms;
-    $text =~ s/ (?: Ā | \x{100} ) /\\={A}/gxms;
-    $text =~ s/ (?: ě | \x{11b} ) /\\v{e}/gxms;
+    # If needed, add more specific substitutions here. For example, if you want to
+    # replace "à" with "\`{a}" (which is already handled by the above) you could 
+    # use the following line:
+    #
+    # $text =~ s/ (?: à | \x{e0} ) /\\`{a}/gxms;
 
     return $text;
 }
@@ -811,7 +771,7 @@ The name of the beer, cider, or whatever.
 =item cask_size_std
 
 (Cask-level export only). The size of the cask in the currently
-configured default_measurement_unit (e.g., gallons).
+configured default container_size (e.g., gallons).
 
 =item cask_size_name
 

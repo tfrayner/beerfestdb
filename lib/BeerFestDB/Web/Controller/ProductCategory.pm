@@ -44,6 +44,8 @@ sub BUILD {
     $self->model_view_map({
         product_category_id   => 'product_category_id',
         description           => 'description',
+        is_status_public      => 'is_status_public',
+        is_stock_public       => 'is_stock_public',
     });
 
     $self->model_name('DB::ProductCategory');

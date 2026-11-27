@@ -52,6 +52,7 @@
    var url_contact_type_list    = '[% c.uri_for( "/contacttype/list" ) %]';
    var url_telephone_type_list  = '[% c.uri_for( "/telephonetype/list" ) %]';
    var url_country_list         = '[% c.uri_for( "/country/list" ) %]';
+   var url_protected_list       = '[% c.uri_for( "/protected/list" ) %]';
    var url_role_list            = '[% c.uri_for( "/role/list" ) %]';
    var url_user_list            = '[% c.uri_for( "/user/list" ) %]';
 
@@ -61,6 +62,8 @@
    var url_cask_submit          = '[% c.uri_for( "/cask/submit" ) %]';
    var url_cask_size_delete     = '[% c.uri_for( "/containersize/delete" ) %]';
    var url_cask_size_submit     = '[% c.uri_for( "/containersize/submit" ) %]';
+   var url_caskmanagement_delete = '[% c.uri_for( "/caskmanagement/delete" ) %]';
+   var url_caskmanagement_submit = '[% c.uri_for( "/caskmanagement/submit" ) %]';
    var url_caskmeasurement_delete = '[% c.uri_for( "/caskmeasurement/delete" ) %]';
    var url_caskmeasurement_submit = '[% c.uri_for( "/caskmeasurement/submit" ) %]';
    var url_category_submit      = '[% c.uri_for( "/productcategory/submit" ) %]';
@@ -101,6 +104,8 @@
    var url_productorder_submit  = '[% c.uri_for( "/productorder/submit" ) %]';
    var url_productstyle_submit  = '[% c.uri_for( "/productstyle/submit" ) %]';
    var url_productstyle_delete  = '[% c.uri_for( "/productstyle/delete" ) %]';
+   var url_protected_submit     = '[% c.uri_for( "/protected/submit" ) %]';
+   var url_protected_delete     = '[% c.uri_for( "/protected/delete" ) %]';
    var url_sale_volume_submit   = '[% c.uri_for( "/salevolume/submit" ) %]';
    var url_sale_volume_delete   = '[% c.uri_for( "/salevolume/delete" ) %]';
    var url_stillageloc_submit   = '[% c.uri_for( "/stillagelocation/submit" ) %]';
@@ -113,6 +118,7 @@
    var url_user_delete          = '[% c.uri_for( "/user/delete" ) %]';
    var url_user_modify                  = '[% c.uri_for( "/user/modify" ) %]';
    var url_user_request_password_reset  = '[% c.uri_for( "/user/request_password_reset" ) %]';
+   var url_system_defaults_submit = '[% c.uri_for( "/systemdefaults/submit" ) %]';
 
    var url_product_index        = '[% c.uri_for( "/product" ) %]';
 

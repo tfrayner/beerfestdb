@@ -72,6 +72,8 @@ __PACKAGE__->add_columns(
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "fst_end_date",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "public_status_tag",
+  { data_type => "varchar", is_nullable => 1, size => 30 },
 );
 
 =head1 PRIMARY KEY
@@ -215,6 +217,12 @@ __PACKAGE__->has_many(
 # You can replace this text with custom content, and it will be preserved on regeneration
 __PACKAGE__->many_to_many(
     "products" => "festival_products", "product_id"
+);
+
+__PACKAGE__->might_have(
+  "system_defaults",
+  "BeerFestDB::ORM::SystemDefaults",
+  { "foreign.festival_id" => "self.festival_id" },
 );
 
 sub repr {
