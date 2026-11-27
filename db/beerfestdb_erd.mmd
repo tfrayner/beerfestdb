@@ -38,7 +38,7 @@ erDiagram
     COMPANY }o--o| COMPANY_REGION : company_region_id
     CONTACT }o--o| COUNTRY : country_id
 
-    CASK }o--|| CASK_MANAGEMENT : cask_management_id
+    CASK_MANAGEMENT ||--o| CASK : cask_management_id
     CASK }o--|| GYLE : gyle_id
     CASK_MANAGEMENT }o--o| PRODUCT_ORDER : product_order_id
     CASK_MANAGEMENT }o--|| CURRENCY : currency_id
@@ -65,6 +65,13 @@ erDiagram
 
     USER_ROLE }o--|| USER : user_id
     USER_ROLE }o--|| ROLE : role_id
+    PASSWORD_RESET_TOKEN }o--|| USER : user_id
+
+    SYSTEM_DEFAULTS }o--o| FESTIVAL : festival_id
+    SYSTEM_DEFAULTS }o--o| CURRENCY : currency_id
+    SYSTEM_DEFAULTS }o--o| SALE_VOLUME : sale_volume_id
+    SYSTEM_DEFAULTS }o--o| PRODUCT_CATEGORY : product_category_id
+    SYSTEM_DEFAULTS }o--o| CONTAINER_MEASURE : container_measure_id
 
     CONTACT }o--|| CONTACT_TYPE : contact_type_id
     CONTACT ||--o{ TELEPHONE : contact_id
@@ -189,6 +196,7 @@ erDiagram
         text description
         date fst_start_date
         date fst_end_date
+        varchar public_status_tag
     }
 
     FESTIVAL_ENTRY {
@@ -256,11 +264,13 @@ erDiagram
     PRODUCT_CATEGORY {
         %% int product_category_id
         varchar description
+        tinyint is_status_public
+        tinyint is_stock_public
     }
 
     PRODUCT_CHARACTERISTIC {
         %% int product_characteristic_id
-        int value
+        varchar value
     }
 
     PRODUCT_CHARACTERISTIC_TYPE {
@@ -318,8 +328,30 @@ erDiagram
         varchar name
         varchar email
         varchar password
+        datetime date_created
+        datetime date_modified
+        datetime date_accessed
+        datetime date_password_changed
     }
 
     USER_ROLE {
         %% int user_role_id
+    }
+
+    PASSWORD_RESET_TOKEN {
+        %% int token_id
+        varchar token_hash
+        datetime expires_at
+        tinyint used
+        datetime created_at
+    }
+
+    PROTECTED {
+        %% int protected_id
+        varchar classname
+        tinyint loader
+    }
+
+    SYSTEM_DEFAULTS {
+        %% tinyint id
     }
